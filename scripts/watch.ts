@@ -42,11 +42,15 @@ function runSync(): void {
 function startWatching(): void {
   console.log("\n👀 Watching for changes...\n");
   console.log(`   📁 ${CONFIG.obsidianPublished}`);
+  console.log(`   📁 ${CONFIG.obsidianDrafts}`);
   console.log(`   📁 ${CONFIG.obsidianFiles}\n`);
   console.log("Press Ctrl+C to stop\n");
 
-  // Watch for markdown file changes in published folder
-  const mdWatcher = watch(path.join(CONFIG.obsidianPublished, "**/*.md"), {
+  // Watch for markdown file changes in published and drafts folders
+  const mdWatcher = watch([
+    path.join(CONFIG.obsidianPublished, "**/*.md"),
+    path.join(CONFIG.obsidianDrafts, "**/*.md"),
+  ], {
     persistent: true,
     ignoreInitial: true,
     awaitWriteFinish: {
