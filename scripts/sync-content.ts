@@ -4,9 +4,20 @@ import matter from "gray-matter";
 import { CONFIG, type Category } from "./config.js";
 
 interface ObsidianFrontmatter {
-  date?: string | Date;
+  // New full schema fields
+  title?: string;
+  description?: string;
+  pubDate?: string | Date;
+  updatedDate?: string | Date;
+  heroImage?: string;
+  heroAlt?: string;
+  category?: string;
   tags?: string[];
+  featured?: boolean;
+  draft?: boolean;
   slug?: string;
+  // Legacy fields for backwards compatibility
+  date?: string | Date;
   summary?: string;
 }
 
@@ -156,29 +167,33 @@ function processPost(filePath: string): void {
   // Parse the Obsidian file format
   const { title: extractedTitle, frontmatter: fm, content: rawContent } = parseObsidianFile(fileContent);
 
-  // Use extracted title or fallback to filename
-  const title = extractedTitle || filename.replace(/\.md$/, "").replace(/-/g, " ");
+  // Use frontmatter title, extracted title, or fallback to filename
+  const title = fm.title || extractedTitle || filename.replace(/\.md$/, "").replace(/-/g, " ");
 
   // Generate slug
   const slug = generateSlug(filename, fm.slug);
 
   // Extract all images from content
   const images = extractImages(rawContent);
-  const heroImage = images[0] || null;
+  // Use frontmatter heroImage or first image from content
+  const heroImageFromContent = images[0] || null;
 
-  // Map category from tags
-  const category = mapCategory(fm.tags);
+  // Map category from frontmatter or tags
+  const category = (fm.category && CONFIG.validCategories.includes(fm.category as Category))
+    ? fm.category as Category
+    : mapCategory(fm.tags);
 
   // Transform content (convert wikilinks)
   const transformedContent = transformContent(rawContent, slug);
 
-  // Format date as YYYY-MM-DD string
+  // Format date as YYYY-MM-DD string - prefer pubDate over legacy date field
   let pubDate: string;
-  if (fm.date) {
-    if (fm.date instanceof Date) {
-      pubDate = fm.date.toISOString().split("T")[0];
-    } else if (typeof fm.date === "string") {
-      pubDate = fm.date.split("T")[0];
+  const dateSource = fm.pubDate || fm.date;
+  if (dateSource) {
+    if (dateSource instanceof Date) {
+      pubDate = dateSource.toISOString().split("T")[0];
+    } else if (typeof dateSource === "string") {
+      pubDate = dateSource.split("T")[0];
     } else {
       pubDate = new Date().toISOString().split("T")[0];
     }
@@ -186,19 +201,24 @@ function processPost(filePath: string): void {
     pubDate = new Date().toISOString().split("T")[0];
   }
 
+  // Determine hero image - use frontmatter heroImage if set and not empty
+  const heroImage = (fm.heroImage && fm.heroImage.trim() !== "")
+    ? fm.heroImage
+    : heroImageFromContent;
+
   // Build Astro frontmatter
   const astroFm: AstroFrontmatter = {
     title,
-    description: fm.summary || `${title} - a blog post by Victor Augusteo`,
+    description: fm.description || fm.summary || `${title} - a blog post by Victor Augusteo`,
     pubDate,
     heroImage: heroImage ? `@assets/blog/${slug}/${heroImage}` : undefined,
-    heroAlt: heroImage
+    heroAlt: fm.heroAlt || (heroImage
       ? heroImage.replace(/[-_]/g, " ").replace(/\.\w+$/, "")
-      : title,
+      : title),
     category,
     tags: fm.tags,
-    featured: false,
-    draft: false,
+    featured: fm.featured ?? false,
+    draft: fm.draft ?? false,
   };
 
   // Create output directory for this post
