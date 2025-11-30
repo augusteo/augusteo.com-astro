@@ -1,0 +1,105 @@
+---
+title: "Using Goaccess to Replace Google Analytics feat. Caddy and Docker"
+description: "Using Goaccess to Replace Google Analytics feat. Caddy and Docker - a blog post by Victor Augusteo"
+pubDate: 2018-04-05
+heroImage: "@assets/blog/goaccess-replace-analytics/goaccess-replace-analytics-97a4ab11540ca4adebb1619ea8381bc2.jpg"
+heroAlt: "goaccess replace analytics 97a4ab11540ca4adebb1619ea8381bc2"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+[Goaccess](https://goaccess.io/) is a log analyser that can be used to visualise your website traffic.
+
+## Why use it?
+
+It has three advantages compared to traditional web analytics like Google Analytics or Piwik.
+
+1. Goaccess analyses the web server logs directly, so it doesn’t need to load javascript file. This will speed up the page load significantly.
+2. All the data is stored in your server, not on Google’s server. You own it.
+3. You can access it either using CLI or opening the generated html file.
+
+## Disadvantages
+
+1. Harder to setup; you can’t just copy paste the javascript loading codes to `<HEAD>` section.
+2. Very basic tracking mechanism. You can’t set customer sales funnel or drill down on granular data.
+
+For my use case, where I just wanted to know the unique visitors number, referrer, etc. It is good enough compromise.
+
+## Dockerizing Goaccess with Caddy
+
+The [official Docker image](https://hub.docker.com/r/allinurl/goaccess/) contains good tutorial on how to use it.
+
+The first step is to either build and run it, or just to use `docker-compose`. Any self-respecting Docker user will use the compose, so let’s take a look.
+
+**docker-compose.yml**
+
+```
+version: '2'
+services:
+     caddy:
+		   # other stuff
+         volumes:
+             - ./docker/caddy/logs:/etc/logs <- IMPORTANT
+             - ./docker/goaccess/.html:/site/goaccess <- To view it on subdomain
+     goaccess:
+         image: allinurl/goaccess
+         restart: unless-stopped
+         volumes:
+             - ./docker/goaccess/data:/srv/data
+             - ./docker/goaccess/.html:/srv/report
+             - ./docker/caddy/logs:/srv/logs
+
+```
+
+`./docker/caddy/logs:/etc/logs` This will share save the Caddy server logs to system disk folder, which in turn will be shared and read by Goaccess Docker image.
+
+`./docker/goaccess/.html:/site/goaccess` This will share let Caddy server to serve the generated Goaccess html file on a subdomain
+
+The Goaccess compose script is very standard, just following the default config on the Docker hub page.
+
+**Caddyfile**
+
+in Caddyfile, we just need to add this line to your desired host server to save the generated logs to disk:
+
+`log / /etc/logs/requests.log "{combined}"`
+
+This means we are logging all request (`/`) into `/etc/logs/requests.log` using the `"{combined}"` format. Combined is used here because it contains referrer and user agent.
+
+You can read more information on the log syntax on the [official docs](https://caddyserver.com/docs/log).
+
+If you wanted to access the generated html file on a subdomain, just add this to the Caddyfile:
+
+```
+ www.goaccess.example.com {
+     basicauth / admin password
+     root /site/goaccess
+     gzip
+ }
+
+```
+
+This will serve the generated `index.html` on the subdomain. Basic auth is important here if you don’t want just anyone to be able to see your analytics.
+
+**goaccess.conf**
+
+We need to specify the config file for Goaccess to tell it which file to load, like so:
+
+```
+ log-format COMBINED
+ log-file /srv/logs/requests.log
+ output /srv/report/index.html
+ real-time-html true
+
+```
+
+`COMBINED` is used here because we tell Caddy server to generate `Combined` log format.
+
+You are done, just run `docker-compose up -d` to spin up Caddy and Goaccess.
+
+When you access `www.goaccess.example.com` you should see something like:
+
+![goaccess-replace-analytics-97a4ab11540ca4adebb1619ea8381bc2.jpg](@assets/blog/goaccess-replace-analytics/goaccess-replace-analytics-97a4ab11540ca4adebb1619ea8381bc2.jpg)
+
+I hope this helps!

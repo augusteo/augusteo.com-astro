@@ -1,0 +1,37 @@
+---
+title: "Hugo shortcode to display all images in a folder"
+description: "Hugo shortcode to display all images in a folder - a blog post by Victor Augusteo"
+pubDate: 2018-12-17
+heroAlt: "Hugo shortcode to display all images in a folder"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+On posts that intents to share photos like [the drone post](https://hugo.augusteo.com/blog/drone-photos-from-cupertino-and-apple-park/), I wanted to be able to include all the images from a single static folder into the post. Doing it manually is troublesome as I have to copy paste the filename one by one into markdown.
+
+There’s gotta be an easy way to do that, but I’ve no experience working with Hugo, so I asked in the forum: [Automating inserting markdown of all images in a subfolder?](https://discourse.gohugo.io/t/automating-inserting-markdown-of-all-images-in-a-subfolder/15764)
+
+As you can see, people suggested using the [page resources](https://gohugo.io/content-management/page-resources/) which I don’t think works the way I wanted.
+
+My curiosity got the better of me and I learned how to write shortcode to:
+
+1. accept a parameter which contain the folder name in `/static/img`
+2. loop through every file inside that folder
+3. display the images with some padding
+
+To use this shortcode, you need to create a file called `album.html` in your theme’s shortcode directory and paste these code:
+
+```
+<!-- put bunch of photos in /static/img/albumName -->
+<!-- and insert shortcode "album albumName" in blogpost.md -->
+{{ $albumUrl := print "/static/img/" ($.Get 0) }}
+{{ range readDir $albumUrl }}
+    {{ $imgURL := print "img/" ($.Get 0) "/" .Name | absURL }}
+    <p><img src="{{ $imgURL }}"/></p>
+{{ end }}
+
+```
+
+Now you can put all images that you wanted to post in a single folder, the just insert the shortcode in the post.

@@ -1,0 +1,230 @@
+---
+title: "Running Gitlab CI With Docker"
+description: "Running Gitlab CI With Docker - a blog post by Victor Augusteo"
+pubDate: 2017-03-18
+heroImage: "@assets/blog/gitlab-ci-docker/gitlab-ci-docker-F7E6DFFD-92BA-4B7B-AC58-4BEA60FF4BB4.png"
+heroAlt: "gitlab ci docker F7E6DFFD 92BA 4B7B AC58 4BEA60FF4BB4"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+Recently I had the opportunity to play with Gitlab CI and had quite a bit of fun on the process. I wanted to share my experience in a tutorial format to share the fun with you :)
+
+This tutorial assumes no prior knowledge of Docker, but you need to know what CI is and how SSH works.
+
+### Summary:
+
+- Setup `.gitlab-ci.yml` file to tell the CI what to do
+- Setup Gitlab CI with docker
+- Create your Docker image and put up on Docker Hub
+- Use the newly created Docker image to speed up CI cycle
+
+### Background
+
+Our purpose is simple, and we want every single commit on dev branch to be rsync-ed to the server with an rsa ssh key. We are dealing with static files, so rsync is enough.
+
+Now Gitlab offers a built in CI, but we still need to set up its runner, instructions and the docker images. Let’s get to it.
+
+# Setting up Gitlab CI
+
+### Config file
+
+If you haven’t run any CI in Gitlab before, you need to set up the instructions first. To get started, just open up your project on Gitlab and click on `Set up CI` button.
+
+![gitlab-ci-docker-F7E6DFFD-92BA-4B7B-AC58-4BEA60FF4BB4.png](@assets/blog/gitlab-ci-docker/gitlab-ci-docker-F7E6DFFD-92BA-4B7B-AC58-4BEA60FF4BB4.png)
+
+￼ It will bring up a new file screen with the name `.gitlab-ci.yml` pre-filled. Type this into it:
+
+```
+image: centos:latest
+
+before_script:
+  - yum install -y which
+  - 'which ssh-agent || ( yum install -y openssh openssh-server openssh-clients openssl-libs )'
+  - 'which rsync || ( yum install -y rsync )'
+  - eval $(ssh-agent -s)
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  - mkdir -p ~/.ssh
+  - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+
+staging-deployment:
+  stage: deploy
+  script:
+    - rsync -hrvz files/* root@yourhost.com:/var/www/html/
+  only:
+    - dev
+
+```
+
+This file might not make sense now, but I promise by the end of this tutorial, you will understand it. Let’s go over them.
+
+Line 1 tells the CI runner to fetch the Docker image `centos:latest` from [Docker Hub](https://hub.docker.com/_/centos/) . If you aren’t familiar with Docker, just think of it as a container of all the stuff you need to do a particular task. Please have a read the [What is Docker](https://www.docker.com/what-docker) page, but it might raise more question than it answers. We will explore it more later.
+
+Any commands inside before_script will be executed before every CI cycle, so this is a good place to set up our SSH and dependencies.
+
+**Line 4–6** will install which, openssh and rsync to run our CI.
+
+**Line 7–10** sets up the SSH key that will be used by rsync. We should never put a private key into a repo, so we will be using Gitlab’s Secret Variable to store it. It can be referenced using the $SSH_PRIVATE_KEY line. We will set it up soon.
+
+**Line 12** sets up the name of the CI task. In this case we call it staging-deployment because we are deploying to staging environment. Then on the next line, we tell Gitlab that this is a deploy task.
+
+**Line 15** is the meat of the CI, which is the actual deployment. Rsync will use the ssh key that was set up previously and will start syncing the files from your repo to the yourhost.com server. The -hrvz modifier means:
+
+```
+/h/: human readable
+/r/: recursive, so subfolders get synced too
+/v/: verbose, so we can find out what went wrong from the logs
+/z/: compressed while transferring, to speed up and use less bandwidth
+
+```
+
+**Line 17** tells Gitlab only to execute this task when a commit is pushed to devbranch and not others. This will enable us to setup CI tasks for other branches as well. For example deploying to production server when a commit is pushed to release branch. Alright now that we understand this file, lets hit Commit Changes.
+
+### Setting up secret SSH variable
+
+![gitlab-ci-docker-1EAFED43-FFDE-423F-ACBD-CFFAF5DE114A.png](@assets/blog/gitlab-ci-docker/gitlab-ci-docker-1EAFED43-FFDE-423F-ACBD-CFFAF5DE114A.png)
+
+￼ Once you have committed the CI config, click Settings and CI/CD Pipelinesand scroll down until you see the Secret Variables. Type in `SSH_PRIVATE_KEY` on the Key field and paste in your private key. You can easily copy the private key to clipboard using `cat ~/.ssh/id_rsa | pbcopy`. Then save them.
+
+I am assuming you have already copied the public pair to the deployment server. If you haven’t, please follow this [Gitlab tutorial](https://docs.gitlab.com/ce/ssh/README.html) .
+
+### Setting up CI runner
+
+Now that our CI setup is done, we need something that will actually run the commands. The cheapest way would be to spin up a small linux VPS. You can provision one for $2.50/month from [Vultr](https://www.vultr.com/pricing/) .
+
+Head over to the [Gitlab runner page](https://docs.gitlab.com/runner/install/) for installation instructions for each of your operating systems. Make sure you select docker as the executor and enter `centos:latest` when asked for Docker image.
+
+After this is done, refresh your CI/CD page on Gitlab and you should see the runner shown. For example:
+
+![gitlab-ci-docker-39F358E7-D5D6-46EE-BC1B-E0E48D888355.png](@assets/blog/gitlab-ci-docker/gitlab-ci-docker-39F358E7-D5D6-46EE-BC1B-E0E48D888355.png)
+
+￼ If it doesn’t show up, try to read the [runner documentation](https://about.gitlab.com/gitlab-ci/#gitlab-runner) for help or ask around.
+
+### First CI task!
+
+Now you have set up the runner and CI config, and you are ready! Since our config states that the runner will only be executed when a commit is pushed to dev branch, you should do that then.
+
+```
+$ cd test-gitlab-ci
+$ mkdir files
+$ cd files
+$ vim index.html // and type in your html
+$ cd ..
+$ git checkout -b dev
+$ git add .
+$ git commit -m ‘initial index.html’
+$ git push origin dev
+
+```
+
+Gitlab CI should detect the commit and initiate the task. Head over to Pipeline -> Jobs to see the job being executed:
+
+![gitlab-ci-docker-A8F90394-305F-43A4-801F-FB2BAF1F7F36.png](@assets/blog/gitlab-ci-docker/gitlab-ci-docker-A8F90394-305F-43A4-801F-FB2BAF1F7F36.png)
+
+￼ Hopefully things run well, and you should see a job running. You can click on the job to see the details.
+
+### Turning on the Docker service
+
+If the CI job fails and when you check the logs, you see something like:
+
+- `ERROR: Preparation failed: Get http://unix.sock/v1.18/version: dial unix /var/run/docker.sock: connect: no such file or directory*`
+
+It means you have forgotten to turn on the docker service in the CI server. Just SSH into the runner machine and start the service. It should either be:
+
+`$ sudo service docker start`
+
+or
+
+`$ sudo systemctl *start* docker`
+
+Once the daemon is up, you can rerun the failed task again and it should pass.
+
+### What you have achieved so far
+
+So up to this point, you have:
+
+- Set up Gitlab CI config file
+- Set up Gitlab CI runner
+- Run your first commit to dev branch
+- Fix an error!
+
+Things seems to be going well, but there’s something that we can improve very easily.
+
+If you see the running time of the CI, you should see that it runs for more than one minutes. That is because the vanilla CentOS box doesn’t come with rsync and openssh out of the box, so we need to install them. That process gets repeated every-time thus sucks a lot of time. We can easily fix this by creating your own Docker image of CentOS but with rsync and openssh preinstalled.
+
+### Creating your Docker image
+
+First, lets install Docker. If you are on macOS, your can [download the Docker app](https://docs.docker.com/docker-for-mac/install/) to handle all that for you. If you, look on the left sidebar for your operating system.
+
+Then lets create a new folder and make a Dockerfile
+
+```
+$ mkdir my-docker
+$ cd my-docker
+$ vim Dockerfile
+
+```
+
+Type in this, but change the MAINTAINER to your own name.
+
+```
+FROM centos:latest
+MAINTAINER Augusteo
+
+RUN yum -y update; yum clean all
+RUN yum -y install openssh openssh-server openssh-clients openssl-libs rsync which; yum clean all
+
+```
+
+To build the Docker image, just type in
+
+`$ docker build -t my-docker .`
+
+You should see it fetching the `centos:latest` and then installing all our dependencies. So next time you run your CI using this new image, it will skip the installation and goes straight to the deployment. In my case it cuts the deploy time from more than one minute to less than twenty seconds.
+
+### Pushing to Docker Hub
+
+To use your new image, we need to push it to Docker hub. The process is pretty straightforward, just follow this:
+
+If you want to skip all this work and wanted just to use a ready made image, you can use mine:
+
+[https://hub.docker.com/r/augusteo/centos-rsync-openssh/](https://hub.docker.com/r/augusteo/centos-rsync-openssh/)
+
+### Changing the Gitlab CI config
+
+Now we need to change the Gitlab CI config file to make use of the new Docker image and remove the dependencies installation. Edit your `.gitlab-ci.yml` file to look like:
+
+```
+image: augusteo/centos-rsync-openssh
+
+before_script:
+  - eval $(ssh-agent -s)
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  - mkdir -p ~/.ssh
+  - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+
+staging-deployment:
+  stage: deploy
+  script:
+    - rsync -hrvz files/* root@yourhost.com:/var/www/html/
+  only:
+    - dev
+
+```
+
+You can see that we have changed the image to the new CentOS image with rsync and `openssh`. If you have pushed your own image, feel free to change this to your own.
+
+In before_script, we have removed the three dependencies installation lines since we have already done it on container level. Just commit and push this file, and you should see that your CI execution time reduced to less than twenty seconds.
+
+# Summary
+
+You have learned:
+
+- Setup `.gitlab-ci.yml` file to tell the CI what to do
+- Setup Gitlab CI with docker
+- Create your Docker image and put up on Docker Hub
+- Use the newly created Docker image to speed up CI cycle
+
+**I hope you enjoyed this article and it helps you in your development life!**

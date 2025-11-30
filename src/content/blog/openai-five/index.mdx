@@ -1,0 +1,140 @@
+---
+title: "OpenAI Five - Study Notes"
+description: "OpenAI Five - Study Notes - a blog post by Victor Augusteo"
+pubDate: 2018-07-08
+heroImage: "@assets/blog/openai-five/openai-five-tOZJkICRr-7xoEcAZ-sRcx2kQbR2_YjHmfT6WYdnJ5s.jpg"
+heroAlt: "openai five tOZJkICRr 7xoEcAZ sRcx2kQbR2 YjHmfT6WYdnJ5s"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+*This blog post is my study notes on OpenAI Five. I am not involved in the research effort.*
+
+## Why Dota?
+
+- objective -> destroy enemy’s throne. to do that you have to destroy the 4 layers of defensive towers while the other team is defending them/attacking your tower.
+    
+    ![openai-five-tOZJkICRr-7xoEcAZ-sRcx2kQbR2_YjHmfT6WYdnJ5s.jpg](@assets/blog/openai-five/openai-five-tOZJkICRr-7xoEcAZ-sRcx2kQbR2_YjHmfT6WYdnJ5s.jpg)
+    
+- There are 115+ (and growing) unique heroes with unique spells and play styles. Each hero has access to 3 spells and one (usually long cooldown) ultimate spell.
+- Established game with millions of player worldwide. It was released the year 2003 as a map of Blizzard’s Warcraft 3 game.
+    
+    ![openai-five-maxresdefault.jpg](@assets/blog/openai-five/openai-five-maxresdefault.jpg)
+    
+- IceFrog was then hired by Valve to make Dota 2.  Valve is currently raising fund for ‘The International 2018’ [prize pool](http://www.dota2.com/international/battlepass/)
+    
+    ![openai-five-Dota-2.jpg](@assets/blog/openai-five/openai-five-Dota-2.jpg)
+    
+- Super popular e-sports with largest-prize pool tournament in the world.
+    
+    ![openai-five-Screen20Shot202018-07-0620at209.18.4620am.jpg](@assets/blog/openai-five/openai-five-Screen20Shot202018-07-0620at209.18.4620am.jpg)
+    
+- With top players [earning millions of dollars](https://www.esportsearnings.com/games/231-dota-2/top-players)
+    
+    ![openai-five-Screen20Shot202018-07-0820at201.00.5620pm.jpg](@assets/blog/openai-five/openai-five-Screen20Shot202018-07-0820at201.00.5620pm.jpg)
+    
+- Very complex game
+    - OpenAI Five observes every fourth frame, yielding 20,000 moves. [Chess](https://blog.ebemunk.com/a-visual-look-at-2-million-chess-games/) usually ends before 40 moves, [Go](https://en.wikipedia.org/wiki/Go_and_mathematics#Game_tree_complexity) before 150 moves, with almost every move being strategic
+    - there is an average of ~1,000 valid actions each tick. The average [number of actions](https://en.wikipedia.org/wiki/Branching_factor) in chess is 35; in Go, 250.
+    - Valve’s [Bot API](https://developer.valvesoftware.com/wiki/Dota_Bot_Scripting) shows as many as 20,000 (mostly floating-point) numbers representing all information a human is allowed to access. A chess board is naturally represented as about 70 enumeration values; a Go board as about 400 enumeration values.
+    - I started playing this game more than 13 years ago when I was still in high school/college. The game has been actively developed for over a decade. The game also gets an update about once every two weeks, constantly changing the environment semantics.
+
+## Previous work:
+
+- 1v1 bot - [Dota 2](https://blog.openai.com/dota-2/)
+- simpler version that only works for 1v1. With a single hero (Shadow Fiend).
+- result: beat all contestants, who themselves are top Dota players in the world.
+
+## Related research effort
+
+## What is OpenAI Five?
+
+- It’s a team of five neural networks that can work together to fight five human players in the game of Dota.
+- hardware stats:
+    
+    ![openai-five-Screen20Shot202018-07-0720at2010.26.2620pm.jpg](@assets/blog/openai-five/openai-five-Screen20Shot202018-07-0720at2010.26.2620pm.jpg)
+    
+    - The 256 P100 optimizers are less than $400/hr. You can rent 128000 preemptible vcpus for another $1280/hr. Toss in some more support GPUs, and we’re at maybe $2500/hr all in.
+    - that is $57,600/day
+    - they have trained, 2+ months, so around $4 million so far just for hardware.
+- learns using a massively-scaled version of [Proximal Policy Optimization](https://blog.openai.com/openai-baselines-ppo/) PPO is a class of reinforcement learning algorithm
+    
+    ![openai-five-math_PPO_5-1.png](@assets/blog/openai-five/openai-five-math_PPO_5-1.png)
+    
+- Each of [OpenAI Five’s networks](https://d4mucfpksywv.cloudfront.net/research-covers/openai-five/network-architecture.pdf) contain a single-layer, 1024-unit [LSTM](http://colah.github.io/posts/2015-08-Understanding-LSTMs/#lstm-networks) that sees the current game state (extracted from Valve’s [Bot API](https://developer.valvesoftware.com/wiki/Dota_Bot_Scripting) ) and emits actions through several possible action heads. Each head has semantic meaning, for example, the number of ticks to delay this action, which action to select, the X or Y coordinate of this action in a grid around the unit, etc. Action heads are computed independently.
+    
+    ![openai-five-Screen20Shot202018-07-0720at2011.10.1820pm.jpg](@assets/blog/openai-five/openai-five-Screen20Shot202018-07-0720at2011.10.1820pm.jpg)
+    
+- Current set of restrictions:
+    - 5 invulnerable couriers, no exploiting them by scouting or tanking
+- Even with OpenAI restrictions, there are hundreds of items, dozens of buildings, spells, and unit types, and a long tail of game mechanics to learn about — many of which yield powerful combinations. It’s not easy to explore this combinatorially-vast space efficiently.
+- OpenAI Five learns from self-play (starting from random weights), which provides a natural curriculum for exploring the environment. To avoid “strategy collapse”, the agent trains 80% of its games against itself and the other 20% against its past selves. In the first games, the heroes walk aimlessly around the map. After several hours of training, concepts such as [laning](https://www.reddit.com/r/DotA2/comments/17fj2y/laning_101/) , [farming](https://dota2.gamepedia.com/Farming) , or fighting over [mid](https://pvgna.com/dota2/paths/how-to-master-mid-lane) emerge. After several days, they consistently adopt basic human strategies: attempt to steal [Bounty](https://dota2.gamepedia.com/Bounty_Rune) runes from their opponents, walk to their [tier one](https://dota2.gamepedia.com/Buildings#Towers) towers to farm, and rotate heroes around the map to gain lane advantage. And with further training, they become proficient at high-level strategies like [5-hero push](https://www.reddit.com/r/DotA2/comments/4iyr00/how_do_you_counter_a_5man_early_game_push_strat/) .
+- OpenAI Five does not contain an explicit communication channel between the heroes’ neural networks. Teamwork is controlled by a hyperparameter OpenAI dubbed “team spirit”. Team spirit ranges from 0 to 1, putting a weight on how much each of OpenAI Five’s heroes should care about its individual reward function versus the average of the team’s reward functions. OpenAI anneals its value from 0 to 1 overtraining.
+
+## Training Methods
+
+- implemented as a general-purpose RL training system called Rapid, which can be applied to any [Gym](https://github.com/openai/gym) environment. OpenAI used Rapid to solve other problems at OpenAI, including [Competitive Self-Play](https://blog.openai.com/competitive-self-play/)
+    - gym: [Gym](https://gym.openai.com/)
+        - Gym is a toolkit for developing and comparing reinforcement learning algorithms. It supports teaching agents everything from [walking](https://gym.openai.com/envs/Humanoid-v1) to playing games like [Pong](https://gym.openai.com/envs/Pong-ram-v0) or [Pinball](https://gym.openai.com/envs/VideoPinball-ram-v0) .
+    - [Competitive Self-Play](https://blog.openai.com/competitive-self-play/) allows simulated AIs to discover physical skills like tackling, ducking, faking, kicking, catching, and diving for the ball, without explicitly designing an environment with these skills in mind. Self-play ensures that the environment is always the right difficulty for an AI to improve.
+- The training system is separated into rollout workers, which run a copy of the game and an agent gathering experience, and optimizer nodes, which perform synchronous gradient descent across a fleet of GPUs. The rollout workers sync their experience through Redis to the optimizers. Each experiment also contains workers evaluating the trained agent versus reference agents, as well as monitoring software such as [TensorBoard](https://www.tensorflow.org/programmers_guide/summaries_and_tensorboard) , [Sentry](https://sentry.io/welcome/) , and [Grafana](https://grafana.com/) .
+    
+    ![openai-five-rapid-architecture2x--1-.png](@assets/blog/openai-five/openai-five-rapid-architecture2x--1-.png)
+    
+- During synchronous gradient descent, each GPU computes a gradient on its part of the batch, and then the gradients are globally averaged. OpenAI originally used [MPI’s](https://en.wikipedia.org/wiki/Message_Passing_Interface) [allreduce](http://www.mcs.anl.gov/research/projects/mpi/mpi-standard/mpi-report-1.1/node82.htm) for averaging, but now use OpenAI own [NCCL2](https://developer.nvidia.com/nccl) wrappers that parallelize GPU computations and network data transfer.
+    - NCCL2 = The NVIDIA Collective Communications Library (NCCL) implements multi-GPU and multi-node collective communication primitives that are performance optimized for NVIDIA GPUs. NCCL provides routines such as all-gather, all-reduce, broadcast, reduce, reduce-scatter, that are optimized to achieve high bandwidth over PCIe and NVLink high-speed interconnect.
+- The latencies for synchronizing 58MB of data (size of OpenAI Five’s parameters) across different numbers of GPUs are shown on the right. The latency is low enough to be largely masked by GPU computation which runs in parallel with it.  OpenAI implemented Kubernetes, Azure, and GCP backends for Rapid.
+    
+    ![openai-five-gpu-synchronization-time-small2x.png](@assets/blog/openai-five/openai-five-gpu-synchronization-time-small2x.png)
+    
+
+## Reward Functions
+
+- Each hero’s reward is a linear combination of separate signals from the game. Each of these signals produces a score, and the agent’s reward is the increase in score from one tick to the next.
+- These signals and weights were designed by OpenAI local Dota experts at the start, and have only been tweaked a handful of times since.
+    - **Individual Scores**
+    - **Building Scores**
+    - **Lane Assignments**
+        - agent receives a special reward to encourage exploration called “lane assignments.” During training, OpenAI assigns each hero a subset of the three lanes in the game. The model observes this assignment, and receives a negative reward (-0.02) if it leaves the designated lanes early in the game.
+- **Zero Sum** Each team’s mean reward is subtracted from the rewards of the enemy team to ensure that the sum of all ten rewards is zero, thereby preventing the two teams from finding positive-sum situations. It also ensures that whenever OpenAI assigns reward for a signal like “killing a tower,” the agent automatically receives a comparable signal for the reverse; “defending a tower that would have died.” `hero_rewards[i] -= mean(enemy_rewards)`
+- **Team Spirit** OpenAI wants them to take into account their teammates’ situations, rather than greedily optimizing for their own reward. For this reason, OpenAI average the reward across the team’s heroes using a hyperparameter τ called “team spirit”: `hero_rewards[i] = τ * mean(hero_rewards) + (1 - τ) * hero_rewards[i]` OpenAI anneals τ from 0.2 at the start of training to 0.97 at the end of OpenAI current experiment.
+- **Time Scaling** The majority of reward mass in OpenAI agent’s rollout experience comes from the later part of the game. However, the early game can be very important; if the agent plays badly at the start, it can be hard to recover. OpenAI wish OpenAI training scheme to place sufficient importance on the early part of the game. For this reason OpenAI scales up all rewards early in the game and scale down rewards late in the game, by multiplying all rewards by: `hero_rewards[i] *= 0.6 ** (T/10 min)`
+
+## Training progression
+
+**teams:** 1. Best OpenAI employee team: 2.5k [MMR](https://dota2.gamepedia.com/Matchmaking_Rating) (46th percentile) 2. Best audience players watching OpenAI employee match (including Blitz, who commentated the first OpenAI employee match): 4-6k MMR (90th-99th percentile), though they’d never played as a team. 3. Valve employee team: 2.5-4k MMR (46th-90th percentile). 4. Amateur team: 4.2k MMR (93rd percentile), trains as a team. 5. Semi-pro team: 5.5k MMR (99th percentile), trains as a team.
+
+**Versions:** * The April 23rd version of OpenAI Five was the first to beat OpenAI scripted baseline. * The May 15th version of OpenAI Five was evenly matched versus team 1, winning one game and losing another. * The June 6th version of OpenAI Five decisively won all its games versus teams 1-3. OpenAI set up informal [scrims](https://www.reddit.com/r/DotA2/comments/3s9zet/what_is_a_scrim/) with teams 4 & 5, expecting to lose soundly, but OpenAI Five won two of its first three games versus both.
+
+**Observations:** * Repeatedly sacrificed its own [safe lane](https://dota2.gamepedia.com/Lane) (top lane for dire; bottom lane for radiant) in exchange for controlling the enemy’s safe lane, forcing the fight onto the side that is harder for their opponent to defend. This strategy emerged in the professional scene in the last few years, and is now considered to be the prevailing tactic. * Pushed the [transitions](https://purgegamers.true.io/purge/phases-of-the-game/) from early- to mid-game faster than its opponents. It did this by: (1) setting up successful [ganks](https://dota2.gamepedia.com/Ganking) (when players move around the map to ambush an enemy hero — see animation) when players overextended in their lane, and (2) by grouping up to take towers before the opponents could organize a counterplay. * Deviated from current [playstyle](https://liquipedia.net/dota2/Metagame) in a few areas, such as giving [support](https://dota2.gamepedia.com/Role#Support) heroes (which usually do not take priority for resources) lots of early experience and gold. OpenAI Five’s prioritization allows for its damage to peak sooner and push its advantage harder, winning team fights and capitalizing on mistakes to ensure a fast win.
+
+## Difference versus humans
+
+- the bot instantly sees data like positions, healths, and item inventories that humans have to check manually. because just rendering pixels from the game would require thousands of GPUs. this is cost saving method.
+- OpenAI Five averages around 150-170 actions per minute (and has a theoretical maximum of 450 due to observing every 4th frame). Frame-perfect timing, while [possible](https://www.reddit.com/r/DotA2/comments/493wib/frameperfect_stun_by_swindle_on_enchantress_in_eg/) for skilled players, is trivial for OpenAI Five. OpenAI Five has an average reaction time of 80ms, which is faster than humans.
+    - different heroes have a different need for higher APM.
+    - the 5 heroes that OpenAI chose are considered ‘beginner’ heroes in that they require fairly low APM to play.
+    - all the 5 heroes also are ranged heroes who are considered easier to play.
+    - higher APM heroes example are [Invoker - Dota 2 Wiki](https://dota2.gamepedia.com/Invoker), [Meepo - Dota 2 Wiki](https://dota2.gamepedia.com/Meepo) or [Chen - Dota 2 Wiki](https://dota2.gamepedia.com/Chen) due to having many skills (invoker has 14) and controlling many units at once (Chen’s creeps or meepo’s clones)
+
+## Surprising Findings
+
+- **Binary rewards can give good performance.** OpenAI 1v1 model had a shaped reward, including rewards for last hits, kills, and the like. OpenAI ran an experiment where OpenAI only rewarded the agent for winning or losing, and it trained an order of magnitude slower and somewhat plateaued in the middle, in contrast to the smooth learning curves OpenAI usually see. The experiment ran on 4,500 cores and 16 k80 GPUs, training to the level of semi-pros (70 [TrueSkill](https://en.wikipedia.org/wiki/TrueSkill) ) rather than 90 TrueSkill of OpenAI best 1v1 bot).
+    - Binary rewards (win/loss score at the end of the rollout) scored a “good” 70.
+    - With sparse reward scored a better 90 and learned much faster.
+- Creep blocking can be learned from scratch. For 1v1, OpenAI learned [creep blocking](https://blog.openai.com/more-on-dota-2/#thetask) using traditional RL with a “creep block” reward.
+- bugs: large negative reward for reaching level 25. It turns out it’s possible to beat good humans while still hiding serious bugs!
+    
+    ![openai-five-bug-comparison-small2x.png](@assets/blog/openai-five/openai-five-bug-comparison-small2x.png)
+    
+
+## next steps
+
+- [The International 2018 - Dota 2 Wiki](https://dota2.gamepedia.com/The_International_2018) where OpenAI might battle the all-star or winning team like last year’s 1v1 bot test.
+- July 28th - OpenAI will try to battle a team of top players
+
+## discussions:
+
+[OpenAI Five | Hacker News](https://news.ycombinator.com/item?id=17392455) [https://www.reddit.com/r/programming/comments/8tse7u/openai_five_5v5_dota_2_bots/](https://www.reddit.com/r/programming/comments/8tse7u/openai_five_5v5_dota_2_bots/)

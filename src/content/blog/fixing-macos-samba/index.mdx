@@ -1,0 +1,48 @@
+---
+title: "Fixing Slow Macos Finder Samba"
+description: "Fixing Slow Macos Finder Samba - a blog post by Victor Augusteo"
+pubDate: 2017-03-04
+heroAlt: "Fixing Slow Macos Finder Samba"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+As a bonus, this will also enable searching on Samba too.
+
+### Problem
+
+I have a external HDD plugged into a Raspi which acts as a seed box of some kind. The files are served with Samba. The problem was:
+
+- Listing large amount of file in a directory takes ages.
+- Search doesn’t work at all, it just got stuck at “Searching”.
+- Transfer speed was very slow.
+
+### Solution
+
+After much searching, the fix is quite simple actually.
+
+First, SSH into the server with `$ ssh serverIp`
+
+Then edit the Samba config by typing `$ vim /etc/samba/smb.conf`
+
+Once it is open add these lines to your particularly slow Samba shares:
+
+```
+vfs objects = fruit
+fruit:aapl = yes
+fruit:encoding = native
+fruit:locking = none
+fruit:metadata = stream
+fruit:resource = file
+
+```
+
+Lastly restart the server with `$sudo service smbd restart`
+
+### Result
+
+Now the listing large directory should be pretty fast, search should work as normal and transfer speed should be around 10x faster.
+
+### References

@@ -1,0 +1,103 @@
+---
+const categories = ["all", "travels", "tech", "books", "philosophy"];
+---
+
+<div class="filters">
+  {categories.map((cat, i) => (
+    <button
+      class:list={["filter-btn", i === 0 && "active"]}
+      data-category={cat}
+    >
+      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+    </button>
+  ))}
+</div>
+
+<script>
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const category = (btn as HTMLElement).dataset.category;
+
+      // Update active state
+      document.querySelectorAll(".filter-btn").forEach((b) => {
+        b.classList.remove("active");
+      });
+      btn.classList.add("active");
+
+      // Filter posts
+      document.querySelectorAll(".post-card").forEach((card) => {
+        const cardEl = card as HTMLElement;
+        if (category === "all" || cardEl.dataset.category === category) {
+          cardEl.style.display = "grid";
+          cardEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300 });
+        } else {
+          cardEl.style.display = "none";
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .filter-btn {
+    font-family: var(--font-hand);
+    font-size: 1.1rem;
+    padding: 0.4rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--color-ink-light);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+  }
+
+  .filter-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: -1;
+  }
+
+  .filter-btn[data-category="all"]::before {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterAll'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23b2bec3' opacity='0.3' filter='url(%23filterAll)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .filter-btn[data-category="travels"]::before {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterTrav'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%2387ceeb' opacity='0.5' filter='url(%23filterTrav)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .filter-btn[data-category="tech"]::before {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterTech'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%238fbc8f' opacity='0.5' filter='url(%23filterTech)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .filter-btn[data-category="books"]::before {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterBooks'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23cd853f' opacity='0.4' filter='url(%23filterBooks)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .filter-btn[data-category="philosophy"]::before {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterPhil'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23deb887' opacity='0.5' filter='url(%23filterPhil)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .filter-btn:hover::before,
+  .filter-btn.active::before {
+    opacity: 1;
+  }
+
+  .filter-btn.active {
+    color: var(--color-ink);
+  }
+</style>

@@ -1,0 +1,467 @@
+---
+title: "From Swift to Rails: My Foray Into Non-Trivial Ruby on Rails"
+description: "My journey into Ruby on Rails, exploring the differences in design patterns, type safety challenges, and discovering how delegators and resources can create cleaner, more maintainable code."
+pubDate: 2025-03-03
+heroImage: "@assets/blog/swift-to-rails-learning-design-patterns/swift-to-rails-learning-design-patterns-mermaid-diagram-2025-03-02-171124.svg"
+heroAlt: "swift to rails learning design patterns mermaid diagram 2025 03 02 171124"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+I've been diving into Ruby on Rails after years of working with Swift for iOS and React. The mental shift has been quite interesting, and I wanted to share my observations while they're still fresh.
+
+## MVC vs. MVVM: Not What I Expected
+
+Coming from the iOS world, I'm thoroughly accustomed to the MVVM (Model-View-ViewModel) pattern. iOS originally used MVC with UIKit, but Rails' implementation of MVC differs significantly from what I anticipated.
+
+In iOS with CoreData, **model** files are typically small and lightweight, while the **controller** ends up doing most of the heavy lifting. This imbalance is precisely why iOS shifted toward MVVM – controllers were becoming unwieldy and overly complex. The ViewModel serves *somewhat* like a controller, but its role is more focused – it doesn't directly control the view; rather, it supplies the data for the view to respond to.
+
+**In Rails, I discovered the opposite problem.** Controllers are designed to be thin, while models tend to become bloated! Developers often add increasing amounts of business logic into model files, transforming them from simple data definitions into repositories of helper methods and modifiers.
+
+Here's what a "fat" Rails model typically looks like:
+
+```ruby
+class Car < ApplicationRecord
+  # Basic attributes: make, model, year
+
+  # Validations
+  validates :make, presence: true
+  validates :year, numericality: { only_integer: true }
+
+  # Business logic
+  def legal_in_america?
+    current_year = Date.today.year
+    self.year >= (current_year - 10)
+  end
+
+  # More business logic
+  def full_name
+    "#{self.year} #{self.make} #{self.model}"
+  end
+
+  # Price calculation logic
+  def depreciated_value(original_price)
+    age = Date.today.year - self.year
+    depreciation_factor = [0.1 * age, 0.9].min
+    original_price * (1 - depreciation_factor)
+  end
+
+  # More methods...
+  def needs_emission_test?
+    self.year < Date.today.year - 2
+  end
+
+  # And more methods...
+  def registration_fee
+    base_fee = 100
+    extra_fee = Date.today.year - self.year
+    base_fee + (extra_fee * 5)
+  end
+end
+
+```
+
+In Swift MVVM, this logic would naturally reside in the ViewModel, not the model. Yet in Rails, all of it tends to accumulate in the model.
+
+## The Delegation Solution: Keeping Models Slim
+
+As I explored further, I discovered additional components in the Rails ecosystem that address this problem quite elegantly. One particularly useful solution is using the **SimpleDelegator** pattern.
+
+Ruby's standard library provides a `SimpleDelegator` class that allows you to wrap an object and delegate method calls to it, while also adding additional functionality. This is perfect for extracting logic from models without losing access to their attributes and methods.
+
+Here's how it works:
+
+```ruby
+# The slimmed-down model
+class Car < ApplicationRecord
+  # Just basic attributes and validations
+  validates :make, presence: true
+  validates :year, numericality: { only_integer: true }
+end
+
+# A decorator that adds legal-related functionality
+class CarLegalDecorator < SimpleDelegator
+  def legal_in_america?
+    current_year = Date.today.year
+    year >= (current_year - 10)
+  end
+
+  def needs_emission_test?
+    year < Date.today.year - 2
+  end
+end
+
+# A decorator for financial concerns
+class CarFinanceDecorator < SimpleDelegator
+  def depreciated_value(original_price)
+    age = Date.today.year - year
+    depreciation_factor = [0.1 * age, 0.9].min
+    original_price * (1 - depreciation_factor)
+  end
+
+  def registration_fee
+    base_fee = 100
+    extra_fee = Date.today.year - year
+    base_fee + (extra_fee * 5)
+  end
+end
+
+# Usage in a controller
+def show
+  @car = Car.find(params[:id])
+  @legal_car = CarLegalDecorator.new(@car)
+
+  if @legal_car.legal_in_america?
+    # Do something
+  end
+end
+
+```
+
+The beauty of `SimpleDelegator` is that it automatically forwards method calls to the wrapped object. Notice how in the `legal_in_america?` method, I can directly call `year` instead of `car.year` because the method call is delegated to the Car object.
+
+This approach brings several advantages. Controllers can use only the specific decorator they need, without having to know about all the other business logic. For instance, only the legal controller needs to use the `CarLegalDecorator`.
+
+## Presentation Layer: JSON Resources
+
+Another powerful component I discovered is the **JSON Resources** concept, which functions as a presenter layer. In Rails, libraries like Alba provide a clean way to define how to present a model as JSON.
+
+Here's how a resource would look using the Alba gem:
+
+```ruby
+# frozen_string_literal: true
+class CarResource
+  include Alba::Resource
+
+  attributes :id, :make, :model, :year
+
+  # Derived attributes
+  attribute :name
+  attribute :is_legal
+  attribute :registration_status
+  attribute :owner_info
+  attribute :maintenance_history
+
+  # Access decorated car for legal checks
+  def decorated_car(car)
+    @decorated_car ||= CarLegalDecorator.new(car)
+  end
+
+  # Access finance decorator for financial calculations
+  def finance_decorator(car)
+    @finance_decorator ||= CarFinanceDecorator.new(car)
+  end
+
+  def name(car)
+    "#{car.year} #{car.make} #{car.model}"
+  end
+
+  def is_legal(car)
+    decorated_car(car).legal_in_america?
+  end
+
+  def registration_status(car)
+    car.year < Date.today.year - 5 ? "Needs renewal" : "Valid"
+  end
+
+  def owner_info(car)
+    car.owner&.name || "No owner information"
+  end
+
+  def maintenance_history(car)
+    car.maintenance_records&.map do |record|
+      {
+        date: record.service_date,
+        description: record.description,
+        cost: finance_decorator(car).adjust_for_inflation(record.cost)
+      }
+    end || []
+  end
+end
+
+```
+
+Then in the controller, instead of building complex JSON structures, you simply use the resource:
+
+```ruby
+class CarsController < ApplicationController
+  def index
+    @cars = Car.includes(:owner, :maintenance_records).all
+
+    respond_to do |format|
+      format.html # Render the index.html.erb template
+      format.json { render json: @cars.map { |car| CarResource.new(car).serializable_hash } }
+    end
+  end
+end
+
+```
+
+The real power becomes evident when using this in an ERB template with data grids like AG Grid:
+
+```html
+<%# In your index.html.erb template %>
+<div id="cars-grid" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    new agGrid.Grid(document.querySelector('#cars-grid'), {
+      columnDefs: [
+        { headerName: 'Car', field: 'name' },
+        { headerName: 'Legal Status', field: 'is_legal',
+          cellRenderer: params => params.value ? 'Legal' : 'Illegal' },
+        { headerName: 'Registration', field: 'registration_status' },
+        { headerName: 'Owner', field: 'owner_info' },
+        // More columns...
+      ],
+      // The key part - using our resource to format the data
+      rowData: <%= raw @cars.map { |car| CarResource.new(car).serializable_hash }.to_json %>,
+      defaultColDef: {
+        sortable: true,
+        filter: true
+      }
+    });
+  });
+</script>
+
+```
+
+This approach dramatically simplifies both ERB/HTML views and controllers. The resource becomes the single source of truth for how your data is presented, while keeping presentation logic out of both models and controllers.
+
+Here's an updated diagram illustrating how these components work together:
+
+![swift-to-rails-learning-design-patterns-mermaid-diagram-2025-03-02-171124.svg](@assets/blog/swift-to-rails-learning-design-patterns/swift-to-rails-learning-design-patterns-mermaid-diagram-2025-03-02-171124.svg)
+
+## The BFF Pattern: Views as API Clients
+
+Taking the Resource concept a step further, I've discovered another powerful pattern in Rails that blurs the traditional MVC boundaries: **treating views as API clients**. In this Backend-For-Frontend (BFF) pattern, the view makes AJAX calls back to the same controller but with a different format (JSON).
+
+Here's how I implemented this with our car example:
+
+```ruby
+# app/controllers/cars_controller.rb
+# frozen_string_literal: true
+class CarsController < ApplicationController
+  before_action { @page_title = "Car Inventory" }
+  before_action :set_car, only: %i[show update]
+
+  def index
+    respond_to do |format|
+      format.html # Renders the index.html.erb template (lightweight)
+      format.json do
+        # Heavy database query only happens for JSON requests
+        cars = Car
+          .where(manufactured_year: 5.years.ago.year..)
+          .order(created_at: :desc)
+          .includes(:owner, :maintenance_records)
+
+        # Use the resource for JSON serialization
+        render json: CarResource.new(cars).serialize
+      end
+    end
+  end
+
+  def show
+    respond_to do |format|
+      format.html
+      format.json { render json: CarResource.new(@car).serialize }
+    end
+  end
+
+  private
+
+  def set_car
+    @car = Car.find(params[:id])
+  end
+end
+
+```
+
+The corresponding view then makes a fetch call to retrieve this JSON data:
+
+```html
+<!-- app/views/cars/index.html.erb -->
+<div class="mb-10 flex relative mx-auto items-center space-x-4">
+  <!-- Filter controls for the grid -->
+  <div class="w-1/2">
+    <div class="inline-flex flex-nowrap whitespace-nowrap border border-blue-500 bg-white rounded-lg overflow-hidden">
+      <button type="button" class="px-6 py-3 text-blue-500 font-medium focus:outline-none hover:bg-blue-100">
+        All
+      </button>
+      <button type="button" class="px-6 py-3 text-blue-500 font-medium focus:outline-none hover:bg-blue-100">
+        Legal
+      </button>
+      <button type="button" class="px-6 py-3 text-blue-500 font-medium focus:outline-none hover:bg-blue-100">
+        Needs Renewal
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="carsGrid" class="ag-theme-alpine" style="width: 100%; height: 600px;"></div>
+
+<script type="module">
+  import { createGrid } from "ag-grid-community";
+
+  document.addEventListener("turbo:load", () => {
+    initializeGrid();
+  });
+
+  function initializeGrid() {
+    const gridContainer = document.getElementById("carsGrid");
+    if (!gridContainer) return;
+
+    const columnDefs = [
+      {
+        headerName: 'CAR',
+        field: "name",
+        minWidth: 180,
+        cellRenderer: params => {
+          const id = params.data?.id;
+          const name = params.data?.name;
+          return `<a href="/cars/${id}" data-turbo="false">${name}</a>`;
+        }
+      },
+      {
+        headerName: 'LEGAL STATUS',
+        field: "is_legal",
+        minWidth: 120,
+        cellRenderer: params => params.value ? "Legal" : "Illegal"
+      },
+      {
+        headerName: 'REGISTRATION',
+        field: "registration_status",
+        minWidth: 150
+      },
+      {
+        headerName: 'OWNER',
+        field: "owner_info",
+        minWidth: 200
+      }
+    ];
+
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: [],
+      defaultColDef: {
+        flex: 1,
+        filter: true,
+        sortable: true
+      },
+      onGridReady: function(params) {
+        fetchDataAndSetRows(params.api);
+      }
+    };
+
+    createGrid(gridContainer, gridOptions);
+  }
+
+  function fetchDataAndSetRows(gridApi) {
+    fetch("/cars.json") // Calls the same controller with .json format
+      .then(response => response.json())
+      .then(data => {
+        gridApi.setGridOption('rowData', data);
+      })
+      .catch(error => console.error("Error loading grid data:", error));
+  }
+</script>
+```
+
+What makes this pattern interesting is:
+
+1. **Separation of concerns**: The initial HTML render is lightweight and quick, while the data-heavy operation happens asynchronously.
+2. **Resource reuse**: The same Resource used for API endpoints can be reused for internal view components.
+3. **Progressive enhancement**: The page is functional even before the JS-driven grid loads.
+4. **Performance optimization**: Including complex data in the initial HTML render can slow down time-to-first-render, but this pattern avoids that.
+
+This pattern combines the best of both worlds: Rails' server-side rendering for the initial page load and API-driven client-side rendering for data-heavy components. It feels very similar to how modern frontend frameworks operate, but without requiring a separate API backend.
+
+## The Missing Types: Swift vs. Ruby
+
+The second major difference that struck me is how much I've come to rely on Swift's type system! Ruby's dynamic typing means there's no clear distinction between methods, functions, and variables as in Swift. Everything is simply defined with `def`, and you call methods on objects without any guarantee they'll respond appropriately.
+
+The challenge here is that you can't depend on the compiler to verify correctness before deployment. Instead, you must write more comprehensive unit tests and adopt a defensive coding style.
+
+In Swift, I could write something like:
+
+```swift
+struct Car {
+    let make: String
+    let model: String
+    let year: Int
+
+    func isLegalInAmerica() -> Bool {
+        let currentYear = Calendar.current.component(.year, from: Date())
+        return year >= (currentYear - 10)
+    }
+}
+
+// Function with optional
+func processRegistration(for car: Car?) {
+    // Using guard let for early return
+    guard let car = car else {
+        print("No car provided")
+        return
+    }
+
+    // Now we know car is not nil
+    if car.isLegalInAmerica() {
+        print("Car is legal: \(car.make) \(car.model)")
+    } else {
+        print("Car is too old to be registered")
+    }
+}
+
+// Or with if-let
+func displayCarInfo(car: Car?) {
+    if let car = car {
+        // Safe to use car here
+        print("\(car.year) \(car.make) \(car.model)")
+    } else {
+        print("No car information available")
+    }
+}
+
+```
+
+Ruby offers no such safety net:
+
+```ruby
+def process_registration(car)
+  # No compile-time guarantee that car exists or has these methods
+  if car && car.legal_in_america?
+    puts "Car is legal: #{car.make} #{car.model}"
+  else
+    puts "Car is too old or invalid"
+  end
+end
+
+# Using the safe navigation operator (&.)
+def display_car_info(car)
+  puts "#{car&.year} #{car&.make} #{car&.model}"
+end
+
+```
+
+In Ruby, virtually anything can be nil. While you can use the safe accessor (`&.`) similar to Swift's optional chaining, there's no equivalent to the elegant `guard let` or `if let` constructs. You're forced to manually check for nil values, resulting in more defensive coding practices.
+
+## Solving the Type Safety Issue
+
+To address these type safety concerns, Ruby developers rely on tools like:
+
+1. **RuboCop** - A linter that catches common coding issues
+2. **Sorbet** - A static type checker designed for Ruby
+
+My current project employs RuboCop, but we're planning to implement Sorbet soon since we've encountered numerous "method not found" errors when objects unexpectedly return nil.
+
+## Conclusion: Different But Fascinating
+
+Ruby on Rails is compelling because it provides established conventions that enable rapid development and productivity, even when working with unfamiliar codebases. If you know Rails well, you can join a new company and become productive quickly because they're likely following these same conventions.
+
+The main drawback is the absence of static typing. After working extensively with Swift, TypeScript, and Go, I've grown to appreciate the safety and performance benefits of typed languages. While Ruby may be less performant, for most applications, raw speed isn't the primary concern.
+
+What concerns me more is the potential for bugs arising from the lack of type safety. Fortunately, there appear to be effective mitigations through tools like Sorbet and architectural patterns using delegators and resources.
+
+I'm excited to explore these solutions further in the coming weeks. Stay tuned for more updates on my journey from Swift to Rails!

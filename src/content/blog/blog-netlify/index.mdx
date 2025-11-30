@@ -1,0 +1,66 @@
+---
+title: "Why and How I Moved My Blog To Netlify"
+description: "Why and How I Moved My Blog To Netlify - a blog post by Victor Augusteo"
+pubDate: 2018-12-09
+heroImage: "@assets/blog/blog-netlify/blog-netlify-netlify.jpg"
+heroAlt: "blog netlify netlify"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+![blog-netlify-netlify.jpg](@assets/blog/blog-netlify/blog-netlify-netlify.jpg)
+
+## Why Netlify?
+
+I have just recently moved my blog from Vultr to Netlify because I was lured by:
+
+1. Free and easy to setup CI/CD. Just click one button and its all setup!
+2. Free (unlimited?) CDN hosting! They actually called it [ADN](https://www.netlify.com/features/adn/) with a nice graph to compare.
+3. Auto assets optimization like minifying asset files and lossless image compression.
+4. Form handling and Lambda functions integration. I haven’t need to use these yet, but the fact that they are available is exciting. Oh, the possibilities!
+5. If you use a static site generator, they offer [NetlifyCMS](https://www.netlifycms.org/) that work with generators like Jekyll, Hugo, Hexo, or Gatsby.
+
+## Steps to create and move
+
+1. Click on the ‘Deploy to Hugo’ button on [this page](https://www.netlifycms.org/docs/start-with-a-template/). That will create a Netlify site and a repo on Github/Gitlab.
+2. Pull the repo to your machine.
+3. Move the `site/static/admin` folder from Netlify CMS to a temporary folder.
+4. Replace the `site` folder content with your old Hugo folder.
+5. Move back the `admin` folder from the temp to `site/static`.
+6. Edit the `config.yml` to fit your old Hugo structure.
+7. Commit and push.
+
+Your site should be up now on url that looks like `some-random-word12314.netlify.com`.
+
+## Use your own domain name
+
+1. (optional) Rename the Netlify url to something good e.g. `augusteo.netlify.com`
+2. Transfer your domain NameServer to Netlify’s. Then let Netlify set the A and CNAME DNS record.
+3. (optional) Change the MX and TXT record if you have mail server setup for your domain name.
+4. Set SSL cert - they are using Let’s encrypt and will get you a wildcard cert.
+
+## Netlify’s amazing customer service
+
+I was having a problem where my site was still using Netlify’s wildcard cert instead of my own. When I emailed their support, I was expecting a slow reply. However, they replied in 5 minutes and fixed my problem!
+
+The quick response blew me away. This is better than some of the paid service! I highly recommend them based on this alone.
+
+## How can it be free? What’s the catch?
+
+I asked them about it and how can they offer their services for free. Their answer:
+
+> 
+> 
+> 
+> Hi Victor,
+> 
+> The idea is that some users will use our paid services and we’ll have enough of those to cover the cost of people that don’t move to paid. We also count on people using our service to be **evangelist and bring in others**. Then there are devs that use our free service on free plans and get their companies to move to our our paid plans. In addition to these self-serve, we offer custom enterprise contracts and push support and features and performance for them that you can’t otherwise get on free or self-serve paid.
+> 
+
+(emphasis mine).
+
+This post is my effort to evangelist Netlify in return for their amazing free service.
+
+You should give them a try.

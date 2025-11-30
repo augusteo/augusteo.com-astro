@@ -1,0 +1,63 @@
+---
+title: "Xcode Layout Constraint Issue"
+description: "Xcode Layout Constraint Issue - a blog post by Victor Augusteo"
+pubDate: 2017-02-20
+heroImage: "@assets/blog/xcode-layout-constraint/xcode-layout-constraint-1CA5A1E1-B0B5-4F19-97EE-40B591532B0B.png"
+heroAlt: "xcode layout constraint 1CA5A1E1 B0B5 4F19 97EE 40B591532B0B"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+My typical solution for non-repeating view controllers nowadays is by using vertical UIStackView that is embedded within UIScrollView.
+
+So the stack goes:
+
+`Main UIView -> UIScrollView -> UIStackView -> Views array`
+
+![xcode-layout-constraint-1CA5A1E1-B0B5-4F19-97EE-40B591532B0B.png](@assets/blog/xcode-layout-constraint/xcode-layout-constraint-1CA5A1E1-B0B5-4F19-97EE-40B591532B0B.png)
+
+This stack is very easy to set up in storyboard or code and constrained with auto layout.
+
+Naturally, the four sides of the scroll view will be constrained to the main UIView. The easiest way would be to use the tie-fighter icon. Notice that the top and bottom is glued to the layout guide instead of superview by default.
+
+![xcode-layout-constraint-D49F46DD-7203-4F72-9B2F-056F280B847B.png](@assets/blog/xcode-layout-constraint/xcode-layout-constraint-D49F46DD-7203-4F72-9B2F-056F280B847B.png)
+
+The problem arises when we embed this view controller inside a navigation controller, thus creating a navigation item bar. This action will then push the stack view (inside the scroll view) down 64 pixels, seemingly without reason.
+
+If you constraint the scroll view to the top layout guide, the child stack view will be pushed down 64 pixels. That is 20 pixels for status bar and 44 pixels for navigation item. So you would need to change the constant to –64 pixels to stick the stack view to the top of the view. It is a fix but seems more of a hack than a real fix.
+
+![xcode-layout-constraint-50B57683-E48C-424C-A02D-F4CE074AE4F5.png](@assets/blog/xcode-layout-constraint/xcode-layout-constraint-50B57683-E48C-424C-A02D-F4CE074AE4F5.png)
+
+### Why is this happening?
+
+This is caused by constraining the scroll view to the top layout guide instead of the superview. But there is no obvious way to constraint the top of the scroll view to the top of main UIView.
+
+![xcode-layout-constraint-E12954D5-65F7-454A-8F63-6B64CBAA62F9.png](@assets/blog/xcode-layout-constraint/xcode-layout-constraint-E12954D5-65F7-454A-8F63-6B64CBAA62F9.png)
+
+￼ The common effort of using ctrl+drag will only offer you to constraint the scroll view to the top layout guide. Using the tie-fighter icon will do the same as well.
+
+After you set up the constraint to the top layout guide and tried to edit it, there’s no way to change it to the superview either.
+
+![xcode-layout-constraint-64100186-FC9A-483E-9820-2EED8CD66ABF.png](@assets/blog/xcode-layout-constraint/xcode-layout-constraint-64100186-FC9A-483E-9820-2EED8CD66ABF.png)
+
+￼
+
+### So how the heck do we constraint the scroll view to the superview?
+
+It is not obvious. After some searching, I found out that we can click the little arrow button (dropdown?) when setting constraint constant from the tie-fighter icon. From there you can select if you want to constraint the view to the superview or the top layout guide.
+
+![xcode-layout-constraint-CD2492A8-7130-4CFF-8D45-529F6D74B1FB.png](@assets/blog/xcode-layout-constraint/xcode-layout-constraint-CD2492A8-7130-4CFF-8D45-529F6D74B1FB.png)
+
+Voila, problem solved.
+
+### What should have happened
+
+Given the hidden nature of the feature, maybe Xcode could have done better to inform us about this option.
+
+When ctrl+dragging, a small tooltip should show up to a ask us if we want to constraint either to the top/bottom layout guide or the superview. This wouldn’t be a big problem because it should only be shown to a view that is directly under the main UIView. The other nested views should work normally.
+
+When editing an existing constraint, there should be an option to change from top layout guide to superview and vice versa. Currently, the only way is to delete the constraint and recreate them.
+
+Xcode could have done better.

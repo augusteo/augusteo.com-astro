@@ -1,0 +1,59 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="About | Victor Augusteo"
+  description="About Victor Augusteo - Head of Engineering at Boon AI"
+>
+  <div class="about-page">
+    <h1>About Me</h1>
+
+    <div class="content prose">
+      <p>
+        Hi! I'm Victor, currently Head of Engineering at Boon AI. I previously
+        worked at Apple on various iOS projects.
+      </p>
+
+      <p>
+        I write about travels with my family, technology & AI, books I've read,
+        and the occasional philosophical rambling. This blog is my corner of the
+        internet where I share my thoughts and experiences.
+      </p>
+
+      <h2>What I Write About</h2>
+
+      <ul>
+        <li><strong>Travels</strong> - Adventures with my family around the world</li>
+        <li><strong>Tech</strong> - Software engineering, AI, and technology thoughts</li>
+        <li><strong>Books</strong> - Reviews and summaries of books I've read</li>
+        <li><strong>Philosophy</strong> - Occasional ramblings about life and meaning</li>
+      </ul>
+
+      <h2>Connect</h2>
+
+      <p>
+        You can find me on <a href="https://twitter.com/AugusteoVictor" target="_blank">Twitter</a> or
+        <a href="https://github.com/nicnocquee" target="_blank">GitHub</a>.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-page {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  .about-page h1 {
+    font-family: var(--font-hand);
+    font-size: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  .content {
+    font-size: 1.1rem;
+  }
+</style>

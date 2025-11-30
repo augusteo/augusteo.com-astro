@@ -1,0 +1,115 @@
+---
+title: "How I Easily Turned My Voice Notes into Something Useful"
+description: "Walking and talking helps me clear my head, but turning those scattered voice notes into something useful felt like a chore—until I found a simple Mac trick that made transcribing effortless. Now, my random thoughts turn into blog posts, reflections, and ideas faster than I can lace up my shoes."
+pubDate: 2025-02-08
+heroImage: "@assets/blog/voice-note-whisper/voice-note-whisper-Screenshot_2025-02-08_at_4.20.11_PM.png"
+heroAlt: "voice note whisper Screenshot 2025 02 08 at 4.20.11 PM"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+Voice notes have become an essential part of my daily routine, helping me capture thoughts and ideas while staying active. Today, I want to share my experience using the Whisper application on Mac for transcribing these voice notes, and how it compares to Apple's built-in transcription.
+
+## My Voice Notes Setup
+
+My preferred method is simple: I take my phone on walks and use the Voice Memos app to record my thoughts. While I initially tried using AirPods, the voice quality was consistently muddled, so I switched to recording directly through my phone's microphone. This setup has proven much more reliable.
+
+Though you can record using a MacBook's microphone, I prefer the walking-and-talking approach. It combines exercise with productivity, and there's something therapeutic about voicing my thoughts while enjoying nature. The stream-of-consciousness style works well for me – no need for perfect organization at this stage.
+
+## The Transcription Process
+
+Since I use Apple's Voice Memos app, the recordings automatically sync to my Mac. From there, the process involves a few steps:
+
+1. Drag and drop the voice notes from the Mac app to a folder
+2. Convert the M4A files to MP3 (Whisper only accepts MP3)
+3. Run the transcription using Insanely Fast Whisper
+4. Extract just the text from the resulting JSON file
+
+To simplify this process, I created an alias that handles everything in one command:
+
+```bash
+alias ifwa='for f in *.m4a; do ffmpeg -i "$f" "${f%.m4a}.mp3"; done && for f in *.mp3; do insanely-fast-whisper --device-id mps --language en --file-name "$f" --transcript-path "${f%.mp3}.json"; done && for f in *.json; do jq -r ".text" "$f" > "${f%.json}.txt"; done && rm *.m4a *.mp3 *.json'
+```
+
+## Breaking Down the Script
+
+Let's break down what this alias does step by step:
+
+1. **Convert M4A to MP3:**
+    
+    ```bash
+    for f in *.m4a; do ffmpeg -i "$f" "${f%.m4a}.mp3"; done
+    ```
+    
+    This loop takes all `.m4a` files in the folder and uses `ffmpeg` to convert them to `.mp3`. The `${f%.m4a}.mp3` syntax strips the `.m4a` extension and replaces it with `.mp3`.
+    
+2. **Run Whisper Transcription:**
+    
+    ```bash
+    for f in *.mp3; do insanely-fast-whisper --device-id mps --language en --file-name "$f" --transcript-path "${f%.mp3}.json"; done
+    ```
+    
+    This loop processes each `.mp3` file through the `insanely-fast-whisper` tool. It specifies the device ID (`mps` for Apple Silicon), sets the language to English, and outputs the transcription in a `.json` file.
+    
+3. **Extract the Transcribed Text:**
+    
+    ```bash
+    for f in *.json; do jq -r ".text" "$f" > "${f%.json}.txt"; done
+    ```
+    
+    Here, `jq` extracts the transcribed text from each `.json` file and saves it into a `.txt` file. The `-r` flag ensures the text is outputted as raw strings without quotes.
+    
+4. **Clean Up Temporary Files:**
+    
+    ```bash
+    rm *.m4a *.mp3 *.json
+    ```
+    
+    Finally, it deletes all the original `.m4a`, intermediate `.mp3`, and `.json` files, leaving only the final `.txt` transcription files.
+    
+
+## Beyond Just Blogging
+
+This workflow isn't limited to blog writing. I use it for work, personal reflection, and mental clarity. There's something uniquely satisfying about talking through your thoughts as if you're having a conversation with someone.
+
+## Post-Processing
+
+Once I have the transcription, I often feed it into an LLM like Claude or GPT to help structure the narrative. This helps transform the stream-of-consciousness recording into more organized, readable content – just like this blog post!
+
+Here’s a sample prompt:
+
+```bash
+<Role>
+Act as a professional ghostwriter & proofreader.
+
+<Task>
+- to rewrite my transcription in a much more clearly formatted and easy to digest format, but still in a narrative format instead of summary. 
+- focus on cleaning up the rambling, but keep as much information as possible. 
+- don't miss any details.
+- keep the casual tone
+- only write the output and nothing else
+- be polite even if the transcription is angry or impolite
+
+<Transcription>
+
+```
+
+I hope this workflow helps you find new ways to capture and process your thoughts. Sometimes the best ideas come when we're moving and speaking freely, rather than sitting at a desk.
+
+## Comparing Whisper and Apple Voice Notes Transcription
+
+To understand the differences between Insanely Fast Whisper and Apple's built-in transcription, I ran the same voice note through both systems and compared the results.
+
+The left is Apple VoiceNotes transcription and the right is insanely-fast-whisper.
+
+![voice-note-whisper-Screenshot_2025-02-08_at_4.20.11_PM.png](@assets/blog/voice-note-whisper/voice-note-whisper-Screenshot_2025-02-08_at_4.20.11_PM.png)
+
+Open image in new tab to see it in full size
+
+### Observations:
+
+- **Accuracy:** Whisper clearly outperforms Apple Voice Notes in transcription accuracy. It captures complex sentences and maintains coherence, whereas Apple's transcription introduces unusual words like "blockfast" and "Blockpus," and struggles with punctuation and sentence structure.
+- **Consistency:** Whisper handles repeated words and filler phrases more gracefully, while Apple's transcription often misinterprets or omits them, resulting in fragmented sentences.
+- **Usability:** While both methods sync well with my workflow, the cleaner and more accurate output from Whisper reduces the need for extensive post-editing, making it a more efficient tool overall.

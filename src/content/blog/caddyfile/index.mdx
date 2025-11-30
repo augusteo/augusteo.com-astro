@@ -1,0 +1,130 @@
+---
+title: "The Wonders of Caddyfile"
+description: "The Wonders of Caddyfile - a blog post by Victor Augusteo"
+pubDate: 2018-01-01
+heroAlt: "The Wonders of Caddyfile"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+It is incredibly easy to do a lot of things with Caddy server. We will explore reverse proxy, wildcard HTTPS cert and catch-all www redirection. Then we will see how to combine them together to do powerful stuff in one short Caddyfile.
+
+## Reverse Proxy
+
+To reverse proxy a subdomain to docker container, all you need is:
+
+```
+ www.subdomain.augusteo.com {
+     proxy / wordpress:8888 {
+         transparent
+     }
+ }
+
+```
+
+With this, the subdomain will point to the `wordpress` container’s port 8888. If you aren’t using docker and just running things on localhost, you could replace that with `localhost:3000` or whatever port you are running the app from.
+
+## Wildcard HTTPS
+
+I’m hosting my blog on [Vultr](https://www.vultr.com/?ref=6932571) and uses its DNS, so I could use it for wildcard cert.
+
+```
+hugo.augusteo.com {
+     root /site/augusteocom
+     gzip
+	   tls {
+        dns vultr
+     }
+ }
+
+```
+
+This config will serve `augusteo.com` from the root path and initialise wildcard HTTP TLS using the Vultr DNS. To enable this, you need to either:
+
+1. download caddy binary with Vultr plugin
+
+## Redirect all non-www to www
+
+Its very easy to redirect one domain with the `redir` keyword, but its a bit tricky to do it for all subdomain at once:
+
+```
+ http://*.augusteo.com, https://*.augusteo.com {
+     redir {
+         if {host} not_starts_with www
+         / https://www.{label1}.augusteo.com{uri}
+     }
+     gzip
+     tls {
+         dns vultr
+     }
+ }
+
+```
+
+We could use the `not_starts_with` function to check if non-www domain is being requested, then do 301 redirection to www version of it. We can also specify the `tls` here so all the subdomain get encrypted with the wildcard.
+
+## Combining them all
+
+Now this is the current Caddyfile that I’m using on this server:
+
+```
+ # Main domain
+ http://augusteo.com, https://augusteo.com {
+     redir {
+         if {host} not_starts_with www
+         / https://hugo.augusteo.com{uri}
+     }
+     tls {
+         dns vultr
+     }
+ }
+
+ hugo.augusteo.com {
+     root /site/augusteocom
+     gzip
+ }
+
+ # Subdomains
+ http://*.augusteo.com, https://*.augusteo.com {
+     redir {
+         if {host} not_starts_with www
+         / https://www.{label1}.augusteo.com{uri}
+     }
+     gzip
+     tls {
+         dns vultr
+     }
+ }
+
+ www.subdomain.augusteo.com {
+     proxy / wordpress:8888 {
+         transparent
+     }
+ }
+
+```
+
+This file would:
+
+1. redirect all non-www to www page. We had to do it twice because the subdomain `.` doesn’t cover the main domain.
+2. reverse proxy the `subdomain` to docker container
+3. use wildcard HTTP TLS cert on all domains.
+
+To add new subdomain, we would just need to add the reverse proxy or the root path of it, e.g.:
+
+```
+ www.subdomain2.augusteo.com {
+     proxy / rubyonrails:3000 {
+         transparent
+     }
+ }
+
+ www.subdomain3.augusteo.com {
+     root /site/jekyllstatic
+ }
+
+```
+
+Running Caddy server extremely simple compared to running Nginx and a lot faster compared to Apache. Learn it and love it.

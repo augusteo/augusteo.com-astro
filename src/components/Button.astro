@@ -1,0 +1,17 @@
+---
+interface Props {
+  href?: string;
+  variant?: "sky" | "sage" | "terracotta";
+  class?: string;
+}
+
+const { href, variant = "sky", class: className } = Astro.props;
+const Element = href ? "a" : "button";
+---
+
+<Element
+  href={href}
+  class:list={["btn-organic", variant, className]}
+>
+  <slot />
+</Element>

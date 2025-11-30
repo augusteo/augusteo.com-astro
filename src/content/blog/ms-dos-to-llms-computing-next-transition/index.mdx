@@ -1,0 +1,163 @@
+---
+title: "From MS-DOS to LLMs: Why This Is Computing's Next Great Transition"
+description: "Andrej Karpathy's Y Combinator talk reveals how we're experiencing computing's most fundamental transformation in 70 years, as LLMs evolve from command-line interfaces to become the new operating systems that will reshape how we build and interact with software."
+pubDate: 2025-06-18
+heroImage: "@assets/blog/ms-dos-to-llms-computing-next-transition/ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-18_at_8.27.29_PM.png"
+heroAlt: "ms dos to llms computing next transition Screenshot 2025 06 18 at 8.27.29 PM"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+*Watch the full talk on YouTube: [Andrej Karpathy: Software Is Changing (Again)](https://www.youtube.com/watch?v=LCEmiRjPEtQ)*
+
+I recently watched Andrej Karpathy's talk at Y Combinator on Youtube, and wow, it really crystallized a lot of thoughts I've been having about where software development is heading. As someone who learned to code on MS-DOS more than 20 years ago (memorizing all those commands because there was no GUI!), Karpathy's comparison of today's LLMs to 1960s-era operating systems really hit home.
+
+## We're Living Through a Fundamental Shift
+
+Karpathy opened with a bold claim: software hasn't changed this fundamentally in **70 years**. And then suddenly, it's changed twice in just a few years.
+
+He breaks it down into three evolutionary stages:
+
+![ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-18_at_8.27.29_PM.png](@assets/blog/ms-dos-to-llms-computing-next-transition/ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-18_at_8.27.29_PM.png)
+
+### Software 1.0: The Code We Write
+
+This is traditional programming - the C++, Python, JavaScript that humans write directly. It's explicit instructions telling computers exactly what to do.
+
+### Software 2.0: Neural Network Weights
+
+A few years ago, Karpathy observed that neural networks represented a new kind of software. Instead of writing code, we're tuning datasets and running optimizers to create neural network parameters. He pointed to Hugging Face as the "GitHub of Software 2.0" - a place where these models live and evolve.
+
+### Software 3.0: Programming in English
+
+Here's where things get wild. With large language models, we're now **programming computers in natural language**. Your prompts are literally programs that configure these AI systems. As Karpathy tweeted (and it's now his pinned tweet): "The hottest new programming language is English."
+
+## The Tesla Autopilot Story: A Preview of What's Coming
+
+Karpathy shared a fascinating story from his time at Tesla. When he worked on Autopilot, he watched as neural networks literally **ate through the software stack**. The C++ code was progressively deleted as more functionality moved from traditional code to neural nets.
+
+I think we're seeing the exact same pattern now. Traditional software is being consumed by AI, layer by layer.
+
+![ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-19_at_10.29.15_PM.png](@assets/blog/ms-dos-to-llms-computing-next-transition/ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-19_at_10.29.15_PM.png)
+
+## LLMs as the New Operating System
+
+Here's where Karpathy's analysis gets really interesting - and where I strongly agree with him. LLMs aren't just utilities like electricity (though they share some characteristics). They're becoming more like **operating systems**.
+
+Think about it:
+
+- **Like utilities**: We access them through metered APIs, pay per token, demand low latency and high uptime
+- **Like chip fabs**: Massive capital expenditure, deep tech trees, centralized expertise
+- **Like operating systems**: Complex software ecosystems with multiple providers
+
+The comparison to operating systems is particularly apt. We have:
+
+- A few closed-source providers (OpenAI, Anthropic, Google) = Windows/macOS
+- Open-source alternatives (Llama ecosystem) = Linux
+- Apps that can run on multiple "OS" options (Cursor works with GPT, Claude, or Gemini)
+
+![ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-18_at_8.28.34_PM.png](@assets/blog/ms-dos-to-llms-computing-next-transition/ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-18_at_8.28.34_PM.png)
+
+### The Commodity Future
+
+What really resonates with me is how LLMs are becoming commoditized. Just like we don't care where our electricity comes from (as long as it works), we're rapidly approaching a point where the specific LLM won't matter much. They'll all be highly capable and cheap. The winners in this era won't be the foundation model providers - it'll be the **application layer**. Who will build the Microsoft Office or Adobe Photoshop of the LLM era?
+
+## The Psychology of LLMs: Autistic Savants with Superpowers
+
+Karpathy's characterization of LLMs as "people spirits" with "jagged intelligence" is spot-on. They're like autistic savants who can memorize entire phone books but might insist that 9.11 > 9.9.
+
+### What They're Great At:
+
+- Encyclopedic knowledge and memory
+- Processing massive amounts of information
+- Pattern recognition across domains
+
+### Their Cognitive Deficits:
+
+- Hallucinations and confabulations
+- Jagged intelligence (superhuman in some areas, sub-human in others)
+- Anterograde amnesia (can't form new long-term memories)
+- Susceptibility to prompt injection and manipulation
+
+However, I think this talk is incomplete without mentioning the recent breakthroughs in **thinking models** like OpenAI's o1 and o3. Many of the "jagged intelligence" problems Karpathy mentions are actually being solved through chain-of-thought reasoning. When we give LLMs more compute time to "think," they can work through problems step-by-step, catching their own errors. It's slower, yes, but the accuracy improvements are dramatic.
+
+## Building in the Age of Partial Autonomy
+
+The most practical part of Karpathy's talk focused on how we should actually build with these fallible but powerful systems. His key insight: we need **partial autonomy apps** with:
+
+![ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-18_at_8.29.33_PM.png](@assets/blog/ms-dos-to-llms-computing-next-transition/ms-dos-to-llms-computing-next-transition-Screenshot_2025-06-18_at_8.29.33_PM.png)
+
+### 1. Context Management
+
+Apps shouldn't make users manually copy-paste between ChatGPT and their work. Look at Cursor - it automatically manages your codebase context.
+
+### 2. Multiple Model Orchestration
+
+Real apps need embedding models, chat models, diff models, etc. The complexity should be hidden from users.
+
+### 3. Application-Specific GUIs
+
+Text interfaces are terrible for humans! We need visual diffs, one-click accepts/rejects, and interfaces that utilize our "computer vision GPU" (our eyes and visual cortex).
+
+### 4. The Autonomy Slider
+
+This is crucial. Sometimes you want:
+
+- **Low autonomy**: Tab completion in Cursor
+- **Medium autonomy**: Command+K to modify a code block
+- **High autonomy**: Command+I to refactor your entire codebase
+
+The key is keeping AI "on a leash" - getting work done without overwhelming humans with 10,000-line diffs we can't possibly review.
+
+## Vibe Coding: Everyone's a Programmer Now
+
+Then there's "vibe coding" - Karpathy's term that unexpectedly went viral and now has its own Wikipedia page!
+
+I love his example of kids using AI to build apps. It's such a wholesome vision of the future. This isn't about replacing programmers - it's about making programming accessible to everyone. It's a gateway drug to software development.
+
+### My Take on Vibe Coding
+
+Having tried it myself (and watched the ecosystem explode in 2025), vibe coding is real but has limits. The actual coding part has become trivial - tools like Cursor, v0, Claude Artifacts, and Windsurf can generate working prototypes in minutes. But here's the catch: **everything else is still hard**.
+
+Karpathy's Menu Gen app perfectly illustrates this. He built the core functionality in hours, but then spent a **week** on the "real" stuff:
+
+- Authentication
+- Payments
+- Domain setup
+- Deployment
+- All the DevOps clicking around
+
+This is still the biggest barrier. We need to make the entire stack accessible to LLMs, not just the code generation part.
+
+## Building for Agents: The Next Frontier
+
+The final piece of Karpathy's vision is perhaps the most forward-looking: **we need to build for agents**, not just humans.
+
+This means:
+
+- **llms.txt files** (like robots.txt) to help LLMs understand your site
+- Documentation in **markdown** instead of human-oriented formats
+- Replacing "click here" instructions with **curl commands** that agents can execute
+- Tools like Gitingest that transform human interfaces into LLM-digestible formats
+
+We're meeting LLMs halfway, making our digital infrastructure speak their language.
+
+## Looking Ahead: The Decade of Agents
+
+Karpathy's self-driving car story serves as a crucial reality check. He had a perfect Waymo demo in 2013 and thought autonomous driving was imminent. Twelve years later, we're still working on it.
+
+His prediction? This is the **decade of agents** - not the year of agents. We need to be patient, keep humans in the loop, and gradually slide that autonomy slider from left to right.
+
+## The Bottom Line
+
+What an incredible time to enter the tech industry! We're not just iterating on existing paradigms - we're completely rewriting how software works. Three different programming paradigms (traditional code, neural networks, natural language) are competing and complementing each other.
+
+The winners won't necessarily be those building the best LLMs. They'll be those who build the best **experiences** on top of these new operating systems. Just like the biggest tech companies today aren't OS vendors but application builders.
+
+As someone who started with MS-DOS and watched GUIs revolutionize computing, I can't help but feel we're at a similar inflection point. We're in the MS-DOS era of AI - powerful but clunky, text-based, requiring memorization of commands. The GUI moment for AI is coming, and it's going to change everything.
+
+The future isn't about AI replacing programmers. It's about AI augmenting human creativity, making programming accessible to kids who just want to build cool stuff, and gradually automating the tedious parts while we focus on what matters: solving real problems for real people.
+
+Time to build! 🚀

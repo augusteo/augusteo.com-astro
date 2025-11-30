@@ -1,0 +1,113 @@
+---
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/blog", label: "Blog" },
+  { href: "/about", label: "About" },
+];
+---
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo">augusteo</a>
+    <ul class="nav-links">
+      {navLinks.map((link) => (
+        <li>
+          <a href={link.href}>{link.label}</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--color-paper);
+    padding: 1rem 2rem;
+  }
+
+  /* Watercolor stripe under nav */
+  .nav::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 8' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='navGrad' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' style='stop-color:%2387ceeb;stop-opacity:0.5'/%3E%3Cstop offset='25%25' style='stop-color:%238fbc8f;stop-opacity:0.4'/%3E%3Cstop offset='50%25' style='stop-color:%23cd853f;stop-opacity:0.3'/%3E%3Cstop offset='75%25' style='stop-color:%235f9ea0;stop-opacity:0.4'/%3E%3Cstop offset='100%25' style='stop-color:%23deb887;stop-opacity:0.3'/%3E%3C/linearGradient%3E%3Cfilter id='watercolorNav'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M0,4 Q100,2 200,5 T400,3 T600,6 T800,2 T1000,5 T1200,4' stroke='url(%23navGrad)' stroke-width='8' fill='none' filter='url(%23watercolorNav)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .nav-inner {
+    max-width: var(--wide-width);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-family: var(--font-hand);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    text-decoration: none;
+    position: relative;
+  }
+
+  /* Watercolor underline for logo */
+  .logo::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: -5px;
+    right: -5px;
+    height: 8px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8'%3E%3Cpath d='M0,4 Q10,2 25,5 T50,3 T75,5 T100,4' stroke='%23daa520' stroke-width='6' fill='none' opacity='0.4'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--font-hand);
+    font-size: 1.3rem;
+    color: var(--color-ink-light);
+    text-decoration: none;
+    position: relative;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover {
+    color: var(--color-ink);
+  }
+
+  .nav-links a::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 4'%3E%3Cpath d='M0,2 Q15,1 30,3 T60,2' stroke='%23cd5c5c' stroke-width='3' fill='none' opacity='0.6'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .nav-links a:hover::after {
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .nav-links {
+      gap: 1rem;
+    }
+  }
+</style>

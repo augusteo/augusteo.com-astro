@@ -1,0 +1,233 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  heroImage?: ImageMetadata;
+  heroAlt: string;
+  category: string;
+  slug: string;
+}
+
+const { title, description, pubDate, heroImage, heroAlt, category, slug } = Astro.props;
+const hasImage = !!heroImage;
+
+const formattedDate = pubDate.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+});
+---
+
+<a
+  href={`/blog/${slug}`}
+  class="post-card"
+  class:list={[{ "no-image": !hasImage }]}
+  data-category={category}
+>
+  {hasImage && (
+    <div class="post-card-image">
+      <Image
+        src={heroImage}
+        alt={heroAlt}
+        widths={[400, 640, 800]}
+        sizes="320px"
+      />
+    </div>
+  )}
+
+  <div class="post-card-content">
+    <div class="post-card-meta">
+      <span class="post-card-category" data-category={category}>{category}</span>
+      <span class="post-card-date">{formattedDate}</span>
+    </div>
+
+    <h2>{title}</h2>
+
+    <p class="excerpt">{description}</p>
+
+    <span class="read-more">Read more</span>
+  </div>
+</a>
+
+<style>
+  .post-card {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    padding: 1.25rem;
+    background: var(--color-paper);
+    transition: transform 0.3s;
+    position: relative;
+  }
+
+  .post-card.no-image {
+    grid-template-columns: 1fr;
+  }
+
+  /* Organic border */
+  .post-card::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 220' preserveAspectRatio='none'%3E%3Cpath d='M5,15 Q8,5 50,7 T200,5 T400,7 T600,5 T750,7 T795,15 Q798,50 796,110 T798,200 T795,210 Q750,218 600,216 T400,218 T200,216 T50,218 T5,210 Q3,180 4,110 T3,50 Z' stroke='%23b2bec3' stroke-width='1' fill='none' opacity='0.5'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .post-card:hover {
+    transform: translate(-2px, -2px);
+  }
+
+  .post-card:hover::before {
+    opacity: 1;
+  }
+
+  /* Category accent line */
+  .post-card::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 20px;
+    bottom: 20px;
+    width: 6px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='accent'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,25 3,50 T3,100' stroke='%234682b4' stroke-width='5' fill='none' filter='url(%23accent)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .post-card[data-category="tech"]::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='accentTech'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,25 3,50 T3,100' stroke='%236b8e23' stroke-width='5' fill='none' filter='url(%23accentTech)'/%3E%3C/svg%3E");
+  }
+
+  .post-card[data-category="books"]::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='accentBooks'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,25 3,50 T3,100' stroke='%23cd5c5c' stroke-width='5' fill='none' filter='url(%23accentBooks)'/%3E%3C/svg%3E");
+  }
+
+  .post-card[data-category="philosophy"]::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='accentPhil'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,25 3,50 T3,100' stroke='%23daa520' stroke-width='5' fill='none' filter='url(%23accentPhil)'/%3E%3C/svg%3E");
+  }
+
+  .post-card:hover::after {
+    opacity: 1;
+  }
+
+  .post-card-image {
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .post-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s;
+    border-radius: 6px 12px 8px 10px / 10px 8px 12px 6px;
+  }
+
+  .post-card:hover .post-card-image img {
+    transform: scale(1.03);
+  }
+
+  .post-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 1rem;
+  }
+
+  .post-card-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-card-category {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 0.25rem 0.6rem;
+    position: relative;
+  }
+
+  .post-card-category::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='cat'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%2387ceeb' opacity='0.5' filter='url(%23cat)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    z-index: -1;
+  }
+
+  .post-card-category[data-category="tech"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='catTech'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%238fbc8f' opacity='0.6' filter='url(%23catTech)'/%3E%3C/svg%3E");
+  }
+
+  .post-card-category[data-category="books"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='catBooks'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%23cd853f' opacity='0.5' filter='url(%23catBooks)'/%3E%3C/svg%3E");
+  }
+
+  .post-card-category[data-category="philosophy"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='catPhil'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%23deb887' opacity='0.6' filter='url(%23catPhil)'/%3E%3C/svg%3E");
+  }
+
+  .post-card-date {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-ink-light);
+  }
+
+  .post-card h2 {
+    font-family: var(--font-hand);
+    font-size: 1.8rem;
+    font-weight: 500;
+    line-height: 1.15;
+    margin-bottom: 0.75rem;
+  }
+
+  .excerpt {
+    font-size: 0.95rem;
+    color: var(--color-ink-light);
+    line-height: 1.55;
+  }
+
+  .read-more {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    font-family: var(--font-hand);
+    font-size: 1.1rem;
+    color: var(--color-accent-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .read-more::after {
+    content: "→";
+    transition: transform 0.2s;
+  }
+
+  .post-card:hover .read-more::after {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 900px) {
+    .post-card {
+      grid-template-columns: 1fr;
+    }
+
+    .post-card-image {
+      max-height: 250px;
+    }
+  }
+</style>

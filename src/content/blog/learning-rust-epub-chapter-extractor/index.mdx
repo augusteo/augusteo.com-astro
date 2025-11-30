@@ -1,0 +1,745 @@
+---
+title: "Learning Rust by Building an EPUB Chapter Extractor"
+description: "Learning Rust by building an EPUB Chapter Extractor, solving my problem of feeding large texts to LLMs within token limits while gaining practical experience with Rust's powerful safety features and performance."
+pubDate: 2025-03-30
+heroImage: "@assets/blog/learning-rust-epub-chapter-extractor/learning-rust-epub-chapter-extractor-20250330_1847_Image_Generation_simple_compose_01jqmy34mjejgvvsw8nphgqm9d.jpeg"
+heroAlt: "learning rust epub chapter extractor 20250330 1847 Image Generation simple compose 01jqmy34mjejgvvsw8nphgqm9d"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+![learning-rust-epub-chapter-extractor-20250330_1847_Image_Generation_simple_compose_01jqmy34mjejgvvsw8nphgqm9d.jpeg](@assets/blog/learning-rust-epub-chapter-extractor/learning-rust-epub-chapter-extractor-20250330_1847_Image_Generation_simple_compose_01jqmy34mjejgvvsw8nphgqm9d.jpeg)
+
+## Introduction
+
+As an avid reader and someone who works frequently with large language models (LLMs), I found myself facing a significant challenge. Many of the e-books I own are in EPUB format, and while that's great for reading, it's problematic when I want to analyze them with LLMs. EPUBs can be quite large, and feeding the entire book into an LLM at once is both inefficient and sometimes impossible due to token limitations.
+
+I needed a tool to break down EPUBs into individual chapters, allowing me to process them one at a time with my LLM. This would enable more focused analysis and better handling of large texts. As someone who had been looking for an excuse to dive deeper into Rust, this seemed like the perfect opportunity to learn the language by building something practical.
+
+In this blog post, I'll share my journey of learning Rust while creating this EPUB Chapter Extractor tool. I'll cover everything from project setup to implementation details, testing, and eventual open-sourcing. If you're interested in Rust, e-book processing, or tools for working with LLMs, this story should provide valuable insights.
+
+## Repo
+
+Want to skip the whole blog post? you can head straight to the repo:
+
+[https://github.com/augusteo/epub-chapter-extractor](https://github.com/augusteo/epub-chapter-extractor)
+
+## Why Rust for This Project?
+
+Rust seemed like an ideal choice for several reasons:
+
+1. **Performance**: Parsing large EPUB files requires efficiency, and Rust's zero-cost abstractions offer near-C performance without the memory safety risks.
+2. **Memory Safety**: Rust's ownership system guarantees memory safety without a garbage collector, which is perfect for a file processing tool.
+3. **Rich Ecosystem**: Rust has excellent libraries for EPUB parsing, HTML processing, and file manipulation.
+4. **Learning Opportunity**: The project was complex enough to force me to learn many Rust concepts but still achievable for a beginner.
+5. **Cross-platform**: I wanted a tool that would work across different operating systems, and Rust's compilation targets make this straightforward.
+
+## Project Setup and Initial Structure
+
+### Setting Up a New Rust Project
+
+Starting a new Rust project is incredibly simple with Cargo, Rust's package manager and build system:
+
+```bash
+cargo new epub-chapter-extractor
+cd epub-chapter-extractor
+```
+
+This creates a basic project structure with a `Cargo.toml` file (similar to `package.json` in the Node.js world) and a `src` directory with a basic `main.rs` file.
+
+### Adding Dependencies
+
+For this project, I needed several dependencies:
+
+```toml
+[dependencies]
+epub = "1.2.3"      # For parsing EPUB files
+scraper = "0.13.0"  # For HTML parsing and extraction
+anyhow = "1.0"      # For error handling
+
+[dev-dependencies]
+tempfile = "3.2"    # For creating temporary files/directories in tests
+mockall = "0.11"    # For mocking in unit tests
+```
+
+The `epub` crate provides tools for reading and navigating EPUB files, while `scraper` helps with parsing and extracting content from HTML. The `anyhow` crate simplifies error handling, which is particularly important in Rust where handling errors properly is emphasized.
+
+### Planning the Project Structure
+
+Before diving into coding, I planned the structure of my project:
+
+1. **Command-line argument parsing** - To handle file paths and options
+2. **EPUB processing** - Core functionality to parse and process EPUB files
+3. **Chapter extraction** - Logic for identifying and extracting chapters
+4. **Output formatting** - Converting chapters to Markdown and saving files
+
+I decided to split the code into separate modules, each with its own responsibility:
+
+- `main.rs` - Entry point and orchestration
+- `lib.rs` - Module definitions and re-exports
+- `args.rs` - Command-line argument parsing
+- `epub_processor.rs` - Main EPUB processing logic
+- `chapter.rs` - Chapter representation and operations
+
+## Command-Line Argument Parsing
+
+Let's start with the simplest module, `args.rs`, which handles parsing command-line arguments:
+
+```rust
+use std::env;
+use std::path::{Path, PathBuf};
+
+#[derive(Debug)]
+pub struct Args {
+    pub epub_path: String,
+    pub output_dir: PathBuf,
+}
+
+pub fn parse_args() -> Result<Args, String> {
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 && args.len() != 3 {
+        return Err(format!("Usage: {} <epub_file> [<output_directory>]", args[0]));
+    }
+
+    let epub_path = args[1].clone();
+    let epub_file = Path::new(&epub_path).file_stem().unwrap_or_default().to_string_lossy();
+
+    // Use the provided output dir or default to "extracted"
+    let base_output_dir = if args.len() == 3 {
+        args[2].clone()
+    } else {
+        "extracted".to_string()
+    };
+
+    // Create the full output path: output_dir/epub_filename/
+    let output_dir = PathBuf::from(&base_output_dir).join(&*epub_file);
+
+    Ok(Args {
+        epub_path,
+        output_dir,
+    })
+}
+```
+
+This code defines an `Args` struct to store the parsed arguments and a `parse_args` function that extracts the EPUB file path and output directory from command-line arguments. If no output directory is provided, it defaults to an "extracted" directory in the current working directory.
+
+## The Chapter Module
+
+The `Chapter` module defines how we represent and handle chapters:
+
+```rust
+use std::fs;
+use std::io::{self, Write};
+use std::path::PathBuf;
+
+pub struct Chapter {
+    pub number: usize,
+    pub title: String,
+    pub content: String,
+}
+
+impl Chapter {
+    pub fn new(number: usize, title: String) -> Self {
+        Self {
+            number,
+            title,
+            content: String::new(),
+        }
+    }
+
+    pub fn append_content(&mut self, text: &str) {
+        // Process each line to remove excess indentation
+        let processed_text = text.lines()
+            .map(|line| line.trim())
+            .collect::<Vec<&str>>()
+            .join("\\n");
+
+        self.content.push_str(&processed_text);
+        self.content.push_str("\\n\\n");
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.content.trim().is_empty()
+    }
+
+    pub fn save(&self, output_dir: &PathBuf) -> io::Result<()> {
+        // Create a safe filename from the chapter title
+        let mut safe_title = self.title.trim().to_string();
+
+        // If title is empty, use just the chapter number
+        if safe_title.is_empty() {
+            safe_title = format!("Chapter_{}", self.number + 1);
+        }
+
+        // Replace characters that are not allowed in filenames
+        safe_title = safe_title
+            .replace('/', "_")
+            .replace('\\\\', "_")
+            .replace(':', "_")
+            .replace('*', "_")
+            .replace('?', "_")
+            .replace('"', "_")
+            .replace('<', "_")
+            .replace('>', "_")
+            .replace('|', "_");
+
+        // Create the full output path
+        let filename = format!("{:03}_{}.md", self.number + 1, safe_title);
+        let output_path = output_dir.join(filename);
+
+        println!("Saving chapter to: {}", output_path.display());
+
+        // Prepare markdown content with chapter title as heading
+        let markdown_content = format!("# {}\\n\\n{}", self.title, self.content.trim());
+
+        // Write the markdown content to the file
+        let mut file = fs::File::create(output_path)?;
+        file.write_all(markdown_content.as_bytes())?;
+
+        Ok(())
+    }
+}
+```
+
+The `Chapter` struct represents a chapter from the EPUB with:
+
+- A chapter number for ordering
+- A title extracted from the EPUB
+- The content text
+
+The methods allow for:
+
+- Creating new chapters
+- Appending and formatting content
+- Checking if a chapter has content
+- Saving chapters as Markdown files with properly sanitized filenames
+
+## The EPUB Processor
+
+The core logic of the application lives in the `epub_processor.rs` file:
+
+```rust
+use std::fs;
+use std::path::PathBuf;
+use std::io::BufReader;
+
+use epub::doc::EpubDoc;
+use scraper::{Html, Selector};
+
+use crate::Chapter;
+
+pub struct EpubProcessor {
+    doc: EpubDoc<BufReader<std::fs::File>>,
+    pub output_dir: PathBuf,
+}
+
+impl EpubProcessor {
+    pub fn new(epub_path: &str, output_dir: PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
+        // Create output directory if it doesn't exist
+        fs::create_dir_all(&output_dir)?;
+
+        // Open the EPUB file
+        let doc = EpubDoc::new(epub_path)?;
+
+        Ok(Self {
+            doc,
+            output_dir,
+        })
+    }
+
+    pub fn get_metadata(&self) -> (Option<String>, Option<String>) {
+        let title = self.doc.mdata("title");
+        let author = self.doc.mdata("creator");
+
+        (title, author)
+    }
+
+    pub fn get_page_count(&self) -> usize {
+        self.doc.spine.len()
+    }
+
+    pub fn process(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
+        // Initialize chapter tracking
+        let mut chapter_number = 0;
+        let mut current_chapter = Chapter::new(0, String::new());
+
+        // Process each page in the spine
+        for i in 0..self.get_page_count() {
+            // Set current page
+            if let Err(e) = self.doc.set_current_page(i) {
+                eprintln!("Warning: Could not set page to {}: {}", i, e);
+                continue;
+            }
+
+            // Get page content as string
+            let content = match self.doc.get_current_str() {
+                Ok(content) => content,
+                Err(e) => {
+                    eprintln!("Warning: Could not get content for page {}: {}", i, e);
+                    continue;
+                }
+            };
+
+            // Parse the HTML content
+            let html = Html::parse_document(&content);
+
+            // Try to identify chapter title (look for heading elements)
+            let heading_selector = Selector::parse("h1, h2, h3, h4, h5, h6").unwrap();
+
+            let mut found_new_chapter = false;
+
+            if let Some(heading) = html.select(&heading_selector).next() {
+                // Found a heading, likely a new chapter
+
+                // Save previous chapter if we have content
+                if !current_chapter.is_empty() {
+                    current_chapter.save(&self.output_dir)?;
+                    chapter_number += 1;
+                }
+
+                // Extract and clean the heading text
+                let raw_title = heading.text().collect::<Vec<_>>().join(" ");
+                let title = raw_title.trim().to_string();
+
+                current_chapter = Chapter::new(chapter_number, title.clone());
+                found_new_chapter = true;
+
+                println!("Found chapter: {}", title);
+            }
+
+            // Extract text content from the page
+            let body_selector = Selector::parse("body").unwrap();
+            if let Some(body) = html.select(&body_selector).next() {
+                // Process text content to handle indentation
+                let page_text = body.text()
+                    .collect::<Vec<_>>()
+                    .join(" ")
+                    .trim()
+                    .to_string();
+
+                // Append to current chapter
+                if !page_text.is_empty() {
+                    current_chapter.append_content(&page_text);
+                }
+            }
+
+            // Special handling for first page if no heading was found
+            if i == 0 && !found_new_chapter && current_chapter.title.is_empty() {
+                current_chapter.title = "Chapter 1".to_string();
+            }
+        }
+
+        // Save the last chapter if there's content
+        if !current_chapter.is_empty() {
+            current_chapter.save(&self.output_dir)?;
+            chapter_number += 1;
+        }
+
+        Ok(chapter_number)
+    }
+}
+```
+
+The `EpubProcessor` is responsible for:
+
+1. Opening and parsing the EPUB file
+2. Extracting metadata like title and author
+3. Processing each page to identify chapters
+4. Extracting content and passing it to the appropriate `Chapter` object
+5. Saving chapters as they're completed
+
+The main algorithm works by:
+
+1. Iterating through each "page" in the EPUB's spine
+2. Looking for heading elements that signify chapter starts
+3. Extracting text and appending it to the current chapter
+4. When a new chapter is found, saving the previous one and starting a new one
+
+## Tying It Together: The Main Function
+
+Finally, the `main.rs` file ties everything together:
+
+```rust
+use std::process;
+
+use epub_chapter_extractor::{parse_args, EpubProcessor};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Parse command line arguments
+    let args = match parse_args() {
+        Ok(args) => args,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            process::exit(1);
+        }
+    };
+
+    println!("Processing EPUB: {}", args.epub_path);
+    println!("Output directory: {}", args.output_dir.display());
+
+    // Create and initialize the EPUB processor
+    let mut processor = match EpubProcessor::new(&args.epub_path, args.output_dir) {
+        Ok(processor) => processor,
+        Err(e) => {
+            eprintln!("Error opening EPUB file: {}", e);
+            process::exit(1);
+        }
+    };
+
+    // Get book metadata
+    let (title, author) = processor.get_metadata();
+    if let Some(title) = title {
+        println!("Book title: {}", title);
+    }
+    if let Some(author) = author {
+        println!("Author: {}", author);
+    }
+
+    // Get number of pages in the book
+    let num_pages = processor.get_page_count();
+    println!("Number of pages in EPUB: {}", num_pages);
+
+    // Process the EPUB
+    match processor.process() {
+        Ok(chapter_count) => {
+            println!("Extraction complete. Extracted {} chapters.", chapter_count);
+        }
+        Err(e) => {
+            eprintln!("Error processing EPUB: {}", e);
+            process::exit(1);
+        }
+    }
+
+    Ok(())
+}
+```
+
+This entry point handles:
+
+1. Parsing arguments
+2. Setting up the EPUB processor
+3. Retrieving and displaying metadata
+4. Triggering the processing
+5. Reporting results or errors
+
+## Testing in Rust
+
+One of the aspects of Rust that I came to appreciate most while developing this project was its robust testing framework. Rust promotes a test-driven development approach with its built-in testing capabilities.
+
+### Unit Tests
+
+I wrote unit tests for each module directly within the module files using Rust's `#[cfg(test)]` attribute. For example, here are some tests for the `Chapter` module:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::io::Read;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_new_chapter() {
+        let chapter = Chapter::new(5, "Test Chapter".to_string());
+        assert_eq!(chapter.number, 5);
+        assert_eq!(chapter.title, "Test Chapter");
+        assert!(chapter.content.is_empty());
+    }
+
+    #[test]
+    fn test_append_content() {
+        let mut chapter = Chapter::new(1, "Title".to_string());
+        chapter.append_content("First paragraph");
+        chapter.append_content("    Second paragraph with indentation");
+
+        // The indentation should be removed by the append_content method
+        assert_eq!(chapter.content, "First paragraph\\n\\nSecond paragraph with indentation\\n\\n");
+        assert!(!chapter.is_empty());
+    }
+
+    #[test]
+    fn test_save_chapter() -> io::Result<()> {
+        // Create a temporary directory
+        let temp_dir = tempdir()?;
+        let output_dir = temp_dir.path().to_path_buf();
+
+        // Create a chapter
+        let mut chapter = Chapter::new(3, "Test: Chapter Title".to_string());
+        chapter.append_content("This is a test paragraph.");
+
+        // Save the chapter
+        chapter.save(&output_dir)?;
+
+        // Check if the file was created with correct filename
+        let expected_path = output_dir.join("004_Test_ Chapter Title.md");
+        assert!(expected_path.exists());
+
+        // Check the content
+        let mut file = fs::File::open(expected_path)?;
+        let mut content = String::new();
+        file.read_to_string(&mut content)?;
+
+        assert!(content.starts_with("# Test: Chapter Title"));
+        assert!(content.contains("This is a test paragraph."));
+
+        Ok(())
+    }
+}
+```
+
+These tests verify individual components work as expected. The `tempfile` crate is particularly useful for testing file operations without creating permanent files.
+
+### Testing the EPUB Processor
+
+Testing the EPUB processor was more challenging since it involves file operations and external libraries. I used the `mockall` crate to create mock objects that simulate the behavior of the EPUB library:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+    use mockall::predicate::*;
+    use mockall::mock;
+    use anyhow::Error;
+
+    // Create a mockable trait for EpubDoc functionalities we use
+    mock! {
+        pub EpubDoc {
+            fn mdata(&self, name: &str) -> Option<String>;
+            fn get_current_str(&self) -> Result<String, Error>;
+            fn set_current_page(&mut self, index: usize) -> Result<(), Error>;
+            fn get_current_id(&self) -> Result<String, Error>;
+        }
+
+        impl Clone for EpubDoc {
+            fn clone(&self) -> Self;
+        }
+    }
+
+    // A testable version of EpubProcessor
+    struct TestableEpubProcessor {
+        doc: MockEpubDoc,
+        output_dir: PathBuf,
+        spine_len: usize,
+    }
+
+    #[test]
+    fn test_metadata_extraction() {
+        let mut mock_doc = MockEpubDoc::new();
+
+        // Set up expectations
+        mock_doc.expect_mdata()
+            .with(eq("title"))
+            .return_const(Some("Test Book".to_string()));
+
+        mock_doc.expect_mdata()
+            .with(eq("creator"))
+            .return_const(Some("Test Author".to_string()));
+
+        let temp_dir = tempdir().unwrap();
+        let processor = TestableEpubProcessor::new(mock_doc, temp_dir.path().to_path_buf(), 0);
+
+        let (title, author) = processor.get_metadata();
+        assert_eq!(title, Some("Test Book".to_string()));
+        assert_eq!(author, Some("Test Author".to_string()));
+    }
+}
+```
+
+### Integration Tests
+
+Beyond unit tests, I created integration tests in the `tests/` directory that test the entire workflow with small sample EPUBs:
+
+```rust
+// tests/integration_test.rs
+use std::fs;
+use std::path::PathBuf;
+use tempfile::tempdir;
+
+use epub_chapter_extractor::EpubProcessor;
+
+#[test]
+fn test_end_to_end_extraction() -> Result<(), Box<dyn std::error::Error>> {
+    // Create temporary output directory
+    let temp_dir = tempdir()?;
+    let output_dir = temp_dir.path().to_path_buf();
+
+    // Path to a small test EPUB file
+    let test_epub_path = "tests/resources/small_test_book.epub";
+
+    // Create and process
+    let mut processor = EpubProcessor::new(test_epub_path, output_dir)?;
+    let chapter_count = processor.process()?;
+
+    // Verify expected number of chapters
+    assert_eq!(chapter_count, 3);
+
+    // Verify chapter files exist
+    assert!(output_dir.join("001_Chapter_1.md").exists());
+    assert!(output_dir.join("002_Chapter_2.md").exists());
+    assert!(output_dir.join("003_Chapter_3.md").exists());
+
+    Ok(())
+}
+```
+
+## Lessons Learned About Rust
+
+Through this project, I gained valuable insights into Rust's unique features and paradigms:
+
+![learning-rust-epub-chapter-extractor-20250330_1846_Image_Generation_simple_compose_01jqmy2t80fwavdze2w6yptdfn.jpeg](@assets/blog/learning-rust-epub-chapter-extractor/learning-rust-epub-chapter-extractor-20250330_1846_Image_Generation_simple_compose_01jqmy2t80fwavdze2w6yptdfn.jpeg)
+
+### 1. Ownership System
+
+Rust's ownership system was initially challenging but incredibly powerful once understood. For example, when working with file paths and content:
+
+```rust
+// This won't work because the string would be moved
+// let epub_path = args[1];
+// let epub_file = Path::new(&epub_path).file_stem();
+
+// Instead, clone the string to create a new owned value
+let epub_path = args[1].clone();
+let epub_file = Path::new(&epub_path).file_stem();
+```
+
+### 2. Error Handling
+
+Rust's approach to error handling with `Result` and `Option` types forces you to think about all possible failure points:
+
+```rust
+match self.doc.get_current_str() {
+    Ok(content) => content,
+    Err(e) => {
+        eprintln!("Warning: Could not get content for page {}: {}", i, e);
+        continue;
+    }
+}
+```
+
+### 3. Pattern Matching
+
+Pattern matching in Rust is incredibly powerful and expressive:
+
+```rust
+if let Some(heading) = html.select(&heading_selector).next() {
+    // Found a heading, handle it
+} else {
+    // No heading found, handle this case
+}
+```
+
+### 4. Traits and Generics
+
+Rust's trait system enables powerful abstractions without runtime overhead:
+
+```rust
+pub fn process(&mut self) -> Result<usize, Box<dyn std::error::Error>> {
+    // The dyn std::error::Error allows returning any error type
+    // that implements the Error trait
+}
+```
+
+### 5. Testing
+
+Rust's built-in testing framework makes writing and running tests straightforward:
+
+```rust
+#[test]
+fn test_is_empty() {
+    let mut chapter = Chapter::new(1, "Title".to_string());
+    assert!(chapter.is_empty());
+
+    chapter.append_content("Content");
+    assert!(!chapter.is_empty());
+}
+```
+
+## Refactoring and Improvements
+
+As I learned more about Rust, I refactored the code several times:
+
+### Error Handling Improvements
+
+I initially started with simple `String` errors but later adopted the `anyhow` crate for more robust error handling:
+
+```rust
+// Before
+pub fn new(epub_path: &str, output_dir: PathBuf) -> Result<Self, String> {
+    // ...
+}
+
+// After
+pub fn new(epub_path: &str, output_dir: PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
+    // ...
+}
+```
+
+### Improved HTML Parsing
+
+Early versions of the code extracted text naively, but I refined the approach to better handle HTML structure:
+
+```rust
+// Before: Simple text extraction
+let text = element.text().collect::<String>();
+
+// After: More sophisticated handling
+let processed_text = text.lines()
+    .map(|line| line.trim())
+    .collect::<Vec<&str>>()
+    .join("\\n");
+```
+
+### Better File Naming
+
+I improved the file naming logic to handle edge cases:
+
+```rust
+// Create a safe filename from the chapter title
+let mut safe_title = self.title.trim().to_string();
+
+// If title is empty, use just the chapter number
+if safe_title.is_empty() {
+    safe_title = format!("Chapter_{}", self.number + 1);
+}
+
+// Replace characters that are not allowed in filenames
+safe_title = safe_title
+    .replace('/', "_")
+    .replace('\\\\', "_")
+    // (more replacements)
+```
+
+## Open-Sourcing the Project
+
+I decided to open-source this project to benefit others who might face similar challenges.
+
+## Conclusion
+
+Building the EPUB Chapter Extractor was an excellent project for learning Rust. It exposed me to many of the language's core concepts in a practical context:
+
+- Working with files and directories
+- Processing structured data (EPUB and HTML)
+- Error handling
+- Creating a command-line interface
+- Writing comprehensive tests
+
+The final tool is genuinely useful for my work with LLMs, allowing me to break down e-books into manageable chunks that can be processed more effectively.
+
+Rust proved to be an excellent choice for this project. Its performance characteristics ensure the tool handles even large EPUBs efficiently, while its safety guarantees prevented common bugs that might have occurred in other languages.
+
+If you're interested in exploring the code further or using the tool yourself, you can find it on GitHub at [epub-chapter-extractor](https://github.com/augusteo/epub-chapter-extractor). Contributions are welcome!
+
+## Future Enhancements
+
+Some ideas for future improvements include:
+
+1. Support for more e-book formats (MOBI, PDF, etc.)
+2. A graphical user interface
+3. Batch processing of multiple files
+4. Advanced chapter detection algorithms
+5. Preserving images and formatting in the extracted Markdown
+
+I hope this blog post has provided useful insights into both Rust development and e-book processing. Happy coding!

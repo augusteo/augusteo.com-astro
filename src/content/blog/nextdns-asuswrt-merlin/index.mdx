@@ -1,0 +1,67 @@
+---
+title: "How to use NextDNS with AsusWRT-Merlin [Tutorial]"
+description: "How to use NextDNS with AsusWRT-Merlin [Tutorial] - a blog post by Victor Augusteo"
+pubDate: 2019-06-01
+heroImage: "@assets/blog/nextdns-asuswrt-merlin/nextdns-asuswrt-merlin-screen_shot_2019-07-27_at_8_27_58_pm.jpg"
+heroAlt: "nextdns asuswrt merlin screen shot 2019 07 27 at 8 27 58 pm"
+category: "tech"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+*Update 1/4/2020*
+
+Olivier mentioned that this is now directly integrated with Merlin.
+
+*Updated 7/27/2019*
+
+Recently I read about [NextDNS](https://www.nextdns.io/) from this [Hackernews post](https://news.ycombinator.com/item?id=20012687). I used to run [Pi-hole](https://pi-hole.net/) to manage DNS-level ad-blocking but its quite a pain to setup. There’s always some issue going on with the Raspberry Pi itself and needed to spend time to manage it.
+
+Now with this service, I can have the DNS blocking like Pi-hole without the hassle!
+
+Setting it up with AsusWRT-Merlin is easy, but NextDNS doesn’t have a setup guide for it. So I decided to write one.
+
+### 1. Setup new account on NextDNS
+
+Follow this link to get started: [Create config](https://my.nextdns.io/start)
+
+Then go to **Setup** panel and find the **DNS-over-TLS** & **DNS Servers** IP addresses.
+
+It should look like:
+
+![nextdns-asuswrt-merlin-screen_shot_2019-07-27_at_8_27_58_pm.jpg](@assets/blog/nextdns-asuswrt-merlin/nextdns-asuswrt-merlin-screen_shot_2019-07-27_at_8_27_58_pm.jpg)
+
+### 2. Open DNS panel
+
+You can get there by clicking **WAN** button on the left menu.
+
+![nextdns-asuswrt-merlin-screenshot-2019-06-01-11.36.01.jpg](@assets/blog/nextdns-asuswrt-merlin/nextdns-asuswrt-merlin-screenshot-2019-06-01-11.36.01.jpg)
+
+Previously I used CloudFlare’s DNS, and it worked quite well. But now we want to switch to NextDNS!
+
+### 3. Enter the NextDNS details
+
+First, you want to delete the existing DNS Server 1 & 2.
+
+![nextdns-asuswrt-merlin-screen_shot_2019-07-27_at_8_31_25_pm.jpg](@assets/blog/nextdns-asuswrt-merlin/nextdns-asuswrt-merlin-screen_shot_2019-07-27_at_8_31_25_pm.jpg)
+
+Then, just follow the config example above, then copy paste the **DNS Servers to Addresses tab** and **DNS-over-TLS to TLS Hostname**. The port is **853**.
+
+After that, you should reboot the router.
+
+### 4. Done!
+
+Now your whole network should be redirected to NextDNS filtering.
+
+You can start enabling blocker lists like EasyList and StevenBlack from the List panel on NextDNS.
+
+**Edit 7⁄27: The below section is now outdated. They routed me to a server that’s very close to my area :)**
+
+Not all great… yet.
+
+The service works wonderfully considering that this is so new and still in beta. Right now I’m being redirected to Miami VPS instead of the one in CA even though I’m in CA.
+
+You can check that by going to the [ping router page](https://ipv4.dns.nextdns.io/ping).
+
+The founders are very responsive. I’ve chatted with them, and I’m delighted by their help.
