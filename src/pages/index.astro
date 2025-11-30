@@ -6,10 +6,17 @@ import FeaturedCard from "../components/FeaturedCard.astro";
 import Button from "../components/Button.astro";
 import profileImage from "../assets/blog/about/about-IMG_9264.jpeg";
 
-// Get featured posts (most recent 4 with images)
+// Get all published posts
 const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+
+// Get featured posts (posts with featured: true and hero images)
 const featuredPosts = allPosts
-  .filter((post) => post.data.heroImage) // Only posts with hero images
+  .filter((post) => post.data.featured && post.data.heroImage)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Get recent posts (exclude featured, must have hero image)
+const recentPosts = allPosts
+  .filter((post) => post.data.heroImage && !post.data.featured)
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 4);
 ---
@@ -47,12 +54,35 @@ const featuredPosts = allPosts
     <div class="divider-line"></div>
   </div>
 
-  <!-- Popular Posts -->
+  <!-- Featured Posts -->
+  {featuredPosts.length > 0 && (
+    <section class="section">
+      <h2 class="section-title">Featured</h2>
+
+      <div class="featured-grid">
+        {featuredPosts.map((post) => {
+          const slug = post.id.includes('/') ? post.id.split('/')[0] : post.id;
+          return (
+            <FeaturedCard
+              title={post.data.title}
+              description={post.data.description}
+              heroImage={post.data.heroImage}
+              heroAlt={post.data.heroAlt}
+              category={post.data.category}
+              slug={slug}
+            />
+          );
+        })}
+      </div>
+    </section>
+  )}
+
+  <!-- Recent Posts -->
   <section class="section">
     <h2 class="section-title">Recent Posts</h2>
 
     <div class="featured-grid">
-      {featuredPosts.map((post) => {
+      {recentPosts.map((post) => {
         const slug = post.id.includes('/') ? post.id.split('/')[0] : post.id;
         return (
           <FeaturedCard
