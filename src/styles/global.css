@@ -217,7 +217,7 @@
   .prose p > img,
   .prose img {
     /* Default: Ochre + Gold - warm autumn */
-    filter: url(#watercolor-soft)
+    filter:
       drop-shadow(0 0 3px rgba(218, 165, 32, 0.5))
       drop-shadow(0 0 8px rgba(205, 133, 63, 0.4))
       drop-shadow(0 0 15px rgba(218, 165, 32, 0.25))
@@ -226,7 +226,7 @@
 
   /* Variation 1: Sage + Olive - earthy green */
   .prose p:nth-of-type(6n+1) > img {
-    filter: url(#watercolor-medium)
+    filter:
       drop-shadow(0 0 3px rgba(143, 188, 143, 0.55))
       drop-shadow(0 0 8px rgba(107, 142, 35, 0.4))
       drop-shadow(0 0 16px rgba(143, 188, 143, 0.28))
@@ -235,7 +235,7 @@
 
   /* Variation 2: Terracotta + Coral - warm clay */
   .prose p:nth-of-type(6n+2) > img {
-    filter: url(#watercolor-heavy)
+    filter:
       drop-shadow(0 0 3px rgba(205, 92, 92, 0.5))
       drop-shadow(0 0 9px rgba(210, 105, 30, 0.4))
       drop-shadow(0 0 17px rgba(205, 92, 92, 0.25))
@@ -244,7 +244,7 @@
 
   /* Variation 3: Ocean + Sky - cool blue */
   .prose p:nth-of-type(6n+3) > img {
-    filter: url(#watercolor-soft)
+    filter:
       drop-shadow(0 0 3px rgba(70, 130, 180, 0.55))
       drop-shadow(0 0 8px rgba(100, 149, 237, 0.4))
       drop-shadow(0 0 16px rgba(135, 206, 235, 0.3))
@@ -253,7 +253,7 @@
 
   /* Variation 4: Lavender + Plum - soft purple */
   .prose p:nth-of-type(6n+4) > img {
-    filter: url(#watercolor-medium)
+    filter:
       drop-shadow(0 0 3px rgba(186, 85, 211, 0.45))
       drop-shadow(0 0 9px rgba(147, 112, 219, 0.38))
       drop-shadow(0 0 17px rgba(216, 191, 216, 0.28))
@@ -262,7 +262,7 @@
 
   /* Variation 5: Sunset + Peach - warm orange/pink */
   .prose p:nth-of-type(6n+5) > img {
-    filter: url(#watercolor-heavy)
+    filter:
       drop-shadow(0 0 3px rgba(255, 160, 122, 0.5))
       drop-shadow(0 0 8px rgba(255, 182, 193, 0.42))
       drop-shadow(0 0 16px rgba(255, 218, 185, 0.3))
@@ -271,7 +271,7 @@
 
   /* Variation 6: Teal + Mint - fresh aqua */
   .prose p:nth-of-type(6n) > img {
-    filter: url(#watercolor-soft)
+    filter:
       drop-shadow(0 0 3px rgba(0, 128, 128, 0.5))
       drop-shadow(0 0 9px rgba(64, 224, 208, 0.38))
       drop-shadow(0 0 17px rgba(127, 255, 212, 0.25))
