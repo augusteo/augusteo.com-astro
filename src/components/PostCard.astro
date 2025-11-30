@@ -10,9 +10,10 @@ interface Props {
   heroAlt: string;
   category: string;
   slug: string;
+  tags?: string[];
 }
 
-const { title, description, pubDate, heroImage, heroAlt, category, slug } = Astro.props;
+const { title, description, pubDate, heroImage, heroAlt, category, slug, tags } = Astro.props;
 const hasImage = !!heroImage;
 
 const formattedDate = pubDate.toLocaleDateString("en-US", {
@@ -27,6 +28,10 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
   class="post-card"
   class:list={[{ "no-image": !hasImage }]}
   data-category={category}
+  data-title={title.toLowerCase()}
+  data-description={description.toLowerCase()}
+  data-slug={slug.toLowerCase()}
+  data-tags={tags?.join(' ').toLowerCase() || ''}
 >
   {hasImage && (
     <div class="post-card-image">
