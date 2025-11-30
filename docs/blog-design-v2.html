@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>augusteo.com - Blog Design Mockup v2</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Watercolor palette */
+      --paper: #fdfbf7;
+      --paper-warm: #f9f5ed;
+      --ink: #2d3436;
+      --ink-light: #636e72;
+      --ink-faint: #b2bec3;
+      
+      /* Watercolor washes */
+      --wash-sky: #87ceeb50;
+      --wash-sage: #8fbc8f45;
+      --wash-terracotta: #cd853f35;
+      --wash-ocean: #5f9ea040;
+      --wash-sunset: #deb88730;
+      
+      /* Accent colors */
+      --accent-green: #6b8e23;
+      --accent-blue: #4682b4;
+      --accent-terracotta: #cd5c5c;
+      --accent-ochre: #daa520;
+      
+      /* Typography */
+      --font-hand: 'Caveat', cursive;
+      --font-body: 'Spectral', Georgia, serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      /* Spacing */
+      --content-width: 720px;
+      --wide-width: 1100px;
+      --photo-width: 1000px;
+      --max-photo-width: 1500px;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      font-size: 18px;
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.7;
+      position: relative;
+    }
+    
+    /* Subtle paper texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+    
+    /* ========================================
+       SVG WATERCOLOR TEXTURES
+    ======================================== */
+    
+    /* Watercolor blob for backgrounds */
+    .watercolor-blob {
+      position: absolute;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    /* Organic border SVG - reusable */
+    .organic-border {
+      position: relative;
+    }
+    
+    .organic-border::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M2,5 Q5,2 15,3 T30,2 T50,4 T70,2 T85,3 T98,5 Q99,15 98,30 T99,50 T98,70 T99,85 T98,95 Q85,98 70,97 T50,98 T30,97 T15,98 T2,95 Q1,85 2,70 T1,50 T2,30 T1,15 Z' fill='none' stroke='%23b2bec3' stroke-width='0.5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      border-radius: 3px;
+    }
+    
+    /* Watercolor wash texture */
+    .wash-texture {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Cdefs%3E%3Cfilter id='watercolor' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='20' xChannelSelector='R' yChannelSelector='G'/%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='200' cy='150' rx='180' ry='120' fill='currentColor' filter='url(%23watercolor)' opacity='0.6'/%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+    }
+    
+    /* ========================================
+       NAVIGATION
+    ======================================== */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--paper);
+      padding: 1rem 2rem;
+    }
+    
+    /* Watercolor stripe under nav */
+    nav::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 8' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='navGrad' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' style='stop-color:%2387ceeb;stop-opacity:0.5'/%3E%3Cstop offset='25%25' style='stop-color:%238fbc8f;stop-opacity:0.4'/%3E%3Cstop offset='50%25' style='stop-color:%23cd853f;stop-opacity:0.3'/%3E%3Cstop offset='75%25' style='stop-color:%235f9ea0;stop-opacity:0.4'/%3E%3Cstop offset='100%25' style='stop-color:%23deb887;stop-opacity:0.3'/%3E%3C/linearGradient%3E%3Cfilter id='watercolorNav'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M0,4 Q100,2 200,5 T400,3 T600,6 T800,2 T1000,5 T1200,4' stroke='url(%23navGrad)' stroke-width='8' fill='none' filter='url(%23watercolorNav)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .nav-inner {
+      max-width: var(--wide-width);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-family: var(--font-hand);
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--ink);
+      text-decoration: none;
+      position: relative;
+    }
+    
+    /* Watercolor underline for logo */
+    .logo::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: -5px;
+      right: -5px;
+      height: 8px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8'%3E%3Cpath d='M0,4 Q10,2 25,5 T50,3 T75,5 T100,4' stroke='%23daa520' stroke-width='6' fill='none' opacity='0.4'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    
+    .nav-links a {
+      font-family: var(--font-hand);
+      font-size: 1.3rem;
+      color: var(--ink-light);
+      text-decoration: none;
+      position: relative;
+      transition: color 0.2s;
+    }
+    
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+    
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 4'%3E%3Cpath d='M0,2 Q15,1 30,3 T60,2' stroke='%23cd5c5c' stroke-width='3' fill='none' opacity='0.6'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .nav-links a:hover::after {
+      opacity: 1;
+    }
+    
+    /* ========================================
+       PAGE TABS (mockup only)
+    ======================================== */
+    .page-tabs {
+      background: var(--ink);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    
+    .page-tab {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--ink-light);
+      color: var(--ink-faint);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-radius: 20px;
+    }
+    
+    .page-tab:hover {
+      border-color: var(--paper);
+      color: var(--paper);
+    }
+    
+    .page-tab.active {
+      background: var(--paper);
+      color: var(--ink);
+      border-color: var(--paper);
+    }
+    
+    /* ========================================
+       PAGES
+    ======================================== */
+    .page {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    
+    .page.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* ========================================
+       ORGANIC BUTTON STYLE
+    ======================================== */
+    .btn-organic {
+      font-family: var(--font-hand);
+      font-size: 1.2rem;
+      padding: 0.5rem 1.2rem;
+      background: transparent;
+      border: none;
+      color: var(--ink);
+      text-decoration: none;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    /* Watercolor blob background */
+    .btn-organic::before {
+      content: '';
+      position: absolute;
+      inset: -4px -8px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 50'%3E%3Cdefs%3E%3Cfilter id='btnWash'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='8'/%3E%3CfeGaussianBlur stdDeviation='0.5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='60' cy='25' rx='55' ry='20' fill='%2387ceeb' opacity='0.35' filter='url(%23btnWash)'/%3E%3Cpath d='M8,25 Q10,10 30,8 T60,10 T90,8 T112,25 Q110,40 90,42 T60,40 T30,42 T8,25' stroke='%232d3436' stroke-width='1.5' fill='none' opacity='0.7'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: -1;
+      transition: transform 0.2s;
+    }
+    
+    .btn-organic:hover {
+      transform: translate(-2px, -2px);
+    }
+    
+    .btn-organic:hover::before {
+      transform: translate(2px, 2px);
+    }
+    
+    /* Different wash colors */
+    .btn-organic.sage::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 50'%3E%3Cdefs%3E%3Cfilter id='btnWashSage'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='8'/%3E%3CfeGaussianBlur stdDeviation='0.5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='60' cy='25' rx='55' ry='20' fill='%238fbc8f' opacity='0.4' filter='url(%23btnWashSage)'/%3E%3Cpath d='M8,25 Q10,10 30,8 T60,10 T90,8 T112,25 Q110,40 90,42 T60,40 T30,42 T8,25' stroke='%232d3436' stroke-width='1.5' fill='none' opacity='0.7'/%3E%3C/svg%3E");
+    }
+    
+    .btn-organic.terracotta::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 50'%3E%3Cdefs%3E%3Cfilter id='btnWashTerra'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='8'/%3E%3CfeGaussianBlur stdDeviation='0.5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='60' cy='25' rx='55' ry='20' fill='%23cd853f' opacity='0.35' filter='url(%23btnWashTerra)'/%3E%3Cpath d='M8,25 Q10,10 30,8 T60,10 T90,8 T112,25 Q110,40 90,42 T60,40 T30,42 T8,25' stroke='%232d3436' stroke-width='1.5' fill='none' opacity='0.7'/%3E%3C/svg%3E");
+    }
+    
+    /* ========================================
+       HOMEPAGE
+    ======================================== */
+    .hero {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 5rem 2rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr 200px;
+      gap: 3rem;
+      align-items: start;
+      position: relative;
+    }
+    
+    /* Large watercolor blob behind hero */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -100px;
+      width: 500px;
+      height: 400px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 400'%3E%3Cdefs%3E%3Cfilter id='heroBlob'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='3'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='40'/%3E%3CfeGaussianBlur stdDeviation='8'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='250' cy='200' rx='200' ry='150' fill='%2387ceeb' opacity='0.15' filter='url(%23heroBlob)'/%3E%3Cellipse cx='300' cy='250' rx='150' ry='100' fill='%238fbc8f' opacity='0.1' filter='url(%23heroBlob)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .hero-text h1 {
+      font-family: var(--font-hand);
+      font-size: 3.5rem;
+      font-weight: 600;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    
+    .hero-text h1 span {
+      position: relative;
+      display: inline-block;
+    }
+    
+    /* Watercolor highlight under name */
+    .hero-text h1 span::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: -8px;
+      right: -8px;
+      height: 20px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20'%3E%3Cdefs%3E%3Cfilter id='nameHighlight'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3CfeGaussianBlur stdDeviation='1'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='50' cy='10' rx='48' ry='8' fill='%238fbc8f' opacity='0.5' filter='url(%23nameHighlight)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: -1;
+    }
+    
+    .hero-text p {
+      font-size: 1.1rem;
+      color: var(--ink-light);
+      margin-bottom: 1.5rem;
+    }
+    
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    
+    .hero-portrait {
+      position: relative;
+    }
+    
+    /* Watercolor splash behind portrait */
+    .hero-portrait::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      left: -30px;
+      right: -30px;
+      bottom: -30px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 260'%3E%3Cdefs%3E%3Cfilter id='portraitBlob'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='25'/%3E%3CfeGaussianBlur stdDeviation='3'/%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='130' cy='130' r='100' fill='%2387ceeb' opacity='0.25' filter='url(%23portraitBlob)'/%3E%3Ccircle cx='150' cy='140' r='80' fill='%23cd853f' opacity='0.15' filter='url(%23portraitBlob)'/%3E%3Ccircle cx='110' cy='120' r='70' fill='%238fbc8f' opacity='0.2' filter='url(%23portraitBlob)'/%3E%3C/svg%3E");
+      z-index: 0;
+    }
+    
+    .portrait-placeholder {
+      width: 180px;
+      height: 180px;
+      background: var(--paper-warm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-hand);
+      font-size: 4rem;
+      color: var(--ink-light);
+      position: relative;
+      z-index: 1;
+      /* Organic circle shape */
+      border-radius: 50% 45% 55% 48% / 48% 50% 45% 52%;
+      border: 2px solid var(--ink);
+    }
+    
+    /* ========================================
+       POPULAR POSTS - WITH HERO IMAGES
+    ======================================== */
+    .section {
+      max-width: var(--wide-width);
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+    
+    .section-title {
+      font-family: var(--font-hand);
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      display: inline-block;
+    }
+    
+    /* Watercolor underline */
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 6'%3E%3Cpath d='M0,3 Q25,1 50,4 T100,2 T150,4 T200,3' stroke='%232d3436' stroke-width='2' fill='none' opacity='0.3'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .section-title::before {
+      content: '✦';
+      position: absolute;
+      left: -1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: var(--accent-terracotta);
+    }
+    
+    /* Featured grid with hero images */
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+    
+    .featured-card {
+      position: relative;
+      background: var(--paper);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Organic border around card */
+    .featured-card::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 350' preserveAspectRatio='none'%3E%3Cpath d='M5,15 Q8,5 25,6 T80,4 T150,6 T220,4 T275,6 T295,15 Q298,40 296,100 T298,175 T296,250 T298,320 T295,335 Q280,345 220,344 T150,346 T80,344 T25,346 T5,335 Q3,300 4,250 T3,175 T4,100 T3,40 Z' stroke='%23b2bec3' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+    
+    .featured-card:hover {
+      transform: translate(-3px, -3px);
+    }
+    
+    .featured-card:hover::before {
+      opacity: 1;
+    }
+    
+    .featured-card-image {
+      aspect-ratio: 16/10;
+      overflow: hidden;
+      position: relative;
+      margin: 8px 8px 0;
+    }
+    
+    .featured-card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+      /* Slightly organic crop */
+      border-radius: 4px 8px 4px 8px / 8px 4px 8px 4px;
+    }
+    
+    .featured-card:hover .featured-card-image img {
+      transform: scale(1.03);
+    }
+    
+    /* Watercolor wash overlay on image */
+    .featured-card-image::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(to top, var(--paper) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    
+    .featured-card-content {
+      padding: 1rem 1.25rem 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .featured-card .category {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--ink-light);
+      margin-bottom: 0.4rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    
+    .featured-card .category::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--wash-sky);
+    }
+    
+    .featured-card[data-cat="tech"] .category::before { background: var(--wash-sage); }
+    .featured-card[data-cat="books"] .category::before { background: var(--wash-terracotta); }
+    .featured-card[data-cat="philosophy"] .category::before { background: var(--wash-sunset); }
+    
+    .featured-card h3 {
+      font-family: var(--font-hand);
+      font-size: 1.6rem;
+      font-weight: 500;
+      line-height: 1.15;
+      margin-bottom: 0.5rem;
+    }
+    
+    .featured-card .excerpt {
+      font-size: 0.9rem;
+      color: var(--ink-light);
+      line-height: 1.5;
+    }
+    
+    /* Divider */
+    .divider {
+      max-width: var(--content-width);
+      margin: 2rem auto;
+      padding: 0 2rem;
+      height: 20px;
+    }
+    
+    .divider-line {
+      height: 100%;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 20'%3E%3Cpath d='M0,10 Q50,5 100,12 T200,8 T300,12 T400,8 T500,12 T600,10' stroke='%23b2bec3' stroke-width='1' fill='none'/%3E%3Ccircle cx='300' cy='10' r='3' fill='%23cd853f' opacity='0.6'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+    }
+    
+    /* ========================================
+       BLOG LIST PAGE
+    ======================================== */
+    .blog-header {
+      max-width: var(--wide-width);
+      margin: 0 auto;
+      padding: 3rem 2rem 2rem;
+      position: relative;
+    }
+    
+    .blog-header h1 {
+      font-family: var(--font-hand);
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    /* Organic filter buttons */
+    .filters {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    
+    .filter-btn {
+      font-family: var(--font-hand);
+      font-size: 1.1rem;
+      padding: 0.4rem 1rem;
+      background: transparent;
+      border: none;
+      color: var(--ink-light);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+    
+    .filter-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: -1;
+    }
+    
+    .filter-btn[data-category="all"]::before {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterAll'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23b2bec3' opacity='0.3' filter='url(%23filterAll)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .filter-btn[data-category="travels"]::before {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterTrav'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%2387ceeb' opacity='0.5' filter='url(%23filterTrav)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .filter-btn[data-category="tech"]::before {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterTech'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%238fbc8f' opacity='0.5' filter='url(%23filterTech)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .filter-btn[data-category="books"]::before {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterBooks'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23cd853f' opacity='0.4' filter='url(%23filterBooks)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .filter-btn[data-category="philosophy"]::before {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterPhil'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23deb887' opacity='0.5' filter='url(%23filterPhil)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .filter-btn:hover::before,
+    .filter-btn.active::before {
+      opacity: 1;
+    }
+    
+    .filter-btn.active {
+      color: var(--ink);
+    }
+    
+    /* Blog post cards with organic borders */
+    .blog-grid {
+      max-width: var(--wide-width);
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+      display: grid;
+      gap: 2.5rem;
+    }
+    
+    .post-card {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      padding: 1.25rem;
+      background: var(--paper);
+      transition: transform 0.3s;
+      position: relative;
+    }
+    
+    /* Organic border */
+    .post-card::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 220' preserveAspectRatio='none'%3E%3Cpath d='M5,15 Q8,5 50,7 T200,5 T400,7 T600,5 T750,7 T795,15 Q798,50 796,110 T798,200 T795,210 Q750,218 600,216 T400,218 T200,216 T50,218 T5,210 Q3,180 4,110 T3,50 Z' stroke='%23b2bec3' stroke-width='1' fill='none' opacity='0.5'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .post-card:hover {
+      transform: translate(-2px, -2px);
+    }
+    
+    .post-card:hover::before {
+      opacity: 1;
+    }
+    
+    /* Watercolor accent line */
+    .post-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20px;
+      bottom: 20px;
+      width: 6px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='accent'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,25 3,50 T3,100' stroke='%234682b4' stroke-width='5' fill='none' filter='url(%23accent)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .post-card[data-category="tech"]::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='accentTech'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,25 3,50 T3,100' stroke='%236b8e23' stroke-width='5' fill='none' filter='url(%23accentTech)'/%3E%3C/svg%3E");
+    }
+    
+    .post-card[data-category="books"]::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='accentBooks'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,25 3,50 T3,100' stroke='%23cd5c5c' stroke-width='5' fill='none' filter='url(%23accentBooks)'/%3E%3C/svg%3E");
+    }
+    
+    .post-card[data-category="philosophy"]::after {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='accentPhil'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,25 3,50 T3,100' stroke='%23daa520' stroke-width='5' fill='none' filter='url(%23accentPhil)'/%3E%3C/svg%3E");
+    }
+    
+    .post-card:hover::after {
+      opacity: 1;
+    }
+    
+    .post-card-image {
+      aspect-ratio: 16/10;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .post-card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+      /* Organic shape */
+      border-radius: 6px 12px 8px 10px / 10px 8px 12px 6px;
+    }
+    
+    .post-card:hover .post-card-image img {
+      transform: scale(1.03);
+    }
+    
+    .post-card-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-right: 1rem;
+    }
+    
+    .post-card-meta {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .post-card-category {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      padding: 0.25rem 0.6rem;
+      position: relative;
+    }
+    
+    .post-card-category::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='cat'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%2387ceeb' opacity='0.5' filter='url(%23cat)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: -1;
+    }
+    
+    .post-card[data-category="tech"] .post-card-category::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='catTech'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%238fbc8f' opacity='0.6' filter='url(%23catTech)'/%3E%3C/svg%3E");
+    }
+    
+    .post-card[data-category="books"] .post-card-category::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='catBooks'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%23cd853f' opacity='0.5' filter='url(%23catBooks)'/%3E%3C/svg%3E");
+    }
+    
+    .post-card[data-category="philosophy"] .post-card-category::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='catPhil'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%23deb887' opacity='0.6' filter='url(%23catPhil)'/%3E%3C/svg%3E");
+    }
+    
+    .post-card-date {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--ink-light);
+    }
+    
+    .post-card h2 {
+      font-family: var(--font-hand);
+      font-size: 1.8rem;
+      font-weight: 500;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+    
+    .post-card .excerpt {
+      font-size: 0.95rem;
+      color: var(--ink-light);
+      line-height: 1.55;
+    }
+    
+    .post-card .read-more {
+      margin-top: auto;
+      padding-top: 0.75rem;
+      font-family: var(--font-hand);
+      font-size: 1.1rem;
+      color: var(--accent-blue);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .post-card .read-more::after {
+      content: '→';
+      transition: transform 0.2s;
+    }
+    
+    .post-card:hover .read-more::after {
+      transform: translateX(4px);
+    }
+    
+    /* ========================================
+       POST PAGE
+    ======================================== */
+    .post-hero {
+      position: relative;
+      height: 55vh;
+      min-height: 350px;
+      max-height: 550px;
+      overflow: hidden;
+    }
+    
+    .post-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    /* Watercolor fade at bottom */
+    .post-hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='fadeGrad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fdfbf7;stop-opacity:0'/%3E%3Cstop offset='100%25' style='stop-color:%23fdfbf7;stop-opacity:1'/%3E%3C/linearGradient%3E%3Cfilter id='heroFade'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='2'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='15'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23fadeGrad)' filter='url(%23heroFade)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .post-header {
+      max-width: var(--content-width);
+      margin: -100px auto 0;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .post-header .category {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      padding: 0.35rem 0.8rem;
+      display: inline-block;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    
+    .post-header .category::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 30'%3E%3Cdefs%3E%3Cfilter id='headerCat'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='4'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='15' rx='38' ry='13' fill='%2387ceeb' opacity='0.6' filter='url(%23headerCat)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: -1;
+    }
+    
+    .post-header h1 {
+      font-family: var(--font-hand);
+      font-size: 3.2rem;
+      font-weight: 600;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    
+    .post-header .meta {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--ink-light);
+      margin-bottom: 2rem;
+    }
+    
+    /* Post content */
+    .post-content {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      padding: 2rem 2rem 4rem;
+    }
+    
+    .post-content p {
+      margin-bottom: 1.5rem;
+    }
+    
+    .post-content h2 {
+      font-family: var(--font-hand);
+      font-size: 2rem;
+      margin: 3rem 0 1.5rem;
+      position: relative;
+      padding-left: 1.25rem;
+    }
+    
+    /* Watercolor accent for h2 */
+    .post-content h2::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 40' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='h2accent'%3E%3CfeTurbulence baseFrequency='0.1'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M3,0 Q1,10 3,20 T3,40' stroke='%23daa520' stroke-width='5' fill='none' filter='url(%23h2accent)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .post-content h3 {
+      font-family: var(--font-hand);
+      font-size: 1.5rem;
+      margin: 2rem 0 1rem;
+    }
+    
+    .post-content a {
+      color: var(--accent-blue);
+      text-decoration: underline;
+      text-decoration-style: wavy;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+    
+    .post-content a:hover {
+      text-decoration-thickness: 2px;
+    }
+    
+    /* Blockquote with watercolor background */
+    .post-content blockquote {
+      margin: 2rem 0;
+      padding: 1.5rem 2rem;
+      font-style: italic;
+      position: relative;
+    }
+    
+    .post-content blockquote::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='bqWash'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='15'/%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='5' y='5' width='390' height='90' rx='5' fill='%238fbc8f' opacity='0.25' filter='url(%23bqWash)'/%3E%3Cpath d='M3,50 Q5,10 10,8 T30,10' stroke='%236b8e23' stroke-width='3' fill='none' opacity='0.7'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: -1;
+    }
+    
+    .post-content blockquote p {
+      margin-bottom: 0;
+    }
+    
+    /* Code blocks */
+    .post-content pre {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      position: relative;
+      /* Organic corners */
+      border-radius: 8px 16px 12px 20px / 20px 12px 16px 8px;
+    }
+    
+    .post-content pre::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 0.3rem 0.8rem;
+      background: var(--ink-light);
+      color: var(--paper);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-radius: 0 12px 0 8px;
+    }
+    
+    .post-content code {
+      font-family: var(--font-mono);
+      font-size: 0.9em;
+      padding: 0.15rem 0.4rem;
+      position: relative;
+    }
+    
+    .post-content code::before {
+      content: '';
+      position: absolute;
+      inset: -2px -4px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 24'%3E%3Cdefs%3E%3Cfilter id='codeWash'%3E%3CfeTurbulence baseFrequency='0.08'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='25' cy='12' rx='24' ry='11' fill='%238fbc8f' opacity='0.35' filter='url(%23codeWash)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: -1;
+    }
+    
+    .post-content pre code::before {
+      display: none;
+    }
+    
+    .post-content pre code {
+      padding: 0;
+      background: transparent;
+    }
+    
+    /* WIDE IMAGES - capped at 1500px */
+    .post-content figure {
+      margin: 3rem 0;
+      position: relative;
+      /* Break out of content column */
+      width: calc(100vw - 4rem);
+      max-width: var(--max-photo-width);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .post-content figure img {
+      width: 100%;
+      display: block;
+      /* Organic shape */
+      border-radius: 8px 16px 12px 20px / 12px 8px 20px 16px;
+    }
+    
+    .post-content figcaption {
+      font-family: var(--font-hand);
+      font-size: 1.1rem;
+      color: var(--ink-light);
+      text-align: center;
+      padding: 0.75rem 2rem;
+      position: relative;
+    }
+    
+    .post-content figcaption::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 40' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='capWash'%3E%3CfeTurbulence baseFrequency='0.03'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='50' y='5' width='300' height='30' fill='%23deb887' opacity='0.25' filter='url(%23capWash)'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: -1;
+    }
+    
+    /* Lists */
+    .post-content ul, .post-content ol {
+      margin: 1.5rem 0;
+      padding-left: 1.5rem;
+    }
+    
+    .post-content li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .post-content li::marker {
+      color: var(--accent-terracotta);
+    }
+    
+    /* Sketch HR */
+    .sketch-hr {
+      border: none;
+      height: 30px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 30'%3E%3Cpath d='M20,15 Q60,10 100,16 T180,13 T260,17 T340,14 T380,15' stroke='%23b2bec3' stroke-width='1.5' fill='none'/%3E%3Ccircle cx='200' cy='15' r='4' fill='%23cd853f' opacity='0.6'/%3E%3Cpath d='M190,15 L195,10 M210,15 L205,10' stroke='%23cd853f' stroke-width='1' opacity='0.4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%;
+      margin: 3rem 0;
+    }
+    
+    /* ========================================
+       FOOTER
+    ======================================== */
+    footer {
+      background: var(--paper-warm);
+      padding: 3rem 2rem;
+      margin-top: 4rem;
+      position: relative;
+    }
+    
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 6' preserveAspectRatio='none'%3E%3Cpath d='M0,3 Q100,1 200,4 T400,2 T600,4 T800,3' stroke='%23b2bec3' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+    }
+    
+    .footer-inner {
+      max-width: var(--content-width);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .footer-inner p {
+      font-family: var(--font-hand);
+      font-size: 1.1rem;
+      color: var(--ink-light);
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .footer-links a {
+      font-family: var(--font-hand);
+      font-size: 1.1rem;
+      color: var(--ink-light);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: var(--ink);
+    }
+    
+    /* ========================================
+       RESPONSIVE
+    ======================================== */
+    @media (max-width: 900px) {
+      .featured-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .post-card {
+        grid-template-columns: 1fr;
+      }
+      
+      .post-card-image {
+        max-height: 250px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      html {
+        font-size: 16px;
+      }
+      
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding-top: 3rem;
+      }
+      
+      .hero-portrait {
+        order: -1;
+        justify-self: center;
+      }
+      
+      .hero-links {
+        justify-content: center;
+      }
+      
+      .post-header h1 {
+        font-size: 2.2rem;
+      }
+      
+      .nav-links {
+        gap: 1rem;
+      }
+      
+      .post-content figure {
+        width: calc(100vw - 2rem);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="logo">augusteo</a>
+      <ul class="nav-links">
+        <li><a href="#" onclick="showPage('home')">Home</a></li>
+        <li><a href="#" onclick="showPage('blog')">Blog</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Resources</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <!-- Page tabs (mockup) -->
+  <div class="page-tabs">
+    <button class="page-tab active" onclick="showPage('home')">Homepage</button>
+    <button class="page-tab" onclick="showPage('blog')">Blog List</button>
+    <button class="page-tab" onclick="showPage('post')">Post Page</button>
+  </div>
+
+  <!-- ==========================================
+       HOMEPAGE
+  ========================================== -->
+  <div id="page-home" class="page active">
+    
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Hi, I'm <span>Victor</span></h1>
+        <p>
+          Head of Engineering at Boon AI. I write about travels with my family, 
+          technology & AI, books I've read, and the occasional philosophical rambling. 
+          This is my corner of the internet.
+        </p>
+        <div class="hero-links">
+          <a href="#" class="btn-organic" onclick="showPage('blog')">Read the Blog</a>
+          <a href="#" class="btn-organic sage">About Me</a>
+          <a href="#" class="btn-organic terracotta">Resources</a>
+        </div>
+      </div>
+      <div class="hero-portrait">
+        <div class="portrait-placeholder">V</div>
+      </div>
+    </section>
+    
+    <div class="divider"><div class="divider-line"></div></div>
+    
+    <section class="section">
+      <h2 class="section-title">Popular Posts</h2>
+      <div class="featured-grid">
+        <a href="#" class="featured-card" data-cat="travels" onclick="showPage('post')">
+          <div class="featured-card-image">
+            <img src="/mnt/user-data/uploads/Gemini_Generated_Image_l0wo9il0wo9il0wo.png" alt="El Salvador watercolor">
+          </div>
+          <div class="featured-card-content">
+            <div class="category">Travels</div>
+            <h3>El Salvador with Kids: 5 Days of Adventure</h3>
+            <p class="excerpt">Our family discovers a country in the middle of a post-gang renaissance...</p>
+          </div>
+        </a>
+        <a href="#" class="featured-card" data-cat="tech">
+          <div class="featured-card-image">
+            <img src="https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&h=375&fit=crop" alt="Apple Park">
+          </div>
+          <div class="featured-card-content">
+            <div class="category">Tech</div>
+            <h3>Why I Left Apple to Join Boon</h3>
+            <p class="excerpt">The simple answer? Growth potential. But there's more to the story...</p>
+          </div>
+        </a>
+        <a href="#" class="featured-card" data-cat="books">
+          <div class="featured-card-image">
+            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=375&fit=crop" alt="Books">
+          </div>
+          <div class="featured-card-content">
+            <div class="category">Books</div>
+            <h3>An Absolutely Remarkable Thing</h3>
+            <p class="excerpt">Hank Green's debut masterfully explores fame and social media addiction...</p>
+          </div>
+        </a>
+        <a href="#" class="featured-card" data-cat="tech">
+          <div class="featured-card-image">
+            <img src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=375&fit=crop" alt="Tesla">
+          </div>
+          <div class="featured-card-content">
+            <div class="category">Tech</div>
+            <h3>From Nissan Leaf to Tesla Model Y</h3>
+            <p class="excerpt">How a simple spreadsheet completely changed my perspective...</p>
+          </div>
+        </a>
+      </div>
+    </section>
+    
+    <footer>
+      <div class="footer-inner">
+        <p>© 2025 Victor Augusteo</p>
+        <div class="footer-links">
+          <a href="#">Twitter</a>
+          <a href="#">GitHub</a>
+          <a href="#">RSS</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ==========================================
+       BLOG LIST PAGE
+  ========================================== -->
+  <div id="page-blog" class="page">
+    
+    <div class="blog-header">
+      <h1>All Posts</h1>
+      <div class="filters">
+        <button class="filter-btn active" data-category="all" onclick="filterPosts('all')">All</button>
+        <button class="filter-btn" data-category="travels" onclick="filterPosts('travels')">Travels</button>
+        <button class="filter-btn" data-category="tech" onclick="filterPosts('tech')">Tech</button>
+        <button class="filter-btn" data-category="books" onclick="filterPosts('books')">Books</button>
+        <button class="filter-btn" data-category="philosophy" onclick="filterPosts('philosophy')">Philosophy</button>
+      </div>
+    </div>
+    
+    <div class="blog-grid">
+      <a href="#" class="post-card" data-category="travels" onclick="showPage('post')">
+        <div class="post-card-image">
+          <img src="/mnt/user-data/uploads/Gemini_Generated_Image_l0wo9il0wo9il0wo.png" alt="El Salvador">
+        </div>
+        <div class="post-card-content">
+          <div class="post-card-meta">
+            <span class="post-card-category">Travels</span>
+            <span class="post-card-date">Nov 29, 2025</span>
+          </div>
+          <h2>El Salvador with Kids: 5 Days of Adventure, Vomit, and Unexpected Familiarity</h2>
+          <p class="excerpt">Our family of four spends 5 days in El Salvador on a budget, navigating rental car chaos, armed security everywhere, and discovers a country that feels surprisingly like Indonesia.</p>
+          <span class="read-more">Read more</span>
+        </div>
+      </a>
+      
+      <a href="#" class="post-card" data-category="tech">
+        <div class="post-card-image">
+          <img src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=375&fit=crop" alt="Tesla">
+        </div>
+        <div class="post-card-content">
+          <div class="post-card-meta">
+            <span class="post-card-category">Tech</span>
+            <span class="post-card-date">Feb 10, 2025</span>
+          </div>
+          <h2>From Nissan Leaf to Tesla Model Y: An Unexpected Switch</h2>
+          <p class="excerpt">From doubting Tesla's value to discovering it was my ideal next car, here's how creating a simple comparison spreadsheet completely changed my perspective.</p>
+          <span class="read-more">Read more</span>
+        </div>
+      </a>
+      
+      <a href="#" class="post-card" data-category="tech">
+        <div class="post-card-image">
+          <img src="https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&h=375&fit=crop" alt="Apple">
+        </div>
+        <div class="post-card-content">
+          <div class="post-card-meta">
+            <span class="post-card-category">Tech</span>
+            <span class="post-card-date">Jan 15, 2025</span>
+          </div>
+          <h2>Why I Left Apple to Join Boon</h2>
+          <p class="excerpt">When I interview candidates, almost everyone asks: Why did I leave Apple to join a small startup? The simple answer? Growth potential.</p>
+          <span class="read-more">Read more</span>
+        </div>
+      </a>
+      
+      <a href="#" class="post-card" data-category="books">
+        <div class="post-card-image">
+          <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=375&fit=crop" alt="Books">
+        </div>
+        <div class="post-card-content">
+          <div class="post-card-meta">
+            <span class="post-card-category">Books</span>
+            <span class="post-card-date">Dec 20, 2024</span>
+          </div>
+          <h2>Book Review: "An Absolutely Remarkable Thing" by Hank Green</h2>
+          <p class="excerpt">Captivating sci-fi debut that masterfully explores fame, social media addiction, and humanity's response to the unknown.</p>
+          <span class="read-more">Read more</span>
+        </div>
+      </a>
+      
+      <a href="#" class="post-card" data-category="philosophy">
+        <div class="post-card-image">
+          <img src="https://images.unsplash.com/photo-1505243542579-da5adfe8338f?w=600&h=375&fit=crop" alt="Thinking">
+        </div>
+        <div class="post-card-content">
+          <div class="post-card-meta">
+            <span class="post-card-category">Philosophy</span>
+            <span class="post-card-date">Nov 5, 2024</span>
+          </div>
+          <h2>On Building Things That Matter</h2>
+          <p class="excerpt">Reflections on what it means to create meaningful work in a world of endless distractions and short attention spans.</p>
+          <span class="read-more">Read more</span>
+        </div>
+      </a>
+    </div>
+    
+    <footer>
+      <div class="footer-inner">
+        <p>© 2025 Victor Augusteo</p>
+        <div class="footer-links">
+          <a href="#">Twitter</a>
+          <a href="#">GitHub</a>
+          <a href="#">RSS</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ==========================================
+       POST PAGE
+  ========================================== -->
+  <div id="page-post" class="page">
+    
+    <div class="post-hero">
+      <img src="/mnt/user-data/uploads/Gemini_Generated_Image_l0wo9il0wo9il0wo.png" alt="El Salvador">
+    </div>
+    
+    <header class="post-header">
+      <span class="category">Travels</span>
+      <h1>El Salvador with Kids: 5 Days of Adventure, Vomit, and Unexpected Familiarity</h1>
+      <div class="meta">
+        <span>📅 Nov 29, 2025</span>
+        <span>⏱ 15 min read</span>
+        <span>🏷 Travels, Family</span>
+      </div>
+    </header>
+    
+    <article class="post-content">
+      <p>
+        <strong>We never planned to go to El Salvador.</strong> It started the way a lot of our family trips do: 
+        opening Google Flights during the kids' Thanksgiving break, looking for somewhere warm and cheap. 
+        Living in California, we wanted to go south—no snow, no cold. Mexico and most of South America 
+        were quoting us $3,500-4,500 for four people. El Salvador? $1,896 return.
+      </p>
+      
+      <p>
+        That caught my attention. I remembered reading about Bukele's crackdown on MS-13, how the country 
+        had transformed from one of the most dangerous places in the Western Hemisphere to reportedly 
+        safer than Mexico. Did some research, confirmed it seemed legit, and booked it.
+      </p>
+      
+      <h2>Day 1: The Airport Adventure Begins</h2>
+      
+      <p>
+        We landed around 6-7am after a red-eye from San Jose. The airport was surprisingly modern—we 
+        even took the obligatory photo with the country seal. And then things got interesting.
+      </p>
+      
+      <p>
+        I'd booked with Sixt because they were half the price of everyone else. Couldn't find them 
+        anywhere in the airport car rental area. Using Google Translate, we talked to an officer who 
+        motioned for us to follow her. She grabbed a taxi driver, and suddenly we were walking through 
+        dirt paths outside the airport, following this guy to his car parked in some random lot, then 
+        driving to an unknown destination.
+      </p>
+      
+      <blockquote>
+        <p>Lesson learned: don't cheap out on car rentals in El Salvador. But also, it's an adventure.</p>
+      </blockquote>
+      
+      <figure>
+        <img src="/mnt/user-data/uploads/Gemini_Generated_Image_l0wo9il0wo9il0wo.png" alt="El Salvador countryside">
+        <figcaption>The drive into San Salvador proper was my first "wait, is this Indonesia?" moment.</figcaption>
+      </figure>
+      
+      <h2>On the Indonesia Parallels</h2>
+      
+      <p>
+        This was the biggest surprise. The pace of life, the driving chaos, the buses that stop anywhere 
+        to pick up passengers (they have "kernets" - guys hanging off the bus shouting destinations), 
+        the stratification between wealthy city centers and poor outskirts, the zinc-roof houses. 
+        It all felt familiar in a way I didn't expect from Central America.
+      </p>
+      
+      <h3>A Quick Code Example</h3>
+      
+      <p>
+        Here's how I used Claude and ChatGPT to batch out activities by region rather than a 
+        rigid hour-by-hour itinerary:
+      </p>
+      
+      <pre data-lang="javascript"><code>const regions = ['San Salvador', 'Lake Coatepeque', 'El Sunzal'];
+
+const activities = await Promise.all(
+  regions.map(region => 
+    claude.complete({
+      prompt: `List family-friendly activities in ${region}`,
+      max_tokens: 500
+    })
+  )
+);
+
+// Group by day based on geography
+const itinerary = groupByProximity(activities);</code></pre>
+      
+      <h2>Final Thoughts</h2>
+      
+      <p>
+        Would we go back? Yes, but not soon. When Grace and George are teenagers with stronger immune 
+        systems, we'll return for the volcano hike and waterfall we missed. The nature here is stunning 
+        and still pristine.
+      </p>
+      
+      <p>
+        <strong>Three words for El Salvador:</strong> Raw, cheap, surprisingly familiar.
+      </p>
+      
+      <hr class="sketch-hr">
+      
+      <p>
+        <em>Trip stats: 5 days, 2 vomiting children, 1 Google Maps near-disaster, 1 nail clipper 
+        interrogation, 0 MS-13 encounters, 0 degrees of seat recline on Avianca, pupusas everywhere, 
+        and countless good food and drinks.</em>
+      </p>
+    </article>
+    
+    <footer>
+      <div class="footer-inner">
+        <p>© 2025 Victor Augusteo</p>
+        <div class="footer-links">
+          <a href="#">Twitter</a>
+          <a href="#">GitHub</a>
+          <a href="#">RSS</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+      
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelector(`.page-tab[onclick="showPage('${page}')"]`).classList.add('active');
+      
+      window.scrollTo(0, 0);
+    }
+    
+    function filterPosts(category) {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`.filter-btn[data-category="${category}"]`).classList.add('active');
+      
+      document.querySelectorAll('.post-card').forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+          card.style.display = 'grid';
+          card.style.animation = 'fadeIn 0.3s ease';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
