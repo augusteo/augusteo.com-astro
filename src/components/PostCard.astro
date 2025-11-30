@@ -120,15 +120,19 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
   }
 
   .post-card-image {
-    aspect-ratio: 16/10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
     position: relative;
+    background: var(--color-paper);
   }
 
   .post-card-image img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
     transition: transform 0.4s;
     border-radius: 6px 12px 8px 10px / 10px 8px 12px 6px;
   }

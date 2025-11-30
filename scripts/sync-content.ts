@@ -235,6 +235,13 @@ function processPost(filePath: string): void {
     }
   }
 
+  // Also copy heroImage from frontmatter if it's not already in the content images
+  if (heroImage && !images.includes(heroImage)) {
+    if (copyImage(heroImage, slug)) {
+      imagesCopied++;
+    }
+  }
+
   // If no hero image found, create a placeholder notice
   if (!heroImage) {
     console.warn(`  Warning: No hero image found for "${title}"`);
