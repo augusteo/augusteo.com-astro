@@ -1,24 +1,49 @@
 ---
+import { Image } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import profileImage from "../assets/blog/about/about-IMG_9264.jpeg";
 ---
 
 <BaseLayout
   title="About | Victor Augusteo"
-  description="About Victor Augusteo - Head of Engineering at Boon AI"
+  description="About Victor Augusteo - Head of Engineering at Boon AI, formerly Apple"
 >
   <div class="about-page">
     <h1>About Me</h1>
 
+    <div class="about-header">
+      <Image
+        src={profileImage}
+        alt="Victor Augusteo"
+        class="about-image"
+        width={200}
+        height={200}
+      />
+    </div>
+
     <div class="content prose">
       <p>
-        Hi! I'm Victor, currently Head of Engineering at Boon AI. I previously
-        worked at Apple on various iOS projects.
+        Hi! I'm Victor, a software engineer by trade. I'm currently Head of Engineering
+        at <a href="https://getboon.ai" target="_blank">Boon AI</a>. Before this, Apple
+        recruited my family and offered relocation to Silicon Valley, where I worked on
+        various iOS projects.
       </p>
 
       <p>
-        I write about travels with my family, technology & AI, books I've read,
-        and the occasional philosophical rambling. This blog is my corner of the
-        internet where I share my thoughts and experiences.
+        I'm originally from a small town in Borneo, Indonesia. I moved around frequently
+        during my teenage years to pursue education at different institutions, eventually
+        landing in Melbourne, Australia for higher education. From there, we made the big
+        move to California.
+      </p>
+
+      <p>
+        Outside of work, I enjoy martial arts, rock climbing, and practicing stoicism and
+        meditation. I'm fascinated by artificial intelligence and machine learning. Most
+        importantly, I love spending time with my children.
+      </p>
+
+      <p>
+        I read a lot - you can see what I'm reading on <a href="https://www.goodreads.com/user/show/55033562-victor-augusteo" target="_blank">Goodreads</a>.
       </p>
 
       <h2>What I Write About</h2>
@@ -33,8 +58,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <h2>Connect</h2>
 
       <p>
-        You can find me on <a href="https://twitter.com/AugusteoVictor" target="_blank">Twitter</a> or
-        <a href="https://github.com/nicnocquee" target="_blank">GitHub</a>.
+        Feel free to reach out at <a href="mailto:victor@augusteo.com">victor@augusteo.com</a>.
+        I typically respond within 24 hours.
+      </p>
+
+      <p>
+        You can also find me on <a href="https://www.linkedin.com/in/victoraugusteo/" target="_blank">LinkedIn</a>.
       </p>
     </div>
   </div>
@@ -53,7 +82,45 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     margin-bottom: 2rem;
   }
 
+  .about-header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+
+  /* Watercolor splash behind portrait */
+  .about-header::before {
+    content: "";
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    height: 280px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 280'%3E%3Cdefs%3E%3Cfilter id='aboutBlob'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='25'/%3E%3CfeGaussianBlur stdDeviation='3'/%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='140' cy='140' r='110' fill='%2387ceeb' opacity='0.2' filter='url(%23aboutBlob)'/%3E%3Ccircle cx='160' cy='150' r='90' fill='%23cd853f' opacity='0.12' filter='url(%23aboutBlob)'/%3E%3Ccircle cx='120' cy='130' r='80' fill='%238fbc8f' opacity='0.15' filter='url(%23aboutBlob)'/%3E%3C/svg%3E");
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .about-image {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 50% 45% 55% 48% / 48% 50% 45% 52%;
+    border: 2px solid var(--color-ink);
+    position: relative;
+    z-index: 1;
+  }
+
   .content {
     font-size: 1.1rem;
+  }
+
+  .content h2 {
+    font-family: var(--font-hand);
+    font-size: 1.8rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
   }
 </style>
