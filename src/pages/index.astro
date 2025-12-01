@@ -4,7 +4,7 @@ import { Image } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FeaturedCard from "../components/FeaturedCard.astro";
 import Button from "../components/Button.astro";
-import profileImage from "../assets/blog/about/about-IMG_9264.jpeg";
+import profileImage from "../assets/img/avatar.jpeg";
 
 // Get all published posts
 const allPosts = await getCollection("blog", ({ data }) => !data.draft);

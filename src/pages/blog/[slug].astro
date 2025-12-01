@@ -16,6 +16,16 @@ export async function getStaticPaths() {
 
 const post = Astro.props;
 const { Content } = await render(post);
+
+// Extract first image from body if no heroImage (for OG fallback)
+let firstContentImage: string | undefined;
+if (!post.data.heroImage && post.body) {
+  const imgMatch = post.body.match(/!\[.*?\]\((@assets\/[^)]+)\)/);
+  if (imgMatch) {
+    // Convert @assets alias to /src/assets path for proper resolution
+    firstContentImage = imgMatch[1].replace('@assets/', '/src/assets/');
+  }
+}
 ---
 
 <PostLayout
@@ -26,6 +36,7 @@ const { Content } = await render(post);
   heroAlt={post.data.heroAlt}
   category={post.data.category}
   tags={post.data.tags}
+  firstContentImage={firstContentImage}
 >
   <Content />
 </PostLayout>

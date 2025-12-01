@@ -14,9 +14,10 @@ interface Props {
   heroAlt: string;
   category: string;
   tags?: string[];
+  firstContentImage?: string;
 }
 
-const { title, description, pubDate, heroImage, heroAlt, category, tags } = Astro.props;
+const { title, description, pubDate, heroImage, heroAlt, category, tags, firstContentImage } = Astro.props;
 
 const formattedDate = pubDate.toLocaleDateString("en-US", {
   year: "numeric",
@@ -28,7 +29,7 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={title} description={description} image={heroImage?.src} />
+    <BaseHead title={title} description={description} image={heroImage?.src || firstContentImage} />
   </head>
   <body>
     <!-- SVG Filters for watercolor effects on images -->
