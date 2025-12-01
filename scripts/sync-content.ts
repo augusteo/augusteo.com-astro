@@ -36,6 +36,9 @@ interface AstroFrontmatter {
 // Parse Obsidian wikilink images: ![[image-name.jpg]] or ![[image-name.png]]
 const WIKILINK_IMAGE_REGEX = /!\[\[([\w\s\-_.]+\.(jpg|jpeg|png|gif|webp|svg))\]\]/gi;
 
+// Parse wikilink external URLs: ![[https://example.com/image.jpg]]
+const WIKILINK_EXTERNAL_URL_REGEX = /!\[\[(https?:\/\/[^\]]+)\]\]/gi;
+
 // Parse standard markdown images for fallback
 const MARKDOWN_IMAGE_REGEX = /!\[([^\]]*)\]\(([^)]+)\)/g;
 
@@ -55,6 +58,14 @@ function transformContent(content: string, slug: string): string {
   // Convert wikilink images to standard markdown with alias path to assets folder
   let transformed = content.replace(WIKILINK_IMAGE_REGEX, (_, imageName) => {
     return `![${imageName}](@assets/blog/${slug}/${imageName})`;
+  });
+
+  // Convert wikilink external URLs to standard markdown images
+  transformed = transformed.replace(WIKILINK_EXTERNAL_URL_REGEX, (_, url) => {
+    // Extract filename from URL for alt text, or use generic alt
+    const urlPath = url.split('/').pop() || 'image';
+    const altText = urlPath.replace(/[-_]/g, ' ').replace(/\.\w+$/, '') || 'Image';
+    return `![${altText}](${url})`;
   });
 
   // Trim leading/trailing whitespace

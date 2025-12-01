@@ -9,29 +9,33 @@ featured: false
 draft: false
 ---
 
-This article is a companion of the talk I did for [Melbourne Mobile](http://www.meetup.com/MelbourneMobile/events/226525184/) about Swagger.
+This article is a companion of the talk I did for [Melbourne Mobile](http://www.meetup.com/MelbourneMobile/events/226525184/) about Swagger.
 
-![[https://miro.medium.com/max/1400/1*FiejaxmxNLxFe33vFpsu5g.jpeg]]
+![Swagger.io](https://miro.medium.com/max/1400/1*FiejaxmxNLxFe33vFpsu5g.jpeg)
 
-You can find the slides at [SlideShare](http://www.slideshare.net/augusteo/streamlining-api-with-swaggerio). I’m skipping majority of the contents covered in the slides, so please read through them first =)
+You can find the slides at [SlideShare](http://www.slideshare.net/augusteo/streamlining-api-with-swaggerio). I'm skipping majority of the contents covered in the slides, so please read through them first =)
 
 ## **What is Swagger?**
 
-It is a group of projects under the [Swagger](http://swagger.io/) banner that works together to ease the pain of developing and documenting API. In this article’s scope, we are only going to play with Swagger-editor
+It is a group of projects under the [Swagger](http://swagger.io/) banner that works together to ease the pain of developing and documenting API. In this article's scope, we are only going to play with Swagger-editor
 
 ## **Installing Swagger-editor locally**
 
 Just run these commands in your terminal of choice:
 
-`git clone https://github.com/swagger-api/swagger-editor.gitcd swagger-editornpm start`
+```bash
+git clone https://github.com/swagger-api/swagger-editor.git
+cd swagger-editor
+npm start
+```
 
-The ‘npm start’ will take quite a bit of time to start because it has to install all the dependencies and compiles the app. When it is done, it will launch a web browser with your locally installed Swagger-editor.
+The 'npm start' will take quite a bit of time to start because it has to install all the dependencies and compiles the app. When it is done, it will launch a web browser with your locally installed Swagger-editor.
 
 [read more about Swagger-editor…](http://swagger.io/swagger-editor/)
 
 ## **Swagger specs to write in the editor**
 
-When the editor launches, we can start writing our Swagger spec into it and see how it will be displayed on future Swagger-ui. If you are wondering about the syntax that Swagger can understand, please head over to the [OpenAPI github page](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md). That page can also be accessed from Swagger-editor; just click **Help** -> **Swagger 2.0 Specs**.
+When the editor launches, we can start writing our Swagger spec into it and see how it will be displayed on future Swagger-ui. If you are wondering about the syntax that Swagger can understand, please head over to the [OpenAPI github page](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md). That page can also be accessed from Swagger-editor; just click **Help** -> **Swagger 2.0 Specs**.
 
 Play around with it for a while :)
 
@@ -39,109 +43,148 @@ Now put this code-block into the editor panel:
 
 Our API specs for Hello World and sum two numbers
 
-The code should be pretty self-explanatory. The only thing that isn’t obvious would be the property **operationId**, which means nothing in Swagger-UI now but will be used as method name in the code generated for server and client stub.
+The code should be pretty self-explanatory. The only thing that isn't obvious would be the property **operationId**, which means nothing in Swagger-UI now but will be used as method name in the code generated for server and client stub.
 
-Now the UI (right hand side) should display the API in an easy-to-understand format. The ‘Try this operation’ will fail now, because we do not have a server running on port 4567 to handle the request yet.
+Now the UI (right hand side) should display the API in an easy-to-understand format. The 'Try this operation' will fail now, because we do not have a server running on port 4567 to handle the request yet.
 
 ## **Generating server and client stub**
 
-Now click on the ‘**Generate Server**’ and choose ‘**Sinatra**’. Wait for your web browser to download the zip file.
+Now click on the '**Generate Server**' and choose '**Sinatra**'. Wait for your web browser to download the zip file.
 
-After that, please do the same for ‘**Generate Client**’ and ‘**Swift**’.
+After that, please do the same for '**Generate Client**' and '**Swift**'.
 
 ## **Fleshing out Sinatra implementation**
 
 When you unzip the generated server stub file, you should be getting this folder structure:
 
-`.├── Gemfile├── Gemfile.lock├── README.md├── api│ └── default_api.rb├── config.ru├── lib│ └── swaggering.rb├── my_app.rb└── swagger.yaml`
+```
+.
+├── Gemfile
+├── Gemfile.lock
+├── README.md
+├── api
+│   └── default_api.rb
+├── config.ru
+├── lib
+│   └── swaggering.rb
+├── my_app.rb
+└── swagger.yaml
+```
 
-Feel free check out the files to see what’s in there. The ‘**README.md**’ is especially helpful.
+Feel free check out the files to see what's in there. The '**README.md**' is especially helpful.
 
-The bulk of the generated API will be inside ‘**api/default_api.rb**’. Please open that file using your favourite editor.
+The bulk of the generated API will be inside '**api/default_api.rb**'. Please open that file using your favourite editor.
 
 Now you shall see the two methods inside the file for the two API that we had specified in the editor before. Feel free to read through it.
 
-Swagger-codegen will just generate the stubbed boilerplate for the api. It doesn’t know how to implement the functions to return correct result. If we just run the Sinatra server now, all we are getting would be:
+Swagger-codegen will just generate the stubbed boilerplate for the api. It doesn't know how to implement the functions to return correct result. If we just run the Sinatra server now, all we are getting would be:
 
-`{“message” => “yes, it worked”}`
+```ruby
+{"message" => "yes, it worked"}
+```
 
-We don’t want that, do we?
+We don't want that, do we?
 
-Lets flesh out the implementation for the route **/hello/{name}**. Please replace this code block:
+Lets flesh out the implementation for the route `/hello/{name}`. Please replace this code block:
 
-`{“message” => “yes, it worked”}.to_json`
+```ruby
+{"message" => "yes, it worked"}.to_json
+```
 
 to:
 
-`helloName = params[:name].to_s{“message” => “Hello #{helloName}”}.to_json`
+```ruby
+helloName = params[:name].to_s
+{"message" => "Hello #{helloName}"}.to_json
+```
 
 Sinatra will take the name parameter, parse it to string, and save it in variable helloName. It will then return the properly constructed Json message.
 
-Let’s do the same for the route **/sum/{first}/{second}**. Replace the stubbed Json message with:
+Let's do the same for the route `/sum/{first}/{second}`. Replace the stubbed Json message with:
 
-`firstNum = params[:first].to_isecondNum = params[:second].to_isum = firstNum + secondNum{“message” => “The sum of #{firstNum} and #{secondNum} is #{sum}”}.to_json`
+```ruby
+firstNum = params[:first].to_i
+secondNum = params[:second].to_i
+sum = firstNum + secondNum
+{"message" => "The sum of #{firstNum} and #{secondNum} is #{sum}"}.to_json
+```
 
 You can probably guess what this code does by now :)
 
-The **default_api.rb** file should look like this:
+The **default_api.rb** file should look like this:
 
 Yay, we are all done! See how easy it is to create a Sinatra server from scratch using the code generation?
 
 Lets run the server using command:
 
-`$ rackup -p 4567 config.ru`
+```bash
+$ rackup -p 4567 config.ru
+```
 
-This command will spin up a [Rack](http://rack.github.io/) server at port 4567 running our api.
+This command will spin up a [Rack](http://rack.github.io/) server at port 4567 running our api.
 
-After the server is running, you can go back to the Swagger-editor and play around with the ‘**Try this operation**’.
+After the server is running, you can go back to the Swagger-editor and play around with the '**Try this operation**'.
 
 ## **Consume api on Swift app**
 
-This step is a bit convoluted for non iOS dev as it requires dependency management using Cocoapod. So we speed through most of it. You can skip ahead and get the ready-to-use codes in [github](https://github.com/augusteo/Swagger-Sinatra-Swift-Example/tree/master/swift-client).
+This step is a bit convoluted for non iOS dev as it requires dependency management using Cocoapod. So we speed through most of it. You can skip ahead and get the ready-to-use codes in [github](https://github.com/augusteo/Swagger-Sinatra-Swift-Example/tree/master/swift-client).
 
 The short story for iOS dev who wants to follow:
 
 1. unzip the generated swift client from Swagger-editor
 2. create an empty iOS project in the same directory
-3. [disable ATS](http://iosdevtips.co/post/121756573323/ios-9-xcode-7-http-connect-server-error) to enable http call (iOS 9 forces https)
+3. [disable ATS](http://iosdevtips.co/post/121756573323/ios-9-xcode-7-http-connect-server-error) to enable http call (iOS 9 forces https)
 4. close Xcode and cd into the project directory
-5. do **pod init** to create an empty *Podfile*
-6. enter **pod ‘SwaggerClient’, :path => ‘../’** into the *Podfile*
-7. run **pod install**
+5. do **pod init** to create an empty *Podfile*
+6. enter **pod 'SwaggerClient', :path => '../'** into the *Podfile*
+7. run **pod install**
 
 Once you are done with pod install, please open up the generated xcworkspace. It should show a structure like this image
 
-![[https://miro.medium.com/max/1016/1*o11XF3cwo96LhT182uDKYg.png]]
+![Project structure after pod install](https://miro.medium.com/max/1016/1*o11XF3cwo96LhT182uDKYg.png)
 
 project structure after pod install
 
-The generated codes will be inside **DefaultAPI.Swift** file. You can see that it has two methods:
+The generated codes will be inside **DefaultAPI.Swift** file. You can see that it has two methods:
 
-`public class func greetUser(name name: String) -> RequestBuilder<Inline_response_200> { ... }public class func sumTwo(first first: Int, second: Int) -> RequestBuilder<Inline_response_200> { ... }`
+```swift
+public class func greetUser(name name: String) -> RequestBuilder<Inline_response_200> { ... }
+public class func sumTwo(first first: Int, second: Int) -> RequestBuilder<Inline_response_200> { ... }
+```
 
 This is actually functions that we can use straight away in our iOS app. Lets get started!
 
-Open up the **ViewController.Swift** and import SwaggerClient just below the import UIKit statement. The import should look like:
+Open up the **ViewController.Swift** and import SwaggerClient just below the import UIKit statement. The import should look like:
 
-`import UIKitimport SwaggerClient`
+```swift
+import UIKit
+import SwaggerClient
+```
 
 Next we need to add a code to let SwaggerClient know our Sinatra server URL:
 
-`SwaggerClientAPI.basePath = “[http://localhost:4567](http://localhost:4567/)"`
+```swift
+SwaggerClientAPI.basePath = "http://localhost:4567"
+```
 
-The **viewDidLoad()** method should now look like
+The **viewDidLoad()** method should now look like
 
 Now that Swagger know where our server is, just call the generated method!
 
 Press cmd+R to run the project. If everything is working like its supposed to, your Xcode console should look like:
 
-`Hello Melbourne`
+```
+Hello Melbourne
+```
 
-Great! We have connected the Swift client to the server by just writing three lines of codes! Lets add the next api call just below the **greetUser()**.
+Great! We have connected the Swift client to the server by just writing three lines of codes! Lets add the next api call just below the **greetUser()**.
 
 The console should show:
 
-`Hello MelbourneThe sum of 2 and 4 is 6`
+```
+Hello Melbourne
+The sum of 2 and 4 is 6
+```
 
 All done!
 
@@ -157,4 +200,4 @@ During the course of this tutorial, we have learned how to:
 
 Thanks for reading, I hope this is useful for you. Please let me know if you have questions :)
 
-The project is up on Github: [https://github.com/augusteo/Swagger-Sinatra-Swift-Example](https://github.com/augusteo/Swagger-Sinatra-Swift-Example)
+The project is up on Github: [https://github.com/augusteo/Swagger-Sinatra-Swift-Example](https://github.com/augusteo/Swagger-Sinatra-Swift-Example)
