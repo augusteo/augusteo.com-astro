@@ -2,6 +2,7 @@
 import { Image } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import profileImage from "../assets/img/avatar.jpeg";
+import defaultOgImage from "../assets/img/default-og.png";
 ---
 
 <BaseLayout
@@ -62,6 +63,11 @@ import profileImage from "../assets/img/avatar.jpeg";
       <p>
         You can also find me on <a href="https://www.linkedin.com/in/victoraugusteo/" target="_blank">LinkedIn</a>.
       </p>
+
+      <Image 
+        src={defaultOgImage} 
+        alt="desk image"
+      />
     </div>
   </div>
 </BaseLayout>
