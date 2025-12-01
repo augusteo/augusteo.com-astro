@@ -1,11 +1,13 @@
 ---
+import defaultOgImage from "@assets/img/default-og.png";
+
 interface Props {
   title: string;
   description: string;
   image?: string;
 }
 
-const { title, description, image = "/images/default-og.png" } = Astro.props;
+const { title, description, image = defaultOgImage.src } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
