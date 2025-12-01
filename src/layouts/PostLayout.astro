@@ -2,6 +2,7 @@
 import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import ImageLightbox from "../components/ImageLightbox.astro";
 import { Image } from "astro:assets";
 import { ViewTransitions } from "astro:transitions";
 import type { ImageMetadata } from "astro";
@@ -90,6 +91,7 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
     </article>
 
     <Footer />
+    <ImageLightbox />
     <!-- Simple Analytics (privacy-first) -->
     <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
   </body>

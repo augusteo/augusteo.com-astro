@@ -1,0 +1,158 @@
+---
+// ImageLightbox - Makes blog images clickable to show full-screen modal
+// Only activates for images that don't already have a hyperlink parent
+---
+
+<div id="lightbox-overlay" class="lightbox-overlay" aria-hidden="true">
+  <button class="lightbox-close" aria-label="Close lightbox">&times;</button>
+  <img class="lightbox-image" src="" alt="" />
+</div>
+
+<script>
+  function initLightbox() {
+    const overlay = document.getElementById('lightbox-overlay');
+    const lightboxImg = overlay?.querySelector('.lightbox-image') as HTMLImageElement;
+    const closeBtn = overlay?.querySelector('.lightbox-close');
+
+    if (!overlay || !lightboxImg) return;
+
+    // Find all images in prose content that are NOT wrapped in links
+    const proseImages = document.querySelectorAll('.prose img');
+
+    proseImages.forEach((img) => {
+      const imgElement = img as HTMLImageElement;
+
+      // Check if this image is inside an anchor tag
+      const parentAnchor = imgElement.closest('a');
+      if (parentAnchor) return; // Skip images that are already links
+
+      // Make image clickable
+      imgElement.style.cursor = 'zoom-in';
+      imgElement.setAttribute('role', 'button');
+      imgElement.setAttribute('tabindex', '0');
+      imgElement.setAttribute('aria-label', 'Click to view full size');
+
+      const openLightbox = () => {
+        // Get the highest resolution source
+        const src = imgElement.currentSrc || imgElement.src;
+        lightboxImg.src = src;
+        lightboxImg.alt = imgElement.alt || 'Full size image';
+
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        // Focus the close button for accessibility
+        closeBtn?.focus();
+      };
+
+      imgElement.addEventListener('click', openLightbox);
+      imgElement.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openLightbox();
+        }
+      });
+    });
+
+    const closeLightbox = () => {
+      overlay.classList.remove('active');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      lightboxImg.src = '';
+    };
+
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay || e.target === closeBtn) {
+        closeLightbox();
+      }
+    });
+
+    // Close on image click too (for convenience)
+    lightboxImg.addEventListener('click', closeLightbox);
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlay.classList.contains('active')) {
+        closeLightbox();
+      }
+    });
+  }
+
+  // Initialize on page load
+  initLightbox();
+
+  // Re-initialize after view transitions (for Astro's ViewTransitions)
+  document.addEventListener('astro:after-swap', initLightbox);
+</script>
+
+<style>
+  .lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    cursor: zoom-out;
+  }
+
+  .lightbox-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lightbox-image {
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+  }
+
+  .lightbox-overlay.active .lightbox-image {
+    transform: scale(1);
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 300;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s, transform 0.2s;
+    line-height: 1;
+    padding: 0.5rem;
+    z-index: 10001;
+  }
+
+  .lightbox-close:hover {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  .lightbox-close:focus {
+    outline: 2px solid white;
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .lightbox-close {
+      top: 0.5rem;
+      right: 0.5rem;
+      font-size: 2rem;
+    }
+  }
+</style>
