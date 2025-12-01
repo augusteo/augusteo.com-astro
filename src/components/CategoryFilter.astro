@@ -24,7 +24,7 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
 
 <script>
   function initCategoryFilter() {
-    const searchInput = document.querySelector(".search-input") as HTMLInputElement;
+    let searchInput = document.querySelector(".search-input") as HTMLInputElement;
     const filterBtns = document.querySelectorAll(".filter-btn");
     const postCards = document.querySelectorAll(".post-card");
 
@@ -33,6 +33,11 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
     // Restore state from sessionStorage
     let activeCategory = sessionStorage.getItem("blogCategory") || "all";
     const savedSearch = sessionStorage.getItem("blogSearch") || "";
+
+    // Remove existing listeners before adding new ones (prevents duplicates after navigation)
+    const newSearchInput = searchInput.cloneNode(true) as HTMLInputElement;
+    searchInput.parentNode?.replaceChild(newSearchInput, searchInput);
+    searchInput = newSearchInput;
 
     // Apply saved state
     searchInput.value = savedSearch;
@@ -66,10 +71,7 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
       });
     }
 
-    // Remove existing listeners before adding new ones (prevents duplicates after navigation)
-    const newSearchInput = searchInput.cloneNode(true) as HTMLInputElement;
-    searchInput.parentNode?.replaceChild(newSearchInput, searchInput);
-    newSearchInput.addEventListener("input", filterPosts);
+    searchInput.addEventListener("input", filterPosts);
 
     filterBtns.forEach((btn) => {
       const newBtn = btn.cloneNode(true);
