@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.augusteo.com)",
+      "Bash(find:*)",
+      "Skill(superpowers:brainstorming)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
