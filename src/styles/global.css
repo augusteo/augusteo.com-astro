@@ -126,14 +126,25 @@
 
   .prose a {
     color: var(--color-accent-blue);
-    text-decoration: underline;
-    text-decoration-style: wavy;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+    text-decoration: none;
+    position: relative;
   }
 
-  .prose a:hover {
-    text-decoration-thickness: 2px;
+  .prose a::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 3'%3E%3Cpath d='M0,1.5 Q15,0.5 30,2.5 T60,1.5' stroke='%234682b4' stroke-width='1.5' fill='none' opacity='0.5'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .prose a:hover::after {
+    opacity: 1;
   }
 
   /* Blockquote with watercolor background */
