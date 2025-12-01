@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "npm run sync && concurrently \"npm run watch:content\" \"astro dev\"",
-    "build": "npm run sync && astro build",
+    "build": "astro build",
     "preview": "astro preview",
     "sync": "tsx scripts/sync-content.ts",
     "watch:content": "tsx scripts/watch.ts",
