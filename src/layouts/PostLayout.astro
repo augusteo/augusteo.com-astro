@@ -72,7 +72,7 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
       )}
 
       <!-- Header (overlaps hero) -->
-      <header class="post-header">
+      <header class={`post-header ${!heroImage ? 'no-hero' : ''}`}>
         <span class="category" data-category={category}>{category}</span>
         <h1>{title}</h1>
         <div class="meta">
@@ -129,6 +129,10 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
     padding: 0 2rem;
     position: relative;
     z-index: 10;
+  }
+
+  .post-header.no-hero {
+    margin-top: 6rem;
   }
 
   .category {
@@ -194,6 +198,10 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
 
     .post-header {
       margin-top: -60px;
+    }
+
+    .post-header.no-hero {
+      margin-top: 4rem;
     }
   }
 </style>
