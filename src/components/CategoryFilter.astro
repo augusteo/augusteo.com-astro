@@ -23,48 +23,77 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
 </div>
 
 <script>
-  const searchInput = document.querySelector(".search-input") as HTMLInputElement;
-  const filterBtns = document.querySelectorAll(".filter-btn");
-  const postCards = document.querySelectorAll(".post-card");
+  function initCategoryFilter() {
+    const searchInput = document.querySelector(".search-input") as HTMLInputElement;
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    const postCards = document.querySelectorAll(".post-card");
 
-  let activeCategory = "all";
+    if (!searchInput || filterBtns.length === 0) return;
 
-  function filterPosts() {
-    const query = searchInput.value.toLowerCase().trim();
+    // Restore state from sessionStorage
+    let activeCategory = sessionStorage.getItem("blogCategory") || "all";
+    const savedSearch = sessionStorage.getItem("blogSearch") || "";
 
-    postCards.forEach((card) => {
-      const cardEl = card as HTMLElement;
-      const matchesCategory = activeCategory === "all" || cardEl.dataset.category === activeCategory;
-
-      let matchesSearch = true;
-      if (query) {
-        const title = cardEl.dataset.title || "";
-        const description = cardEl.dataset.description || "";
-        const slug = cardEl.dataset.slug || "";
-        const tags = cardEl.dataset.tags || "";
-        matchesSearch = title.includes(query) || description.includes(query) || slug.includes(query) || tags.includes(query);
-      }
-
-      if (matchesCategory && matchesSearch) {
-        cardEl.style.display = "grid";
-      } else {
-        cardEl.style.display = "none";
-      }
+    // Apply saved state
+    searchInput.value = savedSearch;
+    filterBtns.forEach((btn) => {
+      const cat = (btn as HTMLElement).dataset.category;
+      btn.classList.toggle("active", cat === activeCategory);
     });
+
+    function filterPosts() {
+      const query = searchInput.value.toLowerCase().trim();
+      sessionStorage.setItem("blogSearch", query);
+
+      postCards.forEach((card) => {
+        const cardEl = card as HTMLElement;
+        const matchesCategory = activeCategory === "all" || cardEl.dataset.category === activeCategory;
+
+        let matchesSearch = true;
+        if (query) {
+          const title = cardEl.dataset.title || "";
+          const description = cardEl.dataset.description || "";
+          const slug = cardEl.dataset.slug || "";
+          const tags = cardEl.dataset.tags || "";
+          matchesSearch = title.includes(query) || description.includes(query) || slug.includes(query) || tags.includes(query);
+        }
+
+        if (matchesCategory && matchesSearch) {
+          cardEl.style.display = "grid";
+        } else {
+          cardEl.style.display = "none";
+        }
+      });
+    }
+
+    // Remove existing listeners before adding new ones (prevents duplicates after navigation)
+    const newSearchInput = searchInput.cloneNode(true) as HTMLInputElement;
+    searchInput.parentNode?.replaceChild(newSearchInput, searchInput);
+    newSearchInput.addEventListener("input", filterPosts);
+
+    filterBtns.forEach((btn) => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode?.replaceChild(newBtn, btn);
+      newBtn.addEventListener("click", () => {
+        activeCategory = (newBtn as HTMLElement).dataset.category || "all";
+        sessionStorage.setItem("blogCategory", activeCategory);
+
+        document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+        newBtn.classList.add("active");
+
+        filterPosts();
+      });
+    });
+
+    // Apply initial filter
+    filterPosts();
   }
 
-  searchInput.addEventListener("input", filterPosts);
+  // Run on initial load
+  initCategoryFilter();
 
-  filterBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      activeCategory = (btn as HTMLElement).dataset.category || "all";
-
-      filterBtns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      filterPosts();
-    });
-  });
+  // Re-run after View Transitions navigation
+  document.addEventListener("astro:after-swap", initCategoryFilter);
 </script>
 
 <style>

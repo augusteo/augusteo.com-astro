@@ -7,6 +7,13 @@ import sitemap from "@astrojs/sitemap";
 // https://astro.build/config
 export default defineConfig({
   site: "https://www.augusteo.com",
+  prefetch: {
+    prefetchAll: false,
+    defaultStrategy: "hover",
+  },
+  image: {
+    experimentalLayout: "responsive",
+  },
   integrations: [mdx(), sitemap()],
   vite: {
     plugins: [tailwindcss()],

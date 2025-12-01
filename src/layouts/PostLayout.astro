@@ -3,6 +3,7 @@ import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { Image } from "astro:assets";
+import { ViewTransitions } from "astro:transitions";
 import type { ImageMetadata } from "astro";
 import "../styles/global.css";
 
@@ -30,6 +31,7 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} image={heroImage?.src || firstContentImage} />
+    <ViewTransitions />
   </head>
   <body>
     <!-- SVG Filters for watercolor effects on images -->
@@ -63,6 +65,8 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
             alt={heroAlt}
             widths={[800, 1200, 1600, 2000]}
             sizes="100vw"
+            loading="eager"
+            decoding="async"
           />
         </div>
       )}

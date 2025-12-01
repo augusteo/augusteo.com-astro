@@ -55,14 +55,16 @@
     overflow-x: hidden;
   }
 
-  /* Paper texture overlay */
+  /* Paper texture overlay - using static PNG instead of SVG feTurbulence
+     for better scroll/repaint performance */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
     opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-image: url("/textures/paper-noise.png");
+    background-repeat: repeat;
     z-index: 9999;
   }
 
@@ -225,70 +227,57 @@
     border-radius: 8px 16px 12px 20px / 12px 8px 20px 16px;
   }
 
-  /* Watercolor frame around images - organic edges with drop-shadows */
+  /* Watercolor frame around images - organic edges with drop-shadows
+     Reduced from 4 layers to 2 for better performance */
   .prose figure img,
   .prose p > img,
   .prose img {
     /* Default: Ochre + Gold - warm autumn */
     filter:
-      drop-shadow(0 0 3px rgba(218, 165, 32, 0.5))
-      drop-shadow(0 0 8px rgba(205, 133, 63, 0.4))
-      drop-shadow(0 0 15px rgba(218, 165, 32, 0.25))
-      drop-shadow(0 0 25px rgba(255, 215, 0, 0.15));
+      drop-shadow(0 0 4px rgba(218, 165, 32, 0.45))
+      drop-shadow(0 0 16px rgba(218, 165, 32, 0.2));
   }
 
   /* Variation 1: Sage + Olive - earthy green */
   .prose p:nth-of-type(6n+1) > img {
     filter:
-      drop-shadow(0 0 3px rgba(143, 188, 143, 0.55))
-      drop-shadow(0 0 8px rgba(107, 142, 35, 0.4))
-      drop-shadow(0 0 16px rgba(143, 188, 143, 0.28))
-      drop-shadow(0 0 26px rgba(85, 107, 47, 0.15));
+      drop-shadow(0 0 4px rgba(143, 188, 143, 0.5))
+      drop-shadow(0 0 16px rgba(107, 142, 35, 0.22));
   }
 
   /* Variation 2: Terracotta + Coral - warm clay */
   .prose p:nth-of-type(6n+2) > img {
     filter:
-      drop-shadow(0 0 3px rgba(205, 92, 92, 0.5))
-      drop-shadow(0 0 9px rgba(210, 105, 30, 0.4))
-      drop-shadow(0 0 17px rgba(205, 92, 92, 0.25))
-      drop-shadow(0 0 28px rgba(255, 127, 80, 0.12));
+      drop-shadow(0 0 4px rgba(205, 92, 92, 0.45))
+      drop-shadow(0 0 16px rgba(210, 105, 30, 0.2));
   }
 
   /* Variation 3: Ocean + Sky - cool blue */
   .prose p:nth-of-type(6n+3) > img {
     filter:
-      drop-shadow(0 0 3px rgba(70, 130, 180, 0.55))
-      drop-shadow(0 0 8px rgba(100, 149, 237, 0.4))
-      drop-shadow(0 0 16px rgba(135, 206, 235, 0.3))
-      drop-shadow(0 0 26px rgba(70, 130, 180, 0.15));
+      drop-shadow(0 0 4px rgba(70, 130, 180, 0.5))
+      drop-shadow(0 0 16px rgba(135, 206, 235, 0.22));
   }
 
   /* Variation 4: Lavender + Plum - soft purple */
   .prose p:nth-of-type(6n+4) > img {
     filter:
-      drop-shadow(0 0 3px rgba(186, 85, 211, 0.45))
-      drop-shadow(0 0 9px rgba(147, 112, 219, 0.38))
-      drop-shadow(0 0 17px rgba(216, 191, 216, 0.28))
-      drop-shadow(0 0 27px rgba(138, 43, 226, 0.12));
+      drop-shadow(0 0 4px rgba(186, 85, 211, 0.42))
+      drop-shadow(0 0 16px rgba(147, 112, 219, 0.2));
   }
 
   /* Variation 5: Sunset + Peach - warm orange/pink */
   .prose p:nth-of-type(6n+5) > img {
     filter:
-      drop-shadow(0 0 3px rgba(255, 160, 122, 0.5))
-      drop-shadow(0 0 8px rgba(255, 182, 193, 0.42))
-      drop-shadow(0 0 16px rgba(255, 218, 185, 0.3))
-      drop-shadow(0 0 25px rgba(255, 127, 80, 0.15));
+      drop-shadow(0 0 4px rgba(255, 160, 122, 0.45))
+      drop-shadow(0 0 16px rgba(255, 182, 193, 0.22));
   }
 
   /* Variation 6: Teal + Mint - fresh aqua */
   .prose p:nth-of-type(6n) > img {
     filter:
-      drop-shadow(0 0 3px rgba(0, 128, 128, 0.5))
-      drop-shadow(0 0 9px rgba(64, 224, 208, 0.38))
-      drop-shadow(0 0 17px rgba(127, 255, 212, 0.25))
-      drop-shadow(0 0 28px rgba(0, 139, 139, 0.12));
+      drop-shadow(0 0 4px rgba(0, 128, 128, 0.45))
+      drop-shadow(0 0 16px rgba(64, 224, 208, 0.2));
   }
 
   .prose figcaption {
@@ -380,6 +369,70 @@
 }
 
 /* ========================================
+   VIEW TRANSITIONS - Watercolor Theme
+======================================== */
+::view-transition-old(root) {
+  animation: 200ms ease-out both fade-blur-out;
+}
+
+::view-transition-new(root) {
+  animation: 250ms ease-out 50ms both fade-blur-in;
+}
+
+@keyframes fade-blur-out {
+  to {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes fade-blur-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+/* ========================================
+   REDUCED MOTION PREFERENCES
+======================================== */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+
+  /* Disable paper texture */
+  body::before {
+    display: none;
+  }
+
+  /* Simplify image shadows to single layer */
+  .prose figure img,
+  .prose p > img,
+  .prose img {
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.15)) !important;
+  }
+
+  /* Disable watercolor decorations */
+  .prose h2::before,
+  .prose a::after,
+  .prose blockquote::before,
+  .prose code:not(pre code)::before,
+  .prose figcaption::before,
+  .prose hr,
+  .btn-organic::before {
+    display: none !important;
+    background: none !important;
+  }
+
+  /* Disable hover transforms */
+  .btn-organic:hover {
+    transform: none;
+  }
+}
+
+/* ========================================
    RESPONSIVE
 ======================================== */
 @media (max-width: 768px) {
@@ -392,13 +445,26 @@
     max-width: 100%;
   }
 
-  /* Simpler watercolor effect on mobile - less blur for performance */
+  /* Replace drop-shadow with box-shadow on mobile for better performance */
   .prose figure img,
   .prose p > img,
   .prose img {
-    filter: url(#watercolor-soft)
-      drop-shadow(0 0 2px rgba(218, 165, 32, 0.4))
-      drop-shadow(0 0 6px rgba(205, 133, 63, 0.3))
-      drop-shadow(0 0 12px rgba(218, 165, 32, 0.15));
+    filter: none !important;
+    box-shadow:
+      0 2px 8px rgba(218, 165, 32, 0.25),
+      0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Reduce paper texture opacity on mobile */
+  body::before {
+    opacity: 0.015;
+  }
+}
+
+/* Touch devices - disable hover effects */
+@media (pointer: coarse) {
+  .prose a::after,
+  .btn-organic::before {
+    display: none;
   }
 }
