@@ -461,10 +461,9 @@
   }
 }
 
-/* Touch devices - disable hover effects */
+/* Touch devices - disable hover underline effects on links */
 @media (pointer: coarse) {
-  .prose a::after,
-  .btn-organic::before {
+  .prose a::after {
     display: none;
   }
 }
