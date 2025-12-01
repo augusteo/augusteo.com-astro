@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:www.augusteo.com)",
       "Bash(find:*)",
-      "Skill(superpowers:brainstorming)"
+      "Skill(superpowers:brainstorming)",
+      "Bash(xargs:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

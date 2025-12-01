@@ -51,6 +51,7 @@
     color: var(--color-ink);
     background: var(--color-paper);
     line-height: 1.7;
+    overflow-x: hidden;
   }
 
   /* Paper texture overlay */
