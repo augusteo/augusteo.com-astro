@@ -47,8 +47,7 @@ description: string
 pubDate: Date
 heroImage?: image()    // Uses @assets alias, e.g., "@assets/blog/slug/image.jpg"
 heroAlt: string
-category: "travels" | "tech" | "books" | "philosophy"
-tags?: string[]
+tags: string[]         // Required, at least one tag. First tag is used as primary tag for display/filtering
 featured: boolean
 draft: boolean
 ```
@@ -57,9 +56,6 @@ draft: boolean
 
 `@assets` resolves to `/src/assets` (configured in astro.config.mjs). Use this for image imports in MDX frontmatter.
 
-### Categories
+### Tags
 
-Valid categories are defined in `scripts/config.ts` and must match `src/content/config.ts`. To add a new category:
-1. Add to `validCategories` array in `scripts/config.ts`
-2. Add tag mapping in `categoryMap`
-3. Add to the zod enum in `src/content/config.ts`
+Tags are freeform strings defined in your Obsidian frontmatter. The first tag is used as the primary tag for display and filtering. If no tags are provided, the sync script defaults to "Tech".

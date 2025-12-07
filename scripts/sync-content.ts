@@ -4,7 +4,7 @@ import https from "https";
 import http from "http";
 import matter from "gray-matter";
 import crypto from "crypto";
-import { CONFIG, type Category } from "./config.js";
+import { CONFIG } from "./config.js";
 
 interface ObsidianFrontmatter {
   // New full schema fields
@@ -30,8 +30,7 @@ interface AstroFrontmatter {
   pubDate: string;
   heroImage?: string;
   heroAlt: string;
-  category: Category;
-  tags?: string[];
+  tags: string[];
   featured: boolean;
   draft: boolean;
 }
@@ -294,19 +293,11 @@ function extractTitle(content: string, filename: string): string {
   return filename.replace(/\.md$/, "").replace(/-/g, " ");
 }
 
-function mapCategory(tags: string[] | undefined): Category {
+function ensureTags(tags: string[] | undefined): string[] {
   if (!tags || tags.length === 0) {
-    return CONFIG.defaultCategory;
+    return [CONFIG.defaultTag];
   }
-
-  for (const tag of tags) {
-    const mapped = CONFIG.categoryMap[tag];
-    if (mapped && CONFIG.validCategories.includes(mapped as Category)) {
-      return mapped as Category;
-    }
-  }
-
-  return CONFIG.defaultCategory;
+  return tags;
 }
 
 function generateSlug(filename: string, frontmatterSlug?: string): string {
@@ -402,10 +393,8 @@ async function processPost(filePath: string): Promise<void> {
   const externalUrls = extractExternalUrls(rawContent);
   const urlToLocal = await downloadExternalImages(externalUrls, slug);
 
-  // Map category from frontmatter or tags
-  const category = (fm.category && CONFIG.validCategories.includes(fm.category as Category))
-    ? fm.category as Category
-    : mapCategory(fm.tags);
+  // Ensure tags exist (use default if none provided)
+  const tags = ensureTags(fm.tags);
 
   // Transform content (convert wikilinks and replace external URLs with local paths)
   const transformedContent = transformContent(rawContent, slug, urlToLocal);
@@ -439,8 +428,7 @@ async function processPost(filePath: string): Promise<void> {
     heroAlt: fm.heroAlt || (heroImage
       ? heroImage.replace(/[-_]/g, " ").replace(/\.\w+$/, "")
       : title),
-    category,
-    tags: fm.tags,
+    tags,
     featured: fm.featured ?? false,
     draft: fm.draft ?? false,
   };
@@ -478,8 +466,7 @@ title: "${astroFm.title.replace(/"/g, '\\"')}"
 description: "${astroFm.description.replace(/"/g, '\\"')}"
 pubDate: ${astroFm.pubDate}
 ${heroImageLine}heroAlt: "${astroFm.heroAlt.replace(/"/g, '\\"')}"
-category: "${astroFm.category}"
-${astroFm.tags ? `tags: ${JSON.stringify(astroFm.tags)}` : ""}
+tags: ${JSON.stringify(astroFm.tags)}
 featured: ${astroFm.featured}
 draft: ${astroFm.draft}
 ---

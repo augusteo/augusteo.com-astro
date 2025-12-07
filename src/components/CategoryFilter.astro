@@ -1,5 +1,16 @@
 ---
-const categories = ["all", "travels", "tech", "books", "philosophy"];
+import { getCollection } from "astro:content";
+
+// Get all tags and count occurrences
+const posts = await getCollection("blog", ({ data }) => !data.draft);
+const tagCounts = new Map<string, number>();
+posts.forEach(post => {
+  const primaryTag = post.data.tags[0].toLowerCase();
+  tagCounts.set(primaryTag, (tagCounts.get(primaryTag) || 0) + 1);
+});
+
+// Sort by count descending
+const sortedTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]);
 ---
 
 <div class="blog-filters">
@@ -11,19 +22,17 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
     />
   </div>
   <div class="filters">
-    {categories.map((cat, i) => (
-      <button
-        class:list={["filter-btn", i === 0 && "active"]}
-        data-category={cat}
-      >
-        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+    <button class="filter-btn active" data-tag="all">All ({posts.length})</button>
+    {sortedTags.map(([tag, count]) => (
+      <button class="filter-btn" data-tag={tag}>
+        {tag.charAt(0).toUpperCase() + tag.slice(1)} ({count})
       </button>
     ))}
   </div>
 </div>
 
 <script>
-  function initCategoryFilter() {
+  function initTagFilter() {
     let searchInput = document.querySelector(".search-input") as HTMLInputElement;
     const filterBtns = document.querySelectorAll(".filter-btn");
     const postCards = document.querySelectorAll(".post-card");
@@ -31,7 +40,7 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
     if (!searchInput || filterBtns.length === 0) return;
 
     // Restore state from sessionStorage
-    let activeCategory = sessionStorage.getItem("blogCategory") || "all";
+    let activeTag = sessionStorage.getItem("blogTag") || "all";
     const savedSearch = sessionStorage.getItem("blogSearch") || "";
 
     // Remove existing listeners before adding new ones (prevents duplicates after navigation)
@@ -42,8 +51,8 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
     // Apply saved state
     searchInput.value = savedSearch;
     filterBtns.forEach((btn) => {
-      const cat = (btn as HTMLElement).dataset.category;
-      btn.classList.toggle("active", cat === activeCategory);
+      const tag = (btn as HTMLElement).dataset.tag;
+      btn.classList.toggle("active", tag === activeTag);
     });
 
     function filterPosts() {
@@ -52,7 +61,8 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
 
       postCards.forEach((card) => {
         const cardEl = card as HTMLElement;
-        const matchesCategory = activeCategory === "all" || cardEl.dataset.category === activeCategory;
+        const cardTag = cardEl.dataset.tag || "";
+        const matchesTag = activeTag === "all" || cardTag === activeTag;
 
         let matchesSearch = true;
         if (query) {
@@ -63,7 +73,7 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
           matchesSearch = title.includes(query) || description.includes(query) || slug.includes(query) || tags.includes(query);
         }
 
-        if (matchesCategory && matchesSearch) {
+        if (matchesTag && matchesSearch) {
           cardEl.style.display = "grid";
         } else {
           cardEl.style.display = "none";
@@ -77,8 +87,8 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
       const newBtn = btn.cloneNode(true);
       btn.parentNode?.replaceChild(newBtn, btn);
       newBtn.addEventListener("click", () => {
-        activeCategory = (newBtn as HTMLElement).dataset.category || "all";
-        sessionStorage.setItem("blogCategory", activeCategory);
+        activeTag = (newBtn as HTMLElement).dataset.tag || "all";
+        sessionStorage.setItem("blogTag", activeTag);
 
         document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
         newBtn.classList.add("active");
@@ -92,10 +102,10 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
   }
 
   // Run on initial load
-  initCategoryFilter();
+  initTagFilter();
 
   // Re-run after View Transitions navigation
-  document.addEventListener("astro:after-swap", initCategoryFilter);
+  document.addEventListener("astro:after-swap", initTagFilter);
 </script>
 
 <style>
@@ -170,34 +180,11 @@ const categories = ["all", "travels", "tech", "books", "philosophy"];
     content: "";
     position: absolute;
     inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterTag'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%2387ceeb' opacity='0.4' filter='url(%23filterTag)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
     opacity: 0;
     transition: opacity 0.2s;
     z-index: -1;
-  }
-
-  .filter-btn[data-category="all"]::before {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterAll'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23b2bec3' opacity='0.3' filter='url(%23filterAll)'/%3E%3C/svg%3E");
-    background-size: 100% 100%;
-  }
-
-  .filter-btn[data-category="travels"]::before {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterTrav'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%2387ceeb' opacity='0.5' filter='url(%23filterTrav)'/%3E%3C/svg%3E");
-    background-size: 100% 100%;
-  }
-
-  .filter-btn[data-category="tech"]::before {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterTech'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%238fbc8f' opacity='0.5' filter='url(%23filterTech)'/%3E%3C/svg%3E");
-    background-size: 100% 100%;
-  }
-
-  .filter-btn[data-category="books"]::before {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterBooks'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23cd853f' opacity='0.4' filter='url(%23filterBooks)'/%3E%3C/svg%3E");
-    background-size: 100% 100%;
-  }
-
-  .filter-btn[data-category="philosophy"]::before {
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cdefs%3E%3Cfilter id='filterPhil'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='5'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='40' cy='20' rx='38' ry='18' fill='%23deb887' opacity='0.5' filter='url(%23filterPhil)'/%3E%3C/svg%3E");
-    background-size: 100% 100%;
   }
 
   .filter-btn:hover::before,
