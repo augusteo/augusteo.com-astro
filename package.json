@@ -3,11 +3,11 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "npm run sync && concurrently \"npm run watch:content\" \"astro dev\"",
+    "dev": "bun run sync && concurrently \"bun run watch:content\" \"astro dev\"",
     "build": "astro build",
     "preview": "astro preview",
-    "sync": "tsx scripts/sync-content.ts",
-    "watch:content": "tsx scripts/watch.ts",
+    "sync": "bun scripts/sync-content.ts",
+    "watch:content": "bun scripts/watch.ts",
     "astro": "astro"
   },
   "dependencies": {
@@ -23,7 +23,6 @@
     "@types/node": "^24.10.1",
     "chokidar": "^5.0.0",
     "concurrently": "^9.2.1",
-    "gray-matter": "^4.0.3",
-    "tsx": "^4.21.0"
+    "gray-matter": "^4.0.3"
   }
 }

@@ -5,10 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev          # Start dev server with content sync + file watching
-npm run build        # Build for production (syncs content first)
-npm run sync         # One-time sync from Obsidian to Astro
-npm run preview      # Preview production build
+bun run dev          # Start dev server with content sync + file watching
+bun run build        # Build for production
+bun run sync         # One-time sync from Obsidian to Astro
+bun run preview      # Preview production build
 ```
 
 ## Architecture

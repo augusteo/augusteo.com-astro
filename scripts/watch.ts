@@ -23,7 +23,7 @@ function runSync(): void {
   debounceTimer = setTimeout(() => {
     console.log("\n🔄 Changes detected, syncing...");
 
-    syncProcess = spawn("npx", ["tsx", "scripts/sync-content.ts"], {
+    syncProcess = spawn("bun", ["scripts/sync-content.ts"], {
       stdio: "inherit",
       shell: true,
     });
