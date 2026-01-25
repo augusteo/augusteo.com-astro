@@ -1,6 +1,6 @@
 ---
 title: "\"Estimation Is Impossible\" Describes a Broken Org, Not Reality"
-description: "A response to Sean Goedecke's viral post arguing that estimation is impossible and political, when really it's just communication with error bars."
+description: "Sean Goedecke's viral post on estimation describes a broken org, not reality. Here's what healthy estimation actually looks like."
 pubDate: 2026-01-24
 heroImage: "@assets/blog/estimation-is-impossible-broken-org/estimationblog.png"
 heroAlt: "estimationblog"
@@ -9,7 +9,7 @@ featured: false
 draft: false
 ---
 
-Sean Goedecke's post on [how he estimates work](https://www.seangoedecke.com/how-i-estimate-work/) went viral on Hacker News. I found myself disagreeing with almost every premise.
+Sean Goedecke's post on [how he estimates work](https://www.seangoedecke.com/how-i-estimate-work/) went viral on Hacker News. I disagree with almost every premise.
 
 > "Software engineering projects are not dominated by the known work, but by the unknown work, which always takes 90% of the time."
 
@@ -25,6 +25,14 @@ I don't think calling it "political" is helpful. It makes everything sound adver
 
 Product managers, sales teams, marketing teams need to know when they can promise a feature to users. They need to plan next quarter's work. They're relying on us engineers to set their expectations.
 
+When I transitioned into engineering leadership, I started seeing the other side more clearly. As [notjustanymike](https://news.ycombinator.com/item?id=46742389) put it in the Hacker News discussion:
+
+> "After owning a product, I've developed a lot of sympathy for the people outside of engineering who have to put up with us... In a functioning org, there are lot of professionals depending on correct estimation to do their job."
+
+Of course business and product people want everything as fast as possible. That's their job. They're trying to sell it and make money for the company. They're doing exactly what they should be doing.
+
+They're also operating in a high-ambiguity environment. They have their own stakeholders, their own deadlines, their own promises to keep.
+
 That's not politics. That's planning. Engineering is one of the most expensive investments a company makes. Estimation helps plan that investment.
 
 > "My job is to figure out the set of software approaches that match that estimate."
@@ -39,11 +47,24 @@ I always ask the product team: give me an example of input and output. By lookin
 
 This makes no sense. Estimates come from engineers. They're just not for engineers.
 
+But a lot of engineers don't feel empowered to push back. They don't feel they can say "there's no way we can deliver what you want in the time you want." They think they just have to accept the timeline and figure it out.
+
+That's wrong. Our job is to communicate our limitations. We can't break the laws of physics. If you want it faster, something has to give. Quality, scope, or both.
+
 When a stakeholder asks "Why will this take a month when that similar thing only took a week?" that's not politics. That's an opportunity for education.
 
 You break it down: "For this to work by that date, we need a certain number of annotations, a certain number of GPUs, and we need to get lucky that the architecture we pick works on the first try. If it doesn't, we try another architecture. We might need to re-annotate the training data."
 
 Now they understand. They can adjust their communication to customers accordingly. That's collaboration, not adversarial negotiation.
+
+One useful framing comes from [moribvndvs](https://news.ycombinator.com/item?id=46742389) in the same Hacker News thread. Offer "trim lines" like a car:
+
+> "I'll put together 3 'trim line' options:
+> 1. Economy - bare functionality, fast delivery over reliability
+> 2. Mid tier - good enough quality, reliable, no frills
+> 3. Luxury - all the bells and whistles"
+
+That's a conversation about trade-offs. You're working together to refine the requirements until they fit the timeline, or adjust the timeline to fit the requirements.
 
 > "Step 1: Extract the political context... What does management need? What kind of pressure are they under?"
 
@@ -59,6 +80,8 @@ The only difference is startups don't have program managers. The fundamentals ar
 
 ## The heuristics work well enough
 
+Once you're having real conversations, the actual mechanics of estimation are straightforward.
+
 We use the "multiply by two, add 20%" rule because we don't know what we don't know. It's a rough correction for optimism bias.
 
 As you get more senior, you calibrate based on who's doing the work. "I can trust this engineer, she's really fast." "This engineer is thorough but slower." You factor that in.
@@ -70,6 +93,10 @@ None of this is political. It's just experience.
 The article resonated with a lot of people, which tells me a lot of engineers work in organizations where estimation does feel adversarial. If that's your situation, I'm sorry.
 
 But that's not estimation being impossible. That's communication being broken.
+
+If we assume good will from everyone, this is a solvable problem. Business people need to understand that engineering is trying their best. Engineers need to understand that business people aren't the enemy.
+
+Of course, if you have bad actors and assholes, that's another story entirely. But that's a people problem, not an estimation problem.
 
 We're all here to solve user problems. If we solve them well enough, users pay us money, which pays our salaries. That's it.
 
