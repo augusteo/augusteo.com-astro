@@ -47,12 +47,15 @@ function startWatching(): void {
   console.log("Press Ctrl+C to stop\n");
 
   // Watch for markdown file changes in published and drafts folders
+  // usePolling is required for iCloud directories which don't trigger standard FSEvents
   const mdWatcher = watch([
     path.join(CONFIG.obsidianPublished, "**/*.md"),
     path.join(CONFIG.obsidianDrafts, "**/*.md"),
   ], {
     persistent: true,
     ignoreInitial: true,
+    usePolling: true,
+    interval: 1000,
     awaitWriteFinish: {
       stabilityThreshold: 300,
       pollInterval: 100,
@@ -60,11 +63,14 @@ function startWatching(): void {
   });
 
   // Watch for image changes in Files folder
+  // usePolling is required for iCloud directories which don't trigger standard FSEvents
   const imageWatcher = watch(
     path.join(CONFIG.obsidianFiles, "**/*.{jpg,jpeg,png,gif,webp,svg}"),
     {
       persistent: true,
       ignoreInitial: true,
+      usePolling: true,
+      interval: 1000,
       awaitWriteFinish: {
         stabilityThreshold: 300,
         pollInterval: 100,
