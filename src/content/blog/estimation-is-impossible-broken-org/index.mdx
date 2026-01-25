@@ -1,0 +1,76 @@
+---
+title: "\"Estimation Is Impossible\" Describes a Broken Org, Not Reality"
+description: "A response to Sean Goedecke's viral post arguing that estimation is impossible and political, when really it's just communication with error bars."
+pubDate: 2026-01-24
+heroImage: "@assets/blog/estimation-is-impossible-broken-org/estimationblog.png"
+heroAlt: "estimationblog"
+tags: ["Tech"]
+featured: false
+draft: false
+---
+
+Sean Goedecke's post on [how he estimates work](https://www.seangoedecke.com/how-i-estimate-work/) went viral on Hacker News. I found myself disagreeing with almost every premise.
+
+> "Software engineering projects are not dominated by the known work, but by the unknown work, which always takes 90% of the time."
+
+This isn't universally true. Every engineer knows what known work looks like. CRUD apps. Loading values from a database and displaying them in a table. Adding sorting and animations. Given a design, you can estimate these reliably.
+
+Novel work is different. Building a computer vision model that no one in the world has built before? That's going to have huge error bars. Maybe you can't estimate it at all.
+
+The conversation isn't about whether estimation is possible. It's about which category you're in and communicating that honestly.
+
+> "Estimates are political tools for non-engineers in the organization."
+
+I don't think calling it "political" is helpful. It makes everything sound adversarial.
+
+Product managers, sales teams, marketing teams need to know when they can promise a feature to users. They need to plan next quarter's work. They're relying on us engineers to set their expectations.
+
+That's not politics. That's planning. Engineering is one of the most expensive investments a company makes. Estimation helps plan that investment.
+
+> "My job is to figure out the set of software approaches that match that estimate."
+
+This is backwards. Requirements define work, not the other way around.
+
+You understand the PRD. You get example inputs and outputs from the product team. You figure out whether this requires semantic search, highlighting, robust sourcing, or a mix of local and internet search. Then you estimate.
+
+I always ask the product team: give me an example of input and output. By looking at that, I know what system I need to build.
+
+> "The estimate doesn't come from the engineers. It comes from management."
+
+This makes no sense. Estimates come from engineers. They're just not for engineers.
+
+When a stakeholder asks "Why will this take a month when that similar thing only took a week?" that's not politics. That's an opportunity for education.
+
+You break it down: "For this to work by that date, we need a certain number of annotations, a certain number of GPUs, and we need to get lucky that the architecture we pick works on the first try. If it doesn't, we try another architecture. We might need to re-annotate the training data."
+
+Now they understand. They can adjust their communication to customers accordingly. That's collaboration, not adversarial negotiation.
+
+> "Step 1: Extract the political context... What does management need? What kind of pressure are they under?"
+
+The framing here feels like the engineering team and management are on opposing sides. Like you need to do cover-your-ass politics against each other.
+
+We're on the same team. Imagine a basketball team where the point guard doesn't understand what the center is doing. That makes no sense.
+
+Engineers need to learn what the product manager needs. What sales needs. What the CEO needs. And those stakeholders need to learn how to think about engineering work. You can't stay in silos.
+
+I've worked at Apple and at small startups. The estimation process is almost identical. A program manager (or at a startup, the CEO or PM lead) comes to the engineering lead and asks how long something will take. The lead works with the engineers to estimate. Priorities get tracked.
+
+The only difference is startups don't have program managers. The fundamentals are the same.
+
+## The heuristics work well enough
+
+We use the "multiply by two, add 20%" rule because we don't know what we don't know. It's a rough correction for optimism bias.
+
+As you get more senior, you calibrate based on who's doing the work. "I can trust this engineer, she's really fast." "This engineer is thorough but slower." You factor that in.
+
+None of this is political. It's just experience.
+
+## Conclusion
+
+The article resonated with a lot of people, which tells me a lot of engineers work in organizations where estimation does feel adversarial. If that's your situation, I'm sorry.
+
+But that's not estimation being impossible. That's communication being broken.
+
+We're all here to solve user problems. If we solve them well enough, users pay us money, which pays our salaries. That's it.
+
+Estimation is hard. Not impossible. Talk to each other.
