@@ -192,21 +192,14 @@
     background: transparent;
   }
 
-  /* Inline code with watercolor blob */
+  /* Inline code styling */
   .prose code:not(pre code) {
-    position: relative;
     font-family: var(--font-mono);
-    font-size: 0.9em;
-    padding: 0.15rem 0.4rem;
-  }
-
-  .prose code:not(pre code)::before {
-    content: "";
-    position: absolute;
-    inset: -2px -4px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 24'%3E%3Cdefs%3E%3Cfilter id='codeWash'%3E%3CfeTurbulence baseFrequency='0.08'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='2'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='25' cy='12' rx='24' ry='11' fill='%238fbc8f' opacity='0.35' filter='url(%23codeWash)'/%3E%3C/svg%3E");
-    background-size: 100% 100%;
-    z-index: -1;
+    font-size: 0.85em;
+    padding: 0.2rem 0.4rem;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    border-radius: 4px;
   }
 
   /* Wide images - break out of content column */

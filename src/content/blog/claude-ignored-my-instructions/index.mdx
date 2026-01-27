@@ -1,0 +1,99 @@
+---
+title: "The CLAUDE.md Said 'Never Use npm.' Claude Used npm Anyway."
+description: "AI coding tools can ignore explicit project instructions under pressure, which is why human oversight and feedback loops still matter."
+pubDate: 2026-01-26
+heroImage: "@assets/blog/claude-ignored-my-instructions/Gemini_Generated_Image_n8iv0un8iv0un8iv.png"
+heroAlt: "Gemini Generated Image n8iv0un8iv0un8iv"
+tags: ["Tech","AI"]
+featured: false
+draft: false
+---
+
+I watched Claude Code switch to npm in my Dockerfile. The CLAUDE.md file said "Always use Bun instead of npm or yarn." Claude did it anyway.
+
+This isn't a hit piece. I use Claude daily. It's production-ready and writes good code. But this incident is a perfect example of why you can't just let AI coding tools rip unsupervised.
+
+## What Happened
+
+I'm working on a Bun-native project for fun. The Docker container wouldn't start. Claude diagnosed the issue: Bun doesn't fully support `renderToPipeableStream`, a Node.js-specific API.
+
+Then it proposed a "solution":
+
+```
+⏺ There's a Bun runtime compatibility issue with React's server-side rendering.
+   Bun doesn't fully support renderToPipeableStream.
+   The solution is to use Bun for fast installs/builds but Node.js for
+   the production runtime. Let me fix this.
+
+⏺ Write(Dockerfile)
+  ⎿  Added 6 lines, removed 5 lines
+      23 +# Stage 3: Production image with Node.js
+      24 +# (React Router SSR requires Node.js stream APIs not fully supported by Bun)
+      25 +FROM node:20-alpine AS release
+      ...
+      31 +CMD ["npm", "run", "start"]
+```
+
+Claude swapped my Bun production image for Node.js. Changed `bun run start` to `npm run start`. The CLAUDE.md file explicitly said never do this. It did it anyway.
+
+## The Catch
+
+I caught it immediately. Hit Escape before it could rebuild the image.
+
+```
+❯ NO! Never use npm, you need to remember this update Claude.md.
+  Never, never, ever, ever use npm. If you encounter any issue,
+  you need to fix it with Bun. Do a research into how to fix this with Bun.
+```
+
+This forced Claude to research instead of taking the shortcut.
+
+## The Correct Fix
+
+After researching, Claude found the real solution: use `renderToReadableStream` instead of `renderToPipeableStream`. The first is a web standard. The second is Node-specific.
+
+```
+⏺ Write(app/entry.server.tsx)
+  ⎿  Wrote 57 lines to app/entry.server.tsx
+      import { renderToReadableStream } from "react-dom/server";
+```
+
+The Dockerfile stayed pure Bun. No Node fallback needed.
+
+Claude's quick fix would have worked. The app would have run. But it was the wrong solution. The correct fix required research, and I had to push for it.
+
+## The Lucky Part
+
+I don't always watch Claude work. Sometimes I kick off a task and check back later. This time I happened to be watching.
+
+If I hadn't been? That npm Dockerfile ships to production.
+
+The cost of that mistake: Bun installs are 20-40x faster than npm. It handles ~100k requests/second versus Node's ~25-30k. Teams report 35% lower serverless costs.
+
+I chose Bun for a reason. Claude almost tossed those benefits to solve a problem faster.
+
+## Why This Happens
+
+Classic context rot. The instruction "always use Bun" sits at the top of CLAUDE.md. But then there's a long troubleshooting session with errors and logs and attempts. The immediate problem (make the Docker container work) becomes more salient than the standing rule (use Bun, not npm).
+
+Plus, npm is everywhere in Claude's training data. When it hits a wall, it defaults to what's familiar. Bun is newer. The muscle memory isn't there yet.
+
+This is why fully autonomous workflows like [Ralph Wiggum](https://awesomeclaude.ai/ralph-wiggum) make me skeptical. It's a technique where Claude loops until it declares "DONE." No human in the loop. They work great until they don't. And when they don't, the wrong solution ships.
+
+## The Takeaway
+
+Claude Code is ready for production work. I'm not arguing otherwise. But the human in the loop isn't optional yet.
+
+When I caught this mistake, three things happened:
+
+1. I interrupted before damage was done
+2. Claude researched and found the correct solution
+3. We updated CLAUDE.md with stronger language
+
+That feedback loop matters. Over time, you're training your AI collaborator. The instructions get more specific. The guardrails get tighter. Claude learns your project's rules.
+
+But it only works if you're watching.
+
+If you're adopting AI coding tools, my advice: stay engaged. You don't have to watch every keystroke. But check the diffs before they ship. Read what it changed. When it takes a shortcut you don't like, stop it and make it find the right solution.
+
+The AI is good. Really good. But "good enough to ship without review" isn't the same as "good enough to trust completely."
