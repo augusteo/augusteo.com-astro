@@ -3,6 +3,7 @@ import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ImageLightbox from "../components/ImageLightbox.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { Image } from "astro:assets";
 import { ViewTransitions } from "astro:transitions";
 import type { ImageMetadata } from "astro";
@@ -89,6 +90,8 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
         <slot />
       </div>
     </article>
+
+    <NewsletterSignup />
 
     <Footer />
     <ImageLightbox />

@@ -1,0 +1,175 @@
+---
+// Newsletter signup component using Buttondown
+import Button from "./Button.astro";
+---
+
+<section class="newsletter-signup">
+  <!-- Decorative divider line -->
+  <div class="divider-line"></div>
+
+  <h2>Stay in the loop</h2>
+  <p>
+    New posts, delivered to your inbox.
+  </p>
+
+  <form
+    action="https://buttondown.com/api/emails/embed-subscribe/augusteo"
+    method="post"
+    class="signup-form"
+  >
+    <div class="input-wrapper">
+      <input
+        type="email"
+        name="email"
+        placeholder="your@email.com"
+        required
+        autocomplete="email"
+        aria-label="Email address"
+      />
+      <input type="hidden" value="1" name="embed" />
+    </div>
+    <Button type="submit" variant="sage">Subscribe</Button>
+  </form>
+
+  <p class="privacy-note">
+    No spam. Unsubscribe anytime.
+  </p>
+</section>
+
+<style>
+  .newsletter-signup {
+    max-width: var(--content-width);
+    margin: 5rem auto 3rem;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+  }
+
+  /* Watercolor wash background */
+  .newsletter-signup::before {
+    content: "";
+    position: absolute;
+    inset: 2.5rem 0 0 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='nlWash'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='3'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='20'/%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='200' cy='100' rx='180' ry='85' fill='%238fbc8f' opacity='0.12' filter='url(%23nlWash)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    z-index: -1;
+    border-radius: 8px 20px 12px 24px / 24px 12px 20px 8px;
+  }
+
+  .divider-line {
+    width: 100%;
+    max-width: 380px;
+    height: 20px;
+    margin: 0 auto 1rem;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 20'%3E%3Cpath d='M0,10 Q50,5 100,12 T200,8 T300,12 T400,8 T500,12 T600,10' stroke='%23b2bec3' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    position: relative;
+    z-index: 1;
+  }
+
+  h2 {
+    font-family: var(--font-hand);
+    font-size: 2.5rem;
+    color: var(--color-ink);
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+  }
+
+  p {
+    font-family: var(--font-body);
+    color: var(--color-ink-light);
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 380px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .signup-form {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  /* Organic input styling */
+  .input-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: -4px -6px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 50'%3E%3Cdefs%3E%3Cfilter id='inputWash'%3E%3CfeTurbulence baseFrequency='0.04'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='2' y='2' width='196' height='46' rx='4' fill='none' stroke='%23b2bec3' stroke-width='1.5' opacity='0.6' filter='url(%23inputWash)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  input[type="email"] {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    width: 260px;
+    max-width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--color-ink);
+  }
+
+  input[type="email"]::placeholder {
+    color: var(--color-ink-faint);
+    font-style: italic;
+  }
+
+  input[type="email"]:focus {
+    outline: none;
+  }
+
+  .input-wrapper:focus-within::before {
+    opacity: 1;
+  }
+
+  .privacy-note {
+    font-size: 0.8rem;
+    color: var(--color-ink-faint);
+    margin-top: 1rem;
+    margin-bottom: 0;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 600px) {
+    .newsletter-signup {
+      padding: 2.5rem 1.5rem;
+      margin: 3rem 1rem 2rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+    }
+
+    .signup-form {
+      flex-direction: column;
+    }
+
+    input[type="email"] {
+      width: 100%;
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .newsletter-signup::before {
+      background: var(--color-wash-sage);
+      opacity: 0.15;
+    }
+
+    .input-wrapper::before {
+      background: none;
+      border: 1px solid var(--color-ink-faint);
+      border-radius: 4px;
+    }
+  }
+</style>

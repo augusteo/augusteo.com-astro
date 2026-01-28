@@ -29,7 +29,7 @@ const { title, description, heroImage, heroAlt, category, slug } = Astro.props;
   </div>
 
   <div class="featured-card-content">
-    <div class="category">{category}</div>
+    {category && <div class="category">{category}</div>}
     <h3>{title}</h3>
     <p class="excerpt">{description}</p>
   </div>

@@ -44,6 +44,9 @@ const WIKILINK_EXTERNAL_URL_REGEX = /!\[\[(https?:\/\/[^\]]+)\]\]/gi;
 // Parse standard markdown images with external URLs
 const MARKDOWN_EXTERNAL_IMAGE_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
 
+// Parse standard markdown images with local filenames (not URLs, not @assets paths)
+const MARKDOWN_LOCAL_IMAGE_REGEX = /!\[([^\]]*)\]\(([\w\s\-_.]+\.(jpg|jpeg|png|gif|webp|svg))\)/gi;
+
 // Track downloaded images to avoid re-downloading
 const downloadedImages = new Map<string, string>();
 
@@ -195,12 +198,21 @@ function extractImages(content: string): string[] {
   const images: string[] = [];
   let match: RegExpExecArray | null;
 
+  // Reset regex state
+  WIKILINK_IMAGE_REGEX.lastIndex = 0;
+  MARKDOWN_LOCAL_IMAGE_REGEX.lastIndex = 0;
+
   // Extract wikilink images
   while ((match = WIKILINK_IMAGE_REGEX.exec(content)) !== null) {
     images.push(match[1]);
   }
 
-  return images;
+  // Extract standard markdown local images
+  while ((match = MARKDOWN_LOCAL_IMAGE_REGEX.exec(content)) !== null) {
+    images.push(match[2]); // match[2] is the filename
+  }
+
+  return [...new Set(images)]; // Remove duplicates
 }
 
 /**
@@ -271,6 +283,11 @@ function transformContent(content: string, slug: string, urlToLocal: Map<string,
     }
     // Keep original if download failed
     return match;
+  });
+
+  // Convert standard markdown local images to use @assets path
+  transformed = transformed.replace(MARKDOWN_LOCAL_IMAGE_REGEX, (_, alt, imageName) => {
+    return `![${alt}](@assets/blog/${slug}/${imageName})`;
   });
 
   // Escape curly braces to prevent MDX from interpreting them as JSX

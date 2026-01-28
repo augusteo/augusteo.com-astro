@@ -1,0 +1,514 @@
+---
+title: "I Asked Gemini to Count Rebar. It Hallucinated 60."
+description: "Testing Gemini 3 Flash's new agentic vision feature for construction QC use cases"
+pubDate: 2026-01-27
+heroImage: "@assets/blog/til-gemini-agentic-vision/gemini-floor-plan.jpg"
+heroAlt: "Floor plan showing rooms, trees, and doors"
+tags: ["Tech","AI","Gemini"]
+featured: false
+draft: false
+---
+
+Gemini 3 Flash with code execution prevented a hallucination of "60 rebar" by actually looking at the image and discovering there were zero.
+
+I'm building a construction AI product at boonAI, so when Google announced "agentic vision" for Gemini 3 Flash (the model can run Python code to analyze images), I had to test it. I ran 6 different tests. The results surprised me.
+
+## What I Tested
+
+I ran the same prompts with code execution OFF and ON. The difference isn't a parameter (it's a tool):
+
+```python
+from google import genai
+from google.genai import types
+
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+# Code execution enabled
+config = types.GenerateContentConfig(
+    tools=[types.Tool(code_execution=types.ToolCodeExecution())]
+)
+
+response = client.models.generate_content(
+    model="gemini-3-flash-preview",
+    contents=[image, prompt],
+    config=config,
+)
+```
+
+The response includes `executable_code` and `inline_data` (generated images) when the model chooses to analyze visually.
+
+---
+
+## Test 1: Rebar Counting (Hallucination Prevention)
+
+This was the most dramatic result. I sent a construction site image with the prompt "count the rebar."
+
+![The woodworker image where Gemini hallucinated 60 rebar](@assets/blog/til-gemini-agentic-vision/gemini-rebar.jpg)
+
+**Code OFF:**
+```json
+{
+  "text": "You can see 60 rebar (metal reinforcement bars) in this picture."
+}
+```
+
+**Code ON:**
+```json
+{
+  "text": "Based on a careful examination of the image, including close-ups of the background and the worker's table, there are no rebar (metal reinforcement bars typically used for concrete) visible. The image depicts a construction worker working with large wooden beams and various tools (circular saw, drill, clamps, etc.) inside what appears to be a structural steel building. The visible metal elements are structural steel beams, bracing rods, and tools, rather than rebar.\n\nFinal count: 0 rebar.",
+  "images_generated_count": 7
+}
+```
+
+The image showed a woodworker with wooden beams. Not rebar. Without code execution, Gemini confidently hallucinated "60 rebar." With code execution, it zoomed into 7 regions, examined them, and correctly identified wood.
+
+**The code Gemini executed:**
+
+```python
+import PIL.Image
+import PIL.ImageDraw
+
+img = PIL.Image.open('input_file_0.jpeg')
+width, height = img.size
+
+# Looking for rebar - often found in concrete construction, but this looks like wood.
+# Let's zoom into various parts to be sure.
+regions = [
+    [0, 0, 1000, 500],   # Top half (ceiling/background)
+    [500, 0, 1000, 1000], # Bottom half (floor/bench)
+    [0, 0, 500, 500],    # Top left
+    [0, 500, 500, 1000],  # Top right
+]
+
+# Convert normalized to pixel coordinates
+def norm_to_pixel(norm_coords, w, h):
+    return [norm_coords[0] * h / 1000, norm_coords[1] * w / 1000,
+            norm_coords[2] * h / 1000, norm_coords[3] * w / 1000]
+
+for i, reg in enumerate(regions):
+    p_reg = norm_to_pixel(reg, width, height)
+    crop = img.crop((p_reg[1], p_reg[0], p_reg[3], p_reg[2]))
+    crop.save(f'zoom_{i}.jpeg')
+```
+
+The model divides the image into regions, crops each one, and examines them separately. It's essentially giving itself a closer look at different parts of the image before committing to an answer.
+
+In a second code block, it zooms into the background specifically:
+
+```python
+# Zoom into the background more clearly
+regions_bg = [
+    [350, 600, 600, 900], # Right background
+    [350, 300, 600, 600], # Center background
+    [350, 0, 600, 300],   # Left background
+]
+
+for i, reg in enumerate(regions_bg):
+    p_reg = norm_to_pixel(reg, width, height)
+    crop = img.crop((p_reg[1], p_reg[0], p_reg[3], p_reg[2]))
+    crop.save(f'bg_zoom_{i}.jpeg')
+```
+
+**The model's zoomed regions:**
+
+![Rebar zoom 1](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom1.png) ![Rebar zoom 2](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom2.png) ![Rebar zoom 3](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom3.png) ![Rebar zoom 4](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom4.png)
+
+![Rebar zoom 5](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom5.png) ![Rebar zoom 6](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom6.png) ![Rebar zoom 7](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom7.png)
+
+### The Complete API Response
+
+Here's what the full API response looks like (base64 image data truncated for readability):
+
+```json
+{
+  "success": true,
+  "text": "Based on a careful examination of the image, including close-ups of the background and the worker's table, there are no **rebar** (metal reinforcement bars typically used for concrete) visible. The image depicts a construction worker working with large wooden beams and various tools (circular saw, drill, clamps, etc.) inside what appears to be a structural steel building. The visible metal elements are structural steel beams, bracing rods, and tools, rather than rebar.\n\nFinal count: 0 rebar.",
+  "code_executed": [
+    "import PIL.Image\nimport PIL.ImageDraw\n\n# Load the image to get dimensions\nimg = PIL.Image.open('input_file_0.jpeg')\nwidth, height = img.size\n\n# Looking for rebar - often found in concrete construction, but this looks like wood.\n# Let's zoom into various parts to be sure.\n# 1. Background left\n# 2. Background center\n# 3. Background right\n# 4. Ceiling\n# 5. Floor areas\n\nregions = [\n    [0, 0, 1000, 500],   # Top half (ceiling/background)\n    [500, 0, 1000, 1000], # Bottom half (floor/bench)\n    [0, 0, 500, 500],    # Top left\n    [0, 500, 500, 1000],  # Top right\n]\n\n# Convert normalized to pixel coordinates\ndef norm_to_pixel(norm_coords, w, h):\n    return [norm_coords[0] * h / 1000, norm_coords[1] * w / 1000, norm_coords[2] * h / 1000, norm_coords[3] * w / 1000]\n\n# Let's just do a grid zoom to be thorough.\nfor i, reg in enumerate(regions):\n    p_reg = norm_to_pixel(reg, width, height)\n    crop = img.crop((p_reg[1], p_reg[0], p_reg[3], p_reg[2]))\n    crop.save(f'zoom_{i}.jpeg')\n\n# Output some dummy objects for reference.\n# [{box_2d: [70, 560, 245, 725], label: \"worker helmet\"},\n#  {box_2d: [519, 122, 654, 287], label: \"circular saw\"},\n#  {box_2d: [583, 404, 663, 508], label: \"drill\"}]\n",
+    "# Zoom into the background more clearly\nregions_bg = [\n    [350, 600, 600, 900], # Right background\n    [350, 300, 600, 600], # Center background\n    [350, 0, 600, 300],   # Left background\n]\n\nfor i, reg in enumerate(regions_bg):\n    p_reg = norm_to_pixel(reg, width, height)\n    crop = img.crop((p_reg[1], p_reg[0], p_reg[3], p_reg[2]))\n    crop.save(f'bg_zoom_{i}.jpeg')\n"
+  ],
+  "code_results": [],
+  "images_generated": [
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 24532 chars total>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 21176 chars total>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 44788 chars total>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 46680 chars total>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 7760 chars total>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 7332 chars total>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 8192 chars total>"
+    }
+  ]
+}
+```
+
+Notice:
+- **`code_executed`** is an array of strings, each containing a full Python script the model wrote and ran
+- **`images_generated`** contains base64-encoded JPEGs (7 images totaling ~160KB of data)
+- The model ran **two separate code blocks** (first a grid zoom, then a focused background zoom)
+- The model even left comments in its code explaining its reasoning: "Looking for rebar - often found in concrete construction, but this looks like wood"
+
+---
+
+## Test 2: Pipe Counting (Conservative Mode)
+
+Another case where code execution made the model more conservative.
+
+![Welder with pipes in background](@assets/blog/til-gemini-agentic-vision/gemini-pipes.jpg)
+
+**Code OFF:**
+```json
+{
+  "text": "This image contains five pipes."
+}
+```
+
+**Code ON:**
+```json
+{
+  "text": "Based on a careful examination of the image, there are no clearly identifiable pipes present. The background contains several blurred structural elements, such as vertical rods and curved loops, which appear more like cables or solid metal supports than pipes. The welder is using a stick welding electrode, which is a solid rod, and is working on what looks like a flat or rectangular piece of metal.\n\nFinal Answer: 0",
+  "images_generated_count": 3
+}
+```
+
+The model questioned whether the objects were actually pipes. It decided they looked more like cables or supports.
+
+**The code Gemini executed:**
+
+```python
+import PIL.Image
+import PIL.ImageDraw
+
+img = PIL.Image.open('input_file_0.jpeg')
+width, height = img.size
+
+# Define potential pipe areas
+objs = [
+    {'box_2d': [310, 560, 680, 640], 'label': 'potential pipe 1'},
+    {'box_2d': [0, 640, 420, 950], 'label': 'potential pipe background right'},
+    {'box_2d': [480, 500, 780, 750], 'label': 'welding rod (pipe?)'},
+]
+
+# Create crops to see better
+for i, obj in enumerate(objs):
+    ymin, xmin, ymax, xmax = obj['box_2d']
+    crop = img.crop((xmin * width / 1000, ymin * height / 1000,
+                     xmax * width / 1000, ymax * height / 1000))
+    crop.save(f'crop_{i}.png')
+```
+
+The model identifies potential pipe locations, crops them out, examines each one, then decides "these look more like cables." This could be seen as overly cautious, but for construction QC, conservative beats confident-but-wrong.
+
+**The model's zoomed regions:**
+
+![Pipes zoom 1](@assets/blog/til-gemini-agentic-vision/gemini-pipes-zoom1.png) ![Pipes zoom 2](@assets/blog/til-gemini-agentic-vision/gemini-pipes-zoom2.png) ![Pipes zoom 3](@assets/blog/til-gemini-agentic-vision/gemini-pipes-zoom3.png)
+
+---
+
+## Test 3: Floor Plan Counting (Trees & Doors)
+
+A floor plan with pool, garage, and multiple rooms.
+
+![Floor plan with trees and doors](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan.jpg)
+
+**Code OFF:**
+```json
+{
+  "text": "There are exactly 10 trees and 21 doors shown here."
+}
+```
+
+**Code ON:**
+```json
+{
+  "text": "Based on the provided floor plan, here are the counts for trees and doors:\n\n### Trees: 12\nThere are 12 palm trees visible around the exterior of the property:\n- 8 palm trees are lined up along the top edge of the floor plan.\n- 4 palm trees are located in a row at the bottom right corner near the patio.\n- (Note: There are several other smaller green plants or bushes located on the terraces, in the gym, and in the bathroom, but these are generally represented as potted plants or small bushes rather than trees.)\n\n### Doors: 18\nThere are 18 doors (including door leaves and sliding panels) identified by their typical architectural symbols (arcs for swinging doors and parallel lines for sliding doors):\n1. 3 doors in the top-left exterior walkway area (one from the driveway, one to the terrace, and one from the laundry room).\n2. 1 door between the laundry room and the interior hallway.\n3. 1 door from the interior hallway into the gym.\n4. 1 door from the interior hallway to the terrace (located between the living room and the gym).\n5. 2 doors (a double door) from the living room to the terrace.\n6. 1 door from the main hall to the terrace.\n7. 1 door from the main hall leading to the outside on the right.\n8. 1 door from the main hall into the wine cellar.\n9. 1 door from the main hall into the guest bathroom.\n10. 1 door from the main hall into the guest bedroom.\n11. 1 door (sliding glass door) from the guest bedroom to the patio.\n12. 1 door from the gym to the garage.\n13. 1 door from the gym to the bathroom.\n14. 1 door from the gym to the terrace.\n15. 1 door from the bathroom to the terrace.\n16. 1 door from the driveway into the corridor leading to the terrace.\n\nTotal: 17 swinging door leaves (arcs) + 1 sliding door = 18 doors in total.",
+  "images_generated_count": 8
+}
+```
+
+Code execution gave a room-by-room breakdown. The model even distinguishes between trees and potted plants, and between swinging doors (arcs) and sliding doors (parallel lines).
+
+**The code Gemini executed:**
+
+```python
+import PIL.Image
+import PIL.ImageDraw
+
+img = PIL.Image.open('input_file_0.jpeg')
+width, height = img.size
+
+# Detect trees and doors.
+objs = [
+    {'box_2d': [0, 140, 180, 520], 'label': 'top_trees'},
+    {'box_2d': [740, 800, 995, 965], 'label': 'bottom_right_trees'},
+    {'box_2d': [435, 212, 555, 330], 'label': 'left_doors'},
+    {'box_2d': [230, 395, 385, 480], 'label': 'laundry_living_doors'},
+    {'box_2d': [280, 750, 485, 955], 'label': 'hall_doors'},
+    {'box_2d': [540, 240, 750, 455], 'label': 'gym_bath_doors'},
+    {'box_2d': [380, 595, 450, 770], 'label': 'top_terrace_doors'},
+    {'box_2d': [550, 765, 700, 900], 'label': 'guest_bedroom_doors'}
+]
+
+def save_crops(img, objs, prefix):
+    for i, obj in enumerate(objs):
+        ymin, xmin, ymax, xmax = obj['box_2d']
+        left = xmin * width / 1000
+        top = ymin * height / 1000
+        right = xmax * width / 1000
+        bottom = ymax * height / 1000
+        crop = img.crop((left, top, right, bottom))
+        crop.save(f'{prefix}_{i}.png')
+
+save_crops(img, objs, 'crop')
+```
+
+The model creates labeled regions (top_trees, hall_doors, gym_bath_doors, etc.) and crops each one. This is how it can give a room-by-room breakdown in its response.
+
+**The model's zoomed regions:**
+
+![Floor plan zoom 1](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan-zoom1.png) ![Floor plan zoom 2](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan-zoom2.png) ![Floor plan zoom 3](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan-zoom3.png) ![Floor plan zoom 4](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan-zoom4.png)
+
+![Floor plan zoom 5](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan-zoom5.png) ![Floor plan zoom 6](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan-zoom6.png) ![Floor plan zoom 7](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan-zoom7.png) ![Floor plan zoom 8](@assets/blog/til-gemini-agentic-vision/gemini-floor-plan-zoom8.png)
+
+---
+
+## Test 4: Lighting Fittings Count
+
+A lighting plan (blue = new fittings, red = original).
+
+![Lighting plan with fittings](@assets/blog/til-gemini-agentic-vision/gemini-fittings.webp)
+
+**Code OFF:**
+```json
+{
+  "text": "Based on the lighting plan provided:\n\n- New / Extra Fittings (blue squares and rectangles): 17\n- Original Fittings (red circles): 12"
+}
+```
+
+**Code ON:**
+```json
+{
+  "text": "Based on the lighting plan provided, here is the exact count for each category of fittings:\n\n### New / Extra Fittings (Blue squares and rectangles): 17\n- Entrance (top center): 2 squares (one on each side of the door).\n- Top-left room (dining): 2 squares (one in the top-left corner and one in the bottom-right area).\n- Top-right room (living): 5 fittings total (1 square in the top-left, 2 long horizontal rectangles near the sofa, 1 square below the lower rectangle, and 1 square near the TV).\n- Kitchen (bottom-left): 4 squares (1 on the top counter, 1 on the left counter, and 2 on the island).\n- Central hallway: 1 long vertical rectangle located between the kitchen and the bottom-right dining area.\n- Bottom-right room (dining): 3 squares (1 at the top entrance, 1 in the center of the table, and 1 on the right wall).\n\n### Original Fittings (Red circles): 12\n- Top-left room (dining): 3 circles (one near the top wall, one in the center of the round table, and one in the bottom-left corner).\n- Top-right room (living): 3 circles (one in the top-right corner, one large circle in the center, and one in the bottom-left area above the partition wall).\n- Kitchen (bottom-left): 4 circles (one in the top-left corner, one in the middle of the floor, one in the bottom-left corner, and one near the bottom of the island).\n- Bottom-right room (dining): 2 circles (one in the top-right corner and one in the bottom-right corner).\n\nSummary:\n- New / Extra Fittings: 17\n- Original Fittings: 12",
+  "images_generated_count": 4
+}
+```
+
+Same totals, but Code ON provided per-room breakdown. For a real construction audit, that per-room detail matters.
+
+**The code Gemini executed:**
+
+```python
+import PIL.Image
+import PIL.ImageDraw
+
+img = PIL.Image.open('input_file_0.jpeg')
+width, height = img.size
+
+# Detect objects manually for counting and zoom
+# Red Circles (Original Fittings)
+# Blue Squares/Rectangles (New / Extra Fittings)
+
+objs = [
+    # Red circles - with exact pixel coordinates
+    {'box_2d': [210, 345, 265, 385], 'label': 'original_red'}, # TL room top
+    {'box_2d': [435, 240, 485, 285], 'label': 'original_red'}, # TL room bottom left
+    {'box_2d': [160, 730, 215, 770], 'label': 'original_red'}, # TR room top right
+    # ... (11 red circles total)
+
+    # Blue shapes - with exact pixel coordinates
+    {'box_2d': [100, 350, 160, 395], 'label': 'new_blue_sq'}, # Entrance left
+    {'box_2d': [100, 435, 160, 480], 'label': 'new_blue_sq'}, # Entrance right
+    {'box_2d': [195, 550, 235, 705], 'label': 'new_blue_rect'}, # TR room upper rect
+    # ... (17 blue shapes total)
+]
+
+# Create crops by quadrant to double check
+img.crop((0, 0, width//2, height//2)).save('top_left.jpeg')
+img.crop((width//2, 0, width, height//2)).save('top_right.jpeg')
+img.crop((0, height//2, width//2, height)).save('bottom_left.jpeg')
+img.crop((width//2, height//2, width, height)).save('bottom_right.jpeg')
+```
+
+The model creates a detailed inventory of every fitting with pixel coordinates, distinguishing between squares, rectangles, and circles. Then it crops the image into quadrants to verify its counts.
+
+**The model's zoomed regions:**
+
+![Fittings zoom 1](@assets/blog/til-gemini-agentic-vision/gemini-fittings-zoom1.png) ![Fittings zoom 2](@assets/blog/til-gemini-agentic-vision/gemini-fittings-zoom2.png) ![Fittings zoom 3](@assets/blog/til-gemini-agentic-vision/gemini-fittings-zoom3.png) ![Fittings zoom 4](@assets/blog/til-gemini-agentic-vision/gemini-fittings-zoom4.png)
+
+---
+
+## Test 5: PPE Detection
+
+Two construction workers with various safety equipment.
+
+![Construction workers with PPE](@assets/blog/til-gemini-agentic-vision/gemini-construction-worker.jpg)
+
+**Code OFF:**
+```json
+{
+  "text": "Based on the image, the Personal Protective Equipment (PPE) visible on the workers includes:\n\nFor the worker kneeling in the background:\n- Hard Hat: An orange hard hat for head protection.\n- High-Visibility Vest: An orange safety vest with reflective strips to ensure visibility.\n- Work Gloves: Dark gloves to protect his hands while handling tools and materials.\n- Work Boots: Sturdy, dark-colored boots suitable for a construction environment.\n\nFor the worker standing in the foreground:\n- Face/Head Covering: A light blue cloth or balaclava covering the face and head, likely for protection against sun, dust, or wind.\n- High-Visibility Vest: An orange safety vest with reflective elements.\n- Work Gloves: Dark protective gloves on his hands.\n- Safety Boots: Tall, dark-colored waterproof or safety boots."
+}
+```
+
+**Code ON:**
+```json
+{
+  "text": "Based on the image, the Personal Protective Equipment (PPE) items visible on the construction workers include:\n\n### Worker 1 (Kneeling):\n- Hard Hat: An orange safety helmet.\n- High-Visibility Vest: An orange safety vest featuring yellow/silver reflective strips.\n- Safety Boots: Dark, heavy-duty work boots.\n- Head/Neck Covering: A white cloth or scarf worn under the hard hat, likely for sun protection and sweat management.\n\n### Worker 2 (Standing):\n- High-Visibility Vest: An orange safety vest with yellow/silver reflective strips.\n- Safety Gloves: Blue and black protective gloves.\n- Safety Boots: Dark, tall work boots (possibly rubber or waterproof).\n- Face Mask/Neck Gaiter: A light blue fabric covering the face and neck.\n- Face Shield / Welding Mask: A dark protective shield or mask worn on the head, currently flipped up.\n\nBoth workers are also wearing full-length clothing (long sleeves and pants), which provides additional protection against abrasions and environmental factors on a construction site.",
+  "images_generated_count": 2
+}
+```
+
+Code ON added specific colors (blue and black gloves, yellow/silver reflective strips) and noticed details like the face shield flipped up on Worker 2's head.
+
+**The code Gemini executed:**
+
+```python
+import PIL.Image
+import PIL.ImageDraw
+
+img = PIL.Image.open('input_file_0.jpeg')
+width, height = img.size
+
+# List workers and their PPE items to zoom in on
+workers_and_ppe = [
+    {'box_2d': [113, 471, 424, 603], 'label': 'worker_1'},
+    {'box_2d': [388, 452, 861, 561], 'label': 'worker_2'},
+    {'box_2d': [114, 537, 185, 586], 'label': 'hard_hat_1'},
+    {'box_2d': [179, 482, 332, 592], 'label': 'hi_vis_vest_1'},
+    {'box_2d': [484, 477, 663, 558], 'label': 'hi_vis_vest_2'},
+    {'box_2d': [547, 451, 603, 487], 'label': 'gloves_2'},
+    {'box_2d': [416, 492, 513, 545], 'label': 'face_mask_2'},
+    {'box_2d': [779, 487, 865, 545], 'label': 'boots_2'}
+]
+
+def save_crop(img, box, name):
+    ymin, xmin, ymax, xmax = box
+    left = xmin * width / 1000
+    top = ymin * height / 1000
+    right = xmax * width / 1000
+    bottom = ymax * height / 1000
+    crop = img.crop((left, top, right, bottom))
+    crop.save(name)
+
+# Crop workers for better visibility
+save_crop(img, [100, 450, 450, 650], 'worker1_zoom.png')
+save_crop(img, [350, 430, 880, 580], 'worker2_zoom.png')
+```
+
+The model identifies specific PPE items (hard_hat_1, gloves_2, face_mask_2) with bounding boxes, then crops each worker separately for closer inspection. This is why Code ON can report specific colors and details.
+
+**The model's zoomed regions:**
+
+![Worker 1 zoom](@assets/blog/til-gemini-agentic-vision/gemini-worker-zoom.png) ![Worker 2 zoom](@assets/blog/til-gemini-agentic-vision/gemini-worker-zoom2.png)
+
+---
+
+## Test 6: Dashboard Data Extraction
+
+A web analytics dashboard with dense data.
+
+![Analytics dashboard](@assets/blog/til-gemini-agentic-vision/gemini-chart.jpg)
+
+**Code OFF:**
+```json
+{
+  "text": "Based on the dashboard visible on the laptop screen, here are the extracted labels and data values:\n\n### Top Header\n- Title: USERS: LAST 7 DAYS USING MEDIAN\n\n### Top-Left Chart: LOAD TIME VS BOUNCE RATE\n- Metrics/Legend: Page Load (LUX) (Blue histogram), Bounce Rate (Pink line)\n- Annotated Data Point: Median Page Load (LUX): 2.056s, Bounce Rate 7s 57.1%\n- Y-Axis (Left - Counts): 0, 15K, 30K, 45K, 50K, 75K\n- Y-Axis (Right - Percentage): 0%, 20%, 40%, 60%, 80%, 100%\n- X-Axis (Seconds): 0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5\n\n### Top-Right Chart: START RENDER VS BOUNCE RATE\n- Median Start Render (LUX): 1.031s\n- Y-Axis (Left - Counts): 0, 8K, 16K, 24K, 32K, 40K\n\n### Bottom-Left Section: PAGE VIEWS VS ONLOAD\n- Page Load (LUX): 0.7s\n- Page Views (LUX): 2.7Mpvs\n- Bounce Rate (LUX): 40.6%\n\n### Bottom-Right Section: SESSIONS\n- Sessions (LUX): 479K\n- Session Length (LUX): 17min\n- PVs Per Session (LUX): 2pvs\n\n### Additional Interface Elements\n- Options: Every quadrant features an OPTIONS link.\n- Notification: Chat/help icon with red notification bubble showing 1."
+}
+```
+
+**Code ON:**
+```json
+{
+  "text": "The dashboard titled USERS: LAST 7 DAYS USING MEDIAN displays the following key data points:\n\n### 1. LOAD TIME VS BOUNCE RATE\n- Median Page Load (LUX): 2.056s\n- Specific Callout: Bounce Rate at 7s is 57.1%.\n- Axes & Legend:\n  - X-axis (Time): 0 to 17.5 seconds (increments of 2.5s).\n  - Y-axis (Left - Count): 0, 15K, 30K, 45K, 60K, 75K.\n  - Y-axis (Right - Bounce Rate): 0% to 100% (increments of 20%).\n  - Legend: Page Load (LUX) is represented by blue bars; Bounce Rate is represented by a pink line.\n\n### 2. START RENDER VS BOUNCE RATE\n- Median Start Render (LUX): 1.031s\n- Axes & Legend:\n  - X-axis (Time): 0 to 5 seconds.\n  - Y-axis (Left - Count): 0, 8K, 16K, 24K, 32K, 40K.\n  - Y-axis (Right - Bounce Rate): 0% to 100% (increments of 20%).\n\n### 3. PAGE VIEWS VS ONLOAD\n- Page Load (LUX): 0.7s\n- Page Views (LUX): 2.7Mpvs\n- Bounce Rate (LUX): 40.6%\n- Chart Metrics:\n  - Left Y-axis (Load Time): 0.4s, 0.6s, 0.8s, 1s.\n  - Inner Right Y-axis (Page Views): 200K, 300K, 400K, 500K.\n  - Outer Right Y-axis (Bounce Rate): 40%, 60%, 80%, 100%.\n\n### 4. SESSIONS\n- Sessions (LUX): 479K\n- Session Length (LUX): 17min\n- PVs Per Session (LUX): 2pvs\n- Chart Metrics:\n  - Left Y-axis (PVs): 1.6 pvs, 2.4 pvs, 3.2 pvs, 4 pvs.\n  - Inner Right Y-axis (Sessions): 40K, 60K, 80K, 100K.\n  - Outer Right Y-axis (Session Length): 24 min, 32 min, 40 min.",
+  "images_generated_count": 5
+}
+```
+
+Both modes extracted detailed data. Code ON organized it more systematically and captured dual Y-axis scales.
+
+**The code Gemini executed:**
+
+```python
+import PIL.Image
+import PIL.ImageDraw
+
+img = PIL.Image.open('input_file_0.jpeg')
+width, height = img.size
+
+# List of regions to crop for better visibility of data points and labels
+crops = [
+    [150, 80, 260, 450],   # Dashboard title and top-left header
+    [260, 100, 600, 480],  # Top-left chart (LOAD TIME VS BOUNCE RATE)
+    [260, 500, 600, 880],  # Top-right chart (START RENDER VS BOUNCE RATE)
+    [650, 100, 960, 480],  # Bottom-left section (PAGE VIEWS VS ONLOAD)
+    [650, 500, 960, 880]   # Bottom-right section (SESSIONS)
+]
+
+def get_crop(img, box_norm):
+    ymin, xmin, ymax, xmax = box_norm
+    left = xmin * width / 1000
+    top = ymin * height / 1000
+    right = xmax * width / 1000
+    bottom = ymax * height / 1000
+    return img.crop((left, top, right, bottom))
+
+for i, crop_box in enumerate(crops):
+    crop_img = get_crop(img, crop_box)
+    crop_img.save(f'crop_{i}.png')
+```
+
+The model divides the dashboard into logical sections (title, each of 4 chart areas) and crops each one. This allows it to read small text and axis labels more accurately.
+
+**The model's zoomed regions:**
+
+![Chart zoom 1](@assets/blog/til-gemini-agentic-vision/gemini-chart-zoom.png) ![Chart zoom 2](@assets/blog/til-gemini-agentic-vision/gemini-chart-zoom2.png) ![Chart zoom 3](@assets/blog/til-gemini-agentic-vision/gemini-chart-zoom3.png)
+
+![Chart zoom 4](@assets/blog/til-gemini-agentic-vision/gemini-chart-zoom4.png) ![Chart zoom 5](@assets/blog/til-gemini-agentic-vision/gemini-chart-zoom5.png)
+
+---
+
+## What This Means
+
+The model uses PIL/Pillow to crop and zoom into regions. It's not drawing bounding boxes like I expected from Google's announcement. It's more like a "visual investigation" where it examines areas before committing to an answer.
+
+From 6 tests, here's what I learned:
+
+1. **Hallucination prevention is the real win.** Getting 60 vs 0 wrong (rebar) or 5 vs 0 (pipes) is a bigger problem than getting 10 vs 12 wrong.
+
+2. **Code execution makes the model more conservative.** In 2 of 6 tests, it gave lower counts or "none found" when it looked closely. For high-stakes inspection, conservative beats confident-but-wrong.
+
+3. **Per-region breakdown is auditable.** Every count is traceable to specific image regions (the zoom crops prove where the model looked).
+
+4. **Structured output is more useful.** Worker 1 vs Worker 2, Room-by-room counts, Chart-by-chart extraction.
+
+5. **The code itself is informative.** You can see exactly what regions the model examined and what it labeled them. The `box_2d` coordinates create an audit trail.
+
+For construction QC (and boonAI's use cases), this is significant. The model now shows its work.
+
+## What I'd Test Next
+
+- Actual rebar images (verify counting accuracy with ground truth)
+- Latency and cost comparison (code execution takes longer)
+- Construction defects (cracks, missing bolts, safety violations)
+- Higher resolution images
+
+The code is at `~/dev/experiments/gemini-3-flash-agentic-vision/` if you want to run your own tests.
