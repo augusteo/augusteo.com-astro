@@ -1,8 +1,8 @@
 ---
-title: "Gemini Stops Hallucinating When You Give It Python"
+title: "Gemini Hallucinates Less When You Give It Python"
 description: "Testing Gemini 3 Flash's new agentic vision feature with code execution"
 pubDate: 2026-01-27
-heroImage: "@assets/blog/til-gemini-agentic-vision/Gemini_Generated_Image_rr3hi7rr3hi7rr3h.png"
+heroImage: "@assets/blog/til-gemini-agentic-vision/Gemini_Generated_Image_8kyd888kyd888kyd.png"
 heroAlt: "Floor plan showing rooms, trees, and doors"
 tags: ["Tech","AI"]
 featured: false
@@ -17,7 +17,7 @@ When [Google announced "agentic vision"](https://blog.google/innovation-and-ai/t
 | ------------------------ | ---------------------- | ---------------------------------------- | ------------------------------ |
 | **Rebar counting**       | "60 rebar"             | "0 rebar" (correct: image shows wood)    | ✅ Hallucination prevented      |
 | **Pipe counting**        | "5 pipes"              | "0 pipes" (looks like cables/supports)   | ✅ Hallucination prevented      |
-| **Floor plan (trees)**   | 10 trees               | 12 trees + per-location breakdown        | ✅ Correct, More detailed       |
+| **Floor plan (trees)**   | 10 trees (correct)     | 12 trees (wrong: zooms show 7+3=10)      | ❌ Overcounted                  |
 | **Floor plan (doors)**   | 21 doors               | 18 doors + room-by-room list             | ✅ More detailed                |
 | **Lighting fittings**    | 17 new, 12 original    | 17 new, 12 original + per-room breakdown | ✅ Same count, better structure |
 | **PPE detection**        | Lists items per worker | Lists items with specific colors/details | ✅ More specific                |
@@ -26,6 +26,7 @@ When [Google announced "agentic vision"](https://blog.google/innovation-and-ai/t
 **Key findings:**
 - **Hallucination prevention** is the biggest win (60→0 on rebar, 5→0 on pipes)
 - Code execution makes the model **more conservative** (says "none" when unsure)
+- **Not perfect**: palm trees went from correct (10) to wrong (12), even with zoomed evidence showing 7+3=10
 - Every answer comes with **visual evidence** (38 zoomed crops across 6 tests)
 - Outputs are **structured by region** (Worker 1 vs 2, room-by-room, chart-by-chart)
 
@@ -209,7 +210,7 @@ A floor plan with pool, garage, and multiple rooms.
 }
 ```
 
-Code execution gave a room-by-room breakdown. The model even distinguishes between trees and potted plants, and between swinging doors (arcs) and sliding doors (parallel lines).
+Code execution gave a room-by-room breakdown, but got the tree count wrong. The zoomed images clearly show 7 trees on top and 3 on the bottom right (total: 10), yet the model reported 8+4=12. Code OFF was actually correct here. The model does distinguish between trees and potted plants, and between swinging doors (arcs) and sliding doors (parallel lines).
 
 **The code Gemini executed:**
 
@@ -454,7 +455,7 @@ The model divides the dashboard into logical sections (title, each of 4 chart ar
 
 From 6 tests, here's what I learned:
 
-1. **Hallucination prevention is the real win.** Getting 60 vs 0 wrong (rebar) or 5 vs 0 (pipes) is a bigger problem than getting 10 vs 12 wrong.
+1. **Hallucination prevention is the real win.** Getting 60 vs 0 wrong (rebar) or 5 vs 0 (pipes) is a bigger problem than miscounting by 2. But code execution isn't magic: it got the palm tree count wrong (10→12) even while looking at zoomed images that clearly showed 10.
 
 2. **Code execution makes the model more conservative.** In 2 of 6 tests, it gave lower counts or "none found" when it looked closely. For high-stakes inspection, conservative beats confident-but-wrong.
 
