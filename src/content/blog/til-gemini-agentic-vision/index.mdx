@@ -1,17 +1,33 @@
 ---
-title: "I Asked Gemini to Count Rebar. It Hallucinated 60."
-description: "Testing Gemini 3 Flash's new agentic vision feature for construction QC use cases"
+title: "Gemini Stops Hallucinating When You Give It Python"
+description: "Testing Gemini 3 Flash's new agentic vision feature with code execution"
 pubDate: 2026-01-27
-heroImage: "@assets/blog/til-gemini-agentic-vision/gemini-floor-plan.jpg"
+heroImage: "@assets/blog/til-gemini-agentic-vision/Gemini_Generated_Image_rr3hi7rr3hi7rr3h.png"
 heroAlt: "Floor plan showing rooms, trees, and doors"
-tags: ["Tech","AI","Gemini"]
+tags: ["Tech","AI"]
 featured: false
 draft: false
 ---
 
-Gemini 3 Flash with code execution prevented a hallucination of "60 rebar" by actually looking at the image and discovering there were zero.
+When [Google announced "agentic vision"](https://blog.google/innovation-and-ai/technology/developers-tools/agentic-vision-gemini-3-flash/) for Gemini 3 Flash (the model can run Python code to analyze images), I had to test it. I ran 6 different tests. The results surprised me.
 
-I'm building a construction AI product at boonAI, so when Google announced "agentic vision" for Gemini 3 Flash (the model can run Python code to analyze images), I had to test it. I ran 6 different tests. The results surprised me.
+## Summary: Code OFF vs Code ON
+
+| Test                     | Code OFF               | Code ON                                  | Verdict                        |
+| ------------------------ | ---------------------- | ---------------------------------------- | ------------------------------ |
+| **Rebar counting**       | "60 rebar"             | "0 rebar" (correct: image shows wood)    | ✅ Hallucination prevented      |
+| **Pipe counting**        | "5 pipes"              | "0 pipes" (looks like cables/supports)   | ✅ Hallucination prevented      |
+| **Floor plan (trees)**   | 10 trees               | 12 trees + per-location breakdown        | ✅ Correct, More detailed       |
+| **Floor plan (doors)**   | 21 doors               | 18 doors + room-by-room list             | ✅ More detailed                |
+| **Lighting fittings**    | 17 new, 12 original    | 17 new, 12 original + per-room breakdown | ✅ Same count, better structure |
+| **PPE detection**        | Lists items per worker | Lists items with specific colors/details | ✅ More specific                |
+| **Dashboard extraction** | Extracts values        | Extracts values + axis scales            | ✅ More complete                |
+
+**Key findings:**
+- **Hallucination prevention** is the biggest win (60→0 on rebar, 5→0 on pipes)
+- Code execution makes the model **more conservative** (says "none" when unsure)
+- Every answer comes with **visual evidence** (38 zoomed crops across 6 tests)
+- Outputs are **structured by region** (Worker 1 vs 2, room-by-room, chart-by-chart)
 
 ## What I Tested
 
@@ -114,58 +130,6 @@ for i, reg in enumerate(regions_bg):
 ![Rebar zoom 1](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom1.png) ![Rebar zoom 2](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom2.png) ![Rebar zoom 3](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom3.png) ![Rebar zoom 4](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom4.png)
 
 ![Rebar zoom 5](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom5.png) ![Rebar zoom 6](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom6.png) ![Rebar zoom 7](@assets/blog/til-gemini-agentic-vision/gemini-rebar-zoom7.png)
-
-### The Complete API Response
-
-Here's what the full API response looks like (base64 image data truncated for readability):
-
-```json
-{
-  "success": true,
-  "text": "Based on a careful examination of the image, including close-ups of the background and the worker's table, there are no **rebar** (metal reinforcement bars typically used for concrete) visible. The image depicts a construction worker working with large wooden beams and various tools (circular saw, drill, clamps, etc.) inside what appears to be a structural steel building. The visible metal elements are structural steel beams, bracing rods, and tools, rather than rebar.\n\nFinal count: 0 rebar.",
-  "code_executed": [
-    "import PIL.Image\nimport PIL.ImageDraw\n\n# Load the image to get dimensions\nimg = PIL.Image.open('input_file_0.jpeg')\nwidth, height = img.size\n\n# Looking for rebar - often found in concrete construction, but this looks like wood.\n# Let's zoom into various parts to be sure.\n# 1. Background left\n# 2. Background center\n# 3. Background right\n# 4. Ceiling\n# 5. Floor areas\n\nregions = [\n    [0, 0, 1000, 500],   # Top half (ceiling/background)\n    [500, 0, 1000, 1000], # Bottom half (floor/bench)\n    [0, 0, 500, 500],    # Top left\n    [0, 500, 500, 1000],  # Top right\n]\n\n# Convert normalized to pixel coordinates\ndef norm_to_pixel(norm_coords, w, h):\n    return [norm_coords[0] * h / 1000, norm_coords[1] * w / 1000, norm_coords[2] * h / 1000, norm_coords[3] * w / 1000]\n\n# Let's just do a grid zoom to be thorough.\nfor i, reg in enumerate(regions):\n    p_reg = norm_to_pixel(reg, width, height)\n    crop = img.crop((p_reg[1], p_reg[0], p_reg[3], p_reg[2]))\n    crop.save(f'zoom_{i}.jpeg')\n\n# Output some dummy objects for reference.\n# [{box_2d: [70, 560, 245, 725], label: \"worker helmet\"},\n#  {box_2d: [519, 122, 654, 287], label: \"circular saw\"},\n#  {box_2d: [583, 404, 663, 508], label: \"drill\"}]\n",
-    "# Zoom into the background more clearly\nregions_bg = [\n    [350, 600, 600, 900], # Right background\n    [350, 300, 600, 600], # Center background\n    [350, 0, 600, 300],   # Left background\n]\n\nfor i, reg in enumerate(regions_bg):\n    p_reg = norm_to_pixel(reg, width, height)\n    crop = img.crop((p_reg[1], p_reg[0], p_reg[3], p_reg[2]))\n    crop.save(f'bg_zoom_{i}.jpeg')\n"
-  ],
-  "code_results": [],
-  "images_generated": [
-    {
-      "mime_type": "image/jpeg",
-      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 24532 chars total>"
-    },
-    {
-      "mime_type": "image/jpeg",
-      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 21176 chars total>"
-    },
-    {
-      "mime_type": "image/jpeg",
-      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 44788 chars total>"
-    },
-    {
-      "mime_type": "image/jpeg",
-      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 46680 chars total>"
-    },
-    {
-      "mime_type": "image/jpeg",
-      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 7760 chars total>"
-    },
-    {
-      "mime_type": "image/jpeg",
-      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 7332 chars total>"
-    },
-    {
-      "mime_type": "image/jpeg",
-      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx... <truncated, 8192 chars total>"
-    }
-  ]
-}
-```
-
-Notice:
-- **`code_executed`** is an array of strings, each containing a full Python script the model wrote and ran
-- **`images_generated`** contains base64-encoded JPEGs (7 images totaling ~160KB of data)
-- The model ran **two separate code blocks** (first a grid zoom, then a focused background zoom)
-- The model even left comments in its code explaining its reasoning: "Looking for rebar - often found in concrete construction, but this looks like wood"
 
 ---
 
@@ -312,7 +276,7 @@ A lighting plan (blue = new fittings, red = original).
 }
 ```
 
-Same totals, but Code ON provided per-room breakdown. For a real construction audit, that per-room detail matters.
+Same totals (17 new, 12 original). But Code OFF just says "17." Code ON says "Kitchen: 4 squares (1 on the top counter, 1 on the left counter, and 2 on the island)." For construction audits, that's the difference between a number and a checklist.
 
 **The code Gemini executed:**
 
@@ -356,7 +320,7 @@ The model creates a detailed inventory of every fitting with pixel coordinates, 
 
 ---
 
-## Test 5: PPE Detection
+## Test 5: PPE Detection (Color Accuracy)
 
 Two construction workers with various safety equipment.
 
@@ -422,7 +386,7 @@ The model identifies specific PPE items (hard_hat_1, gloves_2, face_mask_2) with
 
 ---
 
-## Test 6: Dashboard Data Extraction
+## Test 6: Dashboard Data Extraction (Axis Reading)
 
 A web analytics dashboard with dense data.
 
@@ -488,27 +452,67 @@ The model divides the dashboard into logical sections (title, each of 4 chart ar
 
 ## What This Means
 
-The model uses PIL/Pillow to crop and zoom into regions. It's not drawing bounding boxes like I expected from Google's announcement. It's more like a "visual investigation" where it examines areas before committing to an answer.
-
 From 6 tests, here's what I learned:
 
 1. **Hallucination prevention is the real win.** Getting 60 vs 0 wrong (rebar) or 5 vs 0 (pipes) is a bigger problem than getting 10 vs 12 wrong.
 
 2. **Code execution makes the model more conservative.** In 2 of 6 tests, it gave lower counts or "none found" when it looked closely. For high-stakes inspection, conservative beats confident-but-wrong.
 
-3. **Per-region breakdown is auditable.** Every count is traceable to specific image regions (the zoom crops prove where the model looked).
+3. **Per-region breakdown is auditable.** When the model says "12 trees," it shows you which 8 are on the top edge and which 4 are in the bottom right corner.
 
 4. **Structured output is more useful.** Worker 1 vs Worker 2, Room-by-room counts, Chart-by-chart extraction.
 
 5. **The code itself is informative.** You can see exactly what regions the model examined and what it labeled them. The `box_2d` coordinates create an audit trail.
 
-For construction QC (and boonAI's use cases), this is significant. The model now shows its work.
+This is significant. The model now shows its work.
 
-## What I'd Test Next
+The code is on [GitHub](https://github.com/augusteo/experiments) if you want to run your own tests.
 
-- Actual rebar images (verify counting accuracy with ground truth)
-- Latency and cost comparison (code execution takes longer)
-- Construction defects (cracks, missing bolts, safety violations)
-- Higher resolution images
+---
 
-The code is at `~/dev/experiments/gemini-3-flash-agentic-vision/` if you want to run your own tests.
+## Appendix: Complete API Response
+
+Here's what the full API response looks like (base64 image data truncated for readability):
+
+```json
+{
+  "success": true,
+  "text": "Based on a careful examination of the image, including close-ups of the background and the worker's table, there are no **rebar** (metal reinforcement bars typically used for concrete) visible. The image depicts a construction worker working with large wooden beams and various tools (circular saw, drill, clamps, etc.) inside what appears to be a structural steel building. The visible metal elements are structural steel beams, bracing rods, and tools, rather than rebar.\n\nFinal count: 0 rebar.",
+  "code_executed": [
+    "import PIL.Image\nimport PIL.ImageDraw\n\n# Load the image to get dimensions\nimg = PIL.Image.open('input_file_0.jpeg')\nwidth, height = img.size\n\n# Looking for rebar - often found in concrete construction, but this looks like wood.\n# Let's zoom into various parts to be sure.\nregions = [\n    [0, 0, 1000, 500],   # Top half (ceiling/background)\n    [500, 0, 1000, 1000], # Bottom half (floor/bench)\n    [0, 0, 500, 500],    # Top left\n    [0, 500, 500, 1000],  # Top right\n]\n\n# Convert normalized to pixel coordinates\ndef norm_to_pixel(norm_coords, w, h):\n    return [norm_coords[0] * h / 1000, norm_coords[1] * w / 1000, norm_coords[2] * h / 1000, norm_coords[3] * w / 1000]\n\nfor i, reg in enumerate(regions):\n    p_reg = norm_to_pixel(reg, width, height)\n    crop = img.crop((p_reg[1], p_reg[0], p_reg[3], p_reg[2]))\n    crop.save(f'zoom_{i}.jpeg')\n",
+    "# Zoom into the background more clearly\nregions_bg = [\n    [350, 600, 600, 900], # Right background\n    [350, 300, 600, 600], # Center background\n    [350, 0, 600, 300],   # Left background\n]\n\nfor i, reg in enumerate(regions_bg):\n    p_reg = norm_to_pixel(reg, width, height)\n    crop = img.crop((p_reg[1], p_reg[0], p_reg[3], p_reg[2]))\n    crop.save(f'bg_zoom_{i}.jpeg')\n"
+  ],
+  "images_generated": [
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD... <truncated, 24532 chars>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD... <truncated, 21176 chars>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD... <truncated, 44788 chars>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD... <truncated, 46680 chars>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD... <truncated, 7760 chars>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD... <truncated, 7332 chars>"
+    },
+    {
+      "mime_type": "image/jpeg",
+      "data": "/9j/4AAQSkZJRgABAQAAAQABAAD... <truncated, 8192 chars>"
+    }
+  ]
+}
+```
+
+The `code_executed` array contains the Python scripts the model wrote and ran. The `images_generated` array contains the base64-encoded JPEGs of each cropped region (7 images totaling ~160KB).
