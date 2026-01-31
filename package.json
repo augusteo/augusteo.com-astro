@@ -7,6 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "sync": "bun scripts/sync-content.ts",
+    "sync:force": "bun scripts/sync-content.ts --force",
     "watch:content": "bun scripts/watch.ts",
     "astro": "astro"
   },

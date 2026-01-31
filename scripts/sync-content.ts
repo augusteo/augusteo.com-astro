@@ -5,6 +5,22 @@ import http from "http";
 import matter from "gray-matter";
 import crypto from "crypto";
 import { CONFIG } from "./config.js";
+import {
+  loadCache,
+  saveCache,
+  createEmptyCache,
+  hasSourceChanged,
+  needsDownload,
+  createExternalImageState,
+  findOrphanedSlugs,
+  cleanupOrphanedSlug,
+  getFileMtime,
+  hashContent,
+  type SyncCache,
+} from "./cache.js";
+
+// Parse CLI args
+const forceSync = process.argv.includes("--force");
 
 interface ObsidianFrontmatter {
   // New full schema fields
@@ -35,6 +51,15 @@ interface AstroFrontmatter {
   draft: boolean;
 }
 
+interface ProcessResult {
+  slug: string;
+  localImages: string[];
+  externalImageUrls: string[];
+  downloadedImages: Map<string, { filename: string; path: string }>;
+  contentHash: string;
+  mtime: number;
+}
+
 // Parse Obsidian wikilink images: ![[image-name.jpg]] or ![[image-name.png]]
 const WIKILINK_IMAGE_REGEX = /!\[\[([\w\s\-_.]+\.(jpg|jpeg|png|gif|webp|svg))\]\]/gi;
 
@@ -46,9 +71,6 @@ const MARKDOWN_EXTERNAL_IMAGE_REGEX = /!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
 
 // Parse standard markdown images with local filenames (not URLs, not @assets paths)
 const MARKDOWN_LOCAL_IMAGE_REGEX = /!\[([^\]]*)\]\(([\w\s\-_.]+\.(jpg|jpeg|png|gif|webp|svg))\)/gi;
-
-// Track downloaded images to avoid re-downloading
-const downloadedImages = new Map<string, string>();
 
 /**
  * Generate a filename from URL - uses hash to ensure uniqueness while keeping extension
@@ -163,9 +185,14 @@ function extractExternalUrls(content: string): string[] {
 
 /**
  * Download all external images for a post and return URL -> local filename mapping
+ * Uses cache to skip already downloaded images
  */
-async function downloadExternalImages(urls: string[], slug: string): Promise<Map<string, string>> {
-  const urlToLocal = new Map<string, string>();
+async function downloadExternalImages(
+  urls: string[],
+  slug: string,
+  cache: SyncCache | null
+): Promise<Map<string, { filename: string; path: string }>> {
+  const urlToLocal = new Map<string, { filename: string; path: string }>();
 
   if (urls.length === 0) return urlToLocal;
 
@@ -175,19 +202,21 @@ async function downloadExternalImages(urls: string[], slug: string): Promise<Map
   }
 
   for (const url of urls) {
-    // Check if already downloaded in this session
-    if (downloadedImages.has(url)) {
-      urlToLocal.set(url, downloadedImages.get(url)!);
-      continue;
-    }
-
     const localFilename = generateLocalFilename(url);
     const destPath = path.join(imageDir, localFilename);
 
+    // Check if we can skip download using cache
+    if (!needsDownload(url, slug, CONFIG.imageOutputDir, cache)) {
+      // Use cached filename (might differ from generated one)
+      const cachedFilename = cache!.externalImages[url].localFilename;
+      const cachedPath = path.join(imageDir, cachedFilename);
+      urlToLocal.set(url, { filename: cachedFilename, path: cachedPath });
+      continue;
+    }
+
     const success = await downloadImage(url, destPath);
     if (success) {
-      urlToLocal.set(url, localFilename);
-      downloadedImages.set(url, localFilename);
+      urlToLocal.set(url, { filename: localFilename, path: destPath });
     }
   }
 
@@ -256,7 +285,7 @@ function escapeCurlyBraces(content: string): string {
   return result.join('\n');
 }
 
-function transformContent(content: string, slug: string, urlToLocal: Map<string, string>): string {
+function transformContent(content: string, slug: string, urlToLocal: Map<string, { filename: string; path: string }>): string {
   // Convert wikilink images to standard markdown with alias path to assets folder
   let transformed = content.replace(WIKILINK_IMAGE_REGEX, (_, imageName) => {
     return `![${imageName}](@assets/blog/${slug}/${imageName})`;
@@ -264,10 +293,10 @@ function transformContent(content: string, slug: string, urlToLocal: Map<string,
 
   // Convert wikilink external URLs to local images (if downloaded) or standard markdown
   transformed = transformed.replace(WIKILINK_EXTERNAL_URL_REGEX, (_, url) => {
-    const localFilename = urlToLocal.get(url);
-    if (localFilename) {
-      const altText = localFilename.replace(/[-_]/g, ' ').replace(/\.\w+$/, '').replace(/-[a-f0-9]{8}$/, '');
-      return `![${altText}](@assets/blog/${slug}/${localFilename})`;
+    const local = urlToLocal.get(url);
+    if (local) {
+      const altText = local.filename.replace(/[-_]/g, ' ').replace(/\.\w+$/, '').replace(/-[a-f0-9]{8}$/, '');
+      return `![${altText}](@assets/blog/${slug}/${local.filename})`;
     }
     // Fallback to external URL if download failed
     const urlPath = url.split('/').pop() || 'image';
@@ -277,9 +306,9 @@ function transformContent(content: string, slug: string, urlToLocal: Map<string,
 
   // Convert standard markdown external URLs to local images (if downloaded)
   transformed = transformed.replace(MARKDOWN_EXTERNAL_IMAGE_REGEX, (match, alt, url) => {
-    const localFilename = urlToLocal.get(url);
-    if (localFilename) {
-      return `![${alt || localFilename}](@assets/blog/${slug}/${localFilename})`;
+    const local = urlToLocal.get(url);
+    if (local) {
+      return `![${alt || local.filename}](@assets/blog/${slug}/${local.filename})`;
     }
     // Keep original if download failed
     return match;
@@ -388,9 +417,11 @@ function parseObsidianFile(fileContent: string): { title: string; frontmatter: O
   return { title, frontmatter, content };
 }
 
-async function processPost(filePath: string): Promise<void> {
+async function processPost(filePath: string, cache: SyncCache | null): Promise<ProcessResult> {
   const filename = path.basename(filePath);
   const fileContent = fs.readFileSync(filePath, "utf-8");
+  const contentHash = hashContent(fileContent);
+  const mtime = getFileMtime(filePath);
 
   // Parse the Obsidian file format
   const { title: extractedTitle, frontmatter: fm, content: rawContent } = parseObsidianFile(fileContent);
@@ -406,9 +437,9 @@ async function processPost(filePath: string): Promise<void> {
   // Use frontmatter heroImage or first image from content
   const heroImageFromContent = images[0] || null;
 
-  // Extract and download external images
+  // Extract and download external images (with cache-aware skipping)
   const externalUrls = extractExternalUrls(rawContent);
-  const urlToLocal = await downloadExternalImages(externalUrls, slug);
+  const urlToLocal = await downloadExternalImages(externalUrls, slug, cache);
 
   // Ensure tags exist (use default if none provided)
   const tags = ensureTags(fm.tags);
@@ -499,52 +530,127 @@ ${transformedContent}`;
     ? `${imagesCopied} local, ${downloadedCount} downloaded`
     : `${imagesCopied} images`;
   console.log(`  ✓ ${slug}/ (${imageInfo})`);
+
+  return {
+    slug,
+    localImages: images,
+    externalImageUrls: externalUrls,
+    downloadedImages: urlToLocal,
+    contentHash,
+    mtime,
+  };
 }
 
-function cleanOutputDirs(): void {
-  // Clean content directory
-  if (fs.existsSync(CONFIG.outputDir)) {
-    fs.rmSync(CONFIG.outputDir, { recursive: true });
+/**
+ * Ensure output directories exist (but don't clean them)
+ */
+function ensureOutputDirs(): void {
+  if (!fs.existsSync(CONFIG.outputDir)) {
+    fs.mkdirSync(CONFIG.outputDir, { recursive: true });
   }
-  fs.mkdirSync(CONFIG.outputDir, { recursive: true });
-
-  // Clean assets directory
-  if (fs.existsSync(CONFIG.imageOutputDir)) {
-    fs.rmSync(CONFIG.imageOutputDir, { recursive: true });
+  if (!fs.existsSync(CONFIG.imageOutputDir)) {
+    fs.mkdirSync(CONFIG.imageOutputDir, { recursive: true });
   }
-  fs.mkdirSync(CONFIG.imageOutputDir, { recursive: true });
 }
 
 async function syncContent(): Promise<void> {
-  console.log("\n📝 Syncing content from Obsidian...\n");
+  console.log("\n\ud83d\udcdd Syncing content from Obsidian...\n");
   console.log(`Source: ${CONFIG.obsidianPublished}`);
   console.log(`Output: ${CONFIG.outputDir}\n`);
 
-  // Clean and recreate output directories
-  cleanOutputDirs();
+  // Load cache (or start fresh if --force)
+  let cache: SyncCache | null = null;
+  if (forceSync) {
+    console.log("Force sync requested, ignoring cache...\n");
+  } else {
+    cache = loadCache();
+    if (cache) {
+      console.log(`Using cache from ${cache.lastSync}\n`);
+    } else {
+      console.log("No valid cache found, full sync...\n");
+    }
+  }
+
+  // Ensure output directories exist
+  ensureOutputDirs();
 
   // Get all markdown files
   const files = fs.readdirSync(CONFIG.obsidianPublished).filter((f) => f.endsWith(".md"));
 
-  console.log(`Found ${files.length} posts to process:\n`);
+  // Find and clean up orphaned content (deleted source files)
+  const orphanedSlugs = findOrphanedSlugs(files, cache);
+  if (orphanedSlugs.length > 0) {
+    console.log(`Found ${orphanedSlugs.length} orphaned post(s) to clean up:`);
+    for (const slug of orphanedSlugs) {
+      cleanupOrphanedSlug(slug, CONFIG.outputDir, CONFIG.imageOutputDir);
+    }
+    console.log("");
+  }
+
+  console.log(`Found ${files.length} posts to check:\n`);
+
+  // Create new cache for this sync
+  const newCache = createEmptyCache();
 
   let processed = 0;
+  let skipped = 0;
   let errors = 0;
 
   for (const file of files) {
     const filePath = path.join(CONFIG.obsidianPublished, file);
+
+    // Check if file has changed
+    if (!hasSourceChanged(filePath, file, cache)) {
+      // Carry forward the cached entry
+      newCache.files[file] = cache!.files[file];
+
+      // Also carry forward any external images for this file
+      const cachedState = cache!.files[file];
+      for (const url of cachedState.externalImageUrls) {
+        if (cache!.externalImages[url]) {
+          newCache.externalImages[url] = cache!.externalImages[url];
+        }
+      }
+
+      skipped++;
+      continue;
+    }
+
     try {
-      await processPost(filePath);
+      const result = await processPost(filePath, cache);
       processed++;
+
+      // Create cache entry using hash/mtime from processPost (avoids duplicate file read)
+      newCache.files[file] = {
+        sourceFile: file,
+        sourceHash: result.contentHash,
+        sourceMtime: result.mtime,
+        slug: result.slug,
+        localImages: result.localImages,
+        externalImageUrls: result.externalImageUrls,
+      };
+
+      // Add external image entries to cache
+      for (const [url, local] of result.downloadedImages) {
+        newCache.externalImages[url] = createExternalImageState(
+          url,
+          local.filename,
+          local.path
+        );
+      }
     } catch (err) {
-      console.error(`  ✗ Error processing ${file}:`, err);
+      console.error(`  \u2717 Error processing ${file}:`, err);
       errors++;
     }
   }
 
-  const totalDownloaded = downloadedImages.size;
-  const downloadInfo = totalDownloaded > 0 ? ` (${totalDownloaded} external images downloaded)` : '';
-  console.log(`\n✅ Sync complete: ${processed} posts processed, ${errors} errors${downloadInfo}\n`);
+  // Save cache
+  saveCache(newCache);
+
+  // Summary
+  const totalImages = Object.keys(newCache.externalImages).length;
+  const downloadInfo = totalImages > 0 ? ` (${totalImages} external images cached)` : '';
+  console.log(`\n\u2705 Sync complete: ${processed} processed, ${skipped} skipped, ${errors} errors${downloadInfo}\n`);
 }
 
 // Run sync
