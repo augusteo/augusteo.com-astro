@@ -173,33 +173,36 @@
     margin-bottom: 0;
   }
 
-  /* Code blocks */
+  /* Code blocks - solarized-light provides warm cream background */
   .prose pre {
     margin: 2rem 0;
     padding: 1.5rem;
-    background: #1a1a2e;
-    color: #e0e0e0;
     font-family: var(--font-mono);
     font-size: 0.85rem;
     line-height: 1.6;
     overflow-x: auto;
-    /* Organic corners */
     border-radius: 8px 16px 12px 20px / 20px 12px 16px 8px;
+    box-shadow:
+      0 0 4px oklch(0.7 0.08 60 / 0.25),
+      0 0 16px oklch(0.7 0.08 60 / 0.1);
   }
 
   .prose pre code {
     padding: 0;
     background: transparent;
+    color: inherit;
+    border: none;
   }
 
   /* Inline code styling */
   .prose code:not(pre code) {
     font-family: var(--font-mono);
     font-size: 0.85em;
-    padding: 0.2rem 0.4rem;
-    background: #1a1a2e;
-    color: #e0e0e0;
+    padding: 0.2rem 0.45rem;
+    background: #f4ede4;
+    color: #5d4e37;
     border-radius: 4px;
+    border: 1px solid oklch(0.75 0.05 60 / 0.35);
   }
 
   /* Wide images - break out of content column */
