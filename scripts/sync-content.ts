@@ -22,6 +22,44 @@ import {
 // Parse CLI args
 const forceSync = process.argv.includes("--force");
 
+// SSRF protection constants
+const MAX_REDIRECTS = 5;
+
+/**
+ * Validate URL is safe to fetch (prevent SSRF attacks)
+ */
+function isUrlSafe(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+
+    // Only allow http/https protocols
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return false;
+    }
+
+    const hostname = urlObj.hostname.toLowerCase();
+
+    // Block localhost and private/internal IPs
+    if (
+      hostname === 'localhost' ||
+      hostname.startsWith('127.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('192.168.') ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
+      hostname.startsWith('169.254.') ||
+      hostname === '0.0.0.0' ||
+      hostname === '::1' ||
+      hostname.endsWith('.local')
+    ) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 interface ObsidianFrontmatter {
   // New full schema fields
   title?: string;
@@ -102,7 +140,18 @@ function generateLocalFilename(url: string): string {
 /**
  * Download an image from URL to local path
  */
-async function downloadImage(url: string, destPath: string): Promise<boolean> {
+async function downloadImage(url: string, destPath: string, redirectCount = 0): Promise<boolean> {
+  // SSRF protection: limit redirects and validate URLs
+  if (redirectCount > MAX_REDIRECTS) {
+    console.warn(`    Warning: Too many redirects for ${url}`);
+    return false;
+  }
+
+  if (!isUrlSafe(url)) {
+    console.warn(`    Warning: Blocked unsafe URL: ${url}`);
+    return false;
+  }
+
   return new Promise((resolve) => {
     const protocol = url.startsWith('https') ? https : http;
 
@@ -120,7 +169,7 @@ async function downloadImage(url: string, destPath: string): Promise<boolean> {
           const absoluteRedirect = redirectUrl.startsWith('http')
             ? redirectUrl
             : new URL(redirectUrl, url).toString();
-          downloadImage(absoluteRedirect, destPath).then(resolve);
+          downloadImage(absoluteRedirect, destPath, redirectCount + 1).then(resolve);
           return;
         }
       }
@@ -347,19 +396,29 @@ function ensureTags(tags: string[] | undefined): string[] {
 }
 
 function generateSlug(filename: string, frontmatterSlug?: string): string {
-  if (frontmatterSlug) {
-    return frontmatterSlug;
-  }
-
-  // Generate from filename
-  return filename
-    .replace(/\.md$/, "")
+  // Apply same sanitization to both frontmatter slug and filename-derived slug
+  // to prevent path traversal via malicious slugs like "../../../etc"
+  const raw = frontmatterSlug || filename.replace(/\.md$/, "");
+  return raw
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 }
 
 function copyImage(imageName: string, slug: string): boolean {
+  // Prevent path traversal attacks via malicious image names
+  // Check for path separators and ".." as a path component (not just anywhere in filename)
+  if (
+    imageName.includes('/') ||
+    imageName.includes('\\') ||
+    imageName === '..' ||
+    imageName.startsWith('../') ||
+    imageName.startsWith('..\\')
+  ) {
+    console.warn(`  Warning: Invalid image path rejected: ${imageName}`);
+    return false;
+  }
+
   const sourcePath = path.join(CONFIG.obsidianFiles, imageName);
 
   if (!fs.existsSync(sourcePath)) {
@@ -508,12 +567,13 @@ async function processPost(filePath: string, cache: SyncCache | null): Promise<P
   }
 
   // Build the MDX file content
-  const heroImageLine = astroFm.heroImage ? `heroImage: "${astroFm.heroImage}"\n` : "";
+  // Use JSON.stringify for string values to properly escape quotes, newlines, backslashes
+  const heroImageLine = astroFm.heroImage ? `heroImage: ${JSON.stringify(astroFm.heroImage)}\n` : "";
   const mdxContent = `---
-title: "${astroFm.title.replace(/"/g, '\\"')}"
-description: "${astroFm.description.replace(/"/g, '\\"')}"
+title: ${JSON.stringify(astroFm.title)}
+description: ${JSON.stringify(astroFm.description)}
 pubDate: ${astroFm.pubDate}
-${heroImageLine}heroAlt: "${astroFm.heroAlt.replace(/"/g, '\\"')}"
+${heroImageLine}heroAlt: ${JSON.stringify(astroFm.heroAlt)}
 tags: ${JSON.stringify(astroFm.tags)}
 featured: ${astroFm.featured}
 draft: ${astroFm.draft}
