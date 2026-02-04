@@ -3,7 +3,7 @@ title: "Curiosity Is the Only Skill AI Can't Replace"
 description: "Anthropic's study shows AI coding tools cut learning by 17%, but the real finding is that curiosity determines everything."
 pubDate: 2026-02-03
 heroImage: "@assets/blog/ai-learning-study-curiosity/Gemini_Generated_Image_3xm3p33xm3p33xm3.png"
-heroAlt: "Gemini Generated Image 3xm3p33xm3p33xm3"
+heroAlt: "Abstract illustration of curiosity and learning with AI"
 tags: ["Tech","AI"]
 featured: false
 draft: false
@@ -35,19 +35,21 @@ The high scorers did something different:
 
 One group asked "what should I write?" The other asked "how does this work?"
 
-## The Debugging Gap
+## The Risk and the Opportunity
 
-Here's where it gets concerning:
+The study found the biggest gap was in debugging:
 
 > "The largest gap in scores between the two groups was on debugging questions, suggesting that the ability to understand when code is incorrect and why it fails may be a particular area of concern."
 
-Debugging is the skill you need most when AI makes mistakes. And AI makes mistakes constantly.
+That's the risk. Here's the opportunity.
 
-I run into this every week. I'm on-call at Boon, a company with 40 engineers building construction software. There's no way I understand everything deeply. When a service runs out of memory, I use AI to dig through Render logs, trace the issue to specific code, and figure out the root cause.
+I'm at Boon, building a preconstruction platform with React on Rails. I'd used Rails for small projects, but never at production scale. For the last nine years I'd been doing iOS (CoreData, direct SQL on device). Production Rails is a different beast: Active Record, migrations, the Rails console. All new territory.
 
-Sometimes I find the root cause in ten minutes. Sometimes I spend an hour going back and forth while the AI keeps suggesting things I know aren't true. Eventually I give up and hassle the engineer who actually wrote the code.
+With AI, I learned it in weeks instead of months. By asking it to explain everything.
 
-The difference between those outcomes? How well I understand the system I'm debugging. AI can accelerate my investigation, but it can't replace the mental models I need to evaluate its suggestions.
+When I needed to explore the production database through the Rails console (terrifying for someone who'd spent a decade on mobile), AI generated the commands and told me which ones were safe. I wasn't just executing. I was building a mental model.
+
+The key: I always asked it to verify. "Look this up online and double-check." It often corrected itself. When I wasn't sure, I asked my Rails-expert colleague. AI accelerated my learning, but I stayed curious.
 
 ## Understanding Compounds
 
