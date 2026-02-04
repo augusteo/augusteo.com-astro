@@ -1,0 +1,82 @@
+---
+title: "Curiosity Is the Only Skill AI Can't Replace"
+description: "Anthropic's study shows AI coding tools cut learning by 17%, but the real finding is that curiosity determines everything."
+pubDate: 2026-02-03
+heroImage: "@assets/blog/ai-learning-study-curiosity/Gemini_Generated_Image_3xm3p33xm3p33xm3.png"
+heroAlt: "Gemini Generated Image 3xm3p33xm3p33xm3"
+tags: ["Tech","AI"]
+featured: false
+draft: false
+---
+
+Anthropic just published a study showing their own product makes developers worse. But buried in the data is the opposite finding: developers who asked "how does this work?" learned just as well as those who coded by hand.
+
+The difference wasn't AI. It was curiosity.
+
+## The Study
+
+52 professional engineers learned a new Python library called Trio. Half used Claude, half coded by hand. Then they took a quiz.
+
+> "On a quiz that covered concepts they'd used just a few minutes before, participants in the AI group scored 17% lower than those who coded by hand, or the equivalent of nearly two letter grades."
+
+That's the headline number. But the averages hide the real story.
+
+## What Actually Mattered
+
+The researchers identified six distinct patterns of AI usage. Three killed learning. Three preserved it.
+
+> "The low-scoring patterns generally involved a heavy reliance on AI, either through code generation or debugging... They showed less independent thinking and more cognitive offloading."
+
+The low scorers used AI like a slot machine. Type in a problem, get code out, move on. When it didn't work, they'd paste the error back in and wait for the fix. No understanding required.
+
+The high scorers did something different:
+
+> "The participants who showed stronger mastery used AI assistance not just to produce code but to build comprehension while doing so—whether by asking follow-up questions, requesting explanations, or posing conceptual questions."
+
+One group asked "what should I write?" The other asked "how does this work?"
+
+## The Debugging Gap
+
+Here's where it gets concerning:
+
+> "The largest gap in scores between the two groups was on debugging questions, suggesting that the ability to understand when code is incorrect and why it fails may be a particular area of concern."
+
+Debugging is the skill you need most when AI makes mistakes. And AI makes mistakes constantly.
+
+I run into this every week. I'm on-call at Boon, a company with 40 engineers building construction software. There's no way I understand everything deeply. When a service runs out of memory, I use AI to dig through Render logs, trace the issue to specific code, and figure out the root cause.
+
+Sometimes I find the root cause in ten minutes. Sometimes I spend an hour going back and forth while the AI keeps suggesting things I know aren't true. Eventually I give up and hassle the engineer who actually wrote the code.
+
+The difference between those outcomes? How well I understand the system I'm debugging. AI can accelerate my investigation, but it can't replace the mental models I need to evaluate its suggestions.
+
+## Understanding Compounds
+
+Every time you ask "why does this work this way?" you're building something AI can't give you directly.
+
+Architecture knowledge is just accumulated understanding of tradeoffs. Debugging skill is pattern recognition from past failures. Senior engineers use AI as a junior dev to supervise (they already have the instincts to know when the output is wrong).
+
+You can't shortcut this. But you can accelerate it (if you stay curious).
+
+After AI implements something for me, I ask it to explain what it just did. I ask it to write an informative PR message. I go back and forth until I understand. AI will never get bored with your questions. That's its superpower (if you use it).
+
+## The Junior Developer Problem
+
+> "Junior developers may rely on AI to complete tasks as fast as possible at the cost of skill development—and notably the ability to debug issues when something goes wrong."
+
+If AI stunts skill formation, and juniors are the pipeline to seniors, we have a problem. Some companies now run "AI-free learning sessions" for new hires.
+
+But I don't think the solution is restricting AI. The solution is training people HOW to use it.
+
+The habit that matters: stay curious and take ownership. AI is a tool. Ask your seniors how they use it. Keep up with how it's evolving (I've gone from Copilot to Claude Code to MCP servers to custom skills in two years). Try new things. See what works. Share what you learn.
+
+Every company needs someone to experiment so they can share their learning with everyone else. Be that person.
+
+## What This Means
+
+Anthropic published research showing their own product has downsides.
+
+But the deeper lesson: AI is a learning accelerator or a learning replacement, depending on how you use it. The study participants who stayed curious scored just as well as those who coded by hand. The ones who delegated everything learned nothing.
+
+Understanding compounds. The future belongs to the curious.
+
+(via [Anthropic Research](https://www.anthropic.com/research/AI-assistance-coding-skills))
