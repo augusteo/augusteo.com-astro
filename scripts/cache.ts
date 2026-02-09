@@ -265,7 +265,8 @@ export function findOrphanedSlugs(
 export function cleanupOrphanedSlug(
   slug: string,
   outputDir: string,
-  imageOutputDir: string
+  imageOutputDir: string,
+  publicImageDir?: string
 ): void {
   const contentDir = path.join(outputDir, slug);
   const assetDir = path.join(imageOutputDir, slug);
@@ -278,5 +279,12 @@ export function cleanupOrphanedSlug(
   if (fs.existsSync(assetDir)) {
     fs.rmSync(assetDir, { recursive: true });
     console.log(`  🗑️  Removed orphaned assets: ${slug}/`);
+  }
+
+  if (publicImageDir) {
+    const publicDir = path.join(publicImageDir, slug);
+    if (fs.existsSync(publicDir)) {
+      fs.rmSync(publicDir, { recursive: true });
+    }
   }
 }

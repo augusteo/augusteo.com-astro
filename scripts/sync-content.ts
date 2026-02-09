@@ -250,6 +250,12 @@ async function downloadExternalImages(
     fs.mkdirSync(imageDir, { recursive: true });
   }
 
+  // Also ensure public directory exists for RSS feed URLs
+  const publicDir = path.join(CONFIG.publicImageDir, slug);
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
   for (const url of urls) {
     const localFilename = generateLocalFilename(url);
     const destPath = path.join(imageDir, localFilename);
@@ -260,12 +266,19 @@ async function downloadExternalImages(
       const cachedFilename = cache!.externalImages[url].localFilename;
       const cachedPath = path.join(imageDir, cachedFilename);
       urlToLocal.set(url, { filename: cachedFilename, path: cachedPath });
+      // Ensure public copy exists
+      const publicPath = path.join(publicDir, cachedFilename);
+      if (!fs.existsSync(publicPath) && fs.existsSync(cachedPath)) {
+        fs.copyFileSync(cachedPath, publicPath);
+      }
       continue;
     }
 
     const success = await downloadImage(url, destPath);
     if (success) {
       urlToLocal.set(url, { filename: localFilename, path: destPath });
+      // Also copy to public dir for RSS feed
+      fs.copyFileSync(destPath, path.join(publicDir, localFilename));
     }
   }
 
@@ -426,7 +439,7 @@ function copyImage(imageName: string, slug: string): boolean {
     return false;
   }
 
-  // Copy to src/assets/blog/[slug]/
+  // Copy to src/assets/blog/[slug]/ (for Astro image optimization)
   const imageDir = path.join(CONFIG.imageOutputDir, slug);
   if (!fs.existsSync(imageDir)) {
     fs.mkdirSync(imageDir, { recursive: true });
@@ -434,6 +447,14 @@ function copyImage(imageName: string, slug: string): boolean {
 
   const destPath = path.join(imageDir, imageName);
   fs.copyFileSync(sourcePath, destPath);
+
+  // Also copy to public/assets/blog/[slug]/ (for RSS feed absolute URLs)
+  const publicDir = path.join(CONFIG.publicImageDir, slug);
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+  fs.copyFileSync(sourcePath, path.join(publicDir, imageName));
+
   return true;
 }
 
@@ -611,6 +632,9 @@ function ensureOutputDirs(): void {
   if (!fs.existsSync(CONFIG.imageOutputDir)) {
     fs.mkdirSync(CONFIG.imageOutputDir, { recursive: true });
   }
+  if (!fs.existsSync(CONFIG.publicImageDir)) {
+    fs.mkdirSync(CONFIG.publicImageDir, { recursive: true });
+  }
 }
 
 async function syncContent(): Promise<void> {
@@ -642,7 +666,7 @@ async function syncContent(): Promise<void> {
   if (orphanedSlugs.length > 0) {
     console.log(`Found ${orphanedSlugs.length} orphaned post(s) to clean up:`);
     for (const slug of orphanedSlugs) {
-      cleanupOrphanedSlug(slug, CONFIG.outputDir, CONFIG.imageOutputDir);
+      cleanupOrphanedSlug(slug, CONFIG.outputDir, CONFIG.imageOutputDir, CONFIG.publicImageDir);
     }
     console.log("");
   }

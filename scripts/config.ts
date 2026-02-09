@@ -10,6 +10,7 @@ export const CONFIG = {
   // Output paths
   outputDir: path.resolve("./src/content/blog"),
   imageOutputDir: path.resolve("./src/assets/blog"),
+  publicImageDir: path.resolve("./public/assets/blog"),
 
   // Default tag when none provided
   defaultTag: "Tech",

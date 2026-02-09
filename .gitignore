@@ -26,3 +26,6 @@ pnpm-debug.log*
 
 # sync cache
 .sync-cache.json
+
+# generated public images for RSS feed
+public/assets/blog/
