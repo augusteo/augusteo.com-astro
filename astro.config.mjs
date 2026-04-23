@@ -12,7 +12,7 @@ export default defineConfig({
     defaultStrategy: "hover",
   },
   image: {
-    experimentalLayout: "responsive",
+    layout: "constrained",
   },
   integrations: [mdx(), sitemap()],
   vite: {

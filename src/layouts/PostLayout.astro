@@ -5,7 +5,7 @@ import Footer from "../components/Footer.astro";
 import ImageLightbox from "../components/ImageLightbox.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
 import { Image } from "astro:assets";
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 import type { ImageMetadata } from "astro";
 import "../styles/global.css";
 
@@ -33,7 +33,7 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} image={heroImage?.src || firstContentImage} />
-    <ViewTransitions />
+    <ClientRouter />
   </head>
   <body>
     <!-- SVG Filters for watercolor effects on images -->
