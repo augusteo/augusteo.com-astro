@@ -346,7 +346,7 @@ Targets: 18 figures. ~83% interactive (15 interactive-canvas, 1 plot, 3 static-s
 
 ## Resume here
 
-Last touched: 2026-04-25 (Batch 4 landed: Fig 7 + Fig 9).
+Last touched: 2026-04-25 (Batch 5 landed: Fig 10 + Fig 11).
 
 ### Phase status
 
@@ -356,7 +356,7 @@ Last touched: 2026-04-25 (Batch 4 landed: Fig 7 + Fig 9).
 | 2. Deep research | done | this file's `## Research notes`, plus `notes/multi-gpu-training-reference.py` |
 | 3. Outline + figure list | done | this file's `## Outline` |
 | 4. Draft prose | done | `src/content/blog/multi-gpu-training/index.mdx` (~7,800 words, 15 sections + references, voice-clean) |
-| 5. Implement figures | in progress: 11 of 18 done | see below |
+| 5. Implement figures | in progress: 13 of 18 done | see below |
 | 6. Wire up + publish | pending | hero image, flip `draft: false`, dev verification |
 
 ### Phase 5 figure progress
@@ -372,8 +372,8 @@ Last touched: 2026-04-25 (Batch 4 landed: Fig 7 + Fig 9).
 | 7 | TpMatmul | interactive-canvas | done (commit 05c4b88) |
 | 8 | FgOperators | static-svg | done (commit 50adcc5) |
 | 9 | TpSp | interactive-canvas | done (commit d76497f) |
-| 10 | PipelineSchedule | interactive-canvas | TODO |
-| 11 | DualPipe | interactive-canvas | TODO |
+| 10 | PipelineSchedule | interactive-canvas | done (commit fba7a8e) |
+| 11 | DualPipe | interactive-canvas | done (commit b689fdd) |
 | 12 | MoeRouting | interactive-canvas (drag) | TODO |
 | 13 | MoeLoad | interactive-canvas | TODO |
 | 14 | RingAttention | interactive-canvas | TODO |
@@ -386,9 +386,8 @@ Last touched: 2026-04-25 (Batch 4 landed: Fig 7 + Fig 9).
 
 Recommended order on resumption (low complexity → high):
 
-1. **Batch 5 (pipeline gantts):** Fig 10 (pipeline schedule, GPipe vs 1F1B vs Interleaved) + Fig 11 (DualPipe). Both Gantt-shaped, related to Fig 2 in style.
-2. **Batch 6 (MoE/ring):** Fig 12 (MoE routing, drag) + Fig 13 (MoE load) + Fig 14 (ring attention).
-3. **Batch 7 (climax):** Fig 17 (5D mesh, drag) + Fig 18 (decision calculator).
+1. **Batch 6 (MoE/ring):** Fig 12 (MoE routing, drag) + Fig 13 (MoE load) + Fig 14 (ring attention). Three figures keyed off §11 + §12.
+2. **Batch 7 (climax):** Fig 17 (5D mesh, drag) + Fig 18 (decision calculator).
 
 ### How to resume from a fresh context
 
