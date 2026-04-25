@@ -10,6 +10,7 @@ essay: true
 ---
 
 import Figure from "@components/figure/Figure.svelte";
+import Fp8LossCurve from "@components/figures/multi-gpu-training/Fp8LossCurve.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -536,7 +537,9 @@ The second is *what stays out of FP8*. The three GEMMs in the linear layer (forw
 
 The third is *high-precision accumulation*. Hopper's FP8 tensor cores accumulate FP8 × FP8 into an internal format that retains around 14 bits of precision, which DeepSeek measured as not enough for stable training. Their fix: every 128 K-axis steps inside a GEMM, the partial sums are flushed from the tensor core's accumulator to CUDA cores and re-accumulated in FP32. The kernel adds the flush in software. Total FP8 GEMM throughput is preserved. Numerical precision is recovered.
 
-{/* TODO: <Fig16Fp8LossCurve /> plot, two curves (FP8 vs BF16), training-loss y-axis, log-step x-axis, gap annotated */}
+<Figure caption="FP8 vs BF16 across a DeepSeek-V3-style 14.8T-token run. The two loss curves overlap so tightly the dashed FP8 line is hard to find on the linear axis. The bottom panel is the relative error between them, plotted against a 0.25% bound. The gap drifts but never crosses." figNum={16}>
+<Fp8LossCurve client:visible />
+</Figure>
 
 The result: a relative loss-error vs the BF16 baseline that "remains consistently below 0.25%" across the entire 14.8T-token DeepSeek-V3 run. No catastrophic divergence. No rollbacks. No irrecoverable loss spikes for the whole training run.
 
