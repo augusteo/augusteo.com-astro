@@ -1,0 +1,825 @@
+---
+title: "The Unified Vision Stack"
+description: "An end-to-end, intuition-first explanation of how modern computer vision works, and why three papers between late 2024 and early 2026 quietly changed the standard stack."
+pubDate: 2026-04-24
+heroAlt: ""
+tags: ["AI", "ML"]
+featured: false
+draft: false
+---
+
+*An end-to-end, intuition-first explanation of how modern computer vision works, and why three papers published between late 2024 and early 2026 quietly changed the standard stack. For engineers new to the field. About a 45-minute read.*
+
+## 1. What a vision model actually does
+
+Before anything else, we have to agree on what a computer vision model is supposed to produce. If you've used ML libraries you've probably called a function like `model.predict(image)` and gotten back a label. But the label is not really what the model makes. The label is what a tiny head stapled onto the model makes, using what the model actually produces: a pile of numbers.
+
+That pile of numbers is called an *embedding*, or a *feature*, or a *representation* (the terms are used interchangeably). An image comes in. A vector comes out. The vector is a compact description of what's in the image, expressed in a language the model invented for itself during training.
+
+Everything downstream of a vision model is a function from this vector to something useful. Classification is a small function that maps the vector to a list of probabilities. Semantic segmentation is a larger function that maps it to a per-pixel label. Image retrieval uses the vector directly. Find other vectors close to this one, and you've found similar images. Depth estimation, object detection, video tracking, visual question answering: all of them are small heads attached to a big backbone. The backbone is where the work lives.
+
+So when we talk about vision foundation models, we're talking about one specific thing: the function that turns a raw image into a vector. The question that the entire field is really asking is: *what makes one vector better than another?*
+
+> A useful analogy for engineers: the vision backbone is like a compiler's intermediate representation. The IR is not what you care about directly, but every single optimization pass and every single backend target uses it. Get the IR right and every downstream pass gets easier. Get it wrong and you pay for it forever.
+
+## 2. Two kinds of features, and why it matters
+
+Here's where we need to make a distinction that will shape the rest of this piece. A vision model produces two different kinds of features, and they have very different jobs.
+
+The first is a *global feature*. It's a single vector that describes the whole image. If the image is a golden retriever running on a beach, the global feature is something like "a vector that means beach-with-dog." You can compare it to other global features to find similar images. You can run a linear classifier on it to ask "is there a dog in this picture?" It is a summary.
+
+The second is a set of *dense features*: one vector per region of the image. If you imagine the image cut into a grid of small patches, each patch gets its own vector. The dense features are a map. Patches of fur get one kind of vector, patches of sky get another, patches of sand get a third. The spatial arrangement is preserved: the vector in the top-right of the feature map corresponds to what was in the top-right of the image.
+
+<figure>
+<svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<rect x="30" y="40" width="180" height="180" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="30" y="40" width="180" height="70" fill="#93C5FD" opacity=".7"/>
+<rect x="30" y="110" width="180" height="50" fill="#D1AE7A" opacity=".8"/>
+<rect x="30" y="160" width="180" height="60" fill="#059669" opacity=".6"/>
+<circle cx="155" cy="75" r="12" fill="#FEF3C7"/>
+<text x="120" y="240" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#6B6258">input image</text>
+<line x1="225" y1="130" x2="265" y2="130" stroke="#6B6258" stroke-width="1.5" marker-end="url(#a1)"/>
+<defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="395" y="55" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">GLOBAL FEATURE</text>
+<rect x="280" y="65" width="260" height="28" fill="none" stroke="#2563EB"/>
+<g font-family="JetBrains Mono" font-size="11" fill="#2563EB"><text x="290" y="84">0.7</text><text x="315" y="84">-0.2</text><text x="345" y="84">0.1</text><text x="368" y="84">0.5</text><text x="393" y="84">0.0</text><text x="418" y="84">-0.4</text><text x="450" y="84">0.8</text><text x="478" y="84">...</text><text x="505" y="84">0.3</text></g>
+<text x="395" y="115" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258" font-style="italic">one vector. says "beach with dog."</text>
+<text x="395" y="150" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">DENSE FEATURES</text>
+<g transform="translate(280,160)">
+<rect x="0" y="0" width="38" height="20" fill="#93C5FD"/><rect x="40" y="0" width="38" height="20" fill="#93C5FD"/><rect x="80" y="0" width="38" height="20" fill="#93C5FD"/><rect x="120" y="0" width="38" height="20" fill="#FEF3C7"/>
+<rect x="0" y="22" width="38" height="20" fill="#D1AE7A"/><rect x="40" y="22" width="38" height="20" fill="#D1AE7A"/><rect x="80" y="22" width="38" height="20" fill="#92400E"/><rect x="120" y="22" width="38" height="20" fill="#D1AE7A"/>
+<rect x="0" y="44" width="38" height="20" fill="#059669"/><rect x="40" y="44" width="38" height="20" fill="#059669"/><rect x="80" y="44" width="38" height="20" fill="#059669"/><rect x="120" y="44" width="38" height="20" fill="#059669"/>
+<g fill="none" stroke="#F4EEE3"><rect x="0" y="0" width="38" height="20"/><rect x="40" y="0" width="38" height="20"/><rect x="80" y="0" width="38" height="20"/><rect x="120" y="0" width="38" height="20"/><rect x="0" y="22" width="38" height="20"/><rect x="40" y="22" width="38" height="20"/><rect x="80" y="22" width="38" height="20"/><rect x="120" y="22" width="38" height="20"/><rect x="0" y="44" width="38" height="20"/><rect x="40" y="44" width="38" height="20"/><rect x="80" y="44" width="38" height="20"/><rect x="120" y="44" width="38" height="20"/></g>
+</g>
+<text x="395" y="245" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258" font-style="italic">a grid of vectors. says "sky here, dog there, sand below."</text>
+</svg>
+<figcaption><strong>Fig 1.</strong> The same image produces two kinds of output. A single global vector is enough to classify the whole image. A grid of dense vectors is required to tell one region from another.</figcaption>
+</figure>
+
+Here's why the distinction matters enormously. For a long time, the dominant vision model in ML was OpenAI's CLIP, trained on hundreds of millions of image-caption pairs, designed to produce one clean global feature per image. CLIP is great at classification, retrieval, and zero-shot labeling. For dense tasks (segmentation, depth, anything pixel-precise) CLIP features are mush. They were never optimized for spatial detail, so they don't have it.
+
+If you want a single vision backbone that can do everything (classify, segment, track, measure depth, correspond points between frames), you need both kinds of features to be good. Global features that summarize well. Dense features that preserve local geometry. Seems like an obvious thing to want. Turns out, until very recently, nobody knew how to train a single network to produce both at scale.
+
+## 3. How a Vision Transformer sees
+
+Modern vision is dominated by a single architecture family: the *Vision Transformer*, or ViT. It's worth spending a paragraph on how one works, because the rest of the story depends on it.
+
+A ViT takes an image (say a 224×224 RGB picture) and chops it into a grid of non-overlapping patches, typically 16×16 pixels each. That's 14×14 = 196 patches. Each patch is flattened into a vector of pixel values and linearly projected to a fixed-width embedding, say 1024 dimensions. A special "classification token" (an extra learned vector) is prepended to the sequence. So the input to the transformer is a sequence of 197 vectors.
+
+Then: standard transformer layers. Multi-head self-attention followed by feed-forward networks, repeated for dozens of layers. The attention mechanism lets each patch look at every other patch, so by the time we reach the top of the stack, every patch's vector has been shaped by information from every other patch.
+
+```python
+# What a ViT forward pass looks like, roughly
+def vit(image):
+    patches = chop_into_16x16(image)           # 196 patches of 256 pixels
+    tokens  = linear_project(patches)          # 196 vectors of dim 1024
+    tokens  = prepend(CLS_TOKEN, tokens)       # now 197 vectors
+    tokens  = add_positional_encoding(tokens)
+    for layer in transformer_layers:
+        tokens = layer(tokens)                 # each token attends to all others
+    global_feature = tokens[0]                 # the CLS token
+    dense_features = tokens[1:]                # the 196 patch tokens
+    return global_feature, dense_features
+```
+
+At the end of the stack, the vector at position 0 (the CLS token) is your global feature. The vectors at positions 1 through 196 are your dense features, each one representing what's at that patch's location in the image. The attention mechanism has already mixed information between patches, but each final token is still positionally anchored to its input patch.
+
+This is nice, clean, general. A single architecture that naturally produces both global and dense features. You can scale it by making the tokens wider, the layers deeper, or the patches smaller. The scaling behavior is smooth and well-understood from the NLP side.
+
+And yet.
+
+## 4. The paradox: scaling made it *worse*
+
+If you take a ViT and train it on enough data for long enough, something strange happens. The global features keep getting better. Classification accuracy on ImageNet climbs monotonically, breaking past 85%, past 88%, past 90%. The model is clearly learning more and more about images.
+
+The dense features, meanwhile, peak early and then *get worse*.
+
+This isn't a subtle effect. Researchers have measured it carefully: on standard dense-feature benchmarks like ADE20k semantic segmentation and Pascal VOC, the quality of a large ViT's dense features rises during the first few hundred thousand training iterations, peaks, and then degrades steadily until the features become nearly unusable for pixel-level tasks. The phenomenon is called *dense feature collapse*, and it only really shows up at scale. Smaller models (around ViT-Large, roughly 300M params and below) don't suffer from it much, because they don't have the capacity to aggressively specialize toward any one objective and just produce mediocre-but-balanced representations. Past that scale, the model has the capacity to aggressively optimize the loudest signal in the loss function, which, for self-supervised training, is the global clustering objective. The fine-grained per-patch distinctions that dense tasks depend on get sacrificed to make the global summary cleaner.
+
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<line x1="60" y1="260" x2="620" y2="260" stroke="#8F8578"/>
+<line x1="60" y1="260" x2="60" y2="40" stroke="#8F8578"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+<text x="60" y="278">0</text><text x="172" y="278">200k</text><text x="284" y="278">400k</text><text x="396" y="278">600k</text><text x="508" y="278">800k</text><text x="620" y="278">1M</text><text x="340" y="300" font-size="11">training iterations</text>
+</g>
+<g stroke="#C9BEAA" stroke-width=".5" stroke-dasharray="2,3"><line x1="60" y1="100" x2="620" y2="100"/><line x1="60" y1="160" x2="620" y2="160"/><line x1="60" y1="220" x2="620" y2="220"/></g>
+<path d="M60,240 Q120,160 172,105 T284,75 T396,62 T508,58 T620,56" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+<path d="M60,240 Q100,150 160,120 Q220,105 260,125 Q320,180 390,220 Q460,240 540,250 Q580,252 620,252" fill="none" stroke="#B91C1C" stroke-width="2.5"/>
+<g font-family="serif" font-size="12" font-style="italic">
+<text x="420" y="50" fill="#2563EB">global accuracy (ImageNet)</text>
+<line x1="398" y1="58" x2="435" y2="47" stroke="#2563EB" stroke-width=".8"/>
+<text x="330" y="230" fill="#B91C1C">dense precision (ADE20k mIoU)</text>
+<line x1="325" y1="226" x2="310" y2="215" stroke="#B91C1C" stroke-width=".8"/>
+</g>
+<g font-family="serif" font-size="12" fill="#6B6258">
+<text x="150" y="85" text-anchor="middle">rises and keeps rising</text>
+<text x="500" y="200" text-anchor="middle">rises, peaks, collapses</text>
+</g>
+</svg>
+<figcaption><strong>Fig 2.</strong> The two curves that define the problem. Global classification accuracy rises steadily through a million training iterations. Dense feature quality peaks around iteration 200,000 and then degrades for the rest of training. This is the failure mode every modern paper is ultimately trying to repair.</figcaption>
+</figure>
+
+Why does this happen? The intuition, once you see it, is hard to unsee.
+
+The self-supervised training objective is fundamentally a *clustering* objective. It asks: "given two views of the same image, make their global summaries land in the same place in embedding space." In other words, it rewards the model for saying that two patches (a patch of fur from view A and a patch of fur from view B) describe the same thing.
+
+But "describe the same thing" is a slippery requirement. The easiest way to satisfy it is to make all patches of anything-dog-related look similar in feature space. Fur patches, eye patches, ear patches, paw patches: push them all toward a shared "dog" region of the feature space. That's great for classification, because now a simple average of the patch features is a clean signal for the dog concept. But it's disastrous for segmentation, because now the model has no way to tell a fur pixel from an eye pixel. They're in the same neighborhood of feature space.
+
+The longer you train, the more the global objective wins. Patches get pulled toward semantic centers. Local distinctions dissolve. The model becomes a better classifier and a worse mapmaker, and there's no obvious way to stop the dissolution without also stopping the improvement.
+
+> *The same loss that teaches the model to see teaches it to stop looking.*
+
+This is the paradox that every paper we're going to discuss is ultimately responding to. The story of modern vision foundation models is the story of a series of increasingly clever ways to preserve local detail while still letting global understanding improve. Three in particular (DINOv3, C-RADIOv4, and FeatSharp) form a coherent stack that now dominates the state of the art.
+
+We'll take them one at a time.
+
+## Act 1 — The Lens
+
+*DINOv3, self-supervised learning at scale, and the trick that saved dense features.*
+
+## 5. Meet DINOv3
+
+DINOv3 is Meta's self-supervised vision transformer, released in August 2025. It is, at the time of writing, the strongest general-purpose vision backbone in the world. It comes in sizes from 21 million parameters (deployable on a laptop) up to 6.7 billion parameters (the research flagship). It was trained on 1.7 billion images without a single human-provided label.
+
+Three things make DINOv3 interesting. First, it took self-supervised learning to a scale nobody thought it could reach: 12× more data and roughly 6× more parameters than its predecessor DINOv2. Second, it produced dense features so good that a frozen DINOv3 backbone outperforms specialized networks on tasks like satellite canopy-height estimation and medical pathology, without any fine-tuning. Third, it solved dense feature collapse (the paradox we just described) with a clean technique called *Gram anchoring*.
+
+Gram anchoring is the real contribution. Everything else (the scale, the data curation, the architecture tweaks) is table stakes for a 2025 foundation model. Gram anchoring is the idea that will still be influential in five years. Before we can appreciate it, though, we need to understand two pieces of machinery: self-supervised learning, and the Gram matrix itself.
+
+## 6. Self-supervision, from first principles
+
+If you're coming from supervised learning, the obvious question is: how do you train a model without labels?
+
+The trick is to invent your own labels by exploiting the structure of the data. In images, a lot of structure is available for free. Two crops of the same image should "mean" the same thing. A masked-out patch of an image should be predictable from the patches around it. A rotated image is still the same image. These are all free sources of supervision. They require no human annotation, just a clever way of asking the model a question whose answer can be checked automatically.
+
+The DINO family (DINO, DINOv2, and now DINOv3) uses a specific technique called *self-distillation*. Here's how it works.
+
+You have two copies of the network: a *student* (which you actively train) and a *teacher* (which is updated as a slow-moving average of the student's weights, an exponential moving average, or EMA). Both networks are the same architecture. The teacher is always a slightly stale version of the student.
+
+On each training step, you take a single image and produce two different "views" of it: two random crops, different augmentations, different scales. The student sees one view. The teacher sees the other. Both produce a feature vector. You compute a loss that says: "student, your feature should look like the teacher's feature." Then you backprop through the student, and the teacher updates by sliding toward the student's new weights.
+
+<figure>
+<svg viewBox="0 0 680 240" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<rect x="20" y="90" width="80" height="80" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="20" y="90" width="80" height="30" fill="#93C5FD" opacity=".7"/>
+<rect x="20" y="130" width="80" height="20" fill="#D1AE7A" opacity=".8"/>
+<rect x="20" y="150" width="80" height="20" fill="#059669" opacity=".6"/>
+<text x="60" y="190" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#6B6258">source</text>
+<rect x="140" y="50" width="65" height="65" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="140" y="50" width="65" height="25" fill="#93C5FD" opacity=".7"/>
+<rect x="140" y="75" width="65" height="20" fill="#D1AE7A" opacity=".8"/>
+<rect x="140" y="95" width="65" height="20" fill="#059669" opacity=".6"/>
+<text x="172" y="132" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">view A</text>
+<rect x="140" y="150" width="65" height="65" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="140" y="150" width="65" height="20" fill="#93C5FD" opacity=".7"/>
+<rect x="140" y="170" width="65" height="25" fill="#D1AE7A" opacity=".8"/>
+<rect x="140" y="195" width="65" height="20" fill="#059669" opacity=".6"/>
+<text x="172" y="232" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">view B</text>
+<line x1="102" y1="115" x2="138" y2="82" stroke="#8F8578"/>
+<line x1="102" y1="145" x2="138" y2="182" stroke="#8F8578"/>
+<rect x="240" y="45" width="100" height="75" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<text x="290" y="75" text-anchor="middle" font-family="serif" font-size="14" fill="#2563EB" font-weight="600">student</text>
+<text x="290" y="95" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">being trained</text>
+<rect x="240" y="145" width="100" height="75" fill="none" stroke="#B8651A" stroke-width="1.5"/>
+<text x="290" y="175" text-anchor="middle" font-family="serif" font-size="14" fill="#B8651A" font-weight="600">teacher</text>
+<text x="290" y="195" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">EMA of student</text>
+<line x1="205" y1="82" x2="238" y2="82" stroke="#6B6258" marker-end="url(#a2)"/>
+<line x1="205" y1="182" x2="238" y2="182" stroke="#6B6258" marker-end="url(#a2)"/>
+<defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<g font-family="JetBrains Mono" font-size="10">
+<rect x="370" y="70" width="120" height="22" fill="none" stroke="#2563EB"/>
+<text x="430" y="86" text-anchor="middle" fill="#2563EB">[0.7, -0.1, 0.4, ...]</text>
+<rect x="370" y="170" width="120" height="22" fill="none" stroke="#B8651A"/>
+<text x="430" y="186" text-anchor="middle" fill="#B8651A">[0.8, -0.2, 0.3, ...]</text>
+</g>
+<line x1="342" y1="82" x2="368" y2="82" stroke="#6B6258" marker-end="url(#a2)"/>
+<line x1="342" y1="182" x2="368" y2="182" stroke="#6B6258" marker-end="url(#a2)"/>
+<line x1="430" y1="92" x2="430" y2="125" stroke="#6B6258" stroke-dasharray="3,3"/>
+<line x1="430" y1="168" x2="430" y2="135" stroke="#6B6258" stroke-dasharray="3,3"/>
+<rect x="520" y="115" width="120" height="38" fill="#1A1A1A" stroke="#B8651A"/>
+<text x="580" y="132" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#B8651A" letter-spacing="1">LOSS</text>
+<text x="580" y="147" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#F4EEE3">‖ s − t ‖²</text>
+<line x1="495" y1="130" x2="518" y2="130" stroke="#6B6258" marker-end="url(#a2)"/>
+<line x1="430" y1="130" x2="495" y2="130" stroke="#6B6258" stroke-dasharray="3,3"/>
+</svg>
+<figcaption><strong>Fig 3.</strong> Self-distillation: the student and teacher see different views of the same image. The student is trained to match the teacher's output. The teacher is a slow exponential moving average of the student. Neither network ever sees a label, but the pair pressures each other into producing stable, consistent features across augmentations.</figcaption>
+</figure>
+
+This procedure has no obvious reason to work. There's no ground truth. The teacher is just another copy of the student, slightly behind in time. You could imagine the whole thing collapsing into a trivial solution: the student outputs a constant vector, the teacher outputs the same constant vector, everyone's happy and nothing has been learned.
+
+Preventing that collapse is a big part of what the DINO papers are about. The tricks include: careful output-space normalization (via Sinkhorn-Knopp soft clustering), an asymmetric crop scheme (the teacher only sees two large "global" crops of the image; the student sees those global crops plus several smaller "local" crops, and has to match the teacher's global view from every one of its own views, including the tiny zoomed-in ones), and a lot of temperature-scaling gymnastics. What matters for us is that it *does* work, and when it works, it works spectacularly. The features DINO learns are so good that frozen DINO backbones (no task-specific fine-tuning) routinely beat specialized supervised networks on individual tasks.
+
+On top of the self-distillation loss (which enforces global consistency), DINOv3 adds a second loss called *iBOT*, which is a masked patch prediction objective. Some percentage of the patches in the student's input are masked out (replaced with a special learnable "mask" token) and the student is trained to produce features for those masked patches that match what the teacher would have produced if it had seen them. This is the vision analog of BERT's masked-language-modeling objective, and it specifically targets *local* quality: the student has to learn something about each patch that lets it stand in for the real content.
+
+Two losses. One global, one local. Trained together for a million iterations on 1.7 billion images. You might reasonably ask: if iBOT is explicitly a local-quality objective, shouldn't it prevent dense collapse? The short answer is that at multi-billion-parameter scale, the global DINO pressure (which is what the whole network is fundamentally oriented around) simply outweighs iBOT's local pressure. iBOT buys some protection early in training. It's not enough on its own. For the first couple hundred thousand iterations, everything is fine. Somewhere around iteration 200,000, something breaks.
+
+> **An aside on data.** The 1.7-billion-image dataset, called LVD-1689M, was not just scraped off the internet. It was filtered down from a starting pool of about 17 billion web images using an algorithm called hierarchical k-means clustering.
+>
+> The intuition: the internet is skewed. If you train a model on whatever images happen to be popular on social media, it sees millions of selfies and vacation photos but almost no industrial equipment, medical imagery, or aerial photography. The resulting model learns the skew. Hierarchical k-means groups images into categories, then sub-categories, recursively. Training draws samples *uniformly* from the leaf clusters rather than from the raw distribution. Rare concepts get proportional attention. Common concepts don't drown them out.
+>
+> Think of it as stratified sampling on steroids. You get to see every corner of visual reality, not just the bright-lit center.
+
+## 7. A Gram matrix, from scratch
+
+To understand DINOv3's fix for dense feature collapse, we need to introduce one more piece of math: the *Gram matrix*. It sounds technical but the idea is almost absurdly simple.
+
+Start with a set of vectors. For our purposes, imagine the dense features coming out of a ViT: one vector per image patch. Say we have 196 patches, so 196 vectors, each maybe 1024 dimensions wide.
+
+The Gram matrix of those vectors is a square table where entry (i, j) is the dot product between vector i and vector j. If you have 196 vectors, the Gram matrix is 196 by 196. It doesn't care about the raw values of the vectors. It only records how they relate to each other.
+
+Let's do a concrete tiny example. Suppose we have only 4 patches, labeled A, B, C, and D. A and B are both patches of sky. C is a patch of fur. D is a patch of grass. The model produces a 3-dimensional feature vector for each patch:
+
+<figure>
+<svg viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<g transform="translate(30,40)">
+<rect x="0" y="0" width="70" height="70" fill="#93C5FD" stroke="#F4EEE3" stroke-width="2"/>
+<text x="35" y="42" text-anchor="middle" font-family="serif" font-size="28" font-weight="700" fill="#FFFFFF">A</text>
+<rect x="72" y="0" width="70" height="70" fill="#93C5FD" stroke="#F4EEE3" stroke-width="2"/>
+<text x="107" y="42" text-anchor="middle" font-family="serif" font-size="28" font-weight="700" fill="#FFFFFF">B</text>
+<rect x="0" y="72" width="70" height="70" fill="#92400E" stroke="#F4EEE3" stroke-width="2"/>
+<text x="35" y="115" text-anchor="middle" font-family="serif" font-size="28" font-weight="700" fill="#FFFFFF">C</text>
+<rect x="72" y="72" width="70" height="70" fill="#059669" stroke="#F4EEE3" stroke-width="2"/>
+<text x="107" y="115" text-anchor="middle" font-family="serif" font-size="28" font-weight="700" fill="#FFFFFF">D</text>
+<rect x="0" y="0" width="142" height="142" fill="none" stroke="#1A1A1A" stroke-width="1.5"/>
+<text x="71" y="170" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">A, B = sky</text>
+<text x="71" y="186" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">C = fur  ·  D = grass</text>
+</g>
+<g transform="translate(230,40)" font-family="JetBrains Mono" font-size="12">
+<text x="0" y="0" font-size="10" fill="#6B6258" letter-spacing="1">FEATURES</text>
+<text x="0" y="22" fill="#2563EB" font-weight="600">A =</text><text x="30" y="22" fill="#1A1A1A">[0.9, 0.1, 0.2]</text>
+<text x="0" y="42" fill="#2563EB" font-weight="600">B =</text><text x="30" y="42" fill="#1A1A1A">[0.95, 0.05, 0.15]</text>
+<text x="0" y="62" fill="#B8651A" font-weight="600">C =</text><text x="30" y="62" fill="#1A1A1A">[0.1, 0.85, 0.2]</text>
+<text x="0" y="82" fill="#059669" font-weight="600">D =</text><text x="30" y="82" fill="#1A1A1A">[0.3, 0.3, 0.8]</text>
+<text x="0" y="115" font-size="10" fill="#6B6258" letter-spacing="1">DOT PRODUCTS</text>
+<text x="0" y="137" fill="#1A1A1A">A·B = 0.89</text>
+<text x="0" y="155" fill="#1A1A1A">A·C = 0.21</text>
+<text x="0" y="173" fill="#1A1A1A">A·D = 0.46</text>
+<text x="0" y="191" fill="#1A1A1A">B·C = 0.17</text>
+<text x="0" y="209" fill="#1A1A1A">B·D = 0.42</text>
+<text x="0" y="227" fill="#1A1A1A">C·D = 0.44</text>
+</g>
+<g transform="translate(440,40)">
+<text x="90" y="0" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1">GRAM MATRIX</text>
+<text x="55" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#1A1A1A">A</text>
+<text x="90" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#1A1A1A">B</text>
+<text x="125" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#1A1A1A">C</text>
+<text x="160" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#1A1A1A">D</text>
+<g font-family="JetBrains Mono" font-size="11">
+<text x="30" y="48" font-weight="600" fill="#1A1A1A">A</text>
+<rect x="40" y="32" width="30" height="22" fill="#2563EB"/><text x="55" y="48" text-anchor="middle" fill="#FFFFFF">1.0</text>
+<rect x="75" y="32" width="30" height="22" fill="#2563EB" opacity=".85"/><text x="90" y="48" text-anchor="middle" fill="#FFFFFF">0.89</text>
+<rect x="110" y="32" width="30" height="22" fill="#2563EB" opacity=".18"/><text x="125" y="48" text-anchor="middle" fill="#1A1A1A">0.21</text>
+<rect x="145" y="32" width="30" height="22" fill="#2563EB" opacity=".42"/><text x="160" y="48" text-anchor="middle" fill="#1A1A1A">0.46</text>
+<text x="30" y="72" font-weight="600" fill="#1A1A1A">B</text>
+<rect x="40" y="56" width="30" height="22" fill="#2563EB" opacity=".85"/><text x="55" y="72" text-anchor="middle" fill="#FFFFFF">0.89</text>
+<rect x="75" y="56" width="30" height="22" fill="#2563EB"/><text x="90" y="72" text-anchor="middle" fill="#FFFFFF">1.0</text>
+<rect x="110" y="56" width="30" height="22" fill="#2563EB" opacity=".15"/><text x="125" y="72" text-anchor="middle" fill="#1A1A1A">0.17</text>
+<rect x="145" y="56" width="30" height="22" fill="#2563EB" opacity=".38"/><text x="160" y="72" text-anchor="middle" fill="#1A1A1A">0.42</text>
+<text x="30" y="96" font-weight="600" fill="#1A1A1A">C</text>
+<rect x="40" y="80" width="30" height="22" fill="#2563EB" opacity=".18"/><text x="55" y="96" text-anchor="middle" fill="#1A1A1A">0.21</text>
+<rect x="75" y="80" width="30" height="22" fill="#2563EB" opacity=".15"/><text x="90" y="96" text-anchor="middle" fill="#1A1A1A">0.17</text>
+<rect x="110" y="80" width="30" height="22" fill="#2563EB"/><text x="125" y="96" text-anchor="middle" fill="#FFFFFF">1.0</text>
+<rect x="145" y="80" width="30" height="22" fill="#2563EB" opacity=".4"/><text x="160" y="96" text-anchor="middle" fill="#1A1A1A">0.44</text>
+<text x="30" y="120" font-weight="600" fill="#1A1A1A">D</text>
+<rect x="40" y="104" width="30" height="22" fill="#2563EB" opacity=".42"/><text x="55" y="120" text-anchor="middle" fill="#1A1A1A">0.46</text>
+<rect x="75" y="104" width="30" height="22" fill="#2563EB" opacity=".38"/><text x="90" y="120" text-anchor="middle" fill="#1A1A1A">0.42</text>
+<rect x="110" y="104" width="30" height="22" fill="#2563EB" opacity=".4"/><text x="125" y="120" text-anchor="middle" fill="#1A1A1A">0.44</text>
+<rect x="145" y="104" width="30" height="22" fill="#2563EB"/><text x="160" y="120" text-anchor="middle" fill="#FFFFFF">1.0</text>
+</g>
+<text x="0" y="162" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">
+<tspan x="0" dy="0">A·B is high (both sky).</tspan>
+<tspan x="0" dy="16">A·C is low (sky vs fur).</tspan>
+<tspan x="0" dy="16">Diagonal is always 1 (a vector's</tspan>
+<tspan x="0" dy="14">similarity to itself, assuming it's</tspan>
+<tspan x="0" dy="14">a unit vector).</tspan>
+</text>
+</g>
+</svg>
+<figcaption><strong>Fig 4.</strong> The Gram matrix of four patch features. Each cell (i, j) is the dot product of features i and j. It's a square, symmetric table that records *relationships* rather than values. Two patches that mean similar things will have a high dot product; two patches that mean different things will have a low one. The matrix is the model's picture of how every part of the image relates to every other part.</figcaption>
+</figure>
+
+A few things worth noting about this object. The Gram matrix is square: if you have *n* vectors it's *n*-by-*n*. It's symmetric (dot products don't care about order), so entry (i, j) equals entry (j, i). The diagonal entries are each vector's similarity to itself, which, if the vectors are normalized to unit length, is always 1.
+
+Here's the critical property. The Gram matrix doesn't care about the *magnitudes* or *orientations* of the underlying features. If you rotated all your feature vectors by the same angle in feature space, the Gram matrix would be unchanged. If you scaled them all by the same factor, it would change in a uniform, predictable way. What the Gram matrix captures is the *relational structure*: the geometry of the feature cloud, not its location.
+
+For a vision model, the Gram matrix of the dense features tells you which patches the model thinks are similar and which it thinks are different. If the matrix is "clean" (high values for patches of the same content, low values for patches of different content), the model has a good local map. If the matrix is "noisy" (random-looking similarity everywhere), the model has lost its map.
+
+Dense feature collapse, when you plot the Gram matrix of a late-training ViT, looks exactly like static on an old TV. Every patch looks moderately similar to every other patch. The fine distinctions are gone.
+
+## 8. Gram anchoring: the blueprint trick
+
+Now we have everything we need to understand Gram anchoring. The DINOv3 team observed the collapse, and they had a specific observation: *the Gram matrix used to look fine, earlier in training.* At iteration 100-200k or so, the dense features were sharp, the Gram matrix was clean, the model was doing the right thing. The collapse happened later, as the global objective started to dominate.
+
+What if you could hold on to the early, healthy Gram matrix? What if, during late-stage training, you added a new loss term that said "student, your current Gram matrix should stay close to the Gram matrix of your own past self"?
+
+This is Gram anchoring. The details:
+
+1. Take a snapshot of the model at an earlier training checkpoint, chosen while the dense features are still sharp, before collapse has set in. Call this the *Gram teacher*. Hold it fixed for now. (It will be refreshed periodically, every 10k iterations or so, by copying in the current EMA teacher's weights. The early-snapshot intuition is what matters; the refresh schedule is a practical detail.)
+2. During later training, on each batch, run the image through both the current student *and* the current Gram teacher. Compute both Gram matrices: G<sub>student</sub> and G<sub>teacher</sub>.
+3. Add a new term to the loss: the Frobenius norm of the difference between the two Gram matrices. Written out, it's `‖G_S − G_T‖²_F`, which is just "sum up the squared differences between corresponding cells."
+4. Train as normal. The student keeps its DINO and iBOT losses, but now also has to keep its Gram matrix from drifting away from the frozen snapshot.
+
+It's worth pausing on why this works, because the logic is subtle. At first glance, anchoring a newer model to an older version of itself sounds like it would prevent learning. You're telling the model "be like your dumber self." Shouldn't that stop the model from improving?
+
+It doesn't, and the reason is that Gram anchoring *doesn't constrain the features themselves*. It constrains only the *relationships* between features: the Gram matrix. The underlying feature vectors are free to evolve wildly. They can rotate, they can stretch, they can reshape themselves to capture new concepts. As long as the pairwise dot products stay consistent with the snapshot, the anchoring is satisfied.
+
+> *Keep the blueprint. Upgrade the materials.*
+
+A good analogy: imagine a building. The Gram matrix is the blueprint: which walls are load-bearing, which rooms connect to which, how far the bathroom is from the kitchen. The individual features are the materials: the actual drywall, the carpet, the lighting fixtures. You can swap every piece of drywall for marble, change all the lighting, repaint every wall, and the blueprint is unchanged. The structure remains.
+
+That's why the technique works. The early-training dense features had good structure. The Gram matrix was clean, distinct patches had low similarity, similar patches had high similarity. By preserving that structure during late training, you let the features themselves keep getting richer and more semantically loaded, while refusing to let them dissolve into an undifferentiated soup.
+
+The result, measured on every dense benchmark that exists, is dramatic. Without Gram anchoring, ADE20k segmentation quality peaks early and then falls by tens of mIoU points over the remainder of training: the classic collapse. With Gram anchoring, it keeps climbing and settles at state-of-the-art levels. This is with the exact same backbone, the same data, the same number of iterations. The only difference is one extra loss term that keeps the spatial blueprint intact.
+
+Gram anchoring is also the reason DINOv3 can be used *frozen*, with no fine-tuning, on a dizzying array of downstream tasks. Video tracking without ever seeing a video. Satellite canopy-height estimation that beats purpose-built Earth-observation networks. Medical pathology on atypical mitotic figures. The features are so spatially clean that they just transfer. You drop them into a new task, add a small linear head, and the result is often state of the art.
+
+> **Checkpoint: what you know now.**
+>
+> **Vision models produce two kinds of features:** a global summary and a per-patch dense map. Both matter. Historically, scaling a self-supervised ViT improved one at the expense of the other.
+>
+> **The failure mode is called dense feature collapse:** the pressure to group patches by semantic content ends up dissolving the per-patch distinctions that dense tasks need.
+>
+> **DINOv3 fixes it with Gram anchoring:** during late-stage training, use an earlier, still-healthy checkpoint as a Gram teacher, and train the model to keep its current Gram matrix close to that teacher's. This preserves the *structure* of the patch features without freezing the features themselves.
+>
+> DINOv3 is now the single strongest vision backbone in the world. But it has one big limitation: it was trained without text, so it has no idea what any object is *called*. That's the next problem.
+
+## Act 2 — The Prism
+
+*Why three specialist backbones can't coexist at inference, and how C-RADIOv4 fuses them into one.*
+
+## 9. Three teachers, one student
+
+DINOv3 is the best dense-feature model ever made. It is also, in one specific way, useless: you can't talk to it. You can't ask "is there a dog in this picture?" and get a yes-or-no answer, because DINOv3 has never seen the word "dog." It has no alignment with language at all. It was trained on pure pixels, without captions or labels.
+
+For anything involving natural language (zero-shot classification, text-to-image retrieval, visual question answering, multimodal assistants), you need a different kind of model. The standard is *SigLIP2*, Google's 2025 image-text model. Conceptually it sits in the lineage of OpenAI's CLIP (dual image and text encoders aligned in a shared space), but it's trained with a different loss: a pairwise sigmoid objective that treats each (image, caption) pair as an independent yes-or-no match. The result is the same kind of shared space. Image features and caption features live in the same embedding space, and you can do a dot product between them to measure how well a caption describes an image.
+
+SigLIP2 is excellent at language alignment. It's also, in a different specific way, awkward for dense work. The standard high-resolution variant C-RADIOv4 distills from, SigLIP2-g-384, uses patch-16 tokenization at 384 pixels, which gives a 24×24 feature grid. Fine for classification, coarse for anything pixel-precise. SigLIP 2 does include a newer "NaFlex" variant that supports native aspect ratios and variable resolutions, but the fixed-resolution teacher is what's in play here. And SigLIP2's features don't preserve the sharp spatial geometry DINOv3 gives you. They're semantically rich but spatially mushy.
+
+So: DINOv3 has dense features, no text. SigLIP2 has text, no dense features. Surely we also need high-resolution masking (you know, segment-anything), and that's a whole other specialist: *SAM3*, Meta's November 2025 segmentation model. (A point release, SAM 3.1, landed in March 2026 with tracking speed improvements but no architectural change to the backbone, which is what matters here.) SAM3 will happily take a text prompt and return pixel-precise masks for every instance in an image. But it's a segmenter, not a general-purpose encoder. It doesn't give you good global features for classification.
+
+SAM3 and DINOv3 look redundant at first glance. They both produce dense features, so if DINOv3 is already excellent at dense work, why do we need SAM3 as a separate teacher? Because the two models come from completely different supervision regimes, and each regime teaches something the other one structurally can't. DINOv3 is self-supervised: it never sees a label, and certainly never sees a mask. Its loss is a clustering objective that pushes patches of similar content toward the same region of feature space. That's great for semantic grouping, but it's blind to where one instance of a class ends and another begins, because the loss has no ground truth for instance identity. Two cars parked next to each other sit in the same region of DINOv3's feature space, by design.
+
+SAM3 was trained on pixel-exact mask supervision at scale, roughly 4 million unique concepts from Meta's SA-Co data engine (with instance masks, hard negatives, and both image and video annotations). Every training example carries explicit information about where a specific instance *stops*, which is information self-supervision cannot produce no matter how much data you scale to. SAM3's architecture is built around this: its DETR-based detector has a dedicated *presence head* that separates "is this concept in the image" from "where exactly is each copy of it." The backbone (Meta's Perception Encoder) is pre-trained separately and then coupled to the detector, with a later tracker stage that runs on top of a frozen backbone.
+
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<g transform="translate(205, 28)">
+<circle cx="0" cy="0" r="5" fill="#0E7490"/>
+<text x="12" y="4" font-family="serif" font-size="13" fill="#1A1A1A">patches from car 1</text>
+<circle cx="160" cy="0" r="5" fill="#B8651A"/>
+<text x="172" y="4" font-family="serif" font-size="13" fill="#1A1A1A">patches from car 2</text>
+</g>
+<g transform="translate(30, 60)">
+<rect x="0" y="0" width="290" height="200" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<ellipse cx="145" cy="95" rx="92" ry="48" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" opacity="0.9"/>
+<circle cx="100" cy="78" r="3.5" fill="#0E7490"/>
+<circle cx="118" cy="85" r="3.5" fill="#B8651A"/>
+<circle cx="130" cy="72" r="3.5" fill="#0E7490"/>
+<circle cx="135" cy="92" r="3.5" fill="#B8651A"/>
+<circle cx="148" cy="80" r="3.5" fill="#0E7490"/>
+<circle cx="162" cy="95" r="3.5" fill="#B8651A"/>
+<circle cx="172" cy="84" r="3.5" fill="#0E7490"/>
+<circle cx="184" cy="102" r="3.5" fill="#B8651A"/>
+<circle cx="108" cy="102" r="3.5" fill="#B8651A"/>
+<circle cx="125" cy="110" r="3.5" fill="#0E7490"/>
+<circle cx="155" cy="108" r="3.5" fill="#0E7490"/>
+<circle cx="178" cy="115" r="3.5" fill="#B8651A"/>
+<circle cx="122" cy="100" r="3.5" fill="#0E7490"/>
+<circle cx="168" cy="112" r="3.5" fill="#B8651A"/>
+<circle cx="145" cy="118" r="3.5" fill="#B8651A"/>
+<circle cx="140" cy="85" r="3.5" fill="#0E7490"/>
+<text x="145" y="165" text-anchor="middle" font-family="serif" font-size="16" font-weight="600" fill="#2563EB">DINOv3</text>
+<text x="145" y="184" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258" font-style="italic">one cluster. both cars blur together.</text>
+</g>
+<g transform="translate(360, 60)">
+<rect x="0" y="0" width="290" height="200" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<ellipse cx="85" cy="85" rx="52" ry="30" fill="#EDE0FC" stroke="#9333EA" stroke-width="1.5" opacity="0.9"/>
+<ellipse cx="215" cy="105" rx="52" ry="30" fill="#EDE0FC" stroke="#9333EA" stroke-width="1.5" opacity="0.9"/>
+<text x="85" y="48" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#9333EA">instance 1</text>
+<text x="215" y="145" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#9333EA">instance 2</text>
+<circle cx="65" cy="80" r="3.5" fill="#0E7490"/>
+<circle cx="78" cy="88" r="3.5" fill="#0E7490"/>
+<circle cx="85" cy="75" r="3.5" fill="#0E7490"/>
+<circle cx="95" cy="90" r="3.5" fill="#0E7490"/>
+<circle cx="102" cy="82" r="3.5" fill="#0E7490"/>
+<circle cx="72" cy="95" r="3.5" fill="#0E7490"/>
+<circle cx="92" cy="96" r="3.5" fill="#0E7490"/>
+<circle cx="108" cy="92" r="3.5" fill="#0E7490"/>
+<circle cx="195" cy="100" r="3.5" fill="#B8651A"/>
+<circle cx="208" cy="108" r="3.5" fill="#B8651A"/>
+<circle cx="215" cy="95" r="3.5" fill="#B8651A"/>
+<circle cx="225" cy="110" r="3.5" fill="#B8651A"/>
+<circle cx="232" cy="102" r="3.5" fill="#B8651A"/>
+<circle cx="200" cy="115" r="3.5" fill="#B8651A"/>
+<circle cx="222" cy="118" r="3.5" fill="#B8651A"/>
+<circle cx="240" cy="112" r="3.5" fill="#B8651A"/>
+<text x="145" y="165" text-anchor="middle" font-family="serif" font-size="16" font-weight="600" fill="#9333EA">SAM3</text>
+<text x="145" y="184" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258" font-style="italic">two clusters. instance identity preserved.</text>
+</g>
+</svg>
+<figcaption><strong>Fig 5.</strong> What each teacher's features encode for the same two-car scene. DINOv3's self-supervised clustering loss puts all "car" patches near each other, so the two cars' patches interleave in one region. SAM3's mask supervision pushes patches from different instance masks to different regions, so the two cars form separate clusters. DINOv3 carries "what is it." SAM3 carries "which one is it." C-RADIOv4 inherits both.</figcaption>
+</figure>
+
+This matters for C-RADIOv4 in two ways. First, the student's dense features inherit information that's structurally absent from the DINOv3 signal: instance-level discriminability, and features shaped by a pixel-exact boundary loss. Second, because the student is distilled specifically to match the Perception Encoder's output format, C-RADIOv4 can function as a drop-in replacement for SAM3's backbone. Swap it in, keep SAM3's detector and tracker unchanged, and you get the whole promptable-segmentation and video-tracking stack at a fraction of the encoder cost. That kind of compatibility is at least part of the appeal of SAM3 as a teacher.
+
+Three backbones. Three complementary strengths. And running all three in production is expensive enough that most teams won't do it. A ViT-H at 1024 pixels isn't cheap on its own; running two or three of them in parallel multiplies your inference cost for every request, and multi-encoder VLM stacks are the kind of thing you build reluctantly rather than by design. Getting the same capabilities out of one backbone is worth real money.
+
+<figure>
+<svg viewBox="0 0 680 270" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<g>
+<circle cx="130" cy="120" r="80" fill="#DBEAFE" stroke="#2563EB" stroke-width="2.5"/>
+<text x="130" y="105" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#1A1A1A">DINOv3</text>
+<text x="130" y="125" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#2563EB">self-supervised</text>
+<text x="130" y="220" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">+ dense patch geometry</text>
+<text x="130" y="240" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258">− no text grounding</text>
+</g>
+<g>
+<circle cx="340" cy="120" r="80" fill="#D1FAE5" stroke="#059669" stroke-width="2.5"/>
+<text x="340" y="105" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#1A1A1A">SigLIP2</text>
+<text x="340" y="125" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#059669">text-aligned</text>
+<text x="340" y="220" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">+ zero-shot labels</text>
+<text x="340" y="240" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258">− locked at 384px</text>
+</g>
+<g>
+<circle cx="550" cy="120" r="80" fill="#EDE0FC" stroke="#9333EA" stroke-width="2.5"/>
+<text x="550" y="105" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#1A1A1A">SAM3</text>
+<text x="550" y="125" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#9333EA">fully supervised</text>
+<text x="550" y="220" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">+ instance-aware masks</text>
+<text x="550" y="240" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258">− narrow semantics</text>
+</g>
+<g>
+<text x="227" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#B91C1C">LATENCY</text>
+<line x1="210" y1="120" x2="244" y2="120" stroke="#B91C1C" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="437" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#B91C1C">LATENCY</text>
+<line x1="420" y1="120" x2="454" y2="120" stroke="#B91C1C" stroke-width="1.5" stroke-dasharray="4,3"/>
+</g>
+</svg>
+<figcaption><strong>Fig 6.</strong> Three specialized backbones, each excellent at something, each deficient at something else. Running them together at inference time would give us a complete vision system, and also a multi-GPU deployment burden nobody can justify. The question: can we train a single student that gets all three of their strengths?</figcaption>
+</figure>
+
+This is where C-RADIOv4 enters the story.
+
+## 10. What distillation is, really
+
+Before we can talk about C-RADIOv4, one more piece of background. The technique C-RADIOv4 relies on is called *knowledge distillation*, and it deserves a careful explanation because the whole story turns on it.
+
+The simplest version of distillation was introduced by Geoffrey Hinton in 2015. You have a big, slow model (the *teacher*) that's been trained on some task. You want a small, fast model (the *student*) that does the same task almost as well. Training the small model from scratch on the original labels gives you mediocre results. But if you use the teacher's *outputs* as soft targets for the student, the student does dramatically better than it would if it were just mimicking the ground-truth labels.
+
+The reason is that the teacher's outputs contain more information than the labels do. A label is a single correct answer. A teacher's output is a probability distribution over all possible answers, which encodes relationships: "this looks 80% like a cat, 15% like a lynx, 5% like a fox, nothing else." The student learns the teacher's full landscape of what's similar to what, not only the right answer.
+
+Now: what if, instead of distilling from one teacher, we distill from several? What if we have a set of specialist teachers, each expert at a different aspect of vision, and we train a student whose job is to match all of their outputs simultaneously?
+
+This is *multi-teacher distillation*, and it's the core idea behind the RADIO family of models (of which C-RADIOv4 is the latest). The student doesn't try to recreate any single teacher. It learns a *unified embedding* (a single feature vector) from which all the teachers' output features can be predicted. Small heads on top of the student are trained to reproduce DINOv3's output, SigLIP2's output, and SAM3's output, respectively. But the backbone itself is shared.
+
+Crucially, this is an *agglomerative* process: the student ends up carrying information from all three teachers, because it has to serve all three of their prediction heads. At inference time, you run the student once (one forward pass) and you get features that can be used for any of the downstream tasks. If you need DINOv3-style dense geometry, read off the dense features. If you need SigLIP2-style text alignment, pass through the SigLIP2 head. If you need SAM3-style segmentation, pass through the SAM3 head. The expensive forward pass happens once. The lightweight heads run in microseconds.
+
+<figure>
+<svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<g font-family="serif" font-size="14" font-weight="600">
+<rect x="30" y="30" width="110" height="40" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="85" y="55" text-anchor="middle" fill="#2563EB">DINOv3</text>
+<rect x="30" y="110" width="110" height="40" fill="#D1FAE5" stroke="#059669" stroke-width="1.5"/><text x="85" y="135" text-anchor="middle" fill="#059669">SigLIP2</text>
+<rect x="30" y="190" width="110" height="40" fill="#EDE0FC" stroke="#9333EA" stroke-width="1.5"/><text x="85" y="215" text-anchor="middle" fill="#9333EA">SAM3</text>
+</g>
+<text x="85" y="18" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">TEACHERS (FROZEN)</text>
+<g stroke="#8F8578">
+<line x1="145" y1="50" x2="285" y2="120" marker-end="url(#a3)"/>
+<line x1="145" y1="130" x2="285" y2="130" marker-end="url(#a3)"/>
+<line x1="145" y1="210" x2="285" y2="140" marker-end="url(#a3)"/>
+</g>
+<defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8F8578"/></marker></defs>
+<rect x="290" y="100" width="120" height="60" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="350" y="125" text-anchor="middle" font-family="serif" font-size="15" font-weight="700" fill="#F4EEE3">student</text>
+<text x="350" y="145" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">C-RADIOv4</text>
+<line x1="412" y1="130" x2="440" y2="130" stroke="#8F8578" marker-end="url(#a3)"/>
+<rect x="445" y="115" width="80" height="30" fill="none" stroke="#B8651A" stroke-width="1.5"/>
+<text x="485" y="134" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">unified feature</text>
+<g font-family="JetBrains Mono" font-size="10">
+<line x1="527" y1="125" x2="555" y2="55" stroke="#8F8578" marker-end="url(#a3)"/>
+<rect x="555" y="40" width="100" height="30" fill="#DBEAFE" stroke="#2563EB"/><text x="605" y="59" text-anchor="middle" fill="#2563EB">DINOv3 head</text>
+<line x1="527" y1="130" x2="555" y2="130" stroke="#8F8578" marker-end="url(#a3)"/>
+<rect x="555" y="115" width="100" height="30" fill="#D1FAE5" stroke="#059669"/><text x="605" y="134" text-anchor="middle" fill="#059669">SigLIP head</text>
+<line x1="527" y1="135" x2="555" y2="205" stroke="#8F8578" marker-end="url(#a3)"/>
+<rect x="555" y="190" width="100" height="30" fill="#EDE0FC" stroke="#9333EA"/><text x="605" y="209" text-anchor="middle" fill="#9333EA">SAM3 head</text>
+</g>
+</svg>
+<figcaption><strong>Fig 7.</strong> Multi-teacher distillation in action. Three frozen teachers produce outputs for an image. A shared student backbone learns a single unified feature, and three small heads, one per teacher, are trained to reproduce each teacher's output from that feature. At inference, the student runs once; the heads run as needed.</figcaption>
+</figure>
+
+This all sounds elegant and easy. In practice, naive multi-teacher distillation with teachers that have very different activation statistics runs into a known failure mode: the student disproportionately learns the teacher with the loudest loss and underfits the quieter ones. The PHI-S paper documents this quantitatively. Text alignment capabilities are the typical casualty when DINO-style teachers are in the mix, because their feature distributions are much wider.
+
+The reason, it turned out, was geometry.
+
+## 11. Why three teachers clash
+
+Let's go back to feature space. Imagine DINOv3's output features as a cloud of points in a high-dimensional space. Each image produces one point. The cloud as a whole occupies some region of the space. How *big* is that region? How spread out are the points?
+
+This property (how widely a set of feature vectors spreads out in its space) has a technical name: *angular dispersion*. You can measure it empirically by taking a large batch of images, encoding each one, and computing the average angle between every pair of features. A cloud that's tightly clustered has low angular dispersion. A cloud that fans out widely has high angular dispersion.
+
+Here are the measured values, from the C-RADIOv4 paper:
+
+- **DINOv3-7B** — `dispersion ≈ 2.186`
+- **SigLIP2-g** — `dispersion ≈ 0.694`
+
+DINOv3's features spread over roughly three times as much angular volume as SigLIP2's. The geometric analogy: DINOv3 is a floodlight, casting a broad cone. SigLIP2 is a laser pointer, emitting a narrow beam.
+
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<circle cx="340" cy="80" r="5" fill="#1A1A1A"/>
+<text x="355" y="78" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">shared feature origin</text>
+<path d="M340,80 L180,250 L500,250 Z" fill="#2563EB" fill-opacity=".25" stroke="#2563EB" stroke-width="2"/>
+<path d="M340,80 L295,250 L385,250 Z" fill="#059669" fill-opacity=".4" stroke="#059669" stroke-width="2"/>
+<rect x="130" y="253" width="150" height="22" fill="#2563EB"/>
+<text x="205" y="268" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#FFFFFF">DINOv3: 2.186</text>
+<rect x="400" y="253" width="150" height="22" fill="#059669"/>
+<text x="475" y="268" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#FFFFFF">SigLIP2: 0.694</text>
+</svg>
+<figcaption><strong>Fig 8.</strong> Two teacher geometries, drawn as cones originating from the shared feature-space origin. DINOv3's cone is wide; SigLIP2's is narrow. They live in different regions of the same space, but the DINOv3 cloud occupies roughly 3× the angular volume.</figcaption>
+</figure>
+
+Why does this kill naive distillation? Because of how distillation losses work. The student is trained to match each teacher's output. The loss for each teacher is something like "squared distance between student's prediction and teacher's target," averaged across a batch.
+
+If DINOv3's features are spread over a wide angular range, the typical distance from one DINOv3 feature to another is large. Large distances mean large loss values. So DINOv3's loss contribution to the total loss (summed across all teachers) is large. SigLIP2's features are bunched tightly together, so their distances are small, so their loss contribution is small.
+
+When you backpropagate, gradient magnitudes scale with loss magnitudes. DINOv3's gradient dominates. SigLIP2's gradient gets drowned out. The student optimizes the thing that's loudest, which is DINOv3, and ignores the thing that's quiet, which is SigLIP2. End result: you've trained a DINOv3 lookalike with a vestigial, useless SigLIP2 head.
+
+This is a geometric problem, and it has a geometric solution.
+
+## 12. Three ingredients of the C-RADIO recipe
+
+The C-RADIOv4 tech report builds on a set of tricks that have been accumulating in the RADIO line for a while. Two of them — PHI-S and shift equivariance — were introduced in earlier RADIO papers (2024) and refined in v4. The third, stochastic multi-resolution training, is the natural culmination of work on the "mode switching" problem that has been chipped away at across several releases. Taken together, they're the core ingredients that make agglomerative distillation work at all.
+
+### Ingredient 1: Balanced Summary Loss (PHI-S)
+
+Divide each teacher's loss contribution by that teacher's angular dispersion. Before the losses get summed, DINOv3's loss gets scaled down by 2.186 and SigLIP2's loss gets scaled up (or equivalently, scaled down by 0.694). After this normalization, both teachers contribute the same total gradient magnitude. The floodlight and the laser pull with equal force.
+
+The exact technique, which NVIDIA calls *PHI-S* (for "PHI-Standardization"), goes a bit further than dividing by a single dispersion number. Under the hood it applies a Hadamard rotation to each teacher's feature space and then standardizes the resulting dimensions uniformly, so that the distribution becomes isotropic: no direction in the feature space dominates any other. The practical effect is the one you'd expect — the student is forced to learn the *shape* of each teacher's feature space, not just its loudest directions — and the "divide by dispersion" framing above captures the spirit even if the mechanics are a little fancier. (Note: PHI-S was introduced earlier in the RADIO line, around v2.5 in 2024. C-RADIOv4 inherits it rather than introducing it.)
+
+After PHI-S, multi-teacher distillation actually works. The student carries all three teachers' capabilities in a single embedding. But we're not done. There are still two subtle failure modes that show up when you try to distill from many teachers at once.
+
+### Ingredient 2: Shift Equivariance
+
+Here's a problem nobody thinks about until they're deep into multi-teacher distillation: every teacher has *bad habits*. Little position-dependent quirks that aren't really about the image content but are artifacts of how the teacher was trained.
+
+A famous example in the ViT literature: large self-supervised models tend to produce a handful of "artifact tokens": patches with anomalously large activations that don't correspond to anything in the image but instead get used as scratchpad memory for the network. DINOv3 actually addresses this with an architectural trick called *register tokens*: four extra learnable tokens prepended to the sequence, specifically designed to absorb the scratchpad role so that the real patch tokens can stay clean. That helps a lot. But it doesn't eliminate every position-locked quirk. Residual patterns survive in all the teachers. SigLIP2 has dead zones along the borders of its feature maps, because its training data was cropped and the border regions saw systematically less variation. SAM3 has grid-aligned artifacts that come from its windowed attention pattern. DINOv3 still has subtler traces tied to specific coordinates in its positional encoding.
+
+None of these habits are properties of the input image. They're properties of the teacher's architecture and training, anchored to specific pixel coordinates. When you distill naively, the student learns these artifacts faithfully and bakes them into its own features forever.
+
+The fix: *shift equivariance*. During training, take the student's input and translate it by a random small offset. Shift the image left by 7 pixels, say. The teacher sees the original un-shifted image. When you compare student and teacher outputs, you un-shift the student's feature map (moving it back to align with the teacher's) before computing the loss.
+
+Now think about what these artifacts have in common. The border dead zones are at fixed pixel coordinates. The SAM3 grid artifacts are at fixed pixel coordinates. Any residual position-locked pattern lives at fixed pixel coordinates. In the un-shifted student's feature map, the "corresponding" patch is at a different pixel coordinate every batch, because the shift offset changes randomly. So the artifacts stop correlating with anything. The student can't learn to produce them, because there's no fixed position where they consistently appear. The student gives up memorizing positions and learns only the input-content-dependent part of each teacher's signal.
+
+It's a minimal fix. One line of code during training, and an entire class of inherited garbage disappears from the student's features.
+
+### Ingredient 3: Stochastic Multi-Resolution
+
+The third ingredient concerns a subtle issue you only notice when you try to use a model at many different resolutions. Standard ViT training happens at a single fixed resolution, usually 224px or 336px. When you deploy the model and someone sends it a 1024px image, you're asking it to generalize to a regime it never saw.
+
+What ends up happening, in practice, is the model learns *two modes*. One mode works at the training resolution and assumes certain statistical properties of the input (fixed number of patches, fixed receptive field, fixed position indices). Another mode, activated when the image is much larger, has to awkwardly interpolate. The two modes conflict. The same features don't mean the same thing at 224px and 1024px. Inference becomes brittle. Downstream tasks that need a specific resolution work great; tasks that need a different one suddenly fail.
+
+C-RADIOv4 solves this by randomly sampling the training resolution on every batch, from a discrete set that spans low resolutions (128, 192, 224, 256, 384, 432) and high resolutions (512, 768, 1024, 1152). The student learns a single representation function that works at every scale. No modes. No special cases. One checkpoint serves any resolution at inference.
+
+This also has a lovely side effect: it lets C-RADIOv4 track the full scaling curve of DINOv3-7B at a fraction of the parameter count. A 631M-parameter C-RADIOv4-H student matches (and often exceeds) an 840M-parameter DINOv3-H+ on dense benchmarks, precisely because the student has been pressured by multiple teachers to be efficient. It can't afford to waste parameters on resolution-specific specializations.
+
+> **Checkpoint: what you know now.**
+>
+> **No single vision backbone does everything well.** DINOv3 has dense self-supervised features but no text and no instance separation. SigLIP2 has text alignment but no dense spatial structure. SAM3 has mask-supervised features with instance separation but narrow global semantics.
+>
+> **Multi-teacher distillation can fuse them into one student**, with three key ingredients accumulated across RADIO releases:
+>
+> (a) *PHI-S normalization* so that the floodlight and the laser contribute equal gradient weight;
+> (b) *shift equivariance* so the student doesn't inherit position-locked teacher artifacts;
+> (c) *stochastic multi-resolution* so the student learns a single scale-invariant function instead of a per-resolution mode.
+>
+> The result is C-RADIOv4: one backbone that runs all three teachers' capabilities in a single forward pass, with 412M or 631M parameters depending on the variant.
+>
+> But we have one problem left. The trick only works if all three teachers can produce usable targets at the training resolution. DINOv3 can. SAM3 can. SigLIP2 cannot.
+
+## Act 3 — The Dial
+
+*FeatSharp, a 2D upsampler built on a 3D reconstruction trick.*
+
+## 13. Resolution, the last mile
+
+SigLIP2 was trained at 384×384. Its feature map, at that input resolution, is 24×24, one vector per 16×16 pixel patch. If you ask SigLIP2 to process a 1152×1152 image, its internal machinery gets cranky. Position embeddings, which were learned at the training resolution, now have to extrapolate. The feature map becomes 72×72, but the patches at those new positions have position encodings the model has never seen. The features degrade, not catastrophically, but visibly. Boundaries become fuzzy. Patterns repeat where they shouldn't. Textures look like plaid.
+
+You can see it with your eyes if you run a PCA on the feature map and visualize it as a color image. At 384px, SigLIP2's features look clean, crisp, object-aware. At 1152px via simple bilinear interpolation, they look like a defocused photograph.
+
+The problem for C-RADIOv4: if the training resolution is random between 128px and 1152px, the student sometimes sees images at 1152px. At that resolution, the student needs to produce features that match SigLIP2's features. But SigLIP2 can't produce clean features at 1152px. The supervision signal is noise. The student learns nothing useful from SigLIP2 at high resolutions, which means its text-alignment capabilities stay weak.
+
+We need a way to get *clean* SigLIP2 features at 1152px, without retraining SigLIP2. This is the job of FeatSharp.
+
+## 14. The NeRF trick for features
+
+To explain FeatSharp, I have to briefly talk about NeRF. NeRF (Neural Radiance Fields) is a 3D reconstruction technique from 2020. Its setup is this: you have a few dozen 2D photographs of a real-world scene, taken from different viewpoints. You want to reconstruct a 3D representation of the scene that you can render from any new viewpoint.
+
+NeRF's core insight is a consistency principle. A real 3D point in the scene is observed in multiple 2D photos. When you look at where that point projects to in photo A, you see a specific color. When you look at where it projects to in photo B (from a different angle), you see that same color, or something close to it, depending on lighting. *Features of real 3D structure are consistent across views.*
+
+Conversely: anything that *varies* across views is not real 3D structure. It's an artifact: sensor noise, specular reflection, glare, occlusion, something that isn't part of the stable underlying scene.
+
+NeRF uses this to build a coherent 3D representation: it finds the 3D structure that, when rendered to the 2D photographs, is consistent with all of them. Parts that can't be made consistent are rejected as noise.
+
+Now: the same principle applies, in a totally different setting, to feature upsampling.
+
+Imagine you have a low-resolution encoder, say SigLIP2 at 384px. You want its feature map at 1152px. Naive bilinear interpolation will hallucinate details the encoder never committed to. But what if you exploit consistency across *views of the feature map*?
+
+Here's the FeatSharp recipe:
+
+1. Take the input image. Jitter it slightly: shift it by a few pixels, crop it differently, flip it horizontally, mess with its alignment. Generate many small variations ("views") of the same underlying scene.
+2. Run the low-resolution encoder on every jittered view. Collect the feature maps. They're all low-resolution, but they're all slightly misaligned versions of roughly the same content.
+3. Learn a high-resolution feature map such that, when you apply the corresponding jitter and downsample to low resolution, the result matches each view's low-res feature map.
+4. Features that are consistent across views of the same content survive the upsampling process. Features that flicker, changing from one jitter to the next, get suppressed.
+
+<figure>
+<svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258"><text x="80" y="22" text-anchor="middle" letter-spacing="1">JITTERED VIEWS</text></g>
+<g>
+<rect x="40" y="35" width="80" height="50" fill="#CFF0F6" stroke="#0E7490" stroke-width="1.5" transform="rotate(-3 80 60)"/>
+<rect x="40" y="95" width="80" height="50" fill="#CFF0F6" stroke="#0E7490" stroke-width="1.5" transform="rotate(2 80 120)"/>
+<rect x="40" y="155" width="80" height="50" fill="#CFF0F6" stroke="#0E7490" stroke-width="1.5" transform="rotate(-1 80 180)"/>
+</g>
+<g stroke="#8F8578">
+<line x1="130" y1="60" x2="185" y2="95" marker-end="url(#a4)"/>
+<line x1="130" y1="120" x2="185" y2="120" marker-end="url(#a4)"/>
+<line x1="130" y1="180" x2="185" y2="145" marker-end="url(#a4)"/>
+</g>
+<defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8F8578"/></marker></defs>
+<rect x="190" y="95" width="100" height="50" fill="none" stroke="#0E7490" stroke-width="1.5"/>
+<text x="240" y="120" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#0E7490">SigLIP2</text>
+<text x="240" y="136" text-anchor="middle" font-family="serif" font-size="10" fill="#6B6258" font-style="italic">low-res encoder</text>
+<line x1="295" y1="120" x2="330" y2="120" stroke="#8F8578" marker-end="url(#a4)"/>
+<g font-family="JetBrains Mono" font-size="9" fill="#6B6258"><text x="395" y="22" text-anchor="middle" letter-spacing="1">LOW-RES FEATURE MAPS</text></g>
+<g>
+<rect x="335" y="35" width="60" height="50" fill="#CFF0F6" stroke="#0E7490"/>
+<rect x="400" y="35" width="60" height="50" fill="#CFF0F6" stroke="#0E7490"/>
+<rect x="335" y="95" width="60" height="50" fill="#CFF0F6" stroke="#0E7490"/>
+<rect x="400" y="95" width="60" height="50" fill="#CFF0F6" stroke="#0E7490"/>
+<rect x="335" y="155" width="60" height="50" fill="#CFF0F6" stroke="#0E7490"/>
+<rect x="400" y="155" width="60" height="50" fill="#CFF0F6" stroke="#0E7490"/>
+<text x="397" y="220" text-anchor="middle" font-family="serif" font-size="10" fill="#6B6258" font-style="italic">all jittered, misaligned</text>
+</g>
+<line x1="465" y1="120" x2="500" y2="120" stroke="#8F8578" marker-end="url(#a4)"/>
+<text x="505" y="110" font-family="serif" font-size="10" fill="#6B6258" font-style="italic">solve:</text>
+<text x="505" y="125" font-family="serif" font-size="10" fill="#6B6258" font-style="italic">the HR map that,</text>
+<text x="505" y="138" font-family="serif" font-size="10" fill="#6B6258" font-style="italic">downsampled, explains</text>
+<text x="505" y="151" font-family="serif" font-size="10" fill="#6B6258" font-style="italic">every view</text>
+<rect x="580" y="60" width="80" height="120" fill="#FBE9CE" stroke="#B8651A" stroke-width="2"/>
+<g stroke="#B8651A" stroke-width=".5" opacity=".4">
+<line x1="580" y1="90" x2="660" y2="90"/><line x1="580" y1="120" x2="660" y2="120"/><line x1="580" y1="150" x2="660" y2="150"/>
+<line x1="600" y1="60" x2="600" y2="180"/><line x1="620" y1="60" x2="620" y2="180"/><line x1="640" y1="60" x2="640" y2="180"/>
+</g>
+<text x="620" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#B8651A" letter-spacing="1">HIGH-RES MAP</text>
+<text x="620" y="215" text-anchor="middle" font-family="serif" font-size="10" fill="#6B6258" font-style="italic">consistent detail</text>
+</svg>
+<figcaption><strong>Fig 9.</strong> FeatSharp's multi-view consistency: many jittered versions of the same input produce many low-res feature maps, misaligned in different ways. The algorithm solves for a single high-res feature map that, under each jitter and downsampling, reproduces every view. Details consistent across views are real; details that flicker are noise.</figcaption>
+</figure>
+
+The result: a clean, high-resolution SigLIP2 feature map that is fully consistent with what SigLIP2 would have produced at low resolution, and contains only the details that survive the multi-view consistency test. No hallucinated boundaries. No plaid artifacts. A supervision signal C-RADIOv4 can actually learn from.
+
+FeatSharp is a small module, about as expensive as one extra transformer block, and it plugs into the C-RADIOv4 training pipeline as a preprocessor for SigLIP2's targets. It's also useful independently: any time you have a pretrained low-resolution vision encoder and want to extract richer spatial information from it, FeatSharp can upgrade the feature resolution without retraining the encoder.
+
+## 15. Interlude: borrowing from biology
+
+Before we put the whole pipeline together, one more idea deserves its own section. It's used across all three papers we've discussed, but it's not really about computer vision. It's about how neural networks should be trained in the first place. And it's borrowed, more literally than is typical, from biology.
+
+Here's the setup. When you train a neural network, a common trick for improving robustness is to inject noise somewhere in the training process. Add a bit of Gaussian noise to the inputs. Add dropout to the activations. Add weight decay to the gradients. All of these are additive perturbations, and they all work reasonably well.
+
+Biological synapses work differently. Real synapses in real brains do something called *multiplicative noise*. The fluctuation in a synaptic signal is proportional to the signal's magnitude. When a synapse is firing weakly, its noise is small. When it's firing strongly, its noise is big. The ratio stays roughly constant, a 10% jitter around whatever the signal is. This follows a *log-normal* distribution, which has been measured experimentally in mouse brains, rat brains, human brains. It's a universal property of biological neural machinery.
+
+Another way to see the difference: imagine the volume knob on a stereo. If the music is playing quietly and you bump the knob slightly, you barely notice. If the music is already at maximum volume and you bump the knob by the same amount, the change is enormous and chaotic. Biological noise is the second kind. Additive noise in standard ML training is the first kind. They produce qualitatively different optimization dynamics.
+
+In 2024, a paper called *DAMP* (Data Augmentation via Multiplicative Perturbations) made a clever observation: an input corruption, to first order, looks a lot like a multiplicative perturbation of the weights in the downstream layer. So instead of augmenting the data, you can augment the weights: multiply each weight by a small random Gaussian during the forward pass, and train normally. DAMP demonstrated that this is enough to produce networks that are dramatically more robust to real-world input corruptions. No extra data, no extra forward passes. Just change the noise structure.
+
+DAMP's justification is geometric, not biological. But the family of techniques it opens up turns out to line up closely with what biology does. In 2025, *LMD* (Log-Normal Multiplicative Dynamics) made the biological motivation explicit: it derives a Bayesian learning rule that assumes log-normal posterior distributions over weights, directly inspired by the log-normal distribution of biological synaptic weights, and uses multiplicative updates with both noise and regularization applied multiplicatively. LMD achieves stable training at very low numerical precision, which matters a lot for next-generation hardware.
+
+C-RADIOv4's training recipe explicitly uses both DAMP and a related technique, *MESA* (Memory-Efficient Sharpness-Aware Training), a cousin of these methods that approximates Sharpness-Aware Minimization via a trajectory loss against an EMA teacher, driving the optimizer into "flat" regions of the loss landscape, where small perturbations don't change the loss much. Flat regions generalize better than sharp regions. So you get the same dataset, the same architecture, and a model that degrades more gracefully on unseen data. Closely related in spirit: ASAM (Adaptive SAM) has been shown to be mathematically equivalent to optimizing under adversarial multiplicative weight perturbations, which is what ties the sharpness-aware line back to the multiplicative-noise story in this section.
+
+The bigger lesson: a lot of ML practice inherits assumptions from statistics textbooks (Gaussian noise, L2 penalties, isotropic distributions) that have nothing to do with how biological computation actually works. Occasionally, questioning those assumptions and reaching into neuroscience produces a free lunch. Multiplicative weight perturbation is one of the cleanest free lunches of the last few years.
+
+> There's a philosophical angle worth noting. We've spent two decades assuming that biological intelligence and artificial intelligence are "different kinds of systems," and that trying to directly translate neural biology into deep learning is a mug's game. Sometimes that's right. Backpropagation is not how brains learn, and anyone who says otherwise is selling something. But the log-normal synapse story is a counterexample. A specific, measured, boring property of real neurons (their noise is proportional to their signal) turns out to make artificial networks measurably better when imitated. Not every biological property will. Some of them will. The field is slowly learning which.
+
+## 16. Putting it together: the pipeline
+
+Let's zoom back out. We've now covered every piece. Here's the full training pipeline for a 2026 vision foundation model, from raw images to deployable checkpoint.
+
+<figure>
+<svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<g font-family="serif" font-size="14" font-weight="600">
+<rect x="30" y="40" width="200" height="180" fill="#F4EEE3" stroke="#2563EB" stroke-width="2"/>
+<rect x="30" y="40" width="200" height="40" fill="#2563EB"/>
+<text x="50" y="65" fill="#FFFFFF" font-size="11" letter-spacing="2" font-family="JetBrains Mono" font-weight="400">STAGE 1</text>
+<text x="145" y="65" text-anchor="middle" fill="#FFFFFF">Pretrain</text>
+<g font-family="serif" font-size="11.5" fill="#1A1A1A" font-weight="400">
+<text x="45" y="100">· Curated 1.7B images</text>
+<text x="45" y="120">· DINO + iBOT losses</text>
+<text x="45" y="140">· 1M iterations</text>
+<text x="45" y="160">· ViT-7B, constant schedule</text>
+</g>
+<text x="45" y="195" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.5">RESULT</text>
+<text x="45" y="210" font-family="serif" font-size="11" fill="#2563EB" font-style="italic">dense collapse at the end</text>
+</g>
+<g stroke="#8F8578" stroke-width="1.5"><line x1="233" y1="130" x2="252" y2="130" marker-end="url(#a5)"/></g>
+<defs><marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8F8578"/></marker></defs>
+<g>
+<rect x="255" y="40" width="200" height="180" fill="#F4EEE3" stroke="#15803D" stroke-width="2"/>
+<rect x="255" y="40" width="200" height="40" fill="#15803D"/>
+<text x="275" y="65" fill="#FFFFFF" font-size="11" letter-spacing="2" font-family="JetBrains Mono">STAGE 2</text>
+<text x="370" y="65" text-anchor="middle" fill="#FFFFFF" font-family="serif" font-weight="600" font-size="14">Gram Anchor</text>
+<g font-family="serif" font-size="11.5" fill="#1A1A1A">
+<text x="270" y="100">· Early-ckpt Gram teacher</text>
+<text x="270" y="120">· Refresh every 10k iter</text>
+<text x="270" y="140">· Add Gram loss</text>
+<text x="270" y="160">· Refinement phase</text>
+</g>
+<text x="270" y="195" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.5">RESULT</text>
+<text x="270" y="210" font-family="serif" font-size="11" fill="#15803D" font-style="italic">dense features restored</text>
+</g>
+<g stroke="#8F8578" stroke-width="1.5"><line x1="458" y1="130" x2="477" y2="130" marker-end="url(#a5)"/></g>
+<g>
+<rect x="480" y="40" width="200" height="180" fill="#F4EEE3" stroke="#0E7490" stroke-width="2"/>
+<rect x="480" y="40" width="200" height="40" fill="#0E7490"/>
+<text x="500" y="65" fill="#FFFFFF" font-size="11" letter-spacing="2" font-family="JetBrains Mono">STAGE 3</text>
+<text x="595" y="65" text-anchor="middle" fill="#FFFFFF" font-family="serif" font-weight="600" font-size="14">High-Res Adapt</text>
+<g font-family="serif" font-size="11.5" fill="#1A1A1A">
+<text x="495" y="100">· Mixed crops 512/768</text>
+<text x="495" y="120">· Gram anchor still on</text>
+<text x="495" y="140">· 10k iterations</text>
+<text x="495" y="160">· Any-resolution support</text>
+</g>
+<text x="495" y="195" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.5">RESULT</text>
+<text x="495" y="210" font-family="serif" font-size="11" fill="#0E7490" font-style="italic">stable up to 4k inference</text>
+</g>
+<g stroke="#8F8578" stroke-width="1.5"><line x1="683" y1="130" x2="702" y2="130" marker-end="url(#a5)"/></g>
+<g>
+<rect x="705" y="40" width="180" height="180" fill="#F4EEE3" stroke="#B8651A" stroke-width="2"/>
+<rect x="705" y="40" width="180" height="40" fill="#B8651A"/>
+<text x="725" y="65" fill="#FFFFFF" font-size="11" letter-spacing="2" font-family="JetBrains Mono">STAGE 4</text>
+<text x="795" y="65" text-anchor="middle" fill="#FFFFFF" font-family="serif" font-weight="600" font-size="14">Agglomerate</text>
+<g font-family="serif" font-size="11.5" fill="#1A1A1A">
+<text x="720" y="100">· DINO + SigLIP + SAM</text>
+<text x="720" y="120">· FeatSharp upsamples</text>
+<text x="720" y="140">· PHI-S, shift eq, MESA</text>
+<text x="720" y="160">· Stoch. res 128–1152</text>
+</g>
+<text x="720" y="195" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.5">RESULT</text>
+<text x="720" y="210" font-family="serif" font-size="11" fill="#B8651A" font-style="italic">unified 631M student</text>
+</g>
+</svg>
+<figcaption><strong>Fig 10.</strong> The four-stage pipeline. Each stage fixes a specific problem introduced by the previous one. Stage 1 trains a ViT-7B on curated data and exposes dense feature collapse. Stage 2 fixes collapse via Gram anchoring. Stage 3 extends the model to arbitrary resolutions. Stage 4 distills it, alongside SigLIP2 and SAM3, into a smaller, more efficient student that carries all three specialists' capabilities.</figcaption>
+</figure>
+
+There's one more piece worth explaining: how the pipeline scales *down* for deployment. The 6.7-billion-parameter DINOv3-7B model is wonderful for research, terrible for production. It's slow, expensive, and hard to serve. Most real use cases want a model that fits on a single GPU, runs in under 100ms, and doesn't require a dedicated inference cluster.
+
+The solution is *multi-student distillation*. Instead of training one small student to mimic the big teacher, you train an entire family of them simultaneously: a ViT-Small (21M params), a ViT-Base (86M), a ViT-Large (304M), a few ConvNeXt variants, all at once. The real trick: you only run the expensive teacher once per batch. Cache its outputs. Then broadcast those cached targets to every student. Each student consumes the same distillation signal but learns its own efficient architecture.
+
+This is how a 6.7B self-supervised teacher ends up producing a 21M ConvNeXt you can put on a Jetson. It's also why the DINOv3 "model family" includes so many sizes: Meta trained them all in parallel, sharing the teacher's compute across every student.
+
+> **Checkpoint: what you know now.**
+>
+> The full pipeline: pretrain a big ViT with self-supervision → repair dense features with Gram anchoring → adapt to arbitrary resolutions → distill multiple specialist teachers into a unified student → distill the student into many smaller students for deployment.
+>
+> The output: a family of vision backbones ranging from 21M to 840M parameters (and a 6.7B research flagship on the DINOv3 side) that all share the same fundamental capabilities (classification, segmentation, depth estimation, text alignment, video tracking, cross-domain transfer) in a single forward pass. You pick the size that fits your hardware budget.
+
+## 17. Three ideas worth stealing
+
+We've covered a lot of ground: self-supervision, Gram matrices, multi-teacher distillation, angular dispersion, NeRF-inspired upsampling, log-normal synapses. If you only take three things away from all of it, I would pick these:
+
+### 1. Regularize relationships, not values.
+
+Gram anchoring is the cleanest example of a pattern that keeps showing up across machine learning: when some property of your model is degrading during training, the fix is often not to freeze the *values* of the relevant quantities but to freeze their *relational structure*. The Gram matrix preserves pairwise similarities while letting individual features evolve. The underlying idea, pin the geometry and free the content, is applicable far outside vision. Any time you have a representation that you want to stay structurally coherent while continuing to learn new things, ask what relational property captures the structure you care about, and regularize that.
+
+### 2. Heterogeneous signals need geometric normalization.
+
+The C-RADIOv4 three-teacher problem is, at its heart, a generic issue with combining evidence from sources with different natural scales. Naive weighted averaging fails silently when the sources have different variances or different angular ranges. You don't get a helpful error message; you get a model that ignored the quieter source. The fix is to normalize by each source's intrinsic scale before combining. PHI-S is one specific way to do this in feature space, but the general principle (measure each source's natural magnitude and divide it out before summing) applies broadly. Multi-loss optimization, multi-task learning, sensor fusion, ensemble methods: all of them have this failure mode, and the fix is always some variant of the same normalization.
+
+### 3. Randomize what you don't want memorized.
+
+Shift equivariance, stochastic multi-resolution, multiplicative weight perturbation: these are all, at some level, the same trick. If there's a structural property of your training setup that you don't want the model to encode as a shortcut, *randomize it during training*. Fixed pixel coordinates become random offsets. Fixed resolutions become sampled resolutions. Fixed noise levels become proportional fluctuations. The model learns the part that's invariant to the randomization, which, by construction, is the part you actually want it to learn. This is an old idea dressed up in many clothes, but it bears repeating: if your model is learning something you didn't intend, look for a way to make that something *vary* from batch to batch, and watch it disappear.
+
+## Epilogue
+
+It's tempting to read the story of DINOv3 / C-RADIOv4 / FeatSharp as a procession of clever technical tricks, each patching over a specific failure mode. That's true, but it's not the whole truth. What's really happening, I think, is that the field is converging on a more mature understanding of what a vision model *is*.
+
+The early ViT models were trained on one objective and evaluated on one benchmark. They were good at that benchmark and bad at everything else. The 2025–2026 generation is trained on multiple objectives, evaluated on dozens of benchmarks across domains the model was never specialized for, and expected to do all of it from a single frozen backbone. The architecture didn't really change. What changed is the training recipe and, more importantly, the understanding of what *constraints* the recipe needs to satisfy for the resulting features to be useful in the wild.
+
+Gram anchoring is a constraint. Shift equivariance is a constraint. Multi-resolution sampling is a constraint. Multiplicative noise is a constraint. Each one narrows the space of functions the model can learn, in exchange for making the functions that remain more robust, more transferable, more general. The field is learning to write down the right constraints.
+
+If there's a pattern here beyond computer vision, it's this: modern machine learning is increasingly about finding the right structure to preserve, not the right thing to learn from scratch. Gradient descent will learn almost anything, given enough data and compute. Making it learn the *right* thing (the thing that transfers, the thing that generalizes, the thing that survives contact with reality) is a matter of writing down what must remain invariant. Dense feature structure must remain invariant to continued training. Cross-teacher gradients must remain balanced. Feature maps must remain invariant to small input shifts. Performance must remain invariant to resolution. These are not subtle philosophical demands. They are engineering constraints, with concrete losses and concrete training tricks that enforce them.
+
+The payoff is real. A single DINOv3 backbone beats specialized Earth-observation networks at satellite tree-height estimation. A single C-RADIOv4 backbone, at 631 million parameters, ties or beats its much larger peers (including DINOv3-H+, an 840M distilled sibling of its 7B teacher) on dense benchmarks. A single inference call provides classification, segmentation, depth, tracking, correspondence, text alignment, and open-vocabulary masking. The vision backbone is becoming, increasingly, *just* a backbone: a single spinal cord that a thousand downstream heads can read from.
+
+Which is, when you think about it, pretty close to how biological vision works. A single visual cortex produces a representation that the rest of the brain interprets in a dozen different ways, for a dozen different purposes, using a dozen different downstream circuits. The representation is fixed; the interpretations are flexible. It took artificial vision a while to get there. It seems to be arriving.
+
+> *We used to think the blurry mess was a failure of the machine. It turns out the blur was a failure of the objective.*
+
+## References
+
+- DINOv3. Siméoni et al., Meta AI 2025 ([arXiv:2508.10104](https://arxiv.org/abs/2508.10104)).
+- C-RADIOv4 Tech Report. Ranzinger et al., NVIDIA 2026 ([arXiv:2601.17237](https://arxiv.org/abs/2601.17237)).
+- FeatSharp. Ranzinger et al., NVIDIA 2025 ([arXiv:2502.16025](https://arxiv.org/abs/2502.16025)).
+- PHI-S (distribution balancing). Ranzinger et al., NVIDIA 2024 ([arXiv:2410.01680](https://arxiv.org/abs/2410.01680)).
+- DAMP (multiplicative weight perturbations). Trinh et al. 2024 ([arXiv:2406.16540](https://arxiv.org/abs/2406.16540)).
+- LMD (log-normal multiplicative dynamics). Nishida et al., RIKEN AIP 2025 ([arXiv:2506.17768](https://arxiv.org/abs/2506.17768)).
+- SAM 3. Meta AI 2025 ([arXiv:2511.16719](https://arxiv.org/abs/2511.16719)).
+- SigLIP 2. Tschannen et al., Google 2025.
+
+*Originally prepared for the Boon engineering team, April 2026.*
