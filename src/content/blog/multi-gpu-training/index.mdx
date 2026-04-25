@@ -12,6 +12,7 @@ essay: true
 import Figure from "@components/figure/Figure.svelte";
 import Fp8LossCurve from "@components/figures/multi-gpu-training/Fp8LossCurve.svelte";
 import MemoryBar from "@components/figures/multi-gpu-training/MemoryBar.svelte";
+import DdpStep from "@components/figures/multi-gpu-training/DdpStep.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -107,7 +108,9 @@ This is where the negotiation begins. The gradient of the loss on the full batch
 
 Averaging gradients across N ranks is a *collective* called *all-reduce*. We're going to spend a lot of time on it.
 
-{/* TODO: <Fig2DdpStep /> interactive-canvas, slider for N=2..16, scrubber through one step (forward, backward, all-reduce, optimizer) */}
+<Figure caption="One DDP step. Each rank runs forward and backward in parallel, then all-reduces gradients, then steps the optimizer. The all-reduce bar widens with rank count; the right-hand readout is its share of one step. Compute parallelises; comm becomes the tax." figNum={2}>
+<DdpStep client:visible />
+</Figure>
 
 Drag the slider to add GPUs. Scrub through one step. The compute phase (forward + backward) stays roughly constant: more GPUs means each one does less work in parallel. But the all-reduce phase grows. By N=16, on this model, the all-reduce takes about as long as the compute. We've added GPUs and hit the point where adding more would do nothing.
 
