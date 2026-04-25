@@ -11,6 +11,7 @@ essay: true
 
 import Figure from "@components/figure/Figure.svelte";
 import Fp8LossCurve from "@components/figures/multi-gpu-training/Fp8LossCurve.svelte";
+import MemoryBar from "@components/figures/multi-gpu-training/MemoryBar.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -183,7 +184,9 @@ Data parallel solved a wall-clock problem. It did not solve a memory problem.
 
 Picture training a 70B-parameter model with mixed-precision Adam. From section 1, that's 16 bytes per parameter, so the parameters, gradients, and optimizer states together come to 70 × 10⁹ × 16 = 1.12 terabytes. An H100 has 80 GB of HBM. A 70B Adam run is 14× over budget on memory before we've allocated a single activation tensor.
 
-{/* TODO: <Fig4MemoryBar /> interactive-canvas, slider for params (1B..405B), slider for N (DDP replication), hardware toggle (H100/H200/B200), stacked bar showing weight/grad/optimizer with HBM reference line */}
+<Figure caption="Per-rank memory under DDP. The bar's three segments are weights (2Ψ), gradients (2Ψ), and optimizer state (12Ψ); the dashed line is one GPU's HBM. Sliding ranks to 32 leaves the bar untouched: every replica holds the full 16Ψ. Switching to B200 (192 GB) lifts the line but doesn't reach a 70B model. The cluster-total readout is the bill." figNum={4}>
+<MemoryBar client:visible />
+</Figure>
 
 Drag the parameter slider up. Watch the bar overshoot the hardware line. Switch the hardware toggle to a B200 (192 GB). Try 70B again. Then 405B. Even the most generous single GPU on the market today can't hold the optimizer state for a frontier model.
 
