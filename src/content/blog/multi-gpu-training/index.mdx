@@ -17,6 +17,7 @@ import RingAllReduce from "@components/figures/multi-gpu-training/RingAllReduce.
 import ZeroStages from "@components/figures/multi-gpu-training/ZeroStages.svelte";
 import Fsdp from "@components/figures/multi-gpu-training/Fsdp.svelte";
 import TpMatmul from "@components/figures/multi-gpu-training/TpMatmul.svelte";
+import TpSp from "@components/figures/multi-gpu-training/TpSp.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -372,9 +373,11 @@ Sequence parallel (SP) fixes this.
 
 The idea is local. The element-wise regions don't need the full activation; they operate independently along the sequence axis. So shard those regions along sequence instead. Every rank holds a `1/t` slice of the activation in those regions. On entry to the matmul region, all-gather the activation along sequence. On exit, reduce-scatter the result back. The original Megatron `g` all-reduce splits cleanly into reduce-scatter + all-gather of the same total bytes, by the Patarasuk-Yuan equality.
 
-{/* TODO: <Fig9TpSp /> interactive-canvas, stacked-bar showing where activations are fat, toggle TP-only / TP+SP, slider for sequence length */}
+<Figure caption="Per-rank, per-layer activation memory for a 70B-style transformer at TP=8, BF16. The bar is stacked into matmul activations (sharded by TP), element-wise regions (full under TP-only, sharded under TP+SP), and the attention-score subblock (which scales as s²). Drag the sequence slider: at 1k–4k SP shrinks the bar dramatically; at 32k attention takes over and SP has nothing left to fix." figNum={9}>
+  <TpSp client:visible />
+</Figure>
 
-Toggle TP-only vs TP+SP. Drag the sequence-length slider out to 32k. Watch the activation memory of the LayerNorm and dropout regions shrink to `1/t` of its TP-only size. Total comm volume is unchanged. Peak activation memory drops a lot.
+Compare TP-only vs TP+SP. Drag the sequence-length slider out to 32k. Watch the activation memory of the LayerNorm and dropout regions shrink to `1/t` of its TP-only size. Total comm volume is unchanged. Peak activation memory drops a lot.
 
 There's still residual activation pressure that TP+SP doesn't catch. Attention's softmax-attention-dropout subblock holds an `[batch, heads/t, seq, seq]` tensor that scales as O(s²) in sequence length. For very long context that becomes the dominant memory cost.
 
