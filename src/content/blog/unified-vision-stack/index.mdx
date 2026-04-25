@@ -6,11 +6,12 @@ heroAlt: ""
 tags: ["AI", "ML"]
 featured: false
 draft: false
+essay: true
 ---
 
 *An end-to-end, intuition-first explanation of how modern computer vision works, and why three papers published between late 2024 and early 2026 quietly changed the standard stack. For engineers new to the field. About a 45-minute read.*
 
-## 1. What a vision model actually does
+### 1. What a vision model actually does
 
 Before anything else, we have to agree on what a computer vision model is supposed to produce. If you've used ML libraries you've probably called a function like `model.predict(image)` and gotten back a label. But the label is not really what the model makes. The label is what a tiny head stapled onto the model makes, using what the model actually produces: a pile of numbers.
 
@@ -22,7 +23,7 @@ So when we talk about vision foundation models, we're talking about one specific
 
 > A useful analogy for engineers: the vision backbone is like a compiler's intermediate representation. The IR is not what you care about directly, but every single optimization pass and every single backend target uses it. Get the IR right and every downstream pass gets easier. Get it wrong and you pay for it forever.
 
-## 2. Two kinds of features, and why it matters
+### 2. Two kinds of features, and why it matters
 
 Here's where we need to make a distinction that will shape the rest of this piece. A vision model produces two different kinds of features, and they have very different jobs.
 
@@ -60,7 +61,7 @@ Here's why the distinction matters enormously. For a long time, the dominant vis
 
 If you want a single vision backbone that can do everything (classify, segment, track, measure depth, correspond points between frames), you need both kinds of features to be good. Global features that summarize well. Dense features that preserve local geometry. Seems like an obvious thing to want. Turns out, until very recently, nobody knew how to train a single network to produce both at scale.
 
-## 3. How a Vision Transformer sees
+### 3. How a Vision Transformer sees
 
 Modern vision is dominated by a single architecture family: the *Vision Transformer*, or ViT. It's worth spending a paragraph on how one works, because the rest of the story depends on it.
 
@@ -88,7 +89,7 @@ This is nice, clean, general. A single architecture that naturally produces both
 
 And yet.
 
-## 4. The paradox: scaling made it *worse*
+### 4. The paradox: scaling made it *worse*
 
 If you take a ViT and train it on enough data for long enough, something strange happens. The global features keep getting better. Classification accuracy on ImageNet climbs monotonically, breaking past 85%, past 88%, past 90%. The model is clearly learning more and more about images.
 
@@ -138,7 +139,7 @@ We'll take them one at a time.
 
 *DINOv3, self-supervised learning at scale, and the trick that saved dense features.*
 
-## 5. Meet DINOv3
+### 5. Meet DINOv3
 
 DINOv3 is Meta's self-supervised vision transformer, released in August 2025. It is, at the time of writing, the strongest general-purpose vision backbone in the world. It comes in sizes from 21 million parameters (deployable on a laptop) up to 6.7 billion parameters (the research flagship). It was trained on 1.7 billion images without a single human-provided label.
 
@@ -146,7 +147,7 @@ Three things make DINOv3 interesting. First, it took self-supervised learning to
 
 Gram anchoring is the real contribution. Everything else (the scale, the data curation, the architecture tweaks) is table stakes for a 2025 foundation model. Gram anchoring is the idea that will still be influential in five years. Before we can appreciate it, though, we need to understand two pieces of machinery: self-supervised learning, and the Gram matrix itself.
 
-## 6. Self-supervision, from first principles
+### 6. Self-supervision, from first principles
 
 If you're coming from supervised learning, the obvious question is: how do you train a model without labels?
 
@@ -219,7 +220,7 @@ Two losses. One global, one local. Trained together for a million iterations on 
 >
 > Think of it as stratified sampling on steroids. You get to see every corner of visual reality, not just the bright-lit center.
 
-## 7. A Gram matrix, from scratch
+### 7. A Gram matrix, from scratch
 
 To understand DINOv3's fix for dense feature collapse, we need to introduce one more piece of math: the *Gram matrix*. It sounds technical but the idea is almost absurdly simple.
 
@@ -306,7 +307,7 @@ For a vision model, the Gram matrix of the dense features tells you which patche
 
 Dense feature collapse, when you plot the Gram matrix of a late-training ViT, looks exactly like static on an old TV. Every patch looks moderately similar to every other patch. The fine distinctions are gone.
 
-## 8. Gram anchoring: the blueprint trick
+### 8. Gram anchoring: the blueprint trick
 
 Now we have everything we need to understand Gram anchoring. The DINOv3 team observed the collapse, and they had a specific observation: *the Gram matrix used to look fine, earlier in training.* At iteration 100-200k or so, the dense features were sharp, the Gram matrix was clean, the model was doing the right thing. The collapse happened later, as the global objective started to dominate.
 
@@ -347,7 +348,7 @@ Gram anchoring is also the reason DINOv3 can be used *frozen*, with no fine-tuni
 
 *Why three specialist backbones can't coexist at inference, and how C-RADIOv4 fuses them into one.*
 
-## 9. Three teachers, one student
+### 9. Three teachers, one student
 
 DINOv3 is the best dense-feature model ever made. It is also, in one specific way, useless: you can't talk to it. You can't ask "is there a dog in this picture?" and get a yes-or-no answer, because DINOv3 has never seen the word "dog." It has no alignment with language at all. It was trained on pure pixels, without captions or labels.
 
@@ -459,7 +460,7 @@ Three backbones. Three complementary strengths. And running all three in product
 
 This is where C-RADIOv4 enters the story.
 
-## 10. What distillation is, really
+### 10. What distillation is, really
 
 Before we can talk about C-RADIOv4, one more piece of background. The technique C-RADIOv4 relies on is called *knowledge distillation*, and it deserves a careful explanation because the whole story turns on it.
 
@@ -509,7 +510,7 @@ This all sounds elegant and easy. In practice, naive multi-teacher distillation 
 
 The reason, it turned out, was geometry.
 
-## 11. Why three teachers clash
+### 11. Why three teachers clash
 
 Let's go back to feature space. Imagine DINOv3's output features as a cloud of points in a high-dimensional space. Each image produces one point. The cloud as a whole occupies some region of the space. How *big* is that region? How spread out are the points?
 
@@ -544,11 +545,11 @@ When you backpropagate, gradient magnitudes scale with loss magnitudes. DINOv3's
 
 This is a geometric problem, and it has a geometric solution.
 
-## 12. Three ingredients of the C-RADIO recipe
+### 12. Three ingredients of the C-RADIO recipe
 
 The C-RADIOv4 tech report builds on a set of tricks that have been accumulating in the RADIO line for a while. Two of them — PHI-S and shift equivariance — were introduced in earlier RADIO papers (2024) and refined in v4. The third, stochastic multi-resolution training, is the natural culmination of work on the "mode switching" problem that has been chipped away at across several releases. Taken together, they're the core ingredients that make agglomerative distillation work at all.
 
-### Ingredient 1: Balanced Summary Loss (PHI-S)
+#### Ingredient 1: Balanced Summary Loss (PHI-S)
 
 Divide each teacher's loss contribution by that teacher's angular dispersion. Before the losses get summed, DINOv3's loss gets scaled down by 2.186 and SigLIP2's loss gets scaled up (or equivalently, scaled down by 0.694). After this normalization, both teachers contribute the same total gradient magnitude. The floodlight and the laser pull with equal force.
 
@@ -556,7 +557,7 @@ The exact technique, which NVIDIA calls *PHI-S* (for "PHI-Standardization"), goe
 
 After PHI-S, multi-teacher distillation actually works. The student carries all three teachers' capabilities in a single embedding. But we're not done. There are still two subtle failure modes that show up when you try to distill from many teachers at once.
 
-### Ingredient 2: Shift Equivariance
+#### Ingredient 2: Shift Equivariance
 
 Here's a problem nobody thinks about until they're deep into multi-teacher distillation: every teacher has *bad habits*. Little position-dependent quirks that aren't really about the image content but are artifacts of how the teacher was trained.
 
@@ -570,7 +571,7 @@ Now think about what these artifacts have in common. The border dead zones are a
 
 It's a minimal fix. One line of code during training, and an entire class of inherited garbage disappears from the student's features.
 
-### Ingredient 3: Stochastic Multi-Resolution
+#### Ingredient 3: Stochastic Multi-Resolution
 
 The third ingredient concerns a subtle issue you only notice when you try to use a model at many different resolutions. Standard ViT training happens at a single fixed resolution, usually 224px or 336px. When you deploy the model and someone sends it a 1024px image, you're asking it to generalize to a regime it never saw.
 
@@ -598,7 +599,7 @@ This also has a lovely side effect: it lets C-RADIOv4 track the full scaling cur
 
 *FeatSharp, a 2D upsampler built on a 3D reconstruction trick.*
 
-## 13. Resolution, the last mile
+### 13. Resolution, the last mile
 
 SigLIP2 was trained at 384×384. Its feature map, at that input resolution, is 24×24, one vector per 16×16 pixel patch. If you ask SigLIP2 to process a 1152×1152 image, its internal machinery gets cranky. Position embeddings, which were learned at the training resolution, now have to extrapolate. The feature map becomes 72×72, but the patches at those new positions have position encodings the model has never seen. The features degrade, not catastrophically, but visibly. Boundaries become fuzzy. Patterns repeat where they shouldn't. Textures look like plaid.
 
@@ -608,7 +609,7 @@ The problem for C-RADIOv4: if the training resolution is random between 128px an
 
 We need a way to get *clean* SigLIP2 features at 1152px, without retraining SigLIP2. This is the job of FeatSharp.
 
-## 14. The NeRF trick for features
+### 14. The NeRF trick for features
 
 To explain FeatSharp, I have to briefly talk about NeRF. NeRF (Neural Radiance Fields) is a 3D reconstruction technique from 2020. Its setup is this: you have a few dozen 2D photographs of a real-world scene, taken from different viewpoints. You want to reconstruct a 3D representation of the scene that you can render from any new viewpoint.
 
@@ -677,7 +678,7 @@ The result: a clean, high-resolution SigLIP2 feature map that is fully consisten
 
 FeatSharp is a small module, about as expensive as one extra transformer block, and it plugs into the C-RADIOv4 training pipeline as a preprocessor for SigLIP2's targets. It's also useful independently: any time you have a pretrained low-resolution vision encoder and want to extract richer spatial information from it, FeatSharp can upgrade the feature resolution without retraining the encoder.
 
-## 15. Interlude: borrowing from biology
+### 15. Interlude: borrowing from biology
 
 Before we put the whole pipeline together, one more idea deserves its own section. It's used across all three papers we've discussed, but it's not really about computer vision. It's about how neural networks should be trained in the first place. And it's borrowed, more literally than is typical, from biology.
 
@@ -697,7 +698,7 @@ The bigger lesson: a lot of ML practice inherits assumptions from statistics tex
 
 > There's a philosophical angle worth noting. We've spent two decades assuming that biological intelligence and artificial intelligence are "different kinds of systems," and that trying to directly translate neural biology into deep learning is a mug's game. Sometimes that's right. Backpropagation is not how brains learn, and anyone who says otherwise is selling something. But the log-normal synapse story is a counterexample. A specific, measured, boring property of real neurons (their noise is proportional to their signal) turns out to make artificial networks measurably better when imitated. Not every biological property will. Some of them will. The field is slowly learning which.
 
-## 16. Putting it together: the pipeline
+### 16. Putting it together: the pipeline
 
 Let's zoom back out. We've now covered every piece. Here's the full training pipeline for a 2026 vision foundation model, from raw images to deployable checkpoint.
 
@@ -779,19 +780,19 @@ This is how a 6.7B self-supervised teacher ends up producing a 21M ConvNeXt you 
 >
 > The output: a family of vision backbones ranging from 21M to 840M parameters (and a 6.7B research flagship on the DINOv3 side) that all share the same fundamental capabilities (classification, segmentation, depth estimation, text alignment, video tracking, cross-domain transfer) in a single forward pass. You pick the size that fits your hardware budget.
 
-## 17. Three ideas worth stealing
+### 17. Three ideas worth stealing
 
 We've covered a lot of ground: self-supervision, Gram matrices, multi-teacher distillation, angular dispersion, NeRF-inspired upsampling, log-normal synapses. If you only take three things away from all of it, I would pick these:
 
-### 1. Regularize relationships, not values.
+#### 1. Regularize relationships, not values.
 
 Gram anchoring is the cleanest example of a pattern that keeps showing up across machine learning: when some property of your model is degrading during training, the fix is often not to freeze the *values* of the relevant quantities but to freeze their *relational structure*. The Gram matrix preserves pairwise similarities while letting individual features evolve. The underlying idea, pin the geometry and free the content, is applicable far outside vision. Any time you have a representation that you want to stay structurally coherent while continuing to learn new things, ask what relational property captures the structure you care about, and regularize that.
 
-### 2. Heterogeneous signals need geometric normalization.
+#### 2. Heterogeneous signals need geometric normalization.
 
 The C-RADIOv4 three-teacher problem is, at its heart, a generic issue with combining evidence from sources with different natural scales. Naive weighted averaging fails silently when the sources have different variances or different angular ranges. You don't get a helpful error message; you get a model that ignored the quieter source. The fix is to normalize by each source's intrinsic scale before combining. PHI-S is one specific way to do this in feature space, but the general principle (measure each source's natural magnitude and divide it out before summing) applies broadly. Multi-loss optimization, multi-task learning, sensor fusion, ensemble methods: all of them have this failure mode, and the fix is always some variant of the same normalization.
 
-### 3. Randomize what you don't want memorized.
+#### 3. Randomize what you don't want memorized.
 
 Shift equivariance, stochastic multi-resolution, multiplicative weight perturbation: these are all, at some level, the same trick. If there's a structural property of your training setup that you don't want the model to encode as a shortcut, *randomize it during training*. Fixed pixel coordinates become random offsets. Fixed resolutions become sampled resolutions. Fixed noise levels become proportional fluctuations. The model learns the part that's invariant to the randomization, which, by construction, is the part you actually want it to learn. This is an old idea dressed up in many clothes, but it bears repeating: if your model is learning something you didn't intend, look for a way to make that something *vary* from batch to batch, and watch it disappear.
 

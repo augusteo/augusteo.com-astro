@@ -17,9 +17,10 @@ interface Props {
   heroAlt: string;
   tags: string[];
   firstContentImage?: string;
+  essay?: boolean;
 }
 
-const { title, description, pubDate, heroImage, heroAlt, tags, firstContentImage } = Astro.props;
+const { title, description, pubDate, heroImage, heroAlt, tags, firstContentImage, essay } = Astro.props;
 const primaryTag = tags[0].toLowerCase();
 
 const formattedDate = pubDate.toLocaleDateString("en-US", {
@@ -86,7 +87,7 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
       </header>
 
       <!-- Content -->
-      <div class="post-content prose">
+      <div class={`post-content prose${essay ? " essay" : ""}`}>
         <slot />
       </div>
     </article>
