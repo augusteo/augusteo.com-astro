@@ -132,3 +132,21 @@ which approaches 2M as N grows and stops growing. This is the *bandwidth-flat* p
 Patarasuk and Yuan proved in 2009 that 2(N-1)/N × M is the lower bound for any all-reduce algorithm. The ring saturates it. Every multi-GPU training run you'll meet uses a ring or a close cousin for the gradient all-reduce. NCCL ships ring as its default for medium-sized messages, double-binary-tree for very large ones, and a few hierarchical variants for nodes with mixed NVLink and InfiniBand topology.
 
 There's one move worth holding onto. The ring split the work into two halves: reduce-scatter (each rank ends up with one chunk's full sum) and all-gather (every rank ends up with every chunk). For DDP we ran both back-to-back to recover the full all-reduce. Each half is a useful primitive on its own, and we'll see them reused in the next section to do something the all-reduce alone cannot.
+
+### 4. When the model doesn't fit
+
+Data parallel solved a wall-clock problem. It did not solve a memory problem.
+
+Picture training a 70B-parameter model with mixed-precision Adam. From section 1, that's 16 bytes per parameter, so the parameters, gradients, and optimizer states together come to 70 × 10⁹ × 16 = 1.12 terabytes. An H100 has 80 GB of HBM. A 70B Adam run is 14× over budget on memory before we've allocated a single activation tensor.
+
+{/* TODO: <Fig4MemoryBar /> interactive-canvas, slider for params (1B..405B), slider for N (DDP replication), hardware toggle (H100/H200/B200), stacked bar showing weight/grad/optimizer with HBM reference line */}
+
+Drag the parameter slider up. Watch the bar overshoot the hardware line. Switch the hardware toggle to a B200 (192 GB). Try 70B again. Then 405B. Even the most generous single GPU on the market today can't hold the optimizer state for a frontier model.
+
+Now drag the GPU-count slider up. Notice the bar doesn't shrink. With DDP, every rank holds the full state, so adding GPUs scales compute, not memory. That is the wall we hit.
+
+Three things take memory in a training step. *Parameters* are 2 bytes per param in BF16; *gradients* are 2 bytes per param; the *optimizer state* is 12 bytes per param for Adam, broken into 4 for the FP32 master copy, 4 for `m`, and 4 for `v`. The optimizer state is the elephant. It's 12 of the 16 bytes per parameter, and the optimizer is the only thing that touches it. Forward never reads it. Backward never writes it.
+
+This was the insight that gave us ZeRO. With N GPUs, you don't need every rank to hold every byte at every moment. You can partition the state across ranks and reconstruct what you need when you need it, by talking.
+
+The first thing to partition is the optimizer state, because it's the biggest and the cheapest to spread out. We're going to do that next. And we're going to do it without adding any communication on top of what DDP already paid.
