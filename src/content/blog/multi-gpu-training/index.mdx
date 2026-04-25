@@ -13,6 +13,7 @@ import Figure from "@components/figure/Figure.svelte";
 import Fp8LossCurve from "@components/figures/multi-gpu-training/Fp8LossCurve.svelte";
 import MemoryBar from "@components/figures/multi-gpu-training/MemoryBar.svelte";
 import DdpStep from "@components/figures/multi-gpu-training/DdpStep.svelte";
+import RingAllReduce from "@components/figures/multi-gpu-training/RingAllReduce.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -159,7 +160,9 @@ The naive answer is to nominate a leader. Every rank sends its gradient to GPU 0
 
 A better way uses a ring.
 
-{/* TODO: <Fig3RingAllReduce /> interactive-canvas, ring of N nodes, slider N=4..8, scrubber 2(N-1) steps */}
+<Figure caption="Ring all-reduce. Each rank's vector is split into N chunks; cells fill as contributions accumulate. The first N-1 scrubber steps are reduce-scatter (cells grow, one chunk per rank lights up green when fully summed); the next N-1 are all-gather (the green cells copy around the ring until every rank holds every fully-summed chunk)." figNum={3}>
+<RingAllReduce client:visible />
+</Figure>
 
 Drag the slider for N. Scrub from step 0 through step 2(N-1). The first N-1 steps are the *reduce-scatter*; the next N-1 steps are the *all-gather*.
 
