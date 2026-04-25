@@ -169,7 +169,7 @@ ZeRO-3 partitions the parameters themselves.
 
 This is the one that costs extra. Forward and backward both need every parameter, but each rank now only holds 1/N. The fix: just-in-time all-gather. Before forward of layer K runs, every rank all-gathers the parameters for layer K, runs the layer, and immediately frees the gathered copy. Same on backward. We trade 16Ψ → 16Ψ/N bytes per param of memory for `2 × num_layers` extra all-gathers per step. Communication goes from 2Ψ (DDP) to 3Ψ (ZeRO-3): 50% more.
 
-{/* TODO: <Fig6ZeroStages /> interactive-canvas, three columns of stacked bars (Stage 1, 2, 3), toggle for stage, slider for N=4..32 */}
+{/* TODO: <Fig5ZeroStages /> interactive-canvas, three columns of stacked bars (Stage 1, 2, 3), toggle for stage, slider for N=4..32 */}
 
 Toggle through the stages. Drag N. With Stage 3 at N=32, per-rank memory has dropped from 16Ψ to roughly 16Ψ/32 = half a byte per parameter. The 70B model that didn't fit on one H100 now fits on a quarter of one (1.12 TB / 32 ≈ 35 GB).
 
@@ -177,7 +177,7 @@ The catch is latency. Each layer's all-gather is small (a single layer's paramet
 
 The trick that makes this affordable is *prefetching*.
 
-{/* TODO: <Fig7Fsdp /> interactive-canvas, layers across, time across, all-gather of layer K+1 firing during forward of layer K */}
+{/* TODO: <Fig6Fsdp /> interactive-canvas, layers across, time across, all-gather of layer K+1 firing during forward of layer K */}
 
 Scrub through one forward pass. The all-gather for layer K+1's parameters fires while layer K's matmul is still running. The two run on separate streams. By the time forward reaches layer K+1, its parameters are already in memory. The gather doesn't show up on the critical path. Backward does the same trick in reverse.
 
