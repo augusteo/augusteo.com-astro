@@ -14,6 +14,7 @@ import Fp8LossCurve from "@components/figures/multi-gpu-training/Fp8LossCurve.sv
 import MemoryBar from "@components/figures/multi-gpu-training/MemoryBar.svelte";
 import DdpStep from "@components/figures/multi-gpu-training/DdpStep.svelte";
 import RingAllReduce from "@components/figures/multi-gpu-training/RingAllReduce.svelte";
+import ZeroStages from "@components/figures/multi-gpu-training/ZeroStages.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -222,7 +223,9 @@ ZeRO-3 partitions the parameters themselves.
 
 This is the one that costs extra. Forward and backward both need every parameter, but each rank now only holds 1/N. The fix: just-in-time all-gather. Before forward of layer K runs, every rank all-gathers the parameters for layer K, runs the layer, and immediately frees the gathered copy. Same on backward. We trade 16Ψ → 16Ψ/N bytes per param of memory for `2 × num_layers` extra all-gathers per step. Communication goes from 2Ψ (DDP) to 3Ψ (ZeRO-3): 50% more.
 
-{/* TODO: <Fig5ZeroStages /> interactive-canvas, three columns of stacked bars (Stage 1, 2, 3), toggle for stage, slider for N=4..32 */}
+<Figure caption="Per-rank memory under ZeRO stages 1, 2, and 3 against the DDP baseline of 16Ψ bytes per parameter. Drag N to sweep the rank count; toggle the highlighted stage. Stage 3 at large N drops to half a byte per parameter." figNum={5}>
+  <ZeroStages client:visible />
+</Figure>
 
 Toggle through the stages. Drag N. With Stage 3 at N=32, per-rank memory has dropped from 16Ψ to roughly 16Ψ/32 = half a byte per parameter. The 70B model that didn't fit on one H100 now fits on a quarter of one (1.12 TB / 32 ≈ 35 GB).
 
