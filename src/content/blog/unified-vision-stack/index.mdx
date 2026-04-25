@@ -109,10 +109,10 @@ This isn't a subtle effect. Researchers have measured it carefully: on standard 
 <path d="M60,240 Q120,160 172,105 T284,75 T396,62 T508,58 T620,56" fill="none" stroke="#2563EB" stroke-width="2.5"/>
 <path d="M60,240 Q100,150 160,120 Q220,105 260,125 Q320,180 390,220 Q460,240 540,250 Q580,252 620,252" fill="none" stroke="#B91C1C" stroke-width="2.5"/>
 <g font-family="serif" font-size="12" font-style="italic">
-<text x="420" y="50" fill="#2563EB">global accuracy (ImageNet)</text>
-<line x1="398" y1="58" x2="435" y2="47" stroke="#2563EB" stroke-width=".8"/>
-<text x="330" y="230" fill="#B91C1C">dense precision (ADE20k mIoU)</text>
-<line x1="325" y1="226" x2="310" y2="215" stroke="#B91C1C" stroke-width=".8"/>
+<text x="425" y="28" fill="#2563EB">global accuracy (ImageNet)</text>
+<line x1="450" y1="34" x2="478" y2="54" stroke="#2563EB" stroke-width=".8"/>
+<text x="332" y="175" fill="#B91C1C">dense precision (ADE20k mIoU)</text>
+<line x1="352" y1="182" x2="372" y2="207" stroke="#B91C1C" stroke-width=".8"/>
 </g>
 <g font-family="serif" font-size="12" fill="#6B6258">
 <text x="150" y="85" text-anchor="middle">rises and keeps rising</text>
@@ -429,11 +429,11 @@ Three backbones. Three complementary strengths. And running all three in product
 <figure>
 <svg viewBox="0 0 680 270" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
 <g>
-<circle cx="130" cy="120" r="80" fill="#DBEAFE" stroke="#2563EB" stroke-width="2.5"/>
-<text x="130" y="105" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#1A1A1A">DINOv3</text>
-<text x="130" y="125" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#2563EB">self-supervised</text>
-<text x="130" y="220" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">+ dense patch geometry</text>
-<text x="130" y="240" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258">− no text grounding</text>
+<circle cx="120" cy="120" r="80" fill="#DBEAFE" stroke="#2563EB" stroke-width="2.5"/>
+<text x="120" y="105" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#1A1A1A">DINOv3</text>
+<text x="120" y="125" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#2563EB">self-supervised</text>
+<text x="120" y="220" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">+ dense patch geometry</text>
+<text x="120" y="240" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258">− no text grounding</text>
 </g>
 <g>
 <circle cx="340" cy="120" r="80" fill="#D1FAE5" stroke="#059669" stroke-width="2.5"/>
@@ -443,17 +443,17 @@ Three backbones. Three complementary strengths. And running all three in product
 <text x="340" y="240" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258">− locked at 384px</text>
 </g>
 <g>
-<circle cx="550" cy="120" r="80" fill="#EDE0FC" stroke="#9333EA" stroke-width="2.5"/>
-<text x="550" y="105" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#1A1A1A">SAM3</text>
-<text x="550" y="125" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#9333EA">fully supervised</text>
-<text x="550" y="220" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">+ instance-aware masks</text>
-<text x="550" y="240" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258">− narrow semantics</text>
+<circle cx="560" cy="120" r="80" fill="#EDE0FC" stroke="#9333EA" stroke-width="2.5"/>
+<text x="560" y="105" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#1A1A1A">SAM3</text>
+<text x="560" y="125" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#9333EA">fully supervised</text>
+<text x="560" y="220" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">+ instance-aware masks</text>
+<text x="560" y="240" text-anchor="middle" font-family="serif" font-size="12" fill="#6B6258">− narrow semantics</text>
 </g>
 <g>
-<text x="227" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#B91C1C">LATENCY</text>
-<line x1="210" y1="120" x2="244" y2="120" stroke="#B91C1C" stroke-width="1.5" stroke-dasharray="4,3"/>
-<text x="437" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#B91C1C">LATENCY</text>
-<line x1="420" y1="120" x2="454" y2="120" stroke="#B91C1C" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="230" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#B91C1C">LATENCY</text>
+<line x1="210" y1="120" x2="250" y2="120" stroke="#B91C1C" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="450" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#B91C1C">LATENCY</text>
+<line x1="430" y1="120" x2="470" y2="120" stroke="#B91C1C" stroke-width="1.5" stroke-dasharray="4,3"/>
 </g>
 </svg>
 <figcaption><strong>Fig 6.</strong> Three specialized backbones, each excellent at something, each deficient at something else. Running them together at inference time would give us a complete vision system, and also a multi-GPU deployment burden nobody can justify. The question: can we train a single student that gets all three of their strengths?</figcaption>
@@ -492,16 +492,16 @@ Crucially, this is an *agglomerative* process: the student ends up carrying info
 <rect x="290" y="100" width="120" height="60" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
 <text x="350" y="125" text-anchor="middle" font-family="serif" font-size="15" font-weight="700" fill="#F4EEE3">student</text>
 <text x="350" y="145" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">C-RADIOv4</text>
-<line x1="412" y1="130" x2="440" y2="130" stroke="#8F8578" marker-end="url(#a3)"/>
-<rect x="445" y="115" width="80" height="30" fill="none" stroke="#B8651A" stroke-width="1.5"/>
+<line x1="412" y1="130" x2="432" y2="130" stroke="#8F8578" marker-end="url(#a3)"/>
+<rect x="435" y="115" width="100" height="30" fill="none" stroke="#B8651A" stroke-width="1.5"/>
 <text x="485" y="134" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">unified feature</text>
 <g font-family="JetBrains Mono" font-size="10">
-<line x1="527" y1="125" x2="555" y2="55" stroke="#8F8578" marker-end="url(#a3)"/>
-<rect x="555" y="40" width="100" height="30" fill="#DBEAFE" stroke="#2563EB"/><text x="605" y="59" text-anchor="middle" fill="#2563EB">DINOv3 head</text>
-<line x1="527" y1="130" x2="555" y2="130" stroke="#8F8578" marker-end="url(#a3)"/>
-<rect x="555" y="115" width="100" height="30" fill="#D1FAE5" stroke="#059669"/><text x="605" y="134" text-anchor="middle" fill="#059669">SigLIP head</text>
-<line x1="527" y1="135" x2="555" y2="205" stroke="#8F8578" marker-end="url(#a3)"/>
-<rect x="555" y="190" width="100" height="30" fill="#EDE0FC" stroke="#9333EA"/><text x="605" y="209" text-anchor="middle" fill="#9333EA">SAM3 head</text>
+<line x1="540" y1="125" x2="565" y2="55" stroke="#8F8578" marker-end="url(#a3)"/>
+<rect x="565" y="40" width="100" height="30" fill="#DBEAFE" stroke="#2563EB"/><text x="615" y="59" text-anchor="middle" fill="#2563EB">DINOv3 head</text>
+<line x1="540" y1="130" x2="565" y2="130" stroke="#8F8578" marker-end="url(#a3)"/>
+<rect x="565" y="115" width="100" height="30" fill="#D1FAE5" stroke="#059669"/><text x="615" y="134" text-anchor="middle" fill="#059669">SigLIP head</text>
+<line x1="540" y1="135" x2="565" y2="205" stroke="#8F8578" marker-end="url(#a3)"/>
+<rect x="565" y="190" width="100" height="30" fill="#EDE0FC" stroke="#9333EA"/><text x="615" y="209" text-anchor="middle" fill="#9333EA">SAM3 head</text>
 </g>
 </svg>
 <figcaption><strong>Fig 7.</strong> Multi-teacher distillation in action. Three frozen teachers produce outputs for an image. A shared student backbone learns a single unified feature, and three small heads, one per teacher, are trained to reproduce each teacher's output from that feature. At inference, the student runs once; the heads run as needed.</figcaption>
