@@ -19,6 +19,7 @@ import Fsdp from "@components/figures/multi-gpu-training/Fsdp.svelte";
 import TpMatmul from "@components/figures/multi-gpu-training/TpMatmul.svelte";
 import TpSp from "@components/figures/multi-gpu-training/TpSp.svelte";
 import PipelineSchedule from "@components/figures/multi-gpu-training/PipelineSchedule.svelte";
+import DualPipe from "@components/figures/multi-gpu-training/DualPipe.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -432,7 +433,9 @@ The two streams overlap exactly where naive pipelines have bubbles. The warm-up 
 
 The second move is *backward splitting*. Each backward pass for a chunk is split into two phases. *Backward-for-input* (B) produces the gradient passed upstream. *Backward-for-weights* (W) produces the gradient stored locally for the optimizer. The earlier ZeroBubble paper showed these can be scheduled separately: B is on the critical path, W is not. DualPipe schedules W into the gaps that the bidirectional flow doesn't already fill.
 
-{/* TODO: <Fig11DualPipe /> interactive-canvas, bidirectional schedule with F&B fused chunks, scrubber through one step, compare to 1F1B */}
+<Figure caption="DualPipe (bottom) compared to 1F1B (top) at the same K and M. Bidirectional micro-batching feeds the pipeline from both ends, so DualPipe's warm-up triangle is half as wide and the bubble shrinks by close to 50% relative to 1F1B. Cells are colored by stream so the right-going batches are visible filling the slots that 1F1B leaves idle. Drag the scrubber to walk through one step on both schedules at once." figNum={11}>
+  <DualPipe client:visible />
+</Figure>
 
 Scrub through one DualPipe step. The bubble has gone from a `(K-1)·(F+B)`-shaped triangle to roughly `(K/2 - 1)·(F&B + B - 3W)`. For K=16 with similar F, B, W times, that's about half the bubble of 1F1B at the same K and M. Peak activation memory grows by `(K+1)/K`, roughly 6% on K=16.
 
