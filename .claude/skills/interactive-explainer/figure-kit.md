@@ -1,22 +1,26 @@
 # Figure kit reference
 
-The seven Svelte primitives, the palette, and the rendering decision tree. Read this before drafting figure specs in phase 3 or implementing figures in phase 5.
+The seven Svelte primitives, the palette, the per-figure wrapper pattern, and the rendering decision tree. Read this before drafting figure specs in phase 3 or implementing figures in phase 5.
 
 ## Where things live
 
 ```
-src/components/figure/Figure.svelte         # caption wrapper
-src/components/figure/Slider.svelte         # single range, labelled
-src/components/figure/Toggle.svelte         # button group
-src/components/figure/Scrubber.svelte       # play/pause/seek
-src/components/figure/DragArea.svelte       # 2D drag handle (overlay)
-src/components/figure/Canvas2D.svelte       # reactive canvas with draw callback
-src/components/figure/Plot.svelte           # line/bar plot, built on Canvas2D
-src/figures/shared.ts                        # palette, font, geometry helpers
-src/figures/<post-slug>/<figure-name>.ts    # one draw function per figure
+src/components/figure/Figure.svelte                          # kit: caption wrapper
+src/components/figure/Slider.svelte                          # kit: single range, labelled
+src/components/figure/Toggle.svelte                          # kit: button group
+src/components/figure/Scrubber.svelte                        # kit: play/pause/seek
+src/components/figure/DragArea.svelte                        # kit: 2D drag handle (overlay)
+src/components/figure/Canvas2D.svelte                        # kit: reactive canvas with draw callback
+src/components/figure/Plot.svelte                            # kit: line plot, built on Canvas2D
+
+src/figures/shared.ts                                        # palette, font, geometry helpers
+src/figures/<post-slug>/<figure-name>.ts                     # one pure draw function per figure
+src/components/figures/<post-slug>/<FigureName>.svelte       # one wrapper per reactive figure
 ```
 
-Aliases configured in `astro.config.mjs`:
+Note the singular/plural split: kit primitives live in `src/components/figure/` (singular), per-post wrappers live in `src/components/figures/<slug>/` (plural). The split is deliberate: the kit is shared across all posts; wrappers are post-local.
+
+Aliases (configured in both `astro.config.mjs` Vite resolve and `tsconfig.json` paths):
 
 ```
 @components → /src/components
@@ -24,7 +28,66 @@ Aliases configured in `astro.config.mjs`:
 @assets     → /src/assets
 ```
 
-Use these in MDX imports.
+Use these in MDX, in `.svelte` wrapper components, and in `.ts` draw functions. Both Vite and the TypeScript LSP resolve them.
+
+## Astro hydration: the per-figure wrapper pattern
+
+Every reactive figure (Canvas2D, Plot, anything with a Slider/Toggle/Scrubber/DragArea) needs to be split into three pieces. A naive `<Canvas2D draw={drawFn} data={...} client:visible />` placed directly in MDX **does not work**: Astro JSON-serializes a hydrated island's props across the server-to-client boundary, and the `draw` function arrives on the client as `undefined`, throwing `$$props.draw is not a function` inside the canvas effect.
+
+The pattern that works:
+
+1. **Pure draw function** in `src/figures/<post-slug>/<figure-name>.ts`. Imports palette helpers from `@figures/shared`. No reactive state lives here; the function takes `(ctx, data, t)` and renders.
+2. **Per-figure wrapper component** in `src/components/figures/<post-slug>/<FigureName>.svelte`. Imports the draw fn and the kit primitives at build time, owns any `$state` for controls, renders `<Canvas2D>` (or `<Plot>`) and the controls strip together. Because the wrapper imports the draw fn at build time, the function never has to cross the hydration boundary as a prop.
+3. **MDX usage**: import the wrapper, drop it inside `<Figure>` with a `client:visible` directive.
+
+Minimal example:
+
+```svelte
+<!-- src/components/figures/<post-slug>/MyFigure.svelte -->
+<script lang="ts">
+  import Canvas2D from "@components/figure/Canvas2D.svelte";
+  import Slider from "@components/figure/Slider.svelte";
+  import { drawMyFigure } from "@figures/<post-slug>/my-figure";
+
+  let n = $state(8);
+</script>
+
+<Canvas2D
+  draw={drawMyFigure}
+  data={{ n }}
+  width={520}
+  height={220}
+  ariaLabel="..."
+/>
+
+<div class="controls">
+  <Slider label="N" bind:value={n} min={2} max={32} />
+</div>
+
+<style>
+  .controls {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    align-items: center;
+  }
+</style>
+```
+
+```mdx
+import Figure from "@components/figure/Figure.svelte";
+import MyFigure from "@components/figures/<post-slug>/MyFigure.svelte";
+
+<Figure caption="..." figNum={4}>
+  <MyFigure client:visible />
+</Figure>
+```
+
+Two consequences worth holding onto:
+
+- **Don't use `<Figure>`'s `{#snippet controls()}` from MDX for hydrated figures.** Snippets don't compose across the cross-island boundary either. Render controls inline inside the wrapper component, with a `.controls` CSS strip that mirrors `Figure.svelte`'s built-in styling (the snippet shown above is the canonical copy).
+- **Static figures stay inline.** If your figure is a small fixed SVG schematic with no controls, keep it as inline `<svg>` in MDX inside `<Figure caption=".." figNum={N}>`. No wrapper, no hydration. The static-svg figures in `unified-vision-stack` and the multi-GPU post (Figs 1, 8, 15) use this shape.
 
 ## Decision tree: which renderer?
 
@@ -36,8 +99,9 @@ Use these in MDX imports.
 ## Canvas2D contract
 
 ```svelte
+<!-- inside src/components/figures/<post-slug>/<FigureName>.svelte -->
 <Canvas2D
-  draw={(ctx, data, time) => {...}}
+  draw={drawFnImportedAtBuildTime}
   data={{ ...reactive state... }}
   width={480}
   height={180}
@@ -50,6 +114,8 @@ Use these in MDX imports.
 The `draw` function is **pure**. It receives the canvas context, the current `data` object, and the elapsed time in seconds (zero unless `autoplay`). Every reactive change to `data` triggers a redraw; auto-play loops via `requestAnimationFrame`.
 
 The prop name is **`data`**, not `state`. Svelte 5 reserves `state` because of the `$state` rune.
+
+`Canvas2D` may only be used inside a per-figure wrapper Svelte component, never directly from MDX. See "Astro hydration" above.
 
 ## Slider contract
 
@@ -108,13 +174,14 @@ The `value` is normalized to `[0, 1]`. The play button sits left of the seek tra
 />
 ```
 
-Always overlays a Canvas2D underneath. Pattern in MDX:
+Always overlays a Canvas2D underneath. Pattern inside a wrapper component:
 
 ```svelte
+<!-- inside src/components/figures/<post-slug>/<FigureName>.svelte -->
 <div class="overlay">
-  <Canvas2D draw={drawX} data={...} width={480} height={180} />
+  <Canvas2D draw={drawX} data={{ px, py }} width={480} height={180} />
   <div class="overlay-drag">
-    <DragArea width={480} height={180} bind:x={px} bind:y={py} />
+    <DragArea width={480} height={180} bind:x={px} bind:y={py} label="..." />
   </div>
 </div>
 
@@ -124,7 +191,7 @@ Always overlays a Canvas2D underneath. Pattern in MDX:
 </style>
 ```
 
-The `aria-label` is required.
+The `label` prop is required (rendered as `aria-label`).
 
 ## Plot contract
 
@@ -149,18 +216,27 @@ Currently line plots only. Bar plots can be added if a figure needs them; halt a
 
 ## Figure wrapper contract
 
-```svelte
-<Figure caption="..." figNum={4}>
-  <Canvas2D ... />
+`Figure` is a server-rendered shell: border, background, caption, optional controls slot. It composes two ways depending on whether the figure inside is reactive:
 
-  {#snippet controls()}
-    <Slider ... />
-    <Toggle ... />
-  {/snippet}
+**Static SVG figure (no controls, inline `<svg>`):** use `Figure` directly in MDX. The `{#snippet controls()}` slot is fine here because no hydration is happening.
+
+```mdx
+<Figure caption="..." figNum={1}>
+<svg viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="...">
+  ...
+</svg>
 </Figure>
 ```
 
-The optional `controls` snippet renders below the canvas, above the caption. Use it for sliders/toggles tied to the figure. Caption is in italic serif; the `Fig N.` prefix is bold non-italic.
+**Reactive figure (Canvas2D, Plot, anything with controls):** drop the per-figure wrapper component inside `Figure`, with `client:visible`. Render the controls strip inside the wrapper instead of using `Figure`'s snippet, since snippets don't compose across the cross-island boundary.
+
+```mdx
+<Figure caption="..." figNum={4}>
+  <MyFigure client:visible />
+</Figure>
+```
+
+Caption is in italic serif; the `Fig N.` prefix is bold non-italic.
 
 ## Palette tokens (from `@figures/shared`)
 

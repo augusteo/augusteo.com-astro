@@ -1,13 +1,13 @@
 <script lang="ts">
-  import Canvas2D from "../../figure/Canvas2D.svelte";
-  import Slider from "../../figure/Slider.svelte";
-  import Toggle from "../../figure/Toggle.svelte";
+  import Canvas2D from "@components/figure/Canvas2D.svelte";
+  import Slider from "@components/figure/Slider.svelte";
+  import Toggle from "@components/figure/Toggle.svelte";
   import {
     drawMemoryBar,
     MEMORY_BAR_W,
     MEMORY_BAR_H,
     type MemHw,
-  } from "../../../figures/multi-gpu-training/memory-bar";
+  } from "@figures/multi-gpu-training/memory-bar";
 
   let paramsB = $state(70);
   let n = $state(8);

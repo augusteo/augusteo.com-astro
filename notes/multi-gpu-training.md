@@ -401,25 +401,11 @@ Recommended order on resumption (low complexity → high):
 5. Confirm `draft: true` is still set on the post frontmatter before starting dev work.
 6. Pick the next batch from the table above and implement.
 
-### Phase 5 implementation note (per-figure wrapper pattern)
+### Phase 5 implementation note
 
-The figure-kit recipes show `<Canvas2D draw={fn} data={...} />` placed directly inside MDX. **This does not work in Astro.** When `<Canvas2D>` is hydrated as an island via `client:visible`, Astro JSON-serializes its props across the hydration boundary, and the `draw` function arrives on the client as `undefined`, throwing `$$props.draw is not a function` inside Canvas2D's `$effect`.
+Every reactive figure is three files: a pure draw fn at `src/figures/multi-gpu-training/<kebab>.ts`, a wrapper at `src/components/figures/multi-gpu-training/<Pascal>.svelte`, and an MDX import that drops `<Wrapper client:visible />` inside `<Figure>`. The wrapper owns reactive `$state`, imports the draw fn and primitives via `@components/...` and `@figures/...` aliases, and renders the controls strip itself. Static SVG figures stay inline `<svg>` in MDX.
 
-The pattern that works (established by Fig 4 and Fig 16):
-
-1. **Draw function** lives at `src/figures/multi-gpu-training/<kebab-name>.ts`. Pure function `(ctx, data) => void`.
-2. **Wrapper Svelte component** lives at `src/components/figures/multi-gpu-training/<PascalName>.svelte`. The wrapper imports the draw function at build time, owns any reactive `$state` for sliders/toggles, and renders `<Canvas2D>` plus a `<div class="controls">` strip below it. Replicate the `.controls` CSS from `Figure.svelte` so the styling matches.
-3. **MDX** imports the wrapper component and uses it inside `<Figure caption=".." figNum={N}>`:
-   ```mdx
-   <Figure caption="..." figNum={4}>
-     <MemoryBar client:visible />
-   </Figure>
-   ```
-   The outer `<Figure>` renders server-side as the figure shell (border, caption); the inner `<Wrapper client:visible>` is one hydrated island that contains canvas + controls.
-
-Do NOT use `Figure`'s `{#snippet controls()}` slot from MDX for hydrated figures — snippets aren't compatible with the cross-island hydration boundary. Render the controls inline inside the wrapper component instead.
-
-The figure-kit doc still shows the broken pattern in `figure-recipes.md`. Future skill maintainers should update the recipes; for now, follow Fig 4's `MemoryBar.svelte` as the canonical example.
+Canonical examples in this post: `MemoryBar.svelte` (sliders + toggle), `Fp8LossCurve.svelte` (no controls). Full pattern documented in `.claude/skills/interactive-explainer/figure-kit.md` ("Astro hydration") and `figure-recipes.md`. Both were updated 2026-04-25.
 
 ### Hard rules to keep applying
 

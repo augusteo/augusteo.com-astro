@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Canvas2D from "../../figure/Canvas2D.svelte";
-  import { drawFp8LossCurve } from "../../../figures/multi-gpu-training/fp8-loss-curve";
+  import Canvas2D from "@components/figure/Canvas2D.svelte";
+  import { drawFp8LossCurve } from "@figures/multi-gpu-training/fp8-loss-curve";
 </script>
 
 <Canvas2D

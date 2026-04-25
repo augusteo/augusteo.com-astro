@@ -107,12 +107,19 @@ Goal: a working MDX file with figure placeholders and prose around them, written
 
 Goal: every figure placeholder replaced with a working Svelte component using the kit primitives.
 
-1. For each figure, create `src/figures/<post-slug>/<figure-name>.ts` containing a pure `draw(ctx, data, t)` function. Pull palette tokens from `@figures/shared`.
-2. In MDX, import primitives from `@components/figure/...` and the draw function from `@figures/<post-slug>/...`. Wrap in `<Figure caption="..." figNum={N}>`.
-3. Use only the seven kit primitives (`Figure`, `Slider`, `Toggle`, `Scrubber`, `DragArea`, `Canvas2D`, `Plot`). **If a new primitive seems needed, halt and propose it explicitly to Vic.** Do not silently add to the kit.
-4. Test each figure in `bun run dev` before moving to the next. Confirm the controls drive the canvas at 60fps. Confirm the cream palette shows. Confirm `prefers-reduced-motion` freezes any auto-loops. **The dev-view draft gate:** the post has `draft: true`, so `src/pages/blog/[slug].astro` and `index.astro` filter it out. To view a figure in dev: temporarily flip the frontmatter to `draft: false`, view at `http://localhost:4321/blog/<post-slug>` (or 4322 if 4321 is busy), then flip back to `true` *before committing*. Never commit `draft: false` until phase 6.
-5. Commit per figure so each one is reviewable in isolation. After each figure commit, update the `## Resume here` tracker: mark that figure done, record the commit hash, advance the "next batch" suggestion.
-6. **Batch by session.** Phase 5 typically spans 2-6 sessions for an 18-figure essay; pushing 10+ figures in one session degrades quality. Aim for 2-4 figures per session. After each batch, update the tracker, commit, and stop. The next session's agent will resume from the tracker.
+A reactive figure (anything with a slider, toggle, scrubber, or drag overlay, or a static figure that uses `Canvas2D`) is **two files plus an MDX import**: a pure draw function in TS, a per-figure Svelte wrapper that owns reactive state and renders the kit primitives, and an MDX import that places the wrapper inside `<Figure>`. The wrapper exists because Astro JSON-serializes hydrated-island props, and a `draw` function passed straight from MDX lands on the client as `undefined`. Read `figure-kit.md`'s "Astro hydration" section before starting your first figure of the post.
+
+A static figure (one with no controls and a small fixed schematic of 5–50 elements) is one inline `<svg>` in MDX, no wrapper, no hydration. See the existing `unified-vision-stack` figures.
+
+For each reactive figure:
+
+1. **Draw function.** Create `src/figures/<post-slug>/<figure-name>.ts` containing a pure `draw(ctx, data, t)` function. Pull palette tokens from `@figures/shared`.
+2. **Wrapper component.** Create `src/components/figures/<post-slug>/<FigureName>.svelte`. Inside the wrapper, import the draw fn and the kit primitives via aliases, declare any `$state` for sliders/toggles/scrubbers, render `<Canvas2D>` (or `<Plot>`) with `data={{ ...state }}`, and below it render a `<div class="controls">` strip of `<Slider>` / `<Toggle>` / `<Scrubber>` controls. Copy the `.controls` CSS from `figure-kit.md` so spacing matches the rest of the post.
+3. **MDX usage.** In the post MDX, import the wrapper and place it inside `<Figure caption=".." figNum={N}>` with a `client:visible` directive: `<FigureName client:visible />`. Do not import `Canvas2D` or the draw function in MDX directly.
+4. Use only the seven kit primitives (`Figure`, `Slider`, `Toggle`, `Scrubber`, `DragArea`, `Canvas2D`, `Plot`). **If a new primitive seems needed, halt and propose it explicitly to Vic.** Do not silently add to the kit.
+5. Test each figure in `bun run dev` before moving to the next. Confirm the controls drive the canvas at 60fps. Confirm the cream palette shows. Confirm `prefers-reduced-motion` freezes any auto-loops. **The dev-view draft gate:** the post has `draft: true`, so `src/pages/blog/[slug].astro` and `index.astro` filter it out. To view a figure in dev: temporarily flip the frontmatter to `draft: false`, view at `http://localhost:4321/blog/<post-slug>` (or 4322 if 4321 is busy), then flip back to `true` *before committing*. Never commit `draft: false` until phase 6.
+6. Commit per figure so each one is reviewable in isolation. After each figure commit, update the `## Resume here` tracker: mark that figure done, record the commit hash, advance the "next batch" suggestion.
+7. **Batch by session.** Phase 5 typically spans 2-6 sessions for an 18-figure essay; pushing 10+ figures in one session degrades quality. Aim for 2-4 figures per session. After each batch, update the tracker, commit, and stop. The next session's agent will resume from the tracker.
 
 ### Phase 6: wire up and publish
 

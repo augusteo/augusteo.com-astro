@@ -1,4 +1,4 @@
-import { palette, font, drawLabel, clamp } from "../shared";
+import { palette, font, drawLabel, clamp } from "@figures/shared";
 
 const TOKEN_RANGE_T: [number, number] = [0.1, 14.8];
 

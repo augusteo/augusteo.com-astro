@@ -1,4 +1,4 @@
-import { palette, font, drawLabel, fmt } from "../shared";
+import { palette, font, drawLabel, fmt } from "@figures/shared";
 
 export type MemHw = "H100" | "H200" | "B200";
 
