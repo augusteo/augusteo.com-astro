@@ -208,7 +208,7 @@
   /* Blockquote with watercolor background */
   .prose blockquote {
     margin: 2.5rem 0;
-    padding: 2.5rem 2.25rem;
+    padding: 5rem 2.5rem;
     font-style: italic;
     position: relative;
     border-left: none;
