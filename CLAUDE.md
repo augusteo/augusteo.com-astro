@@ -21,7 +21,7 @@ The blog has two kinds of posts, each with its own pipeline:
 
 1. **Obsidian-synced posts** — written in Vic's Obsidian vault, with a hero image and inline images embedded in the post folder. Use this for normal posts. The sync script transforms wikilinks, copies images, and generates frontmatter. See "Content Pipeline" below.
 
-2. **HTML-explainer posts** — long-form essays generated as standalone HTML files (typically saved to `~/Downloads/vision_*.html` or `*_explainer.html`), with custom CSS classes (`.callout`, `.aside`, `.act-divider`, `.lead`, `.keyterm`) and inline SVG illustrations. These set `essay: true` to opt into the 3-tier heading hierarchy (chapter / section / subsection). Convert via the `html-explainer-to-post` skill at `.claude/skills/html-explainer-to-post/`. The skill drafts the MDX with `draft: true` and then prompts Vic for a hero image as a separate step.
+2. **HTML-explainer posts** — long-form essays generated as standalone HTML files (typically saved to `~/Downloads/vision_*.html` or `*_explainer.html`), with custom CSS classes (`.callout`, `.aside`, `.act-divider`, `.lead`, `.keyterm`) and inline SVG illustrations. These set `essay: true` to opt into the 3-tier heading hierarchy (chapter / section / subsection). Convert via the `html-explainer-to-post` skill at `.claude/skills/html-explainer-to-post/`. The skill writes the MDX with `draft: false` (Vic publishes these directly) and then prompts Vic for a hero image as a separate step.
 
 ### Content Pipeline (Obsidian-synced posts)
 
