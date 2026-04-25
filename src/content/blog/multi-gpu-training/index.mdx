@@ -292,3 +292,23 @@ Cost: `v×` more communication volume because each micro-batch's activations cro
 There's a subtle thing about pipeline parallel that's worth naming. The optimizer step only happens once per *batch* (after all M micro-batches have completed forward and backward), not once per micro-batch. The gradient on each parameter is the sum across the M micro-batches. If you also have data parallel wrapping the pipeline, the DP gradient all-reduce happens once per batch on top of that.
 
 We're not done with the bubble. There's a 2024 schedule that cuts the bubble nearly to zero by feeding the pipeline from both ends simultaneously.
+
+### 10. DualPipe: a near-zero bubble
+
+DeepSeek-V3 shipped a pipeline schedule in late 2024 called DualPipe. It nearly eliminates the bubble, in two moves.
+
+The first is *bidirectional micro-batching*. Instead of feeding micro-batches from one end, feed them from both. Micro-batches 1..M/2 enter from the left at layer 0; micro-batches M/2+1..M enter from the right at the last layer. They flow toward each other. Each stage holds two streams of micro-batches: one traveling left-to-right (forward of the left-half batches), another traveling right-to-left (forward of the right-half batches, which from a single stage's perspective looks the same shape).
+
+The two streams overlap exactly where naive pipelines have bubbles. The warm-up triangle on stage `d` is filled by the parallel work of the right-half stream's traversal. The drain triangle is similarly filled.
+
+The second move is *backward splitting*. Each backward pass for a chunk is split into two phases. *Backward-for-input* (B) produces the gradient passed upstream. *Backward-for-weights* (W) produces the gradient stored locally for the optimizer. The earlier ZeroBubble paper showed these can be scheduled separately: B is on the critical path, W is not. DualPipe schedules W into the gaps that the bidirectional flow doesn't already fill.
+
+{/* TODO: <Fig11DualPipe /> interactive-canvas, bidirectional schedule with F&B fused chunks, scrubber through one step, compare to 1F1B */}
+
+Scrub through one DualPipe step. The bubble has gone from a `(K-1)·(F+B)`-shaped triangle to roughly `(K/2 - 1)·(F&B + B - 3W)`. For K=16 with similar F, B, W times, that's about half the bubble of 1F1B at the same K and M. Peak activation memory grows by `(K+1)/K`, roughly 6% on K=16.
+
+DualPipe overlaps two more communications. Forward and backward chunks fuse all-to-all comm (for MoE, see the next section) and PP comm into the same kernel slot, with what DeepSeek calls "warp specialization" and ten communication channels. From their paper: "both all-to-all and PP communication can be fully hidden during execution."
+
+DeepSeek-V3's actual production parallelism layout deserves a callout, because it shows how the choices compound at the frontier. They run 16-way pipeline parallel, 64-way expert parallel, and ZeRO-1 data parallel. There is *no tensor parallel*. They argue that DualPipe makes the pipeline's bubble small enough that they can use a deeper pipeline instead of TP, and the model is sparse enough (MoE) that EP replaces what TP would have done. The whole training run finishes in 2.788M H800 GPU-hours, roughly $5-6M at 2025 cloud prices.
+
+That's the production data point that says all the techniques in the post can compose. The missing axis is expert parallel, which is what makes DeepSeek-V3 a sparse model in the first place.
