@@ -346,7 +346,7 @@ Targets: 18 figures. ~83% interactive (15 interactive-canvas, 1 plot, 3 static-s
 
 ## Resume here
 
-Last touched: 2026-04-25.
+Last touched: 2026-04-25 (Batch 3 second half landed: Fig 5 + Fig 6).
 
 ### Phase status
 
@@ -356,7 +356,7 @@ Last touched: 2026-04-25.
 | 2. Deep research | done | this file's `## Research notes`, plus `notes/multi-gpu-training-reference.py` |
 | 3. Outline + figure list | done | this file's `## Outline` |
 | 4. Draft prose | done | `src/content/blog/multi-gpu-training/index.mdx` (~7,800 words, 15 sections + references, voice-clean) |
-| 5. Implement figures | in progress: 7 of 18 done | see below |
+| 5. Implement figures | in progress: 9 of 18 done | see below |
 | 6. Wire up + publish | pending | hero image, flip `draft: false`, dev verification |
 
 ### Phase 5 figure progress
@@ -367,8 +367,8 @@ Last touched: 2026-04-25.
 | 2 | DdpStep | interactive-canvas | done (commit a7c21bf) |
 | 3 | RingAllReduce | interactive-canvas | done (commit 2b5ce8f) |
 | 4 | MemoryBar | interactive-canvas | done (commit e55b94e) |
-| 5 | ZeroStages | interactive-canvas | TODO |
-| 6 | Fsdp | interactive-canvas | TODO |
+| 5 | ZeroStages | interactive-canvas | done (commit 3fe335d) |
+| 6 | Fsdp | interactive-canvas | done (commit a6fe0f7) |
 | 7 | TpMatmul | interactive-canvas | TODO |
 | 8 | FgOperators | static-svg | done (commit 50adcc5) |
 | 9 | TpSp | interactive-canvas | TODO |
@@ -386,11 +386,10 @@ Last touched: 2026-04-25.
 
 Recommended order on resumption (low complexity → high):
 
-1. **Batch 3, second half:** Fig 5 (ZeRO stages stacked bar) + Fig 6 (FSDP all-gather/forward timeline). Both unblock the §5 prose punch. Tractable.
-2. **Batch 4 (TP/SP):** Fig 7 (TP matmul split) + Fig 9 (TP+SP activation memory).
-3. **Batch 5 (pipeline gantts):** Fig 10 (pipeline schedule, GPipe vs 1F1B vs Interleaved) + Fig 11 (DualPipe).
-4. **Batch 6 (MoE/ring):** Fig 12 (MoE routing, drag) + Fig 13 (MoE load) + Fig 14 (ring attention).
-5. **Batch 7 (climax):** Fig 17 (5D mesh, drag) + Fig 18 (decision calculator).
+1. **Batch 4 (TP/SP):** Fig 7 (TP matmul split) + Fig 9 (TP+SP activation memory). Both key off §7 + §9.
+2. **Batch 5 (pipeline gantts):** Fig 10 (pipeline schedule, GPipe vs 1F1B vs Interleaved) + Fig 11 (DualPipe).
+3. **Batch 6 (MoE/ring):** Fig 12 (MoE routing, drag) + Fig 13 (MoE load) + Fig 14 (ring attention).
+4. **Batch 7 (climax):** Fig 17 (5D mesh, drag) + Fig 18 (decision calculator).
 
 ### How to resume from a fresh context
 
