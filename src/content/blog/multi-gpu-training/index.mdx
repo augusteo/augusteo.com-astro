@@ -410,3 +410,51 @@ DeepSeek-V3 671B-MoE (37B active) uses a 3D mesh `[EP=64, PP=16, DP]`. No tensor
 The two configurations diverge because the models diverge. Llama 3 is dense and very deep; tensor parallelism is the right tool for the matmul. DeepSeek-V3 is sparse and wide (256 experts per MoE layer); expert parallelism is the right tool for the model.
 
 Same primitives, different composition. That's the takeaway.
+
+### 15. 2026 best practices
+
+The decision is forced more by the hardware than by the model. The model picks ZeRO-3 vs PP vs EP at the coarsest level, but the exact configuration falls out of: how many GPUs you have, what's connected to what, the NVLink bandwidth within a node, the InfiniBand bandwidth between nodes, the model size, and whether the model is dense or sparse.
+
+{/* TODO: <Fig18DecisionCalculator /> interactive-canvas, sliders for model B, total GPUs, GPUs/node, NVLink GB/s, IB GB/s, output the recommended parallelism stack */}
+
+Drag the model size up from 1B. At 1B parameters on a single 8-GPU node, plain DDP is correct: the model fits, the bandwidth is fast, no exotic axes are needed. At 7B, FSDP starts paying off. Per-rank optimizer footprint drops from 84 GB to 10 GB on 8 GPUs. At 70B, you have to pick between (a) FSDP across many nodes with IB-bound all-gathers, or (b) TP=8 within a node + PP across nodes + DP at the top. Most production stacks choose (b) for dense models because TP+PP are NVLink-bound and don't tax IB.
+
+At 405B, you've reached Llama 3 territory: TP=8 + CP + PP + FSDP-on-DP, with `reshard_after_forward=False`, BF16 throughout. On 16K H100s, expect 38–43% MFU. If you have less than ~4K GPUs, the DP axis shrinks and the run just takes longer.
+
+At 671B-MoE-37B-active, you've reached DeepSeek-V3 territory: EP=64 + PP=16 + ZeRO-1 + DualPipe, *no* TP, FP8 throughout the linear GEMMs, aux-loss-free balance with a sequence-wise safety net. The model is sparse, the comm pattern is all-to-all, and the trick is hiding both PP and all-to-all behind compute.
+
+A few rules of thumb that fall out of the post:
+
+- Pre-2024 you'd start with TP+PP. In 2026, if you're not at 100B+, start with FSDP and add axes only as memory or activation pressure forces them.
+- TP almost always stops at 8 (one NVLink-connected node). Going higher trades NVLink for IB; the bandwidth cliff isn't worth it.
+- PP needs M ≥ 4K micro-batches for a decent bubble. At small global batch sizes you can't pay this; use FSDP instead.
+- FP8 is no longer experimental on H100/H800. It's the production default for new sparse runs. Dense runs are following.
+- Async TP (Megatron-Core) and Ladder-Residual are 2025 directions for hiding the TP all-reduce behind compute. Worth watching, not yet default.
+
+Adding GPUs is easy. Getting them to agree is the entire field.
+
+### References
+
+The primary sources this post draws from. Newer than 2024-10-25 unless noted.
+
+- *The Ultra-Scale Playbook: Training LLMs on GPU Clusters*, Hugging Face / nanotron, 2025. [hf.co/spaces/nanotron/ultrascale-playbook](https://huggingface.co/spaces/nanotron/ultrascale-playbook)
+- *DeepSeek-V3 Technical Report*, DeepSeek-AI, December 2024. [arxiv:2412.19437](https://arxiv.org/abs/2412.19437)
+- *The Llama 3 Herd of Models*, Meta, July 2024 (v3 November 2024). [arxiv:2407.21783](https://arxiv.org/abs/2407.21783)
+- PyTorch FSDP2 (`fully_shard`) docs. [docs.pytorch.org/docs/stable/distributed.fsdp.fully_shard.html](https://docs.pytorch.org/docs/stable/distributed.fsdp.fully_shard.html)
+- PyTorch DTensor docs. [docs.pytorch.org/docs/stable/distributed.tensor.html](https://docs.pytorch.org/docs/stable/distributed.tensor.html)
+- Megatron-Core, NVIDIA. [github.com/NVIDIA/Megatron-LM](https://github.com/NVIDIA/Megatron-LM)
+- *Context Parallelism for Scalable Million-Token Inference*, Yang et al., November 2024 (v3 April 2025). [arxiv:2411.01783](https://arxiv.org/abs/2411.01783)
+- *Ladder-Residual*, Jin et al., January 2025. [arxiv:2501.06589](https://arxiv.org/abs/2501.06589)
+
+Foundational, pre-cutoff:
+
+- *Bandwidth Optimal All-reduce Algorithms for Clusters of Workstations*, Patarasuk & Yuan, JPDC 2009.
+- *PyTorch Distributed: Experiences on Accelerating Data Parallel Training*, Li et al., 2020. [arxiv:2006.15704](https://arxiv.org/abs/2006.15704)
+- *ZeRO: Memory Optimizations Toward Training Trillion Parameter Models*, Rajbhandari et al., 2020. [arxiv:1910.02054](https://arxiv.org/abs/1910.02054)
+- *Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism*, Shoeybi et al., 2019. [arxiv:1909.08053](https://arxiv.org/abs/1909.08053)
+- *Reducing Activation Recomputation in Large Transformer Models*, Korthikanti et al., 2022. [arxiv:2205.05198](https://arxiv.org/abs/2205.05198)
+- *GPipe*, Huang et al., 2018. [arxiv:1811.06965](https://arxiv.org/abs/1811.06965)
+- *Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM* (1F1B, interleaved 1F1B), Narayanan et al., 2021. [arxiv:2104.04473](https://arxiv.org/abs/2104.04473)
+- *GShard*, Lepikhin et al., 2020. [arxiv:2006.16668](https://arxiv.org/abs/2006.16668)
+- *Switch Transformer*, Fedus et al., 2021. [arxiv:2101.03961](https://arxiv.org/abs/2101.03961)
+- *Ring Attention with Blockwise Transformers for Near-Infinite Context*, Liu et al., 2023. [arxiv:2310.01889](https://arxiv.org/abs/2310.01889)
