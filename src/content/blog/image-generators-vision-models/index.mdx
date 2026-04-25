@@ -1,0 +1,681 @@
+---
+title: "Image generators are quietly becoming the best vision models"
+description: "Part two. A second tradition in vision research, almost entirely separate from the encoder stack we covered last time, has been quietly building. In April 2026 it produced a state-of-the-art generalist model from the wrong direction."
+pubDate: 2026-04-24
+heroImage: "@assets/blog/image-generators-vision-models/hero.png"
+heroAlt: "A watercolor-and-ink sketchbook spread illustrating the post's ideas: a rainbow RGB cube with a Hilbert-curve path traced along its edges, an encoder-to-generator stack diagram, a small normals-map cube, an instruction-tuning workflow, a tiny segmented street scene, and a banana beside a paint palette."
+tags: ["AI", "ML"]
+featured: false
+draft: false
+essay: true
+---
+
+*Part two. A second tradition in vision research, almost entirely separate from the encoder stack we covered last time, has been quietly building. In April 2026 it produced a state-of-the-art generalist model from the wrong direction.*
+
+## Act 1 — The Fork
+
+*A different kind of vision model has been quietly building, and the v2 explainer didn't see it.*
+
+### 1. Where the last story ends
+
+The previous explainer made one big argument. A modern vision foundation model is a feature extractor, and its dense per-patch representations are the real product. Everything good comes from making those features cleaner, more spatially precise, more transferable. DINOv3 fixes dense feature collapse with Gram anchoring. C-RADIOv4 fuses three teachers into one. FeatSharp hallucinates resolution by enforcing multi-view consistency. The result is a single backbone, with many heads, that can do almost any vision task. Single forward pass. Dozens of capabilities. The encoder paradigm at full maturity.
+
+That story isn't wrong. Those models are SOTA on their benchmarks, work as frozen feature extractors, and run at a cost that lets you put them in production. But it isn't the only story, and a paper from Google DeepMind that landed on April 23, 2026 makes the second story hard to ignore. The argument is short and a little heretical: the heads were always optional. The feature vector was a workaround for the fact that we couldn't train models to just paint the answer. And now we can.
+
+The paper is called *Image Generators are Generalist Vision Learners*, the model is called Vision Banana, and the benchmark numbers are real. SOTA semantic segmentation on Cityscapes, beating SAM 3 by 4.7 mIoU points. SOTA referring expression segmentation, beating SAM 3 + Gemini 2.5 Pro on ReasonSeg. SOTA monocular metric depth on six standard benchmarks, beating Depth Anything 3. SOTA surface normals on three of four benchmarks. With one model. Built by instruction-tuning Nano Banana Pro on a small slice of vision data mixed into its original generation training mixture. No specialized architecture. No task heads. No fine-tuning losses. Just generation, with prompts, where the output happens to be a parseable visualization of the answer.
+
+<figure>
+<svg viewBox="0 0 920 480" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="40" y="28" font-family="JetBrains Mono" font-size="12" letter-spacing="3" fill="#2563EB">ENCODER PATH  ·  PART ONE</text>
+
+<rect x="60" y="80" width="80" height="80" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="60" y="80" width="80" height="27" fill="#93C5FD" opacity=".7"/>
+<rect x="60" y="107" width="80" height="27" fill="#D1AE7A" opacity=".8"/>
+<rect x="60" y="134" width="80" height="26" fill="#059669" opacity=".6"/>
+<text x="100" y="180" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#6B6258">image</text>
+
+<line x1="146" y1="120" x2="186" y2="120" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar1)"/>
+
+<rect x="190" y="80" width="160" height="80" fill="#DBEAFE" stroke="#2563EB" stroke-width="2"/>
+<text x="270" y="115" text-anchor="middle" font-family="serif" font-size="18" font-weight="600" fill="#2563EB">backbone</text>
+<text x="270" y="138" text-anchor="middle" font-family="serif" font-size="13" fill="#6B6258" font-style="italic">DINOv3 / C-RADIO</text>
+
+<line x1="356" y1="120" x2="396" y2="120" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar1)"/>
+
+<rect x="400" y="92" width="160" height="56" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<g font-family="JetBrains Mono" font-size="13" fill="#2563EB">
+<text x="416" y="115">0.7  -.2  .1</text>
+<text x="416" y="138">.5   0  -.4 .8</text>
+</g>
+<text x="480" y="180" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="2">FEATURE VECTOR</text>
+
+<line x1="566" y1="120" x2="606" y2="120" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar1)"/>
+
+<g font-family="JetBrains Mono" font-size="13">
+<rect x="610" y="55" width="160" height="28" fill="#FBE9CE" stroke="#B8651A"/>
+<text x="690" y="74" text-anchor="middle" fill="#B8651A">seg head</text>
+<rect x="610" y="91" width="160" height="28" fill="#FBE9CE" stroke="#B8651A"/>
+<text x="690" y="110" text-anchor="middle" fill="#B8651A">depth head</text>
+<rect x="610" y="127" width="160" height="28" fill="#FBE9CE" stroke="#B8651A"/>
+<text x="690" y="146" text-anchor="middle" fill="#B8651A">normals head</text>
+<rect x="610" y="163" width="160" height="28" fill="#FBE9CE" stroke="#B8651A"/>
+<text x="690" y="182" text-anchor="middle" fill="#B8651A">classify head</text>
+</g>
+
+<text x="380" y="225" text-anchor="middle" font-family="serif" font-size="14" fill="#6B6258" font-style="italic">backbone shared, heads task-specific  ·  tens of ms per inference</text>
+
+<line x1="40" y1="260" x2="880" y2="260" stroke="#C9BEAA" stroke-dasharray="4,5"/>
+
+<text x="40" y="290" font-family="JetBrains Mono" font-size="12" letter-spacing="3" fill="#B8851A">GENERATOR PATH  ·  THIS PIECE</text>
+
+<rect x="220" y="315" width="540" height="42" fill="#F5E6B8" stroke="#B8851A"/>
+<text x="490" y="342" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#1A1A1A">"segment dogs red, sky blue, grass green, bg black"</text>
+
+<line x1="490" y1="360" x2="490" y2="395" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar1)"/>
+
+<rect x="60" y="400" width="80" height="80" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="60" y="400" width="80" height="27" fill="#93C5FD" opacity=".7"/>
+<rect x="60" y="427" width="80" height="27" fill="#D1AE7A" opacity=".8"/>
+<rect x="60" y="454" width="80" height="26" fill="#059669" opacity=".6"/>
+
+<line x1="146" y1="440" x2="402" y2="440" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar1)"/>
+
+<rect x="406" y="400" width="170" height="80" fill="#F5E6B8" stroke="#B8851A" stroke-width="2"/>
+<text x="491" y="435" text-anchor="middle" font-family="serif" font-size="18" font-weight="600" fill="#B8851A">generator</text>
+<text x="491" y="458" text-anchor="middle" font-family="serif" font-size="13" fill="#6B6258" font-style="italic">Vision Banana</text>
+
+<line x1="582" y1="440" x2="622" y2="440" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar1)"/>
+
+<rect x="626" y="400" width="80" height="80" fill="#1A1A1A" stroke="#8F8578"/>
+<rect x="626" y="400" width="80" height="27" fill="#2563EB"/>
+<rect x="650" y="425" width="32" height="22" fill="#B91C1C" rx="6"/>
+<rect x="626" y="454" width="80" height="26" fill="#15803D"/>
+
+<text x="666" y="498" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#6B6258">output is the mask</text>
+
+<path d="M 740,440 Q 770,440 780,440" stroke="#B8851A" stroke-width="1.5" fill="none"/>
+<text x="800" y="436" font-family="serif" font-size="13" font-style="italic" fill="#B8851A">RGB pixels =</text>
+<text x="800" y="452" font-family="serif" font-size="13" font-style="italic" fill="#B8851A">the answer</text>
+</svg>
+<figcaption><strong>Fig 1.</strong> Two ways of getting an answer out of a vision model. The encoder stack runs an image through a backbone, gets a feature vector, attaches task-specific heads. The generator stack takes an image and a prompt, runs a single image-to-image pass, and the generated RGB pixels *are* the answer to the prompt. Different machinery. Different cost. Different mental model.</figcaption>
+</figure>
+
+This is a different mental model of what a vision system is. It's worth understanding because if it generalizes, the encoder stack doesn't go away but it stops being the only game.
+
+### 2. The other family tree
+
+Through the v2 explainer we tracked one lineage: image classification on ImageNet (2012), supervised ViTs (2020), self-supervised DINO (2021), DINOv2 (2023), DINOv3 (2025), C-RADIOv4 (2026). Encoders, all the way down. There is a second lineage running underneath, and most computer vision people I know don't track it because it lives in the diffusion-and-generative-models corner of the field. It's worth a brief tour.
+
+Start in late 2023. Bingxin Ke and collaborators at ETH Zurich publish Marigold. The pitch: take Stable Diffusion, fine-tune the U-Net with synthetic depth maps as the target, and use the resulting model as a depth estimator. It works astonishingly well for the time. State-of-the-art zero-shot generalization on six benchmarks, trained on a single GPU for a few days. The paper wins a CVPR 2024 oral and is a Best Paper Award candidate. There is a catch: full fine-tuning of the U-Net for depth turns the model into a depth-only model. Whatever it knew about generating cats and skylines and mountains is partially overwritten. You get a great depth predictor at the cost of the generator that produced it.
+
+In 2024-2025, several groups push the same idea further. Lotus (and then Lotus-2, December 2025) builds on FLUX with deterministic rectified-flow adaptation, achieving state-of-the-art monocular depth and competitive surface normals on less than 1% of the data the discriminative methods use. GeoWizard, StableNormal, GenPercept, Diception, others all live in this space. The pattern is consistent: take a pretrained image generator, partially or fully fine-tune it for a specific perception task, win on the benchmark, lose most of the generation capability you started with. The trade is well understood. Nobody has, until recently, found a way out of it.
+
+Then in September 2025, Wiedemer and collaborators (also DeepMind) publish *Video Models are Zero-Shot Learners and Reasoners*. The argument is more ambitious. Veo 3, the company's flagship video generator, can do segmentation, edge detection, super-resolution, denoising, and even simple visual reasoning like maze solving, with no task-specific training at all. You just prompt it and the right kind of video comes out. The capability is emergent from generative pretraining, the same way LLM capability emerged from generative pretraining of language. The paper is a manifesto, and it's roughly right, but the practical issue is that a video model can't be evaluated on standard image vision benchmarks because the outputs aren't precisely formatted enough to be decoded back to numerical predictions. So the result is "obviously qualitatively impressive, but doesn't put up benchmark numbers."
+
+Vision Banana is the synthesis. Same lab, six months later. Same primary base model family (Nano Banana Pro instead of Veo 3, because they want still images, not video). The technical contribution is the missing piece between Wiedemer and Marigold: instead of fully fine-tuning the generator and degrading generation (Marigold), or just prompting it and not getting precise enough output (Wiedemer), Vision Banana mixes a tiny slice of vision task data into the original training mixture, instruction-tunes the model to output decodable visualizations in formats the prompt specifies, and ends up with one model that does both. The headline numbers (SOTA on segmentation, depth, and surface normals; generation roughly preserved) are the first time a single generalist model in this lineage has matched or beaten encoder-based specialists across multiple tasks at once while keeping its generation capability intact.
+
+<figure>
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<line x1="60" y1="140" x2="880" y2="140" stroke="#8F8578" stroke-width="1.5"/>
+
+<g font-family="JetBrains Mono" font-size="11" fill="#6B6258">
+<text x="120" y="232" text-anchor="middle">Dec 2023</text>
+<text x="300" y="232" text-anchor="middle">2024 – 25</text>
+<text x="480" y="232" text-anchor="middle">Sept 2025</text>
+<text x="660" y="232" text-anchor="middle">late 2025</text>
+<text x="820" y="232" text-anchor="middle">Apr 2026</text>
+</g>
+
+<g>
+<circle cx="120" cy="140" r="9" fill="#CFF0F6" stroke="#0E7490" stroke-width="2"/>
+<text x="120" y="92" text-anchor="middle" font-family="serif" font-size="16" font-weight="600" fill="#0E7490">Marigold</text>
+<text x="120" y="114" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">depth-only, gen lost</text>
+</g>
+<g>
+<circle cx="300" cy="140" r="9" fill="#CFF0F6" stroke="#0E7490" stroke-width="2"/>
+<text x="300" y="92" text-anchor="middle" font-family="serif" font-size="16" font-weight="600" fill="#0E7490">Lotus / Lotus-2</text>
+<text x="300" y="114" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">depth + normals, gen lost</text>
+</g>
+<g>
+<circle cx="480" cy="140" r="9" fill="#CFF0F6" stroke="#0E7490" stroke-width="2"/>
+<text x="480" y="92" text-anchor="middle" font-family="serif" font-size="16" font-weight="600" fill="#0E7490">Wiedemer (Veo 3)</text>
+<text x="480" y="114" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">zero-shot, not measurable</text>
+</g>
+<g>
+<circle cx="660" cy="140" r="9" fill="#CFF0F6" stroke="#0E7490" stroke-width="2"/>
+<text x="660" y="92" text-anchor="middle" font-family="serif" font-size="16" font-weight="600" fill="#0E7490">Zuo (NBP eval)</text>
+<text x="660" y="114" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">14 tasks, 40 datasets</text>
+</g>
+<g>
+<circle cx="820" cy="140" r="14" fill="#F5E6B8" stroke="#B8851A" stroke-width="3"/>
+<text x="820" y="88" text-anchor="middle" font-family="serif" font-size="18" font-weight="700" fill="#B8851A">Vision Banana</text>
+<text x="820" y="112" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">SOTA, gen preserved</text>
+</g>
+
+<text x="470" y="190" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">each one closer to a unified generalist  ·  Vision Banana is the convergence</text>
+</svg>
+<figcaption><strong>Fig 2.</strong> The generative-model-as-vision-task lineage, three years compressed. Marigold and the Lotus family fully fine-tune a generator into a perception specialist and lose generation in the process. Wiedemer's Veo 3 paper shows the capability is emergent from zero-shot prompting but isn't precise enough to benchmark. Vision Banana threads the needle: instruction-tune at low ratio, keep generation, get benchmarkable outputs.</figcaption>
+</figure>
+
+### 3. Vision's BERT-to-GPT moment, with one caveat
+
+The Wiedemer paper makes the analogy explicit and Vision Banana picks it up: vision is doing what NLP did between roughly 2018 and 2023.
+
+The NLP transition went like this. BERT (2018) was an encoder. You ran it on text, you got representations, you stuck small task heads on top, and you fine-tuned for each specific task you cared about. Sentiment analysis: BERT plus a sentiment head. Named entity recognition: BERT plus an NER head. Question answering: BERT plus a QA head. The encoder backbone was shared, the heads were specific. This is exactly the world the v2 explainer described in vision.
+
+GPT (2018, but practical from GPT-3 in 2020) was a generator. You didn't add heads. You wrote a prompt, and the model produced text that was the answer. Sentiment: "Is this review positive or negative? Review: [text]." Translation: "Translate to French: [text]." QA: "Question: [q] Answer:". A single unified interface, infinite tasks, no architectural changes. The pattern took a few years to fully replace the BERT-style approach in production. By 2023 it was clear the GPT family was eating BERT's lunch on basically everything except some narrow benchmarks where dedicated encoders still nudged ahead.
+
+Vision Banana is arguing the same transition is starting in computer vision. Encoder stack: DINOv3 plus heads. Generator stack: Vision Banana plus prompts. The interface is unified, the tasks are infinite (whatever a prompt can describe), no architectural changes are required to add a new task. If the analogy is right, the encoder stack will follow the same trajectory as BERT: useful for a few more years, dominant on narrow benchmarks for longer, slowly eclipsed.
+
+There's one big disanalogy. NLP made the transition partly because GPT-style inference got cheap enough fast enough. Decoder-only transformers run at gigabits-per-second on commodity hardware, KV-caching makes long context tractable, and the per-token cost dropped roughly two orders of magnitude between 2020 and 2025. Image generation hasn't followed the same curve. Diffusion models do iterative refinement over many steps; a single inference call to Nano Banana Pro takes seconds and costs around fifteen cents at the API level. A DINOv3-S inference is in the tens of milliseconds and costs essentially nothing per call. That's a 100-1000x cost differential per call, and the gap is shrinking but not as fast as it did in NLP.
+
+> *The interface transition is happening. The cost transition isn't, yet.*
+
+Which means the right read of the BERT-to-GPT analogy is: vision is going through the *interface* part of the transition right now. The unified prompt-and-decode interface is happening, the capability claims hold up, the benchmark numbers are real. The cost economics aren't there yet, and they may not get there for years. So the encoder stack isn't disappearing. It's becoming the production layer of a two-layer system, where the slow-and-flexible layer above it answers the questions you can't answer fast.
+
+### 4. Nano Banana Pro, briefly
+
+If you skipped the consumer side of generative AI for the last six months, here's the catch-up. Nano Banana Pro is Google's image generation and editing model, released November 2025, currently sitting near the top of the leaderboards alongside FLUX.2 and OpenAI's GPT-Image. Internally Google calls the architecture GEMPIX 2. The lineage is Gemini 3 Pro plus a diffusion-based image head, but the wiring matters: NBP isn't a separate diffusion model with a frozen text encoder bolted on, it's a multimodal transformer where image tokens and text tokens flow through the same attention stack as Gemini's language understanding. The text side does the reasoning, the image side does the rendering, and they share weights.
+
+The practical consequence is that NBP follows complex prompts in ways earlier image generators couldn't. Ask for "a wide-angle photo of a samurai with a silk sash in a cherry blossom garden, with sunlight filtering through" and you get the photo. Ask it to "edit this image so the chair is teal and there's a window where the door used to be" and it does that. There's also an internal multi-stage planner that re-renders parts of the output during inference, similar to how GPT-style models will re-read their own working memory before responding. People are starting to call this "thinking diffusion" though the term hasn't really stuck.
+
+For Vision Banana's purposes, three properties of NBP matter. It follows long structured prompts, which makes prompted color maps possible. It has strong world knowledge baked into its representations from generation pretraining at scale. And image generation and image editing are already in its native interaction model, so reframing depth as "generate a depth visualization of this image" doesn't require asking the model to do something fundamentally new. It's already an instruction-tuned generator that takes images and prompts and produces images. Vision Banana adds the *kind* of image it produces.
+
+> **Checkpoint: setup complete.**
+>
+> **The encoder stack covered in part one** (DINOv3, C-RADIOv4, FeatSharp) is one paradigm: feature vectors as the primary product, task heads as the interface to specific outputs.
+>
+> **The generator stack is a second paradigm** (Marigold and Lotus showed it could do depth; Wiedemer's Veo 3 paper showed video generators do it zero-shot; Vision Banana is the first paper to make the recipe work on benchmarks while preserving generation).
+>
+> **The base model** is Nano Banana Pro, a multimodal transformer with diffusion-based generation, deeply integrated with Gemini 3 Pro's language understanding.
+>
+> Now let's get into how it actually works.
+
+## Act 2 — The Trick
+
+*Output formats designed so the generated image is the answer. Three case studies, ascending in difficulty.*
+
+### 5. Vision tasks, parameterized as RGB
+
+Here is the core move, in one sentence. Take any vision task, design a way to express the answer as a regular RGB image, and prompt the model to produce that image. Then decode the image back to the structured answer.
+
+The simplest case is semantic segmentation. The answer to "what is each pixel of this image?" is, traditionally, an integer label per pixel. You can express that as an RGB image trivially: assign each class a color, and the answer image has each pixel colored according to its class. Run the model with the prompt "generate a semantic segmentation visualization of this image, where dogs are red, sky is blue, grass is green, and background is black." Get back an RGB image. Decode it by clustering pixels by color and mapping each color back to its class label.
+
+This sounds dumb because it is dumb, in the way that most great engineering ideas are dumb. The depth case requires more work because depth values are continuous and unbounded, but the principle is the same: design a bijection between depth values and RGB colors, train the model to produce that visualization, decode at inference. Surface normals are easy because they're already three-component unit vectors that map naturally to RGB. Instance segmentation is harder because the number of instances is unknown in advance, but is also solvable by iterating per class.
+
+Three things drop out of this framing. The first is that the model doesn't need a new output head for each task. Output heads are dense layers that map features to task-specific predictions, and adding a new one means new parameters, new training, new inference paths. Vision Banana's "head" is the same image generation pipeline NBP already had. The output space is fixed (RGB images at some resolution) regardless of what task you ran it on.
+
+The second thing is that the prompt becomes the task specification. You don't need to know in advance what classes to segment, because classes are described in the prompt. Want to segment skateboards? Add "skateboards are pure yellow" to the prompt. Want to segment skateboards but only the wheels? Add "skateboard wheels are pure yellow." The prompt describes the question, the image describes the answer, and the prompt-image pair fully specifies the task. There's no fixed taxonomy to retrain against.
+
+The third thing, which the paper emphasizes and I think is right, is that this composition turns out to be unreasonably effective. The model already knew how to render images of dogs and sky and grass. Asking it to render a flat-shaded version of the dog-sky-grass scene where the colors are dictated rather than realistic is a small ask. It's the same model doing the same thing. It just happens to also be the answer to the segmentation question.
+
+### 6. Instruction tuning at one percent
+
+Here is where Vision Banana departs from Marigold and Lotus. The earlier work in the lineage took a generator and fine-tuned it heavily for a vision task. Sometimes the entire U-Net got retrained on depth data. The result was a high-quality depth predictor that had forgotten how to draw a horse.
+
+Vision Banana does the opposite. Take NBP's original training mixture, which is the giant blob of image-text pairs the model was originally trained on. Add a small amount of vision task data to that mixture (the paper isn't fully specific about the ratio, but describes it as "a very low ratio" of vision tasks alongside the existing generation training). Train normally for a relatively short instruction-tuning phase. Stop. The base model is now Vision Banana.
+
+<figure>
+<svg viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="220" y="28" text-anchor="middle" font-family="JetBrains Mono" font-size="12" letter-spacing="3" fill="#6B6258">MARIGOLD / LOTUS RECIPE</text>
+
+<rect x="60" y="60" width="140" height="140" fill="#FBE9CE" stroke="#B8651A"/>
+<text x="130" y="125" text-anchor="middle" font-family="serif" font-size="18" font-weight="600" fill="#B8651A">depth data</text>
+<text x="130" y="150" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">100% replacement</text>
+
+<line x1="206" y1="130" x2="246" y2="130" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar2)"/>
+
+<rect x="250" y="60" width="140" height="140" fill="#FBE9CE" stroke="#B8651A" stroke-width="2"/>
+<text x="320" y="120" text-anchor="middle" font-family="serif" font-size="18" font-weight="600" fill="#B8651A">depth model</text>
+<text x="320" y="145" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">no more generation</text>
+
+<text x="220" y="240" text-anchor="middle" font-family="serif" font-size="14" font-style="italic" fill="#B91C1C">specialist gained, generator lost</text>
+
+<line x1="450" y1="50" x2="450" y2="250" stroke="#C9BEAA" stroke-dasharray="3,4"/>
+
+<text x="700" y="28" text-anchor="middle" font-family="JetBrains Mono" font-size="12" letter-spacing="3" fill="#B8851A">VISION BANANA RECIPE</text>
+
+<rect x="490" y="60" width="240" height="140" fill="#F5E6B8" stroke="#B8851A"/>
+<rect x="490" y="60" width="240" height="14" fill="#B8851A"/>
+<text x="497" y="71" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" letter-spacing="1">~1% VISION TASKS</text>
+<text x="610" y="125" text-anchor="middle" font-family="serif" font-size="18" font-weight="600" fill="#B8851A">NBP training mix</text>
+<text x="610" y="150" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">+ a thin slice of vision data</text>
+
+<line x1="736" y1="130" x2="776" y2="130" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar2)"/>
+
+<rect x="780" y="60" width="100" height="140" fill="#F5E6B8" stroke="#B8851A" stroke-width="2"/>
+<text x="830" y="115" text-anchor="middle" font-family="serif" font-size="16" font-weight="600" fill="#B8851A">generalist</text>
+<text x="830" y="140" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">vision +</text>
+<text x="830" y="156" text-anchor="middle" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">generation</text>
+
+<text x="690" y="240" text-anchor="middle" font-family="serif" font-size="14" font-style="italic" fill="#15803D">specialist gained, generator preserved</text>
+</svg>
+<figcaption><strong>Fig 3.</strong> The instruction-tuning recipe at low ratio versus full fine-tuning. Marigold and Lotus replace the original training distribution with task-specific data and lose the generative capability they started with. Vision Banana mixes vision tasks into the original distribution at small percentage, the gradients from generation continue to dominate, and the resulting model retains both behaviors.</figcaption>
+</figure>
+
+The phrase "instruction tuning" here is borrowed deliberately from the LLM literature. When you instruction-tune GPT-4 to be a chatbot, you don't retrain it from scratch. You take the base model, mix in a few hundred thousand instruction-following examples, train for a small fraction of the original compute, and end up with a model that follows instructions while preserving everything it learned during pretraining. That's the recipe Vision Banana ports to vision. The specific instruction here isn't "follow user requests politely," it's "produce vision task visualizations in the format the prompt specifies," but the mechanism is the same.
+
+Two things make this work where naive fine-tuning would fail. The first is the low ratio. Mixing vision data into the original training distribution at a small percentage, rather than replacing the original distribution with vision data, means the gradients from the original generation objective continue to dominate. The model learns the new behavior (formatting outputs for decodability) on top of the existing capability (generating images), without overwriting it.
+
+The second is that the vision task outputs and the original generation outputs are *the same data type*. Both are RGB images. The model's output head doesn't change. The same generation pipeline that produces a photorealistic samurai produces a depth visualization with the right color encoding. There's no architectural seam between "generation mode" and "vision mode," because there are no modes.
+
+The numbers say it worked. On GenAI-Bench (text-to-image generation), Vision Banana wins 53.5% of head-to-head matches against vanilla Nano Banana Pro. So generation isn't preserved exactly, it's slightly better, presumably because the instruction tuning data also improved prompt-following. On ImgEdit (image editing), it wins 47.8%, meaning slightly worse than the base model. So editing has a small regression, probably because some of the editing-specific behavior gets pushed around by the vision task examples. Net: generation capability is roughly preserved, with one task slightly up and one slightly down. That's the trade. It's a real trade, not zero, but it's tiny compared to badly degrading generation, which is what Marigold and Lotus paid.
+
+### 7. Segmentation by prompted colormap
+
+The simplest version of the recipe is semantic segmentation, and it's worth walking through carefully because the same pattern repeats for everything else.
+
+At training time: collect (image, segmentation map, prompt) triples. The image is a normal photo. The segmentation map is the ground-truth label image, with each pixel colored according to its class. The prompt is a natural-language description of which classes get which colors, given in any of several formats: as JSON, as natural language, as RGB tuples or hex codes, as full descriptive sentences. The model is trained to produce the segmentation map image conditioned on the input image plus the prompt.
+
+At inference: pick the colors you want for each class, write a prompt that specifies the mapping, run the model, get an RGB image back. To decode, cluster the output pixels by color and assign each cluster to its prompted class. Pixels close to the prompted color for "dog" become the dog mask, pixels close to "cat" become the cat mask, pixels close to "background" get ignored.
+
+<figure>
+<svg viewBox="0 0 920 290" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="100" y="24" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="2" fill="#6B6258">INPUT + PROMPT</text>
+
+<rect x="30" y="44" width="140" height="100" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="30" y="44" width="140" height="35" fill="#93C5FD" opacity=".7"/>
+<rect x="30" y="79" width="140" height="40" fill="#D1AE7A" opacity=".8"/>
+<rect x="30" y="119" width="140" height="25" fill="#059669" opacity=".5"/>
+<circle cx="80" cy="99" r="14" fill="#FEF3C7"/>
+<rect x="100" y="104" width="40" height="22" fill="#A16B40" opacity=".9"/>
+
+<rect x="30" y="160" width="140" height="100" fill="#F5E6B8" stroke="#B8851A"/>
+<text x="42" y="180" font-family="JetBrains Mono" font-size="12" fill="#1A1A1A">"dog: red,</text>
+<text x="42" y="200" font-family="JetBrains Mono" font-size="12" fill="#1A1A1A"> sky: blue,</text>
+<text x="42" y="220" font-family="JetBrains Mono" font-size="12" fill="#1A1A1A"> grass: green,</text>
+<text x="42" y="240" font-family="JetBrains Mono" font-size="12" fill="#1A1A1A"> bg: black"</text>
+
+<line x1="180" y1="150" x2="225" y2="150" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar3)"/>
+
+<text x="320" y="24" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="2" fill="#B8851A">VISION BANANA</text>
+
+<rect x="235" y="100" width="170" height="100" fill="#F5E6B8" stroke="#B8851A" stroke-width="2"/>
+<text x="320" y="142" text-anchor="middle" font-family="serif" font-size="18" font-weight="600" fill="#B8851A">generate</text>
+<text x="320" y="167" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">image-to-image</text>
+
+<line x1="415" y1="150" x2="460" y2="150" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar3)"/>
+
+<text x="540" y="24" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="2" fill="#6B6258">RGB OUTPUT</text>
+
+<rect x="470" y="100" width="140" height="100" fill="#1A1A1A"/>
+<rect x="470" y="100" width="140" height="35" fill="#2563EB"/>
+<rect x="470" y="175" width="140" height="25" fill="#15803D"/>
+<rect x="510" y="140" width="60" height="40" fill="#B91C1C" rx="14"/>
+
+<line x1="620" y1="150" x2="665" y2="150" stroke="#6B6258" stroke-width="1.5" marker-end="url(#ar3)"/>
+<text x="643" y="142" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">cluster</text>
+
+<text x="790" y="24" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="2" fill="#6B6258">DECODED MASKS</text>
+
+<rect x="675" y="56" width="225" height="32" fill="#B91C1C"/>
+<text x="787" y="77" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#FFFFFF">dog</text>
+<rect x="675" y="92" width="225" height="32" fill="#2563EB"/>
+<text x="787" y="113" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#FFFFFF">sky</text>
+<rect x="675" y="128" width="225" height="32" fill="#15803D"/>
+<text x="787" y="149" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#FFFFFF">grass</text>
+<rect x="675" y="164" width="225" height="32" fill="#1A1A1A"/>
+<text x="787" y="185" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#F4EEE3">background</text>
+</svg>
+<figcaption><strong>Fig 4.</strong> The segmentation pipeline. Image and prompt go in, an RGB visualization comes out, pixel clustering decodes it back to per-class masks. Train the model to produce these on (image, mask, prompt) triples; at inference, the prompt fully specifies what to segment and how to color it. No fixed taxonomy.</figcaption>
+</figure>
+
+```python
+# Inference, in roughly the simplest possible form
+def segment(image, classes_to_colors):
+    prompt = ("Generate a semantic segmentation visualization. "
+              + ", ".join([f"{cls}: {color}"
+                          for cls, color in classes_to_colors.items()]))
+    rgb_out = vision_banana(image, prompt)         # one forward pass
+    masks = {}
+    for cls, color in classes_to_colors.items():
+        masks[cls] = pixels_within_threshold(rgb_out, color, threshold=10)
+    return masks
+```
+
+This is mechanically simple. The interesting behavior is in what kinds of prompts work. Vision Banana handles, in addition to the obvious "color cats red, dogs blue" prompts:
+
+Things described by attribute, not class: "the man in the pink t-shirt." The model has to identify which man, which means it has to ground the description in the image content.
+
+Things described by ongoing action: "the cat that is stretching" versus "the cat that is cleaning itself." The model has to interpret pose and posture, in real time, against the image.
+
+Objects in unusual functional roles: "the toaster being used as a game controller." The model has to recognize the toaster, recognize that it's being held in a non-standard way, and recognize that the use case is "game controller."
+
+Free-form linguistic specifications, in multiple languages mixed together: "the chef's names rendered as cyan, in both Chinese and English."
+
+These last examples are what differentiate the generative approach from anything an encoder-plus-head could do. SAM 3 with a Gemini reasoning agent can get most of the way there by using the LLM to reformulate the user query into something SAM can take, but the resulting pipeline is two models with a brittle interface between them. Vision Banana is a single forward pass that does both the language reasoning and the spatial grounding inside the same set of weights. The model reasons about "stretching" versus "cleaning" with the same machinery it uses to render the corresponding cat in the right color.
+
+The paper has a result on RefCOCOg (referring expression segmentation, the canonical benchmark for "language-grounded segmentation") where Vision Banana hits 0.738 cIoU, edging out SAM 3 + Gemini 2.5 Pro at 0.734. On ReasonSeg (the harder reasoning-heavy benchmark), 0.793 versus 0.770 for the SAM 3 + Gemini 2.5 Pro pipeline. These are small gaps but the right gap. The single-model approach matches the agent-style approach with less infrastructure.
+
+### 8. The depth color cube
+
+Depth is the section I want to spend real time on, because the engineering is genuinely beautiful and because it makes the "format is the model" point clearer than any other example in the paper.
+
+Depth estimation is the task of producing, for each pixel of an input image, a real-valued metric distance from the camera plane to whatever is at that pixel. Distances range from zero (the camera is touching the object) to infinity (the sky). For nearby objects (a coffee cup at 30 cm) you want millimeter precision because the difference between 30 cm and 30.5 cm matters for grasping. For distant objects (a building at 200 m) you don't care about a meter or two. So depth estimation has a peculiar accuracy profile: precision should be high near the camera and degrade gracefully into the distance.
+
+The trouble with making this an RGB image: depth is unbounded and continuous, RGB is bounded ([0,1]³ or [0,255]³ depending on conventions) and discrete in practice. You need a bijection between [0, ∞) and the RGB cube that respects the asymmetric precision requirement. And the bijection has to be invertible so you can decode depth from the generated RGB image at evaluation time.
+
+The Vision Banana team uses two ideas, composed. The first is Jonathan Barron's *power transform*, from a single-author paper of his (also 2025). Given metric depth d, the power transform applies `f(d, λ, c) = 1 − (1 − d/λc)^(λ+1)`. With λ = −3 and c = 10/3, this maps [0, ∞) onto [0, 1) and "curves" the mapping so that small depths get a lot of room on the [0, 1) line and large depths get less. A two-meter object lands around 0.31. A 50-meter object lands around 0.97. A 5000-meter object lands at essentially 1.0. The compression at the far end is graceful, not abrupt, which is the right behavior for a depth predictor.
+
+The second idea is to take the now-bounded value in [0, 1) and map it into the RGB cube by walking along the cube's edges. Imagine the RGB cube as a 3D unit box with corners at (0,0,0) (black), (1,0,0) (red), (0,1,0) (green), (0,0,1) (blue), and the four mixed-color corners. Pick a path that starts at black, traverses through the cube corners along edges, and ends at white. At each corner, the path turns along a different axis, so a lot of the color space gets covered. The paper picks a path "similar to the first iteration of a 3D Hilbert curve," a specific traversal that visits each of the eight corners along edges of the cube without repeating any edge. This is a piecewise-linear curve in RGB space, parameterized by the [0, 1) value coming out of the power transform.
+
+<figure>
+<svg viewBox="0 0 920 440" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+
+<text x="40" y="28" font-family="JetBrains Mono" font-size="12" letter-spacing="3" fill="#B8851A">STEP 1  ·  POWER TRANSFORM</text>
+
+<g transform="translate(80,55)">
+  <line x1="0" y1="0" x2="0" y2="130" stroke="#8F8578"/>
+  <line x1="0" y1="130" x2="780" y2="130" stroke="#8F8578"/>
+  <line x1="0" y1="65" x2="780" y2="65" stroke="#C9BEAA" stroke-dasharray="3,4"/>
+
+  <g font-family="JetBrains Mono" font-size="11" fill="#6B6258">
+    <text x="-10" y="6" text-anchor="end">1.0</text>
+    <text x="-10" y="71" text-anchor="end">0.5</text>
+    <text x="-10" y="134" text-anchor="end">0</text>
+  </g>
+
+  <g stroke="#8F8578">
+    <line x1="0" y1="130" x2="0" y2="135"/>
+    <line x1="156" y1="130" x2="156" y2="135"/>
+    <line x1="312" y1="130" x2="312" y2="135"/>
+    <line x1="546" y1="130" x2="546" y2="135"/>
+    <line x1="780" y1="130" x2="780" y2="135"/>
+  </g>
+  <g font-family="JetBrains Mono" font-size="11" fill="#6B6258">
+    <text x="0" y="152" text-anchor="middle">0</text>
+    <text x="156" y="152" text-anchor="middle">2m</text>
+    <text x="312" y="152" text-anchor="middle">10m</text>
+    <text x="546" y="152" text-anchor="middle">100m</text>
+    <text x="780" y="152" text-anchor="middle">∞</text>
+  </g>
+
+  <text x="390" y="178" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">metric depth d (meters)</text>
+
+  <path d="M0,130 Q30,40 156,80 Q260,108 312,72 Q400,30 546,18 Q680,8 780,4"
+        fill="none" stroke="#B8851A" stroke-width="3"/>
+
+  <text x="200" y="40" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">close depths get more resolution →</text>
+  <text x="780" y="38" text-anchor="end" font-family="serif" font-size="12" font-style="italic" fill="#6B6258">graceful compression at the far end</text>
+</g>
+
+<line x1="40" y1="240" x2="880" y2="240" stroke="#C9BEAA" stroke-dasharray="3,4"/>
+
+<text x="40" y="270" font-family="JetBrains Mono" font-size="12" letter-spacing="3" fill="#B8851A">STEP 2  ·  WALK ALONG THE RGB CUBE EDGES</text>
+
+<g transform="translate(80,295)">
+  <defs>
+    <linearGradient id="cubepath" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#000000"/>
+      <stop offset="14.3%" stop-color="#DC2626"/>
+      <stop offset="28.6%" stop-color="#FACC15"/>
+      <stop offset="42.9%" stop-color="#16A34A"/>
+      <stop offset="57.1%" stop-color="#06B6D4"/>
+      <stop offset="71.4%" stop-color="#2563EB"/>
+      <stop offset="85.7%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </linearGradient>
+  </defs>
+
+  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">
+    <text x="0" y="0">BLACK</text>
+    <text x="111" y="0" text-anchor="middle">RED</text>
+    <text x="223" y="0" text-anchor="middle">YELLOW</text>
+    <text x="334" y="0" text-anchor="middle">GREEN</text>
+    <text x="446" y="0" text-anchor="middle">CYAN</text>
+    <text x="557" y="0" text-anchor="middle">BLUE</text>
+    <text x="669" y="0" text-anchor="middle">MAGENTA</text>
+    <text x="780" y="0" text-anchor="end">WHITE</text>
+  </g>
+
+  <rect x="0" y="14" width="780" height="56" fill="url(#cubepath)" stroke="#8F8578"/>
+
+  <g stroke="#1A1A1A" stroke-width="1.2">
+    <line x1="0" y1="70" x2="0" y2="80"/>
+    <line x1="111" y1="70" x2="111" y2="80"/>
+    <line x1="223" y1="70" x2="223" y2="80"/>
+    <line x1="334" y1="70" x2="334" y2="80"/>
+    <line x1="446" y1="70" x2="446" y2="80"/>
+    <line x1="557" y1="70" x2="557" y2="80"/>
+    <line x1="669" y1="70" x2="669" y2="80"/>
+    <line x1="780" y1="70" x2="780" y2="80"/>
+  </g>
+
+  <g font-family="JetBrains Mono" font-size="11" fill="#1A1A1A">
+    <text x="0" y="98" text-anchor="middle">0m</text>
+    <text x="111" y="98" text-anchor="middle">~0.8m</text>
+    <text x="223" y="98" text-anchor="middle">~1.8m</text>
+    <text x="334" y="98" text-anchor="middle">~3.2m</text>
+    <text x="446" y="98" text-anchor="middle">~5.3m</text>
+    <text x="557" y="98" text-anchor="middle">~8.7m</text>
+    <text x="669" y="98" text-anchor="middle">~16.5m</text>
+    <text x="780" y="98" text-anchor="middle">∞</text>
+  </g>
+
+  <text x="390" y="128" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">depth → curved value → point on cube path → RGB color  ·  invertible by construction</text>
+</g>
+</svg>
+<figcaption><strong>Fig 5.</strong> The depth color encoding, in two stages. Step one warps unbounded depth through Barron's power transform so close distances get more resolution than far ones. Step two walks the resulting [0, 1) value along the edges of the RGB cube via a Hilbert-curve-like traversal that hits each corner without revisiting an edge. The composition is invertible by construction: the model is trained to produce this colormap, and at inference time you project the predicted RGB values onto the nearest segment of the path and invert back to meters.</figcaption>
+</figure>
+
+The composition is invertible. To go from depth to RGB: power-transform the depth value, then traverse to that point on the piecewise-linear cube path. To go from RGB back to depth: project the RGB value onto the nearest segment of the path, find your position along that segment, then invert the power transform. Both operations are deterministic and exact.
+
+What this gets you is a colormap that's specifically designed for the task. Nearby objects (where you want resolution) get spread across the early parts of the path, where the colors transition rapidly between distinct hues. Distant objects (where you want compression) get crammed into the last segment, where colors are similar (everything's heading toward white). The model learns to produce this colormap because the training data uses it. You decode the model's output by inverting the colormap.
+
+There's a subtlety. The team trains the model on the bespoke colormap as the primary depth visualization, but they also augment training with several alternative colormaps: Plasma, Inferno, Viridis, plain grayscale. The model learns to produce depth visualizations in any of these formats, depending on the prompt. This generalizes the segmentation insight: the format is part of the prompt, so the model can switch formats per request without retraining. Ask for "the depth visualization in plasma colors" or "the depth visualization in our standard mapping" and you get the right format.
+
+The result is the wild part. Vision Banana's depth estimation is trained on *zero real-world depth data*. All the training depth comes from synthetic scenes rendered by 3D engines. And it generalizes to real photographs taken by consumer devices. The paper has a small "vibe test" where one of the authors photographs a scene at Kinkaku-Ji with their phone, runs Vision Banana on it, and compares the predicted depth at a marked point (13.71 meters) against Google Maps measurements at the same location (12.87 meters). The relative error is 6.5%. This is on a photo taken by a consumer phone of an outdoor scene, with no calibration, no camera intrinsics provided to the model, no supervision from real data, and the model was trained on imaginary scenes from a renderer. The world prior in NBP is doing the heavy lifting, and the colormap framing turns out to be the right way to ask the model to expose what it knows about distance.
+
+On the standard benchmarks, Vision Banana beats Depth Anything 3 on average across the four datasets they share (NYU, ETH3D, DIODE, KITTI) at 0.929 vs 0.918 in δ1 accuracy. It is the first generalist (not depth-specific) model to crack SOTA on metric depth, and it does it without ever being told a camera focal length.
+
+> *The format is the model. The model knew where things were. The colormap was how to ask.*
+
+### 9. Surface normals, the easy case
+
+After depth, surface normals are a relief. A surface normal at a pixel is a unit vector (x, y, z) describing the direction perpendicular to the surface at that point. By convention, x ranges from −1 (facing left) to +1 (facing right), y from −1 to +1 (down to up), z from −1 to +1 (away from camera to toward camera).
+
+The space of unit vectors and the RGB color cube are already structurally similar. (−1, −1, −1) maps to (0, 0, 0). (+1, +1, +1) maps to (1, 1, 1). Just rescale each component from [−1, 1] to [0, 1] and use it directly as a color channel. Surfaces facing left become pinkish-red. Surfaces facing up become light green. Surfaces facing the camera become light blue/purple. Almost no engineering. The mapping is bijective by construction.
+
+<figure>
+<svg viewBox="0 0 920 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+
+<g>
+<rect x="60" y="30" width="120" height="120" fill="#E66B7A"/>
+<g transform="translate(120,90)" stroke="#FFFFFF" stroke-width="3.5">
+<line x1="0" y1="0" x2="-32" y2="0"/>
+<polygon points="-32,0 -22,-6 -22,6" fill="#FFFFFF"/>
+</g>
+<text x="120" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#1A1A1A">(−1, 0, 0)</text>
+<text x="120" y="192" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">faces left</text>
+<text x="120" y="216" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#6B6258">pinkish red</text>
+</g>
+
+<g>
+<rect x="240" y="30" width="120" height="120" fill="#A8E08C"/>
+<g transform="translate(300,90)" stroke="#FFFFFF" stroke-width="3.5">
+<line x1="0" y1="0" x2="0" y2="-32"/>
+<polygon points="0,-32 -6,-22 6,-22" fill="#FFFFFF"/>
+</g>
+<text x="300" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#1A1A1A">(0, +1, 0)</text>
+<text x="300" y="192" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">faces up</text>
+<text x="300" y="216" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#6B6258">light green</text>
+</g>
+
+<g>
+<rect x="420" y="30" width="120" height="120" fill="#9CA8E8"/>
+<circle cx="480" cy="90" r="8" fill="#FFFFFF"/>
+<circle cx="480" cy="90" r="3" fill="#9CA8E8"/>
+<text x="480" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#1A1A1A">(0, 0, +1)</text>
+<text x="480" y="192" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">faces camera</text>
+<text x="480" y="216" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#6B6258">light blue / purple</text>
+</g>
+
+<g>
+<rect x="600" y="30" width="120" height="120" fill="#6E8AA8"/>
+<g transform="translate(660,90)" stroke="#FFFFFF" stroke-width="3.5">
+<line x1="0" y1="0" x2="22" y2="22"/>
+<polygon points="22,22 22,12 12,22" fill="#FFFFFF"/>
+</g>
+<text x="660" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#1A1A1A">(+.5, −.5, +.7)</text>
+<text x="660" y="192" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#6B6258">faces lower-right</text>
+<text x="660" y="216" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#6B6258">muted purple-grey</text>
+</g>
+
+<g transform="translate(770,30)">
+<rect x="0" y="0" width="130" height="120" fill="#F5E6B8" stroke="#B8851A"/>
+<text x="65" y="28" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#B8851A" letter-spacing="2">RESCALE</text>
+<text x="65" y="58" text-anchor="middle" font-family="serif" font-size="14" font-style="italic" font-weight="600" fill="#1A1A1A">x → R</text>
+<text x="65" y="82" text-anchor="middle" font-family="serif" font-size="14" font-style="italic" font-weight="600" fill="#1A1A1A">y → G</text>
+<text x="65" y="106" text-anchor="middle" font-family="serif" font-size="14" font-style="italic" font-weight="600" fill="#1A1A1A">z → B</text>
+<text x="65" y="138" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">[−1,1] → [0,1]</text>
+</g>
+</svg>
+<figcaption><strong>Fig 6.</strong> Surface normal encoding, the case where the format is already RGB. Each component of the unit normal vector maps directly to one of the three color channels after a [−1,1] → [0,1] rescale. No bijection design, no power transform, no path traversal. Just rescale and you're done. The model produces a normal map that's also a perfectly readable image.</figcaption>
+</figure>
+
+Vision Banana trains on synthetic surface normal maps using this mapping, and the model produces remarkably clean normal estimations, with finer geometric detail than the previous SOTA (Lotus-2). On the three indoor benchmarks (NYUv2, DIODE-indoor, ScanNet), it has the lowest mean and median angular errors when averaged across the three. It doesn't actually win any individual dataset on mean error (DSINE edges it on NYUv2, StableNormal on DIODE, Lotus-2 on ScanNet) but the average is the cleanest summary, and it's the lowest. On the outdoor benchmark (VKitti), it's competitive but not best.
+
+The reason this is worth a section, even though it's almost trivial, is that it makes the structural point clearly. Surface normals are easy because their natural representation already lives in RGB. Depth is hard because its natural representation doesn't, and you have to construct a clever bijection. Segmentation is somewhere in between: there's no natural mapping but a freely-prompted one works. The pattern across all three is the same: the format is part of the model. When the format is naturally RGB-shaped, you barely have to do anything. When it isn't, the engineering is in the format design, not the model design.
+
+### 10. Instance segmentation, the awkward case
+
+Instance segmentation is where Vision Banana's recipe almost breaks down, and the fix is interesting because it's the only place the team has to do something non-obvious.
+
+The problem: for semantic segmentation, every pixel of class "cat" gets the same color, because the task is class identification, not instance differentiation. For instance segmentation, every individual cat needs its own color, because the task is to separate one cat from another. But the model doesn't know in advance how many cats there are. You can't put "cat 1 is red, cat 2 is blue, cat 3 is green" in the prompt because you don't know whether to stop at three or go to seventeen.
+
+The team's fix is per-class inference. Instead of asking the model to produce all instances of all classes in one shot, they iterate: for each class in turn, run the model and ask it to color each instance of that class differently, picking colors itself. The prompt is something like "render each instance of cat with a different distinct color, the rest of the image as background black." The model dynamically picks colors for each instance based on what it sees, and the decoder clusters the output by color to recover the instance masks.
+
+This works, mostly. On the SA-Co/Gold instance segmentation benchmark, Vision Banana hits 0.540 pmF1. That beats most existing zero-shot methods (Gemini 2.5: 0.461, OWLv2: 0.420, APE-D: 0.369). It does *not* beat DINO-X, which gets 0.552 on the same benchmark in zero-shot setting. SAM 3, which is non-zero-shot (it was trained on the SA-Co training split), gets 0.661.
+
+So instance segmentation is the single benchmark where Vision Banana's recipe doesn't reach SOTA. It's worth being precise about why. The per-class iteration introduces a structural issue: the model doesn't have a single global view of all instances when it's working on one class. It also means doing N forward passes if you have N classes, which compounds the per-call cost. And the dynamic color assignment is a place where the model can fail (assigning two instances the same color, getting confused near boundaries), where a discriminative method like DINO-X has explicit instance reasoning baked in.
+
+The takeaway isn't that the generator paradigm is doomed to lose at instance segmentation. The takeaway is that the recipe Vision Banana uses, which is genuinely simple, leaves a few percent on the table relative to specialists for tasks where the format mismatch is hardest. There may be a better format design for instance segmentation specifically (something that lets the model express instance counts directly?), but the current paper doesn't explore it.
+
+## Act 3 — The Stakes
+
+*What this gets you, where it doesn't, and what to do about it.*
+
+### 11. Three things this gets you
+
+If you grant the framing that vision tasks reduce to image-to-image generation with prompted output formats, three properties of the resulting system stop seeming like accidents and start looking like advantages.
+
+The first is that mode-seeking generative models gracefully handle ambiguous tasks. A lot of vision tasks are technically ill-posed: depth from a single image is mathematically underdetermined (multiple depth maps explain the same image equally well), segmentation has boundary ambiguity, surface normals are ambiguous at smooth occluding contours. Discriminative models trained with regression losses respond to this ambiguity by producing the *mean* of the plausible outputs, which is often a blurry mush at boundaries. The Segment Anything models address this by producing several output masks per query and only training the loss against one of them, an architectural workaround for the underlying ill-posedness. Generative models just sample one mode at a time. They're not regressing to the mean of valid answers, they're producing one valid answer. The output doesn't blur, because blur isn't a valid mode.
+
+The second is metric depth without camera intrinsics. Most state-of-the-art depth models require, either at training or at inference or both, knowing the camera's focal length, principal point, and distortion parameters, because metric depth (in actual meters) depends on the optics. Vision Banana doesn't. It estimates metric depth using only the image itself, no calibration data. The reason this works is that NBP's training has seen a vast amount of human-photographed scenes, and the world prior built up from that data is rich enough to estimate object scale from image content alone. A coffee cup looks like a coffee cup, and coffee cups are 8-10 cm wide, so the model can back out the camera's apparent focal length implicitly. This is what the v2 explainer would call "world knowledge transferring to a geometric task," and it's a real benefit of training at scale.
+
+The third is that the same model still does image generation. The 53.5% / 47.8% win rates against base NBP are a pretty clear demonstration: text-to-image generation roughly preserved (slightly better, even), image editing slightly degraded but close. So you don't have to deploy a separate model for "make me a poster" and a separate model for "estimate depth in this scene." It's the same model, you change the prompt. Whether this matters depends on your stack, but if you're a company already paying for an image generation API, getting vision tasks for free from the same call is a real saving.
+
+These three properties (no blurry mean, no intrinsics, no separate model) compound into the paradigm-level claim. Generative pretraining produces world-aware representations. Instruction tuning aligns those representations to a decodable interface. The interface is RGB images, which are the same shape as the model's existing output. So you get the world prior, the unified interface, and the multi-task capability in one package, with no bespoke architecture per task. That's the whole pitch.
+
+### 12. Two stacks, two jobs
+
+The honest reading of the encoder-vs-generator question, in 2026, is not "which one wins." It's "which one is the right tool for which job."
+
+The encoder stack (DINOv3, C-RADIOv4, FeatSharp) gives you a single model that turns images into feature vectors at high speed. Inference is on the order of tens of milliseconds for the smaller variants, the per-call cost is a fraction of a cent on commodity GPUs, and the model is small enough to deploy on edge hardware (the smallest DINOv3 variant is 21 million parameters, runs on a phone). You attach task heads to the backbone, you fine-tune those heads if you need to, you ship. This is the production layer of any vision system that makes more than a few thousand predictions per minute. Live segmentation in a video conferencing app, real-time object tracking in a robotics stack, retrieval over a billion-image catalog: encoder territory.
+
+The generator stack (Vision Banana, the broader Wiedemer-Veo direction) gives you a single model that takes an image and a natural-language prompt and produces an image that's the answer to the prompt. Inference is on the order of seconds, the per-call cost is around thirteen to twenty-four cents per image at Google's official API rates depending on resolution, and the model is large (NBP weights aren't published, so we don't know exactly how large). You write prompts, you don't fine-tune. This is the answer-anything layer of a vision system, useful when you don't know in advance what question you're going to want to ask. Construction drawing analysis where the question depends on what the user uploaded, scientific image analysis where the categories are described in plain English, customer-facing visual reasoning where the input format and the output requirement are specified at run time: generator territory.
+
+<figure>
+<svg viewBox="0 0 920 420" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<line x1="100" y1="360" x2="860" y2="360" stroke="#8F8578" stroke-width="1.5"/>
+<line x1="100" y1="40" x2="100" y2="360" stroke="#8F8578" stroke-width="1.5"/>
+
+<text x="480" y="395" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="2.5" fill="#6B6258">PER-CALL COST AND LATENCY  →</text>
+<text x="50" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="2.5" fill="#6B6258" transform="rotate(-90 50 200)">CAPABILITY BREADTH  ↑</text>
+
+<g stroke="#C9BEAA" stroke-dasharray="3,4">
+<line x1="100" y1="120" x2="860" y2="120"/>
+<line x1="100" y1="200" x2="860" y2="200"/>
+<line x1="100" y1="280" x2="860" y2="280"/>
+</g>
+
+<ellipse cx="240" cy="290" rx="110" ry="55" fill="#DBEAFE" stroke="#2563EB" stroke-width="2.5"/>
+<text x="240" y="285" text-anchor="middle" font-family="serif" font-size="18" font-weight="700" fill="#2563EB">encoder stack</text>
+<text x="240" y="307" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#1A1A1A">DINOv3, C-RADIO</text>
+<text x="240" y="324" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">~tens of ms  ·  ~$0</text>
+
+<text x="240" y="385" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#1A1A1A">live perception  ·  robotics  ·  retrieval  ·  edge inference</text>
+
+<ellipse cx="700" cy="130" rx="130" ry="55" fill="#F5E6B8" stroke="#B8851A" stroke-width="3"/>
+<text x="700" y="125" text-anchor="middle" font-family="serif" font-size="18" font-weight="700" fill="#B8851A">generator stack</text>
+<text x="700" y="147" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#1A1A1A">Vision Banana, NBP</text>
+<text x="700" y="164" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">~seconds  ·  ~$0.15</text>
+
+<text x="700" y="65" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#1A1A1A">free-form prompting  ·  novel tasks  ·  ad-hoc reasoning</text>
+
+<line x1="345" y1="240" x2="580" y2="180" stroke="#8F8578" stroke-dasharray="4,4" stroke-width="1.2"/>
+<rect x="395" y="200" width="140" height="28" fill="#F4EEE3"/>
+<text x="465" y="219" text-anchor="middle" font-family="serif" font-size="13" font-style="italic" fill="#1A1A1A">two layers, one stack</text>
+</svg>
+<figcaption><strong>Fig 7.</strong> Two stacks, plotted by per-call cost (horizontal) and capability breadth (vertical). The encoder stack is fast, cheap, narrow per task but large set of supported tasks via heads. The generator stack is slow, expensive, broad per call (any prompt) but doesn't scale to high-throughput production. The right design pattern is layered: encoder underneath for the predictable work, generator on top for the questions that don't have a head.</figcaption>
+</figure>
+
+The right design pattern for a serious vision product is going to be both. The encoder runs continuously on every frame, every image, every request, doing the predictable work cheaply. The generator runs on demand, when a question shows up that the encoder's task heads can't answer. The two layers exchange data via crops and metadata, the way a CPU and GPU coordinate. Neither is going away.
+
+This is the framing the paper's epilogue gestures at when it talks about "Foundational Vision Models." The interpretation I'd push: the vision foundation model of 2026 isn't one model. It's two models, in a layered architecture, each playing to their strengths. The v2 explainer documented the bottom layer reaching maturity. Vision Banana is the first credible top layer.
+
+### 13. The case against the case
+
+Three honest reasons to be skeptical of the paradigm-shift claim, and one reason it might be even bigger than the paper says.
+
+Reason one: the paper has zero ablation studies. Not one. We don't know how much of the result comes from NBP being a strong base model, versus how much comes from the instruction tuning recipe, versus how much comes from the format design (the depth color cube etc.). If you ran the same recipe on FLUX.2 or Stable Diffusion 3.5, would you get the same numbers? Better numbers? Worse? The paper doesn't say. This isn't a rejection-worthy gap, but it makes the result hard to extrapolate. The "image generators are generalist vision learners" claim is more compelling if multiple generators give the same answer, and the paper doesn't test that.
+
+Reason two: closed model from a single lab. NBP is Google-internal. Vision Banana is also Google-internal, with no released weights. The gallery on the project page is the only reproducible evidence the public has. Two of the most influential papers in this lineage (Wiedemer Veo 3, Vision Banana) are both DeepMind, and the underlying generator in both cases is Google's. There's a real chance that some property of Google's specific generator family (Gemini's deep multimodal fusion, the planning-style inference loop, the training mixture) is a precondition for the result, and the paradigm doesn't actually generalize to other generators. If FLUX or SD3.5 don't reproduce this when tuned the same way, "image generators are generalist vision learners" becomes "Google's specific image generators are generalist vision learners," which is a much weaker claim.
+
+Reason three: the cost economics caveat from earlier. Per-call cost is the kind of thing that gets dismissed as engineering detail until you try to ship a product, at which point it's everything. A vision system that costs $0.15 per inference is fine for a chatbot's image features; it's a non-starter for any continuous-perception use case. The paper acknowledges this in the future-work section ("acceleration and cost-reduction strategies will be an essential hurdle") but doesn't quantify it. Until that hurdle moves, "Vision Banana beats SAM 3" is a benchmark claim, not a deployment claim.
+
+The reason it might be bigger than the paper says: instance segmentation is the only benchmark Vision Banana doesn't crack, and its lag there is small (0.540 vs 0.552). Mode-seeking is genuinely useful for ambiguous tasks. The world prior from generative pretraining genuinely helps with metric depth in a way no specialist model gets without explicit supervision. The unified interface is real. If the next wave of papers reproduces the Vision Banana recipe across other generators and finds the same pattern, the encoder stack doesn't disappear but it becomes a narrower thing: a fast inference layer for predictable tasks, not the foundation of vision. That would be a meaningful paradigm shift, and it'd happen on the timescale of a year or two, not a decade.
+
+I'd give the bigger claim a 40% probability over the next eighteen months. Not certain, not unlikely, worth tracking.
+
+### 14. What's worth taking
+
+Three patterns from this paper that are bigger than the paper.
+
+#### 1. Match the model's medium.
+
+If your model already produces type X, design your task interface so the answer is also type X. Don't bolt on a head that produces type Y when type X would do. Vision Banana works because RGB images out, RGB images in. The model didn't have to learn a new output shape, it had to learn a new use of an existing output shape. This is also why GPT works for sentiment analysis: the model was already producing text, the answer to "is this positive or negative" is also text, no architecture change needed.
+
+Generalize this pattern and it suggests a question to ask of any model you're using: what's the model's natural output medium, and can you express your task as something in that medium? Where the answer is yes, you can usually skip the head. Where the answer is no, the engineering is in figuring out how to translate.
+
+#### 2. Instruction-tune, don't fine-tune.
+
+Full fine-tuning a pretrained model on a single new task is destructive: the original capability is partially or fully overwritten. Mixing the new task into the original training distribution at low ratio, and tuning lightly, preserves the original. Vision Banana didn't have to retrain NBP from scratch with vision data alongside generation data; they took the trained model and nudged it toward the new behavior. This is the same lesson the LLM community learned the hard way over GPT-3 to GPT-4, and it's now coming back as a general engineering pattern: when you have a strong pretrained model, instruction-tune don't fine-tune.
+
+For practical purposes: the next time you're tempted to start from scratch on a specialized model, ask whether you could instead instruction-tune a generalist model. The engineering effort is lower, the result preserves capabilities you didn't know you'd want, and the cost of changing the task later is just rewriting the prompt.
+
+#### 3. The format choice is the model.
+
+This is the deeper version of the first lesson. When the format you pick to express the answer is good, the model can already do the task. When the format is bad, no amount of model capability will save you. The depth color cube is a beautifully designed format: bijective, precision-warped, traversal-based. Once you have it, the model just produces depth visualizations because that's what its world prior was always good at. The format made the model capable of expressing what it already knew.
+
+This is, I think, the most general and underrated lesson. We talk a lot about model architectures and a lot about training data. We don't talk much about output formats. But the gap between a model that can do a task and a model that can't, all else equal, is often just in how you wrote down the answer. Spend more time on the format. It's where the leverage is.
+
+## Epilogue
+
+If you'd told me a year ago that the next generation of vision models would also be the next generation of art-making models, I'd have said you were confusing two different things. Now I'm not so sure they're different.
+
+> *If the model can paint, the answer is a painting.*
+
+### References
+
+Vision Banana / Image Generators are Generalist Vision Learners. Gabeur et al., Google DeepMind 2026 ([arXiv:2604.20329](https://arxiv.org/abs/2604.20329), [project page](https://vision-banana.github.io)).
+
+Marigold. Ke et al., ETH Zurich, CVPR 2024 ([arXiv:2312.02145](https://arxiv.org/abs/2312.02145)).
+
+Lotus. He et al., 2024 ([arXiv:2409.18124](https://arxiv.org/abs/2409.18124)).
+
+Lotus-2. He et al., 2025 ([arXiv:2512.01030](https://arxiv.org/abs/2512.01030)).
+
+Video Models are Zero-Shot Learners and Reasoners. Wiedemer et al., Google DeepMind 2025 ([arXiv:2509.20328](https://arxiv.org/abs/2509.20328)).
+
+A Power Transform. Barron 2025 ([arXiv:2502.10647](https://arxiv.org/abs/2502.10647)).
+
+Nano Banana Pro / Gemini 3 Pro Image ([Google blog](https://blog.google/innovation-and-ai/products/nano-banana-pro/)).
+
+Continued from *The Unified Vision Stack* (v2 explainer, April 2026).
