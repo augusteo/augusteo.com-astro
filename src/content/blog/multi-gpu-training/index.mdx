@@ -49,3 +49,56 @@ Total: 16 bytes per parameter.
 Memorise that number. A 70B-parameter model trains in 70 × 10⁹ × 16 = 1.12 *terabytes* of state. An H100 has 80 GB. We are already in trouble, and we haven't even talked about the *activations* the forward pass leaves behind for backward to consume.
 
 That's why we need more than one GPU. The model doesn't fit. Sometimes the model fits but the data is too slow; we'll get to that. The first force is memory.
+
+### 2. Two GPUs, one negotiation
+
+Add one GPU, and the loop has to learn to share.
+
+The setup is the same on each rank: a full copy of the model, a full copy of the optimizer state, the same code. The only thing different is what data each rank sees. Each rank gets a different slice of the batch. With two GPUs and a batch of 32, GPU 0 processes samples 0-15 and GPU 1 processes samples 16-31. Both run forward, both compute their local loss, both run backward.
+
+At the end of backward, the two gradients disagree.
+
+This is where the negotiation begins. The gradient of the loss on the full batch of 32 is the average of the gradient on samples 0-15 and the gradient on samples 16-31. So if both ranks average their gradients before the optimizer step, every rank takes exactly the same step a single GPU on the union batch would have taken. The training loss follows the same trajectory as the single-GPU run, and the only difference is wall-clock: each rank only had to do half the forward and backward, so the step took half the time.
+
+Averaging gradients across N ranks is a *collective* called *all-reduce*. We're going to spend a lot of time on it.
+
+{/* TODO: <Fig2DdpStep /> interactive-canvas, slider for N=2..16, scrubber through one step (forward, backward, all-reduce, optimizer) */}
+
+Drag the slider to add GPUs. Scrub through one step. The compute phase (forward + backward) stays roughly constant: more GPUs means each one does less work in parallel. But the all-reduce phase grows. By N=16, on this model, the all-reduce takes about as long as the compute. We've added GPUs and hit the point where adding more would do nothing.
+
+This is the central tension of the rest of the post. Compute parallelises beautifully across GPUs. Communication does not. Every technique from here on is about pushing the all-reduce phase down or hiding it.
+
+Three optimisations make DDP usable at scale. All of them are about the all-reduce.
+
+The first is *bucketing*. Calling all-reduce once per parameter tensor would be a disaster: a transformer has thousands of parameter tensors, most of them small, and NCCL all-reduce throughput is dominated by per-call overhead at small sizes. PyTorch's DDP coalesces gradients into ~25 MB buckets and all-reduces one bucket at a time. Each call lands on the bandwidth-bound part of the throughput curve.
+
+The second is *comm-compute overlap*. The backward pass produces gradients in the reverse order of forward: the last layer's gradients land first, the first layer's gradients land last. As soon as bucket K's gradients are all ready, DDP fires its all-reduce on a separate NCCL stream. The rest of backward keeps computing the gradients for buckets K-1, K-2, and so on. The last bucket's all-reduce finishes a hair after backward does. Mental model: the all-reduce isn't really a separate phase, it's painted on top of backward.
+
+The third is *gradient accumulation*. If you want a larger effective batch but each GPU's memory only fits 8 samples at a time, you accumulate gradients over several forward-backward passes before stepping the optimizer. PyTorch wraps this in a context manager:
+
+```python
+with model.no_sync():
+    for x, y in micro_batches[:-1]:
+        loss = criterion(model(x), y)
+        loss.backward()        # accumulates locally, no all-reduce
+loss = criterion(model(micro_batches[-1]), y)
+loss.backward()                # all-reduce fires here
+optim.step()
+```
+
+K accumulation steps coalesce into one collective instead of K.
+
+That's most of what data parallel is. The code for the full loop looks like this:
+
+```python
+model = DDP(model)
+for x, y in batches_for_this_rank:
+    pred = model(x)
+    loss = criterion(pred, y)
+    loss.backward()
+    optim.step()
+```
+
+Compared to single-GPU, only one line is new: the `DDP(model)` wrap. The loop body is unchanged. The negotiation happens inside `loss.backward()`.
+
+We've sketched the cost of all-reduce as a single number ("it takes time"). We haven't said how N machines actually reach consensus on a vector without one of them becoming a bottleneck. That's the next section.
