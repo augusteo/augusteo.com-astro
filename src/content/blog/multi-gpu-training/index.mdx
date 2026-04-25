@@ -20,6 +20,7 @@ import TpMatmul from "@components/figures/multi-gpu-training/TpMatmul.svelte";
 import TpSp from "@components/figures/multi-gpu-training/TpSp.svelte";
 import PipelineSchedule from "@components/figures/multi-gpu-training/PipelineSchedule.svelte";
 import DualPipe from "@components/figures/multi-gpu-training/DualPipe.svelte";
+import MoeRouting from "@components/figures/multi-gpu-training/MoeRouting.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -453,9 +454,11 @@ DeepSeek-V3 has 671B total parameters but only 37B active per token. Mixtral 8x7
 
 This creates a new comm pattern. Token `i` lives on rank `r`. Its assigned expert lives on rank `r'`, possibly far away. Every layer needs to *send* tokens to their expert's home, run the expert FFN, and *send* the outputs back. The collective that does this is *all-to-all*.
 
-{/* TODO: <Fig12MoeRouting /> interactive-canvas, drag a token onto a router, see its top-1 dispatch via all-to-all, FFN, and return path */}
+<Figure caption="Top-1 routing for one token. Drag x picks which expert wins top-1; drag y picks the home rank the token lives on. When the chosen expert lives on a different rank, two arcs appear: a blue dispatch arc over the top, a green return arc under the bottom. Each cell's fill is that expert's load, capped by the capacity factor; cells past capacity flip red and the dropped-tokens percentage on the right tracks how much of the batch is lost." figNum={12}>
+  <MoeRouting client:visible />
+</Figure>
 
-Drag a token onto the router. Top-1 routing picks one expert. The token is shipped via all-to-all to the GPU that holds that expert. The expert's FFN runs. A second all-to-all returns the result back to the token's home rank. Two all-to-alls per MoE layer in forward, two more in backward.
+Pick a different expert with the drag. Top-1 routing picks one expert. When that expert lives on a different GPU, the token is shipped via all-to-all to the GPU that holds that expert. The expert's FFN runs. A second all-to-all returns the result back to the token's home rank. Two all-to-alls per MoE layer in forward, two more in backward.
 
 All-to-all is heavier than all-reduce. Each rank sends a different chunk to each other rank, instead of all chunks being summed. Cost grows as `O(N·M)` where `N` is the number of ranks in the EP group and `M` is the per-token activation size. How much of the bandwidth you actually use depends on whether tokens are spread evenly across experts. Hot experts overload their host GPU; cold experts idle. *Load balance is the central problem.*
 
