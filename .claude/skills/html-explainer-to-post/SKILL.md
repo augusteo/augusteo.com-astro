@@ -45,9 +45,9 @@ Then read `reference.md` in this directory for worked snippet examples of the tr
 
 10. **Compose the hero prompt** by filling in the canonical template (below). Output it as a fenced code block so Vic can copy-paste cleanly. Tell Vic he can also say "skip" to leave the post heroless.
 11. **Wait** for Vic to either (a) paste a path to a generated image, or (b) say "skip". On skip: report Phase 2 skipped and stop.
-12. **Copy the image** to `src/assets/blog/<slug>/<original-filename>`. Preserve the original filename (matches `sync-content.ts` convention). Validate the source path exists before copying.
+12. **Copy the image** to `src/assets/blog/<slug>/hero.<ext>` where `<ext>` matches the source extension (png, jpg, jpeg, webp). Validate the source path exists before copying. Vic's convention is `hero.<ext>` rather than the auto-generated Gemini filename — see `src/assets/blog/unified-vision-stack/hero.png`.
 13. **View the destination image** with the `Read` tool — Claude Code reads PNG/JPG files visually. Propose a one-sentence `heroAlt` based on what is actually visible in the image.
-14. **Edit the MDX frontmatter:** add `heroImage: "@assets/blog/<slug>/<filename>"` and update `heroAlt` with the proposed text.
+14. **Edit the MDX frontmatter:** add `heroImage: "@assets/blog/<slug>/hero.<ext>"` and update `heroAlt` with the proposed text.
 15. **Report** final result: post path, asset path, hero filename, proposed alt, and `http://localhost:4321/blog/<slug>` as the preview URL.
 
 ## Input validation
@@ -66,7 +66,7 @@ Before any conversion:
 | `description` | `<p class="dek">` text, plain. If no dek: first body paragraph, truncated to ~200 chars. |
 | `pubDate` | Today (ISO date, e.g. `2026-04-24`). |
 | `heroAlt` | `""` in Phase 1; replaced in Phase 2 if a hero is supplied. |
-| `heroImage` | Omitted in Phase 1; added in Phase 2 as `"@assets/blog/<slug>/<filename>"`. |
+| `heroImage` | Omitted in Phase 1; added in Phase 2 as `"@assets/blog/<slug>/hero.<ext>"` (Vic's convention — matches `src/assets/blog/unified-vision-stack/hero.png`). |
 | `tags` | Infer 1–3 tags. **First grep `src/content/blog/*/index.mdx` for the existing tag vocabulary** and prefer tags Vic has used before (commonly `"AI"`, `"ML"`, `"Tech"`). Only invent a new tag if no existing one fits. If genuinely uncertain, use `["Tech"]`. |
 | `featured` | `false`. |
 | `draft` | `true`. |
