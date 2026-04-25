@@ -1,0 +1,51 @@
+---
+title: "How Multi-GPU Training Works"
+description: "An intuition-first walk from the single-GPU loop to a 16,000-GPU production run. DDP, ZeRO/FSDP, tensor and pipeline parallel, MoE, FP8: what each technique buys you and why we need it."
+pubDate: 2026-04-25
+heroAlt: "TODO hero image pending phase 6"
+tags: ["AI", "ML"]
+featured: false
+draft: true
+essay: true
+---
+
+*An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
+
+### 1. The single-GPU loop
+
+Training a neural network on one GPU is a four-line loop.
+
+```python
+pred = model(x)            # forward
+loss = criterion(pred, y)  # one scalar
+loss.backward()            # backward
+optim.step()               # update weights
+```
+
+Repeat the four lines a few hundred thousand times and you have a trained model. The whole post is about adding GPUs to this picture without breaking the loop. Spoiler: you can't quite do that. Each rank has to negotiate with its peers between steps, and most of what follows is about making the negotiation cheap, or hiding it behind compute.
+
+{/* TODO: <Fig1SingleGpuLoop /> static-svg, four boxes for forward/loss/backward/optimizer */}
+
+There is nothing to do here yet, but burn the four boxes into your visual memory. Every later figure will either split one of these boxes across more GPUs or repeat all of them on more GPUs.
+
+The forward pass walks the model. Every linear layer is a matrix multiplication, every nonlinearity is an element-wise function. The output is a prediction. The loss is a single scalar, the difference between the prediction and the truth, on this one batch.
+
+The backward pass walks the model in reverse, applying the chain rule. The output is the gradient of the loss with respect to every parameter. PyTorch lazily computes this; calling `.backward()` walks the autograd graph and fills `.grad` on each parameter tensor.
+
+The optimizer step uses the gradient to move the parameters slightly in the direction that decreases the loss. With Adam, the dominant optimizer in practice, the move involves three running statistics per parameter: the parameter itself (an FP32 master copy), the first moment of the gradient (an exponential moving average, called *m*), and the second moment (the EMA of squared gradients, called *v*).
+
+So far, plain. Here's the part that becomes load-bearing later.
+
+In modern training, every parameter is stored twice. There's an FP32 master copy that the optimizer reads and writes, and a half-precision copy (BF16 or FP16) that the forward and backward passes use. The half-precision copy makes training fast on tensor cores; the FP32 master keeps the optimizer's tiny updates from being swallowed by half-precision rounding error. Per parameter, mixed-precision Adam needs:
+
+- 2 bytes for the half-precision weight, used in forward/backward
+- 2 bytes for the half-precision gradient, filled by backward
+- 4 bytes for the FP32 master copy, owned by the optimizer
+- 4 bytes for `m`
+- 4 bytes for `v`
+
+Total: 16 bytes per parameter.
+
+Memorise that number. A 70B-parameter model trains in 70 × 10⁹ × 16 = 1.12 *terabytes* of state. An H100 has 80 GB. We are already in trouble, and we haven't even talked about the *activations* the forward pass leaves behind for backward to consume.
+
+That's why we need more than one GPU. The model doesn't fit. Sometimes the model fits but the data is too slow; we'll get to that. The first force is memory.
