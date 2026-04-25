@@ -210,3 +210,31 @@ This is the substrate that makes 4D and 5D parallelism composable. Llama 3 decla
 Two practical knobs from `MixedPrecisionPolicy` are worth naming. `param_dtype` controls what dtype parameters are computed in (typically BF16). `reduce_dtype` controls what dtype the gradient reduce-scatter happens in (sometimes FP32, instead of BF16, to avoid loss-of-precision in gradient sums on very large clusters). They're separable, and the separation matters for stability.
 
 That's all the FSDP2 we need for this post. The takeaway is the abstraction. A parameter is a `DTensor`. A `DTensor` knows how it's sharded across the mesh. Every later section is just a different choice of placements.
+
+### 7. Splitting one matmul
+
+There's a different way models become un-fittable. Sometimes the model fits but a single matrix multiplication inside it doesn't. A 70B-param model has a hidden size around 8192; the FFN expansion gives intermediate matmuls of `[batch × seq, 8192] @ [8192, 32768]`. At long context that's tens of GB of activation per layer. One matmul doesn't fit on one GPU.
+
+Tensor parallel (TP) cuts the matmul itself across GPUs.
+
+The trick is algebraic. Think of an MLP block as `Z = GeLU(X·A) · B`, where A is the up-projection (8192 → 32768) and B is the down-projection (32768 → 8192).
+
+Split A column-wise: `A = [A₁, A₂]` (each rank gets half the output columns). Each rank computes its half of `X·A` locally with no comm. GeLU is element-wise, so each rank applies it locally too. We're left with `[Y₁, Y₂]` distributed across two ranks.
+
+Now split B row-wise: `B = [B₁; B₂]` (each rank gets half the input rows, paired with its `Y` half). The product `Y · B = Y₁·B₁ + Y₂·B₂`, and each rank computes its term locally. The two terms still need to be summed across ranks. That sum is one all-reduce.
+
+{/* TODO: <Fig7TpMatmul /> interactive-canvas, toggle column-only / column+row, two GPUs side-by-side, show data flow and where the all-reduce sits */}
+
+Toggle to "column-only." Notice that each rank ends up with a partial `Y` and the next layer can't make sense of it on its own; the input to the next matmul would be different on each rank. Toggle to "column + row." The all-reduce closes the loop: every rank ends up with the full `Z`, and the next layer can run as if nothing was split.
+
+PyTorch's autograd needs help to thread through these splits. Megatron-LM introduced two symbolic operators that wrap the comm. `f` is identity in forward, all-reduce in backward. `g` is all-reduce in forward, identity in backward.
+
+The `f` operator sits at the entry of a TP block. Forward, the input is already replicated across ranks, so `f` does nothing. Backward, the input gradient needs to be summed across ranks before propagating upstream. The `g` operator sits at the exit. Forward, the partial outputs need to be summed. Backward, the upstream gradient is already replicated, so `g` does nothing. Together they make the autograd graph through a TP block look exactly like a single-GPU autograd graph from the optimizer's perspective.
+
+{/* TODO: <Fig8FgOperators /> static-svg, MLP and attention blocks side by side, f and g operators marked, all-reduces highlighted */}
+
+Self-attention is the same trick on a different axis. With `h` heads and a TP group of size `t`, each rank gets `h/t` heads. The Q, K, V projections are column-parallel along the head dimension; each rank computes its head's attention locally with no cross-rank comm; the output projection is row-parallel and closes with a `g` all-reduce. Total: two all-reduces per transformer layer in forward, two in backward.
+
+Two all-reduces per layer is a lot. For a 32-layer model that's 64 all-reduces per forward-backward step, each one needing all `t` ranks to synchronise. TP is bandwidth-hungry, and the bandwidth has to be very fast. The practical constraint is sharp: TP works inside one NVLink-connected node (where bandwidth is 600+ GB/s), and falls apart across InfiniBand (50 GB/s). TP=8 is the typical maximum on H100, matching the 8 GPUs in one node.
+
+That's why TP stays small. To go bigger, we need to attack a different axis. We also need to fix a memory problem TP just created.
