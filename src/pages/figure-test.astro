@@ -1,0 +1,11 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import FigureKitDemo from "../components/_FigureKitDemo.svelte";
+---
+
+<BaseLayout
+  title="Figure kit demo"
+  description="Smoke test for interactive figure primitives"
+>
+  <FigureKitDemo client:load />
+</BaseLayout>
