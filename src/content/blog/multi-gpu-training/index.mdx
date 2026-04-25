@@ -364,3 +364,29 @@ There are two flavours. *Pass-KV* rotates the K and V blocks while Q stays fixed
 For training, CP usually rides alongside the other axes. Llama 3 declares its parameters on a 4D mesh with order `[TP, CP, PP, DP]`. The order matters. From inner-most to outer-most, the parallelism dimensions are arranged so that the highest-bandwidth comm (TP all-reduces) lives on the fastest links (NVLink within a node), and the lowest-bandwidth comm (DP gradient all-reduces) can use the slower links (InfiniBand across nodes). The rule of thumb: put bandwidth-hungry parallelism first.
 
 That's all five axes. The post can now ask "what's actually in production" and answer with a composition of the things we just built.
+
+### 13. FP8 in production
+
+Half precision saved memory; FP8 saves compute throughput. An H100's tensor cores are roughly 2× as fast in FP8 as BF16. If you can train end-to-end in FP8 without losing accuracy, your wall-clock training time roughly halves at the same hardware spend. That's a big number.
+
+The catch is that FP8 has only 4 bits of mantissa (E4M3 format). Activations and weights routinely contain large outliers, and a per-tensor scale tuned for the typical value will saturate or zero those outliers. Naive FP8 doesn't converge.
+
+DeepSeek-V3 made FP8 work for a 671B-parameter model. The recipe matters because it's the most-replicated production FP8 stack as of 2026.
+
+{/* TODO: <Fig15Fp8Granularity /> static-svg, transformer linear layer with 1x128 activation tile, 128x128 weight block, mark which components stay in BF16 */}
+
+Three rules.
+
+The first is *fine-grained scaling*. Activations are scaled per-token per-128-channels (a `1×128` tile). Weights are scaled per-`128×128` block. Outliers stay localised to their tile. A spiky channel in one row doesn't blow up the scale for the whole tensor. From DeepSeek's paper: "this approach ensures that the quantization process can better accommodate outliers by adapting the scale according to smaller groups of elements."
+
+The second is *what stays out of FP8*. The three GEMMs in the linear layer (forward Fprop, backward-input Dgrad, backward-weight Wgrad) all run in FP8. Everything else stays in BF16 or FP32: the embedding, the output head, the MoE gating module, the norms, and the attention softmax. These components are the ones most sensitive to precision loss, and their compute cost is small enough that FP8 wouldn't save much there anyway.
+
+The third is *high-precision accumulation*. Hopper's FP8 tensor cores accumulate FP8 × FP8 into an internal format that retains around 14 bits of precision, which DeepSeek measured as not enough for stable training. Their fix: every 128 K-axis steps inside a GEMM, the partial sums are flushed from the tensor core's accumulator to CUDA cores and re-accumulated in FP32. The kernel adds the flush in software. Total FP8 GEMM throughput is preserved. Numerical precision is recovered.
+
+{/* TODO: <Fig16Fp8LossCurve /> plot, two curves (FP8 vs BF16), training-loss y-axis, log-step x-axis, gap annotated */}
+
+The result: a relative loss-error vs the BF16 baseline that "remains consistently below 0.25%" across the entire 14.8T-token DeepSeek-V3 run. No catastrophic divergence. No rollbacks. No irrecoverable loss spikes for the whole training run.
+
+DeepSeek's hardware wishlist (V3 §3.5) is colour worth ending on. They explicitly ask NVIDIA for higher FP8 accumulation precision in tensor cores, native support for tile- and block-wise quantization, and online quantization. The most aggressive FP8 production team is on record saying current Hopper tensor cores leak precision and current kernels burn SMs on data movement. The fact that they made it work anyway, on a 2048-GPU cluster, is the data point.
+
+What's left is to compose the axes.
