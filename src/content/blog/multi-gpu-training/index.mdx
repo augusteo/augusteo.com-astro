@@ -15,6 +15,7 @@ import MemoryBar from "@components/figures/multi-gpu-training/MemoryBar.svelte";
 import DdpStep from "@components/figures/multi-gpu-training/DdpStep.svelte";
 import RingAllReduce from "@components/figures/multi-gpu-training/RingAllReduce.svelte";
 import ZeroStages from "@components/figures/multi-gpu-training/ZeroStages.svelte";
+import Fsdp from "@components/figures/multi-gpu-training/Fsdp.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -233,7 +234,9 @@ The catch is latency. Each layer's all-gather is small (a single layer's paramet
 
 The trick that makes this affordable is *prefetching*.
 
-{/* TODO: <Fig6Fsdp /> interactive-canvas, layers across, time across, all-gather of layer K+1 firing during forward of layer K */}
+<Figure caption="FSDP forward pass with all-gather prefetch. The top row is the naive serialised schedule for reference. The bottom two rows split the work across a comm stream and a compute stream: with prefetch on, the all-gather for layer K+1 fires while forward of layer K is still running, so the gather never lands on the critical path. Toggle off to collapse back to serial." figNum={6}>
+  <Fsdp client:visible />
+</Figure>
 
 Scrub through one forward pass. The all-gather for layer K+1's parameters fires while layer K's matmul is still running. The two run on separate streams. By the time forward reaches layer K+1, its parameters are already in memory. The gather doesn't show up on the critical path. Backward does the same trick in reverse.
 
