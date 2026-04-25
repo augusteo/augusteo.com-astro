@@ -9,6 +9,8 @@ draft: true
 essay: true
 ---
 
+import Figure from "@components/figure/Figure.svelte";
+
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
 ### 1. The single-GPU loop
@@ -24,7 +26,48 @@ optim.step()               # update weights
 
 Repeat the four lines a few hundred thousand times and you have a trained model. The whole post is about adding GPUs to this picture without breaking the loop. Spoiler: you can't quite do that. Each rank has to negotiate with its peers between steps, and most of what follows is about making the negotiation cheap, or hiding it behind compute.
 
-{/* TODO: <Fig1SingleGpuLoop /> static-svg, four boxes for forward/loss/backward/optimizer */}
+<Figure caption="The single-GPU training loop. Four steps, repeated. Every later figure either splits one of these boxes across GPUs or repeats all of them on more GPUs." figNum={1}>
+<svg viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Single-GPU training loop: four boxes labelled forward, loss, backward, optimizer, with arrows between them and a dashed repeat arrow looping back.">
+  <defs>
+    <marker id="loopArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+    </marker>
+    <marker id="loopArrowFaint" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8F8578"/>
+    </marker>
+  </defs>
+
+  <g>
+    <rect x="20"  y="60" width="130" height="80" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.5" rx="4"/>
+    <rect x="180" y="60" width="130" height="80" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.5" rx="4"/>
+    <rect x="340" y="60" width="130" height="80" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.5" rx="4"/>
+    <rect x="500" y="60" width="130" height="80" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.5" rx="4"/>
+  </g>
+
+  <g font-family="JetBrains Mono, monospace" fill="#6B6258">
+    <text x="85"  y="92" text-anchor="middle" font-size="13">forward</text>
+    <text x="245" y="92" text-anchor="middle" font-size="13">loss</text>
+    <text x="405" y="92" text-anchor="middle" font-size="13">backward</text>
+    <text x="565" y="92" text-anchor="middle" font-size="13">optimizer</text>
+
+    <text x="85"  y="118" text-anchor="middle" font-size="10" fill="#2563EB">model(x)</text>
+    <text x="245" y="118" text-anchor="middle" font-size="10" fill="#2563EB">criterion(.)</text>
+    <text x="405" y="118" text-anchor="middle" font-size="10" fill="#2563EB">.backward()</text>
+    <text x="565" y="118" text-anchor="middle" font-size="10" fill="#2563EB">.step()</text>
+  </g>
+
+  <g stroke="#6B6258" stroke-width="1.5" fill="none">
+    <line x1="150" y1="100" x2="180" y2="100" marker-end="url(#loopArrow)"/>
+    <line x1="310" y1="100" x2="340" y2="100" marker-end="url(#loopArrow)"/>
+    <line x1="470" y1="100" x2="500" y2="100" marker-end="url(#loopArrow)"/>
+  </g>
+
+  <g stroke="#8F8578" stroke-width="1.2" fill="none" stroke-dasharray="3,3">
+    <path d="M 565 140 L 565 180 L 85 180 L 85 140" marker-end="url(#loopArrowFaint)"/>
+  </g>
+  <text x="325" y="200" font-family="Source Serif 4, Iowan Old Style, Georgia, serif" font-style="italic" font-size="12" fill="#8F8578" text-anchor="middle">repeat a few hundred thousand times</text>
+</svg>
+</Figure>
 
 There is nothing to do here yet, but burn the four boxes into your visual memory. Every later figure will either split one of these boxes across more GPUs or repeat all of them on more GPUs.
 
@@ -231,7 +274,68 @@ PyTorch's autograd needs help to thread through these splits. Megatron-LM introd
 
 The `f` operator sits at the entry of a TP block. Forward, the input is already replicated across ranks, so `f` does nothing. Backward, the input gradient needs to be summed across ranks before propagating upstream. The `g` operator sits at the exit. Forward, the partial outputs need to be summed. Backward, the upstream gradient is already replicated, so `g` does nothing. Together they make the autograd graph through a TP block look exactly like a single-GPU autograd graph from the optimizer's perspective.
 
-{/* TODO: <Fig8FgOperators /> static-svg, MLP and attention blocks side by side, f and g operators marked, all-reduces highlighted */}
+<Figure caption="An MLP block under tensor parallelism, with the f and g operators marked. The colored arrows are the all-reduces. Self-attention follows the same shape: split Q/K/V column-wise along the head dimension, output projection row-wise, with f and g wrapping the whole block." figNum={8}>
+<svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Tensor-parallel MLP block: f operator at top, two parallel lanes computing X*A_i then GeLU then Y_i*B_i, g operator at bottom merging via all-reduce.">
+  <defs>
+    <marker id="arrPlain" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+    </marker>
+    <marker id="arrAR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/>
+    </marker>
+  </defs>
+
+  <g font-family="JetBrains Mono, monospace" fill="#6B6258">
+    <text x="120" y="32" text-anchor="middle" font-size="11" letter-spacing="1.2">RANK 0</text>
+    <text x="560" y="32" text-anchor="middle" font-size="11" letter-spacing="1.2">RANK 1</text>
+  </g>
+
+  <g>
+    <rect x="280" y="50" width="120" height="40" fill="#FEF3C7" stroke="#92400E" stroke-width="1.5" rx="4"/>
+    <text x="340" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#92400E">f</text>
+  </g>
+  <text x="220" y="70" text-anchor="end" font-family="Source Serif 4, Iowan Old Style, Georgia, serif" font-style="italic" font-size="11" fill="#6B6258">fwd: identity</text>
+  <text x="220" y="84" text-anchor="end" font-family="Source Serif 4, Iowan Old Style, Georgia, serif" font-style="italic" font-size="11" fill="#6B6258">bwd: all-reduce</text>
+
+  <path d="M 320 92 Q 290 110 200 122" fill="none" stroke="#6B6258" stroke-width="1.4" marker-end="url(#arrPlain)"/>
+  <path d="M 360 92 Q 390 110 480 122" fill="none" stroke="#6B6258" stroke-width="1.4" marker-end="url(#arrPlain)"/>
+
+  <g font-family="JetBrains Mono, monospace" fill="#6B6258">
+    <rect x="40"  y="130" width="240" height="36" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.4" rx="4"/>
+    <text x="160" y="153" text-anchor="middle" font-size="13">Y₁ = X · A₁</text>
+    <rect x="40"  y="180" width="240" height="36" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.4" rx="4"/>
+    <text x="160" y="203" text-anchor="middle" font-size="13">GeLU(Y₁)</text>
+    <rect x="40"  y="230" width="240" height="36" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.4" rx="4"/>
+    <text x="160" y="253" text-anchor="middle" font-size="13">Y₁ · B₁ → Z₁</text>
+  </g>
+
+  <g font-family="JetBrains Mono, monospace" fill="#6B6258">
+    <rect x="400" y="130" width="240" height="36" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.4" rx="4"/>
+    <text x="520" y="153" text-anchor="middle" font-size="13">Y₂ = X · A₂</text>
+    <rect x="400" y="180" width="240" height="36" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.4" rx="4"/>
+    <text x="520" y="203" text-anchor="middle" font-size="13">GeLU(Y₂)</text>
+    <rect x="400" y="230" width="240" height="36" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.4" rx="4"/>
+    <text x="520" y="253" text-anchor="middle" font-size="13">Y₂ · B₂ → Z₂</text>
+  </g>
+
+  <g stroke="#8F8578" stroke-width="1.2" fill="none">
+    <line x1="160" y1="166" x2="160" y2="180" marker-end="url(#arrPlain)"/>
+    <line x1="160" y1="216" x2="160" y2="230" marker-end="url(#arrPlain)"/>
+    <line x1="520" y1="166" x2="520" y2="180" marker-end="url(#arrPlain)"/>
+    <line x1="520" y1="216" x2="520" y2="230" marker-end="url(#arrPlain)"/>
+  </g>
+
+  <path d="M 200 268 Q 230 290 320 304" fill="none" stroke="#2563EB" stroke-width="1.6" marker-end="url(#arrAR)"/>
+  <path d="M 480 268 Q 450 290 360 304" fill="none" stroke="#2563EB" stroke-width="1.6" marker-end="url(#arrAR)"/>
+
+  <g>
+    <rect x="280" y="290" width="120" height="40" fill="#FEF3C7" stroke="#92400E" stroke-width="1.5" rx="4"/>
+    <text x="340" y="316" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" fill="#92400E">g</text>
+  </g>
+  <text x="460" y="310" font-family="Source Serif 4, Iowan Old Style, Georgia, serif" font-style="italic" font-size="11" fill="#6B6258">fwd: all-reduce</text>
+  <text x="460" y="324" font-family="Source Serif 4, Iowan Old Style, Georgia, serif" font-style="italic" font-size="11" fill="#6B6258">bwd: identity</text>
+</svg>
+</Figure>
 
 Self-attention is the same trick on a different axis. With `h` heads and a TP group of size `t`, each rank gets `h/t` heads. The Q, K, V projections are column-parallel along the head dimension; each rank computes its head's attention locally with no cross-rank comm; the output projection is row-parallel and closes with a `g` all-reduce. Total: two all-reduces per transformer layer in forward, two in backward.
 
@@ -373,7 +477,56 @@ The catch is that FP8 has only 4 bits of mantissa (E4M3 format). Activations and
 
 DeepSeek-V3 made FP8 work for a 671B-parameter model. The recipe matters because it's the most-replicated production FP8 stack as of 2026.
 
-{/* TODO: <Fig15Fp8Granularity /> static-svg, transformer linear layer with 1x128 activation tile, 128x128 weight block, mark which components stay in BF16 */}
+<Figure caption="DeepSeek-V3's FP8 quantisation granularity. The activation tensor is sliced into 1x128 tiles (per token, per 128 channels). The weight tensor is sliced into 128x128 blocks. Each tile or block has its own FP32 scale. Outliers in one tile do not blow up the scale for the rest of the tensor." figNum={15}>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="FP8 quantisation granularity: a 1x128 activation tile alongside a 128x128 weight block, both annotated.">
+  <g font-family="JetBrains Mono, monospace" fill="#6B6258">
+    <text x="160" y="36" text-anchor="middle" font-size="11" letter-spacing="1.2">ACTIVATIONS (FP8 E4M3)</text>
+    <text x="500" y="36" text-anchor="middle" font-size="11" letter-spacing="1.2">WEIGHTS (FP8 E4M3)</text>
+  </g>
+
+  <g>
+    <rect x="40"  y="56" width="240" height="180" fill="#F4EEE3" stroke="#8F8578" stroke-width="1.2"/>
+    <text x="32" y="60" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#8F8578">tokens</text>
+    <text x="160" y="252" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#8F8578">channels →</text>
+    <g fill="#93C5FD" opacity="0.55">
+      <rect x="42" y="58" width="236" height="10"/>
+      <rect x="42" y="78" width="236" height="10"/>
+      <rect x="42" y="98" width="236" height="10"/>
+      <rect x="42" y="118" width="236" height="10"/>
+      <rect x="42" y="138" width="236" height="10"/>
+      <rect x="42" y="158" width="236" height="10"/>
+      <rect x="42" y="178" width="236" height="10"/>
+      <rect x="42" y="198" width="236" height="10"/>
+      <rect x="42" y="218" width="236" height="10"/>
+    </g>
+    <rect x="42" y="118" width="236" height="10" fill="#2563EB" opacity="0.85"/>
+    <text x="290" y="127" font-family="JetBrains Mono, monospace" font-size="10" fill="#2563EB">1 × 128 tile</text>
+    <text x="290" y="142" font-family="Source Serif 4, Iowan Old Style, Georgia, serif" font-style="italic" font-size="11" fill="#6B6258">one scale per tile</text>
+  </g>
+
+  <g>
+    <rect x="380" y="56" width="180" height="180" fill="#F4EEE3" stroke="#8F8578" stroke-width="1.2"/>
+    <g fill="#D1AE7A" opacity="0.45">
+      <rect x="382" y="58" width="58" height="58"/>
+      <rect x="442" y="58" width="58" height="58"/>
+      <rect x="502" y="58" width="58" height="58"/>
+      <rect x="382" y="118" width="58" height="58"/>
+      <rect x="442" y="118" width="58" height="58"/>
+      <rect x="502" y="118" width="58" height="58"/>
+      <rect x="382" y="178" width="58" height="58"/>
+      <rect x="442" y="178" width="58" height="58"/>
+      <rect x="502" y="178" width="58" height="58"/>
+    </g>
+    <rect x="442" y="118" width="58" height="58" fill="#92400E" opacity="0.85"/>
+    <text x="572" y="151" font-family="JetBrains Mono, monospace" font-size="10" fill="#92400E">128 × 128</text>
+    <text x="572" y="166" font-family="Source Serif 4, Iowan Old Style, Georgia, serif" font-style="italic" font-size="11" fill="#6B6258">one scale per block</text>
+  </g>
+
+  <g font-family="Source Serif 4, Iowan Old Style, Georgia, serif" font-style="italic" font-size="11" fill="#6B6258">
+    <text x="340" y="270" text-anchor="middle">FP32 in: embedding · output head · MoE gating · LayerNorm · attention softmax</text>
+  </g>
+</svg>
+</Figure>
 
 Three rules.
 
