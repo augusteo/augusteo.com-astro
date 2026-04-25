@@ -201,3 +201,15 @@ Use `palette.primary` for "the thing the reader is currently focused on." Reserv
 ## Adding a new primitive
 
 Don't, without explicit user approval. The kit is exhaustive on purpose. If you think a figure needs something new, halt and propose it in chat: what the new primitive does, why a composition of existing primitives doesn't work, what the contract would be.
+
+## Known limitations
+
+These are documented constraints of the v1 kit. Each is a real bite if you hit it; check whether your figure is affected before designing around it.
+
+- **Canvas2D does not observe resize or DPR changes.** `setupHiDPI` runs once at mount with the prop-supplied dimensions. CSS `max-width: 100%` lets the canvas shrink visually on narrow viewports, but the backing store stays at desktop size, so figures will look soft on phones and after zoom. Workaround for now: pick widths (480, 520) that look acceptable when scaled down; long-form figures can use `width={680}` to match the existing `unified-vision-stack` SVG viewBoxes. A `ResizeObserver`-based fix is tracked as a follow-up.
+- **DragArea has no keyboard support.** Pointer-only. `role="application"` plus `aria-label` is the current accessibility surface; arrow-key nudging and Home/End are not yet implemented. Workaround: pair any drag-overlay figure with a sibling `Slider` or `Toggle` so keyboard users have a path to all the relevant states. A keyboard contract is tracked as a follow-up.
+- **Plot under autoplay would over-render.** `Plot.svelte` constructs a fresh `data={{ series }}` object on every render, so the wrapped Canvas2D's `$effect` keys on identity and re-runs even when `series` is unchanged. Fine for the static-input plots the multi-GPU essay uses. Do not add `autoplay` to a Plot until this is fixed; the RAF would restart per parent render.
+- **Source Serif 4 is referenced but not loaded.** Captions and demo body text fall through to Iowan Old Style → Georgia. Confirm the existing site loads Source Serif 4 globally, or accept the fallback.
+- **Toggle's `role="radiogroup"` is not associated with its `label-text`.** Screen readers will announce "radio group" without the label text. Either provide an `aria-labelledby` association in a follow-up, or only use Toggle inside a `<Figure caption>` whose caption already names the choice.
+- **Scrubber pause is one-way.** Dragging the seek bar pauses auto-play and the user has to click play again to resume. Document this in the figure caption if it matters for the figure's flow.
+

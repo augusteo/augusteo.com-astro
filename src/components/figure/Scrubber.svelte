@@ -22,41 +22,22 @@
   function play() {
     if (prefersReducedMotion()) return;
     playing = true;
-    const startedAt = performance.now() - value * duration * 1000;
+    let startedAt = performance.now() - value * duration * 1000;
     const tick = (t: number) => {
       if (!playing) return;
-      const fraction = (t - startedAt) / (duration * 1000);
-      if (fraction >= 1) {
+      const f = (t - startedAt) / (duration * 1000);
+      if (f >= 1) {
         if (autoLoop) {
           value = 0;
-          rafId = requestAnimationFrame((nt) => {
-            // restart at t=0 of new loop
-            const newStart = nt;
-            const inner = (t2: number) => {
-              if (!playing) return;
-              const f = (t2 - newStart) / (duration * 1000);
-              if (f >= 1) {
-                value = 1;
-                if (autoLoop) {
-                  value = 0;
-                  rafId = requestAnimationFrame(inner);
-                } else {
-                  playing = false;
-                }
-                return;
-              }
-              value = f;
-              rafId = requestAnimationFrame(inner);
-            };
-            rafId = requestAnimationFrame(inner);
-          });
+          startedAt = t;
         } else {
           value = 1;
           playing = false;
+          return;
         }
-        return;
+      } else {
+        value = f;
       }
-      value = fraction;
       rafId = requestAnimationFrame(tick);
     };
     rafId = requestAnimationFrame(tick);

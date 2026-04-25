@@ -37,8 +37,8 @@ Each phase becomes a TaskCreate when the skill runs. Phases are gates; do not sk
 
 Goal: a one-paragraph spec that says what the post is about, who it's for, and what the reader walks away knowing.
 
-1. Invoke `superpowers:brainstorming` for the question-at-a-time discipline.
-2. Ask, one at a time: who is the reader (engineers? researchers? curious newcomers?), what is the smallest claim they should walk away believing, what's the title sketch, what existing posts on the site set tone (default: `unified-vision-stack`).
+1. **First action of this phase: invoke the Skill tool with `skill: superpowers:brainstorming`.** Do not skip this step. The brainstorming skill enforces the question-at-a-time discipline that the rest of the phase depends on. Announce the invocation so Vic sees it.
+2. Inside brainstorming, ask one at a time: who is the reader (engineers? researchers? curious newcomers?), what is the smallest claim they should walk away believing, what's the title sketch, what existing posts on the site set tone (default: `unified-vision-stack`).
 3. Output: `notes/<post-slug>.md` opens with a "## Spec" section containing this paragraph plus the title sketch, target audience, target length, and 3–5 starter resources from Vic.
 
 ### Phase 2: deep research
@@ -72,12 +72,11 @@ Goal: a working MDX file with figure placeholders and prose around them, written
    - `heroImage` and `heroAlt` left for phase 6.
 2. Write prose section by section. For each section: state the claim, drop a figure placeholder (`{/* TODO: <FigureName /> */}`), tell the reader what to manipulate, then explain what they should see.
 3. **Apply voice rules during drafting.** Don't write a "polished" pass and clean up. Write plain. Read each paragraph out loud in your head; if it sounds like a press release, rewrite it.
-4. After each section, run the voice-rules grep:
+4. After each section, run the voice-check script via the Bash tool:
    ```bash
-   grep -nP '\x{2014}' src/content/blog/<post-slug>/index.mdx
-   grep -niE 'leverage|utilize|delve|robust|seamless|tapestry|pivotal|crucial|vital|harness|facilitate|streamline|garner|spearhead|bolster|holistic|multifaceted|invaluable|paramount|transformative|cutting-edge|groundbreaking|foster|underscore|showcase|elevate|embark|cornerstone|hallmark' src/content/blog/<post-slug>/index.mdx
+   scripts/voice-check.sh src/content/blog/<post-slug>/index.mdx
    ```
-   Any em dashes: zero allowed. Any banned words: rewrite or justify with a comment in chat. Re-grep before showing the section to Vic.
+   The script implements the full banned-word list from `voice-rules.md` plus the em dash and curly quote checks. It exits non-zero on any hit. Any em dashes: zero allowed. Any banned words: rewrite, or if the word is a real technical term in this context (statistical or domain jargon that happens to overlap the banned list), leave a one-line comment in the source naming why it stays. Re-run until clean before showing the section to Vic.
 5. Commit at each section boundary so Vic can review and revert cleanly.
 
 ### Phase 5: implement figures
@@ -103,7 +102,7 @@ Goal: the post ships.
 ## Hard rules
 
 - Three primary sources newer than 18 months minimum. Otherwise halt and ask.
-- Voice-rules grep before showing any draft section. Em dashes: zero. Banned words: justify or rewrite.
+- `scripts/voice-check.sh` exits clean before showing any draft section to Vic. Em dashes: zero. Banned words: justify or rewrite.
 - Density is fine. Correctness of intuition is the bar. Don't soften technical claims.
 - Kit primitives are exhaustive. New primitives need explicit user approval.
 - Each figure is committed alone. Each section is committed alone. Safe resume points.
@@ -111,7 +110,7 @@ Goal: the post ships.
 
 ## Composition with other skills
 
-- Phase 1 calls `superpowers:brainstorming` for the question-at-a-time discipline.
+- Phase 1's first action is to invoke `superpowers:brainstorming` via the Skill tool. Required, not optional.
 - Does not call `superpowers:writing-plans`. The figure list is the plan.
 - `html-explainer-to-post` is the sister skill for HTML conversion. Stays untouched.
 
