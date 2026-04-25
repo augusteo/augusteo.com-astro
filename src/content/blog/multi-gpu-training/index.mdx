@@ -18,6 +18,7 @@ import ZeroStages from "@components/figures/multi-gpu-training/ZeroStages.svelte
 import Fsdp from "@components/figures/multi-gpu-training/Fsdp.svelte";
 import TpMatmul from "@components/figures/multi-gpu-training/TpMatmul.svelte";
 import TpSp from "@components/figures/multi-gpu-training/TpSp.svelte";
+import PipelineSchedule from "@components/figures/multi-gpu-training/PipelineSchedule.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -399,7 +400,9 @@ The fix is *micro-batching*. Split the batch of size N into M micro-batches of s
 
 But it took K-1 steps to fill the pipeline (the *warm-up*), and it'll take K-1 steps to drain it after the last micro-batch leaves layer 0. Those steps are partially idle. We call those gaps the *bubble*.
 
-{/* TODO: <Fig10PipelineSchedule /> interactive-canvas, K stages x time grid, slider K=4..16, slider M=1..32, toggle GPipe / 1F1B / Interleaved 1F1B */}
+<Figure caption="K stages on the y-axis, time on the x-axis. Toggle between GPipe (full forwards then full backwards, with the bubble showing as the empty triangles top-left and bottom-right), 1F1B (the steady region in the middle alternates F and B per stage, capping activation memory at K micro-batches), and Interleaved 1F1B (each stage owns v=2 chunks of layers so the warm-up triangle is half as wide). Drag K to widen the pipeline, M to feed it more micro-batches; the bubble percentage on the right is what the prose's formula gives you." figNum={10}>
+  <PipelineSchedule client:visible />
+</Figure>
 
 Drag K and M. The bubble fraction is roughly `(K-1)/(M + K-1)`. With K=4, M=4, the bubble is 3/7 ≈ 43%, awful. Pump M to 16 and it drops to 3/19 ≈ 16%. With M=64 it's under 5%. Pipeline parallel needs many micro-batches to be efficient.
 
