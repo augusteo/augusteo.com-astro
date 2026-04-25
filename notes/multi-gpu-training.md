@@ -341,3 +341,70 @@ Targets: 18 figures. ~83% interactive (15 interactive-canvas, 1 plot, 3 static-s
 2. **§14 (composing the axes).** Worth a full section, or fold into the §15 best-practices section as a callout?
 3. **The 5D mesh figure (Fig 18).** This is the climax of the post per narrative-template ("everything earlier shown working together"). But 5D is hard to render legibly even on a 680px canvas. Plan B: a 3D mesh with EP and CP as side-panels. Want me to draft both and we pick after seeing them?
 4. **Reference list at the end of the post.** Same format as `unified-vision-stack`'s closing references? Title + arxiv link + year, no formal citation style.
+
+**Resolved during phase 4 drafting.** Stayed with 15 sections (FSDP2 kept as §6, DualPipe as §10). §14 stayed separate. Figure list consolidated to 18 (Fig 4 now does the work of the original Fig 4+5 with one combined visualisation). Reference list copies the unified-vision-stack format. Fig 17 (the climax) is now the 5D mesh with a mode-toggle to fall back to 4D rendering when 5D is illegible at width.
+
+## Resume here
+
+Last touched: 2026-04-25.
+
+### Phase status
+
+| Phase | Status | Output |
+|---|---|---|
+| 1. Topic + audience lock-in | done | this file's `## Spec` |
+| 2. Deep research | done | this file's `## Research notes`, plus `notes/multi-gpu-training-reference.py` |
+| 3. Outline + figure list | done | this file's `## Outline` |
+| 4. Draft prose | done | `src/content/blog/multi-gpu-training/index.mdx` (~7,800 words, 15 sections + references, voice-clean) |
+| 5. Implement figures | in progress: 3 of 18 done | see below |
+| 6. Wire up + publish | pending | hero image, flip `draft: false`, dev verification |
+
+### Phase 5 figure progress
+
+| # | Figure | Type | Status |
+|---|---|---|---|
+| 1 | SingleGpuLoop | static-svg | done (commit 50adcc5) |
+| 2 | DdpStep | interactive-canvas | TODO |
+| 3 | RingAllReduce | interactive-canvas | TODO |
+| 4 | MemoryBar | interactive-canvas | TODO |
+| 5 | ZeroStages | interactive-canvas | TODO |
+| 6 | Fsdp | interactive-canvas | TODO |
+| 7 | TpMatmul | interactive-canvas | TODO |
+| 8 | FgOperators | static-svg | done (commit 50adcc5) |
+| 9 | TpSp | interactive-canvas | TODO |
+| 10 | PipelineSchedule | interactive-canvas | TODO |
+| 11 | DualPipe | interactive-canvas | TODO |
+| 12 | MoeRouting | interactive-canvas (drag) | TODO |
+| 13 | MoeLoad | interactive-canvas | TODO |
+| 14 | RingAttention | interactive-canvas | TODO |
+| 15 | Fp8Granularity | static-svg | done (commit 50adcc5) |
+| 16 | Fp8LossCurve | plot | TODO |
+| 17 | FiveDMesh | interactive-canvas (drag) | TODO |
+| 18 | DecisionCalculator | interactive-canvas | TODO |
+
+### Suggested next batch
+
+Recommended order on resumption (low complexity → high):
+
+1. **Batch 2 (warmup interactive):** Fig 16 (FP8 loss plot) + Fig 4 (memory bar). Both tractable; one is `Plot.svelte`, the other is a stacked bar with a few sliders.
+2. **Batch 3 (workhorse):** Fig 2 (DDP step) + Fig 3 (ring all-reduce) + Fig 5 (ZeRO stages) + Fig 6 (FSDP timeline). The first big payoff figures.
+3. **Batch 4 (TP/SP):** Fig 7 (TP matmul split) + Fig 9 (TP+SP).
+4. **Batch 5 (pipeline gantts):** Fig 10 (pipeline schedule) + Fig 11 (DualPipe).
+5. **Batch 6 (MoE/ring):** Fig 12 (MoE routing) + Fig 13 (MoE load) + Fig 14 (ring attention).
+6. **Batch 7 (climax):** Fig 17 (5D mesh) + Fig 18 (decision calculator).
+
+### How to resume from a fresh context
+
+1. Read this file (`notes/multi-gpu-training.md`) end-to-end. The `## Spec`, `## Research notes`, and `## Outline` sections capture every locked-in choice.
+2. `git log --oneline | head -20` to see commits since `c9cf9c7` (the spec commit).
+3. `grep TODO src/content/blog/multi-gpu-training/index.mdx` to see remaining figure placeholders.
+4. Read `.claude/skills/interactive-explainer/figure-kit.md` and `figure-recipes.md` for figure implementation patterns.
+5. Confirm `draft: true` is still set on the post frontmatter before starting dev work.
+6. Pick the next batch from the table above and implement.
+
+### Hard rules to keep applying
+
+- **Voice.** Every section/figure commit passes `bash scripts/voice-check.sh src/content/blog/multi-gpu-training/index.mdx`. Em dashes: zero. Banned-word hits in source: only the inline-justified DeepSeek "utilize" quote at line ~189.
+- **Figure kit primitives are exhaustive.** Don't add a new primitive without explicit user approval.
+- **Commit per figure.** One figure per commit so each is reviewable and revertible in isolation.
+- **Test in dev** (`bun run dev`, port 4321 unless busy then 4322; flip `draft: false` to view, flip back before commit). Confirm controls drive canvas at 60fps and `prefers-reduced-motion` freezes auto-loops.
