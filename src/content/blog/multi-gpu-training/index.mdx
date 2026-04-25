@@ -16,6 +16,7 @@ import DdpStep from "@components/figures/multi-gpu-training/DdpStep.svelte";
 import RingAllReduce from "@components/figures/multi-gpu-training/RingAllReduce.svelte";
 import ZeroStages from "@components/figures/multi-gpu-training/ZeroStages.svelte";
 import Fsdp from "@components/figures/multi-gpu-training/Fsdp.svelte";
+import TpMatmul from "@components/figures/multi-gpu-training/TpMatmul.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -282,7 +283,9 @@ Split A column-wise: `A = [A₁, A₂]` (each rank gets half the output columns)
 
 Now split B row-wise: `B = [B₁; B₂]` (each rank gets half the input rows, paired with its `Y` half). The product `Y · B = Y₁·B₁ + Y₂·B₂`, and each rank computes its term locally. The two terms still need to be summed across ranks. That sum is one all-reduce.
 
-{/* TODO: <Fig7TpMatmul /> interactive-canvas, toggle column-only / column+row, two GPUs side-by-side, show data flow and where the all-reduce sits */}
+<Figure caption="Two-rank tensor-parallel matmul. X is replicated; A is column-sharded so each rank computes a partial Y. In column-only mode the halves are incoherent for the next layer. Toggling on the row-sharded B closes the loop: each rank now produces a partial Z, the all-reduce at the bottom sums them, and every rank ends with the full Z." figNum={7}>
+  <TpMatmul client:visible />
+</Figure>
 
 Toggle to "column-only." Notice that each rank ends up with a partial `Y` and the next layer can't make sense of it on its own; the input to the next matmul would be different on each rank. Toggle to "column + row." The all-reduce closes the loop: every rank ends up with the full `Z`, and the next layer can run as if nothing was split.
 
