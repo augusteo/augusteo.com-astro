@@ -150,3 +150,39 @@ Three things take memory in a training step. *Parameters* are 2 bytes per param 
 This was the insight that gave us ZeRO. With N GPUs, you don't need every rank to hold every byte at every moment. You can partition the state across ranks and reconstruct what you need when you need it, by talking.
 
 The first thing to partition is the optimizer state, because it's the biggest and the cheapest to spread out. We're going to do that next. And we're going to do it without adding any communication on top of what DDP already paid.
+
+### 5. ZeRO and FSDP
+
+ZeRO-1 partitions the optimizer state across N ranks. Each rank holds 12/N bytes of optimizer state per parameter instead of 12.
+
+Here's the move that makes this work without paying extra communication. Recall from the last section that DDP's gradient all-reduce was actually a reduce-scatter followed by an all-gather. After reduce-scatter, every rank already holds the fully-reduced gradient for one chunk of parameters. After all-gather, every rank holds every chunk.
+
+ZeRO-1 reuses the first half. After reduce-scatter, rank `i` holds the fully-reduced gradient for chunk `i`. Rank `i` is also the only rank that needs to update its optimizer state for chunk `i`, because rank `i` is the only rank that holds it. So rank `i` runs the optimizer step locally, on its slice. There's nothing else to do for chunk `i`: rank `i` has the fully-updated parameter slice.
+
+Then we all-gather the updated parameters. Every rank ends up with every chunk's fresh parameters, ready for the next forward pass.
+
+Total comm: reduce-scatter on gradients + all-gather on parameters. Same 2(N-1)/N × M as a regular all-reduce. ZeRO-1 saves 12 - 12/N ≈ 12 bytes per parameter of memory and pays *zero* extra communication.
+
+ZeRO-2 also partitions the gradients. The same dataflow handles it: each rank only holds the gradient slice it needs to update its optimizer state slice. Each step still costs reduce-scatter + all-gather. ZeRO-2 saves another ~2 bytes per param, again at zero extra comm.
+
+ZeRO-3 partitions the parameters themselves.
+
+This is the one that costs extra. Forward and backward both need every parameter, but each rank now only holds 1/N. The fix: just-in-time all-gather. Before forward of layer K runs, every rank all-gathers the parameters for layer K, runs the layer, and immediately frees the gathered copy. Same on backward. We trade 16Ψ → 16Ψ/N bytes per param of memory for `2 × num_layers` extra all-gathers per step. Communication goes from 2Ψ (DDP) to 3Ψ (ZeRO-3): 50% more.
+
+{/* TODO: <Fig6ZeroStages /> interactive-canvas, three columns of stacked bars (Stage 1, 2, 3), toggle for stage, slider for N=4..32 */}
+
+Toggle through the stages. Drag N. With Stage 3 at N=32, per-rank memory has dropped from 16Ψ to roughly 16Ψ/32 = half a byte per parameter. The 70B model that didn't fit on one H100 now fits on a quarter of one (1.12 TB / 32 ≈ 35 GB).
+
+The catch is latency. Each layer's all-gather is small (a single layer's parameters), and the latency-bound part of the NCCL throughput curve dominates. Across `2 × num_layers` calls per step, the latency adds up.
+
+The trick that makes this affordable is *prefetching*.
+
+{/* TODO: <Fig7Fsdp /> interactive-canvas, layers across, time across, all-gather of layer K+1 firing during forward of layer K */}
+
+Scrub through one forward pass. The all-gather for layer K+1's parameters fires while layer K's matmul is still running. The two run on separate streams. By the time forward reaches layer K+1, its parameters are already in memory. The gather doesn't show up on the critical path. Backward does the same trick in reverse.
+
+This pattern, ZeRO-3 with prefetching, is what PyTorch's FSDP implements. The Hugging Face Ultra-Scale Playbook is direct: "PyTorch's native implementation of this stage is called FSDP. We'll just refer to it as ZeRO-3 in this book." For the rest of the post, ZeRO-3 and FSDP mean the same thing.
+
+A real production data point: Llama 3 405B was trained with FSDP as the data-parallel axis, with one further refinement. From the paper: "We use fully sharded data parallelism (FSDP), which shards the model, optimizer, and gradients … For model shards we do not reshard after forward computation to avoid an extra all-gather communication during backward passes." On their 16K-H100 cluster, the trade between the memory of keeping the gathered parameters around and the saved all-gather on backward came out in favor of keeping them. That choice is exposed today as `reshard_after_forward=False` on PyTorch's `fully_shard` API.
+
+Which brings us to FSDP2.
