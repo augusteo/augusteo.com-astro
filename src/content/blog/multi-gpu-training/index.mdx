@@ -312,3 +312,37 @@ DualPipe overlaps two more communications. Forward and backward chunks fuse all-
 DeepSeek-V3's actual production parallelism layout deserves a callout, because it shows how the choices compound at the frontier. They run 16-way pipeline parallel, 64-way expert parallel, and ZeRO-1 data parallel. There is *no tensor parallel*. They argue that DualPipe makes the pipeline's bubble small enough that they can use a deeper pipeline instead of TP, and the model is sparse enough (MoE) that EP replaces what TP would have done. The whole training run finishes in 2.788M H800 GPU-hours, roughly $5-6M at 2025 cloud prices.
 
 That's the production data point that says all the techniques in the post can compose. The missing axis is expert parallel, which is what makes DeepSeek-V3 a sparse model in the first place.
+
+### 11. MoE and expert parallel
+
+Mixture-of-experts (MoE) is a different kind of scaling. Instead of making every parameter participate in every token's forward pass, you make most parameters *sit out* of most tokens. The model has `E` parallel "expert" sub-networks; for each token, a small router picks `k` experts (typically `k=1` or `k=2`) and only those experts process that token. The total parameter count grows by `E×`, but the FLOPs per token stay the same.
+
+DeepSeek-V3 has 671B total parameters but only 37B active per token. Mixtral 8x7B has 56B total, ~13B active. The model is large; the compute is small.
+
+This creates a new comm pattern. Token `i` lives on rank `r`. Its assigned expert lives on rank `r'`, possibly far away. Every layer needs to *send* tokens to their expert's home, run the expert FFN, and *send* the outputs back. The collective that does this is *all-to-all*.
+
+{/* TODO: <Fig12MoeRouting /> interactive-canvas, drag a token onto a router, see its top-1 dispatch via all-to-all, FFN, and return path */}
+
+Drag a token onto the router. Top-1 routing picks one expert. The token is shipped via all-to-all to the GPU that holds that expert. The expert's FFN runs. A second all-to-all returns the result back to the token's home rank. Two all-to-alls per MoE layer in forward, two more in backward.
+
+All-to-all is heavier than all-reduce. Each rank sends a different chunk to each other rank, instead of all chunks being summed. Cost grows as `O(N·M)` where `N` is the number of ranks in the EP group and `M` is the per-token activation size. How much of the bandwidth you actually use depends on whether tokens are spread evenly across experts. Hot experts overload their host GPU; cold experts idle. *Load balance is the central problem.*
+
+Switch Transformer (Fedus 2021) introduced the canonical balancing trick: an *auxiliary loss*.
+
+> loss_aux = α · N · Σᵢ fᵢ · Pᵢ
+
+where `fᵢ` is the fraction of tokens dispatched to expert `i` and `Pᵢ` is the mean router probability mass on expert `i` over a batch. This loss is minimised when both `fᵢ` and `Pᵢ` equal `1/N`, which means uniform routing. The aux loss is added to the main training loss, and the router learns to balance itself.
+
+The catch: the aux loss distorts the gradient. The router is being pulled by two forces, one toward "the right expert for this token" and one toward "uniform routing." The compromise hurts model quality.
+
+DeepSeek-V3 introduced an *auxiliary-loss-free* balancing trick. Instead of an extra loss term, they add a per-expert *bias* `bᵢ` to the routing scores before the top-k selection. After each step, they compare each expert's actual load to the target load: if expert `i` is over-loaded, they decrease `bᵢ` by a tiny amount γ; if under-loaded, they increase it. The bias isn't part of the gradient. It only affects which experts get picked, not how the gradient flows through them.
+
+{/* TODO: <Fig13MoeLoad /> interactive-canvas, bars per expert across training steps, toggle aux-loss / aux-loss-free, scrubber through training */}
+
+Toggle aux-loss vs aux-loss-free, scrub through training steps. The aux-loss curves stabilise around uniform load but with visible oscillation. The aux-loss-free curves converge faster and tighter, and the gradient through the router is left alone.
+
+DeepSeek-V3 also adds a *sequence-wise* balance loss as a safety net. The aux-loss-free trick handles balance over a full batch; the sequence-wise loss prevents one bad sequence from sending all its tokens to two experts.
+
+The all-to-all geometry on DeepSeek-V3's cluster is worth one specific number. They train on 2048 H800s, 8 GPUs per node connected by NVLink (160 GB/s) and across nodes by InfiniBand (50 GB/s). The all-to-all kernels saturate IB+NVLink using only 20 SMs out of an H800's 132. That's about 15% of the chip's SM budget burning *just on data movement*. The rest is compute. That is the tax.
+
+That's four axes of parallelism (data, tensor, pipeline, expert). There's one more, and it matters when contexts get very long.
