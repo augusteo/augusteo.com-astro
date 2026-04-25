@@ -238,3 +238,27 @@ Self-attention is the same trick on a different axis. With `h` heads and a TP gr
 Two all-reduces per layer is a lot. For a 32-layer model that's 64 all-reduces per forward-backward step, each one needing all `t` ranks to synchronise. TP is bandwidth-hungry, and the bandwidth has to be very fast. The practical constraint is sharp: TP works inside one NVLink-connected node (where bandwidth is 600+ GB/s), and falls apart across InfiniBand (50 GB/s). TP=8 is the typical maximum on H100, matching the 8 GPUs in one node.
 
 That's why TP stays small. To go bigger, we need to attack a different axis. We also need to fix a memory problem TP just created.
+
+### 8. The activation tax: sequence parallel
+
+Tensor parallel cut the matmul. It didn't cut the activations between matmuls.
+
+Inside a transformer block, the parts that aren't matmuls (LayerNorm, dropout, residual additions) are element-wise. They don't benefit from being split, and TP didn't split them. Every TP rank holds the full `[batch × seq, hidden]` activation tensor at every LayerNorm and dropout. With long context (say 32k tokens) and a 70B model, that's hundreds of MB per element-wise region per layer. The activation memory dwarfs the parameter memory.
+
+Sequence parallel (SP) fixes this.
+
+The idea is local. The element-wise regions don't need the full activation; they operate independently along the sequence axis. So shard those regions along sequence instead. Every rank holds a `1/t` slice of the activation in those regions. On entry to the matmul region, all-gather the activation along sequence. On exit, reduce-scatter the result back. The original Megatron `g` all-reduce splits cleanly into reduce-scatter + all-gather of the same total bytes, by the Patarasuk-Yuan equality.
+
+{/* TODO: <Fig9TpSp /> interactive-canvas, stacked-bar showing where activations are fat, toggle TP-only / TP+SP, slider for sequence length */}
+
+Toggle TP-only vs TP+SP. Drag the sequence-length slider out to 32k. Watch the activation memory of the LayerNorm and dropout regions shrink to `1/t` of its TP-only size. Total comm volume is unchanged. Peak activation memory drops a lot.
+
+There's still residual activation pressure that TP+SP doesn't catch. Attention's softmax-attention-dropout subblock holds an `[batch, heads/t, seq, seq]` tensor that scales as O(s²) in sequence length. For very long context that becomes the dominant memory cost.
+
+Korthikanti et al's "selective activation recomputation" paper (2022) handles this. They checkpoint exactly the attention subblock during forward and recompute it during backward. The cost is one extra forward pass through the attention region, about 2.7% extra FLOPs. The saving: the attention activation drops out of the memory budget entirely. That paper reports roughly 70% memory savings on the activation side for GPT-3 175B with TP+SP.
+
+The combined recipe of the last two sections is what most production training stacks ship today: tensor parallel inside an NVLink-connected node, sequence parallel splitting the non-matmul regions, and selective recomputation of attention.
+
+We've reached the size where this stops scaling. With TP=8, the matmul fits. With TP+SP, the activations fit. But the model can be deep enough that even with this, a single layer's parameters and gradients don't all fit on a node. Going TP=16 across two nodes throws the bandwidth budget away.
+
+When the layers themselves are too many for one node, we split *across* layers. That's pipeline parallel.
