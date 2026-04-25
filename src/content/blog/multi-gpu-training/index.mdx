@@ -22,6 +22,7 @@ import PipelineSchedule from "@components/figures/multi-gpu-training/PipelineSch
 import DualPipe from "@components/figures/multi-gpu-training/DualPipe.svelte";
 import MoeRouting from "@components/figures/multi-gpu-training/MoeRouting.svelte";
 import MoeLoad from "@components/figures/multi-gpu-training/MoeLoad.svelte";
+import RingAttention from "@components/figures/multi-gpu-training/RingAttention.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -491,7 +492,9 @@ When context length goes to 32k, 128k, 1M, even sequence parallel inside a TP gr
 
 Context parallel (CP) shards along the sequence axis at the *attention* level. A CP group of size `c` splits the sequence into `c` chunks; each rank holds `s/c` tokens worth of Q, K, V activations. The attention computation needs every Q to see every K and V eventually. That seeming impossibility is fixed by ring attention.
 
-{/* TODO: <Fig14RingAttention /> interactive-canvas, ring of c GPUs, KV blocks rotating, scrubber through one full rotation */}
+<Figure caption="Eight GPUs arranged in a ring. Each rank holds a fixed Q block and a rotating KV block. At each step every rank computes partial attention against the KV block it currently holds, then forwards that block to its right-hand neighbor. After eight steps every Q has seen every K and V. The right panel shows the per-rank token count and the local KV cache size; the bottom-left legend keys the colors." figNum={14}>
+  <RingAttention client:visible />
+</Figure>
 
 Drag the slider for sequence length out to 1M. Scrub through one rotation of the ring. Each rank starts holding its own KV block. At each step, every rank computes partial attention on its current Q against the KV block it currently holds, then forwards the KV block to its right-hand neighbor. After `c` steps, every Q has seen every K and V.
 
