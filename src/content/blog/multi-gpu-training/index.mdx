@@ -390,3 +390,23 @@ The result: a relative loss-error vs the BF16 baseline that "remains consistentl
 DeepSeek's hardware wishlist (V3 §3.5) is colour worth ending on. They explicitly ask NVIDIA for higher FP8 accumulation precision in tensor cores, native support for tile- and block-wise quantization, and online quantization. The most aggressive FP8 production team is on record saying current Hopper tensor cores leak precision and current kernels burn SMs on data movement. The fact that they made it work anyway, on a 2048-GPU cluster, is the data point.
 
 What's left is to compose the axes.
+
+### 14. Composing the axes
+
+We've collected five primitives. *Data parallel* with FSDP shards parameters, gradients, and optimizer state per-rank and all-gathers on demand. *Tensor parallel* cuts each matmul and threads autograd with `f` and `g` operators. *Pipeline parallel* splits layers and schedules with 1F1B or DualPipe. *Expert parallel* routes tokens to MoE experts via all-to-all. *Context parallel* shards the sequence axis and exchanges KV via ring attention.
+
+A real training run uses several at once. Each axis lives on a dimension of a `DeviceMesh`. A parameter is a `DTensor` with a placement on each axis. Forward and backward each turn into a sequence of collectives, one per axis, scheduled with as much overlap as possible.
+
+{/* TODO: <Fig17FiveDMesh /> interactive-canvas, drag a GPU in a 5D mesh, highlight its TP/CP/PP/EP/DP groups in five colors, mode toggle to render the active 4 of 5 axes */}
+
+Drag a GPU. The five colours light up the GPUs that share each of its parallelism groups. The TP and CP groups are tightly clustered (NVLink within a node), the PP and EP groups span nodes (InfiniBand), and the DP group typically spans many nodes. The mesh shape isn't chosen by ML. It's chosen by the network.
+
+Two production examples.
+
+Llama 3 405B uses a 4D mesh `[TP=8, CP, PP, DP]`. No expert parallel; it's a dense model. TP=8 stays within a node. CP varies with sequence length. The DP axis is FSDP with `reshard_after_forward=False`. On 16K H100s, this run achieves 38–43% BF16 MFU. The axis order is chosen so the most bandwidth-hungry comm gets the fastest links: TP on NVLink, DP on InfiniBand.
+
+DeepSeek-V3 671B-MoE (37B active) uses a 3D mesh `[EP=64, PP=16, DP]`. No tensor parallel. The MoE replaces what TP would have done; DualPipe makes the deeper pipeline cheap. The DP axis is ZeRO-1 only (optimizer state partitioned, params and grads still replicated), because the model is sparse and per-rank parameter memory is already manageable. On 2048 H800s, this run finishes 14.8T tokens in 2.788M GPU-hours. FP8 throughout the GEMMs.
+
+The two configurations diverge because the models diverge. Llama 3 is dense and very deep; tensor parallelism is the right tool for the matmul. DeepSeek-V3 is sparse and wide (256 experts per MoE layer); expert parallelism is the right tool for the model.
+
+Same primitives, different composition. That's the takeaway.
