@@ -13,9 +13,17 @@ bun run preview      # Preview production build
 
 ## Architecture
 
-This is an Astro 5 blog that syncs content from an Obsidian vault. The site uses Tailwind CSS 4 and MDX for content.
+This is an Astro 5 blog with two content pipelines. The site uses Tailwind CSS 4 and MDX for content.
 
-### Content Pipeline
+### Post types
+
+The blog has two kinds of posts, each with its own pipeline:
+
+1. **Obsidian-synced posts** — written in Vic's Obsidian vault, with a hero image and inline images embedded in the post folder. Use this for normal posts. The sync script transforms wikilinks, copies images, and generates frontmatter. See "Content Pipeline" below.
+
+2. **HTML-explainer posts** — long-form essays generated as standalone HTML files (typically saved to `~/Downloads/vision_*.html` or `*_explainer.html`), with custom CSS classes (`.callout`, `.aside`, `.act-divider`, `.lead`, `.keyterm`) and inline SVG illustrations. These set `essay: true` to opt into the 3-tier heading hierarchy (chapter / section / subsection). Convert via the `html-explainer-to-post` skill at `.claude/skills/html-explainer-to-post/`. The skill drafts the MDX with `draft: true` and then prompts Vic for a hero image as a separate step.
+
+### Content Pipeline (Obsidian-synced posts)
 
 Content flows from Obsidian to Astro via a sync script:
 
@@ -39,7 +47,7 @@ The sync script handles:
 
 ### Content Schema
 
-Blog posts use these frontmatter fields (defined in `src/content/config.ts`):
+Blog posts use these frontmatter fields (defined in `src/content.config.ts`):
 
 ```typescript
 title: string
@@ -50,6 +58,7 @@ heroAlt: string
 tags: string[]         // Required, at least one tag. First tag is used as primary tag for display/filtering
 featured: boolean
 draft: boolean
+essay: boolean         // Opts into 3-tier heading hierarchy for long-form posts (HTML-explainer pipeline)
 ```
 
 ### Path Alias
