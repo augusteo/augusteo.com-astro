@@ -38,7 +38,9 @@
     padding: 1rem;
   }
   .content {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   .controls {
     margin-top: 0.75rem;
@@ -46,6 +48,7 @@
     flex-wrap: wrap;
     gap: 0.75rem 1.25rem;
     align-items: center;
+    justify-content: center;
   }
   figcaption {
     margin-top: 0.75rem;
