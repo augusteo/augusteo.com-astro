@@ -356,7 +356,7 @@ Last touched: 2026-04-25.
 | 2. Deep research | done | this file's `## Research notes`, plus `notes/multi-gpu-training-reference.py` |
 | 3. Outline + figure list | done | this file's `## Outline` |
 | 4. Draft prose | done | `src/content/blog/multi-gpu-training/index.mdx` (~7,800 words, 15 sections + references, voice-clean) |
-| 5. Implement figures | in progress: 3 of 18 done | see below |
+| 5. Implement figures | in progress: 5 of 18 done | see below |
 | 6. Wire up + publish | pending | hero image, flip `draft: false`, dev verification |
 
 ### Phase 5 figure progress
@@ -366,7 +366,7 @@ Last touched: 2026-04-25.
 | 1 | SingleGpuLoop | static-svg | done (commit 50adcc5) |
 | 2 | DdpStep | interactive-canvas | TODO |
 | 3 | RingAllReduce | interactive-canvas | TODO |
-| 4 | MemoryBar | interactive-canvas | TODO |
+| 4 | MemoryBar | interactive-canvas | done (commit e55b94e) |
 | 5 | ZeroStages | interactive-canvas | TODO |
 | 6 | Fsdp | interactive-canvas | TODO |
 | 7 | TpMatmul | interactive-canvas | TODO |
@@ -378,7 +378,7 @@ Last touched: 2026-04-25.
 | 13 | MoeLoad | interactive-canvas | TODO |
 | 14 | RingAttention | interactive-canvas | TODO |
 | 15 | Fp8Granularity | static-svg | done (commit 50adcc5) |
-| 16 | Fp8LossCurve | plot | TODO |
+| 16 | Fp8LossCurve | plot | done (commit 2d8f9f5) |
 | 17 | FiveDMesh | interactive-canvas (drag) | TODO |
 | 18 | DecisionCalculator | interactive-canvas | TODO |
 
@@ -386,21 +386,40 @@ Last touched: 2026-04-25.
 
 Recommended order on resumption (low complexity → high):
 
-1. **Batch 2 (warmup interactive):** Fig 16 (FP8 loss plot) + Fig 4 (memory bar). Both tractable; one is `Plot.svelte`, the other is a stacked bar with a few sliders.
-2. **Batch 3 (workhorse):** Fig 2 (DDP step) + Fig 3 (ring all-reduce) + Fig 5 (ZeRO stages) + Fig 6 (FSDP timeline). The first big payoff figures.
-3. **Batch 4 (TP/SP):** Fig 7 (TP matmul split) + Fig 9 (TP+SP).
-4. **Batch 5 (pipeline gantts):** Fig 10 (pipeline schedule) + Fig 11 (DualPipe).
-5. **Batch 6 (MoE/ring):** Fig 12 (MoE routing) + Fig 13 (MoE load) + Fig 14 (ring attention).
-6. **Batch 7 (climax):** Fig 17 (5D mesh) + Fig 18 (decision calculator).
+1. **Batch 3 (workhorse):** Fig 2 (DDP step) + Fig 3 (ring all-reduce) + Fig 5 (ZeRO stages) + Fig 6 (FSDP timeline). The first big payoff figures. Cap a session at 2-4 figures; Batch 3 should be split across two sessions.
+2. **Batch 4 (TP/SP):** Fig 7 (TP matmul split) + Fig 9 (TP+SP).
+3. **Batch 5 (pipeline gantts):** Fig 10 (pipeline schedule) + Fig 11 (DualPipe).
+4. **Batch 6 (MoE/ring):** Fig 12 (MoE routing) + Fig 13 (MoE load) + Fig 14 (ring attention).
+5. **Batch 7 (climax):** Fig 17 (5D mesh) + Fig 18 (decision calculator).
 
 ### How to resume from a fresh context
 
 1. Read this file (`notes/multi-gpu-training.md`) end-to-end. The `## Spec`, `## Research notes`, and `## Outline` sections capture every locked-in choice.
 2. `git log --oneline | head -20` to see commits since `c9cf9c7` (the spec commit).
 3. `grep TODO src/content/blog/multi-gpu-training/index.mdx` to see remaining figure placeholders.
-4. Read `.claude/skills/interactive-explainer/figure-kit.md` and `figure-recipes.md` for figure implementation patterns.
+4. Read `.claude/skills/interactive-explainer/figure-kit.md` and `figure-recipes.md` for figure implementation patterns. **Read the "Phase 5 implementation note" below first** — there is a known mismatch between the recipes and what actually works in Astro.
 5. Confirm `draft: true` is still set on the post frontmatter before starting dev work.
 6. Pick the next batch from the table above and implement.
+
+### Phase 5 implementation note (per-figure wrapper pattern)
+
+The figure-kit recipes show `<Canvas2D draw={fn} data={...} />` placed directly inside MDX. **This does not work in Astro.** When `<Canvas2D>` is hydrated as an island via `client:visible`, Astro JSON-serializes its props across the hydration boundary, and the `draw` function arrives on the client as `undefined`, throwing `$$props.draw is not a function` inside Canvas2D's `$effect`.
+
+The pattern that works (established by Fig 4 and Fig 16):
+
+1. **Draw function** lives at `src/figures/multi-gpu-training/<kebab-name>.ts`. Pure function `(ctx, data) => void`.
+2. **Wrapper Svelte component** lives at `src/components/figures/multi-gpu-training/<PascalName>.svelte`. The wrapper imports the draw function at build time, owns any reactive `$state` for sliders/toggles, and renders `<Canvas2D>` plus a `<div class="controls">` strip below it. Replicate the `.controls` CSS from `Figure.svelte` so the styling matches.
+3. **MDX** imports the wrapper component and uses it inside `<Figure caption=".." figNum={N}>`:
+   ```mdx
+   <Figure caption="..." figNum={4}>
+     <MemoryBar client:visible />
+   </Figure>
+   ```
+   The outer `<Figure>` renders server-side as the figure shell (border, caption); the inner `<Wrapper client:visible>` is one hydrated island that contains canvas + controls.
+
+Do NOT use `Figure`'s `{#snippet controls()}` slot from MDX for hydrated figures — snippets aren't compatible with the cross-island hydration boundary. Render the controls inline inside the wrapper component instead.
+
+The figure-kit doc still shows the broken pattern in `figure-recipes.md`. Future skill maintainers should update the recipes; for now, follow Fig 4's `MemoryBar.svelte` as the canonical example.
 
 ### Hard rules to keep applying
 
@@ -408,3 +427,4 @@ Recommended order on resumption (low complexity → high):
 - **Figure kit primitives are exhaustive.** Don't add a new primitive without explicit user approval.
 - **Commit per figure.** One figure per commit so each is reviewable and revertible in isolation.
 - **Test in dev** (`bun run dev`, port 4321 unless busy then 4322; flip `draft: false` to view, flip back before commit). Confirm controls drive canvas at 60fps and `prefers-reduced-motion` freezes auto-loops.
+- **Cap each session at 2-4 figures.** Pushing more degrades quality (per the skill spec).
