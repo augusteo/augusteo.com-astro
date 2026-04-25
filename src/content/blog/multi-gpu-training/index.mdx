@@ -346,3 +346,21 @@ DeepSeek-V3 also adds a *sequence-wise* balance loss as a safety net. The aux-lo
 The all-to-all geometry on DeepSeek-V3's cluster is worth one specific number. They train on 2048 H800s, 8 GPUs per node connected by NVLink (160 GB/s) and across nodes by InfiniBand (50 GB/s). The all-to-all kernels saturate IB+NVLink using only 20 SMs out of an H800's 132. That's about 15% of the chip's SM budget burning *just on data movement*. The rest is compute. That is the tax.
 
 That's four axes of parallelism (data, tensor, pipeline, expert). There's one more, and it matters when contexts get very long.
+
+### 12. The million-token problem: context parallel
+
+When context length goes to 32k, 128k, 1M, even sequence parallel inside a TP group isn't enough. The attention matrix `QKᵀ` is `s × s`. At s=1M that's `10¹²` entries before head dim is multiplied in. No single GPU holds that.
+
+Context parallel (CP) shards along the sequence axis at the *attention* level. A CP group of size `c` splits the sequence into `c` chunks; each rank holds `s/c` tokens worth of Q, K, V activations. The attention computation needs every Q to see every K and V eventually. That seeming impossibility is fixed by ring attention.
+
+{/* TODO: <Fig14RingAttention /> interactive-canvas, ring of c GPUs, KV blocks rotating, scrubber through one full rotation */}
+
+Drag the slider for sequence length out to 1M. Scrub through one rotation of the ring. Each rank starts holding its own KV block. At each step, every rank computes partial attention on its current Q against the KV block it currently holds, then forwards the KV block to its right-hand neighbor. After `c` steps, every Q has seen every K and V.
+
+The blockwise softmax stays exact through the ring. Online softmax accumulation lets you compute `softmax(qkᵀ)v` over chunks of K and V incrementally, by keeping a running maximum and a running sum and updating them with each new chunk. The math is the same as flash-attention's online accumulation. Ring attention is the distributed cousin.
+
+There are two flavours. *Pass-KV* rotates the K and V blocks while Q stays fixed. That's the natural choice for *prefill*, when all tokens of a sequence are processed at once. *Pass-Q* rotates Q while K and V stay fixed. That's the natural choice for *decode*, when tokens stream in one at a time and the KV cache is large. The Context Parallelism for Scalable Million-Token Inference paper (2024) reports 1M-token prefill on Llama 3 405B in 77 seconds using pass-KV across 128 H100s.
+
+For training, CP usually rides alongside the other axes. Llama 3 declares its parameters on a 4D mesh with order `[TP, CP, PP, DP]`. The order matters. From inner-most to outer-most, the parallelism dimensions are arranged so that the highest-bandwidth comm (TP all-reduces) lives on the fastest links (NVLink within a node), and the lowest-bandwidth comm (DP gradient all-reduces) can use the slower links (InfiniBand across nodes). The rule of thumb: put bandwidth-hungry parallelism first.
+
+That's all five axes. The post can now ask "what's actually in production" and answer with a composition of the things we just built.
