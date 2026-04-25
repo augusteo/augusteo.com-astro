@@ -5,7 +5,7 @@ pubDate: 2026-04-25
 heroAlt: "TODO hero image pending phase 6"
 tags: ["AI", "ML"]
 featured: false
-draft: true
+draft: false
 essay: true
 ---
 
@@ -21,6 +21,7 @@ import TpSp from "@components/figures/multi-gpu-training/TpSp.svelte";
 import PipelineSchedule from "@components/figures/multi-gpu-training/PipelineSchedule.svelte";
 import DualPipe from "@components/figures/multi-gpu-training/DualPipe.svelte";
 import MoeRouting from "@components/figures/multi-gpu-training/MoeRouting.svelte";
+import MoeLoad from "@components/figures/multi-gpu-training/MoeLoad.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -472,7 +473,9 @@ The catch: the aux loss distorts the gradient. The router is being pulled by two
 
 DeepSeek-V3 introduced an *auxiliary-loss-free* balancing trick. Instead of an extra loss term, they add a per-expert *bias* `bᵢ` to the routing scores before the top-k selection. After each step, they compare each expert's actual load to the target load: if expert `i` is over-loaded, they decrease `bᵢ` by a tiny amount γ; if under-loaded, they increase it. The bias isn't part of the gradient. It only affects which experts get picked, not how the gradient flows through them.
 
-{/* TODO: <Fig13MoeLoad /> interactive-canvas, bars per expert across training steps, toggle aux-loss / aux-loss-free, scrubber through training */}
+<Figure caption="Per-expert load over training steps. Both modes start with the same biased routing; aux-loss damps slowly with visible oscillation, aux-loss-free converges fast and stays tight. The right sparkline plots load std-dev across the run, with the dot marking the current step. The trick: aux-loss-free's bias updates pull experts toward uniform without sending a balancing gradient through the router." figNum={13}>
+  <MoeLoad client:visible />
+</Figure>
 
 Toggle aux-loss vs aux-loss-free, scrub through training steps. The aux-loss curves stabilise around uniform load but with visible oscillation. The aux-loss-free curves converge faster and tighter, and the gradient through the router is left alone.
 
