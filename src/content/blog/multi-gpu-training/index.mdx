@@ -186,3 +186,27 @@ This pattern, ZeRO-3 with prefetching, is what PyTorch's FSDP implements. The Hu
 A real production data point: Llama 3 405B was trained with FSDP as the data-parallel axis, with one further refinement. From the paper: "We use fully sharded data parallelism (FSDP), which shards the model, optimizer, and gradients … For model shards we do not reshard after forward computation to avoid an extra all-gather communication during backward passes." On their 16K-H100 cluster, the trade between the memory of keeping the gathered parameters around and the saved all-gather on backward came out in favor of keeping them. That choice is exposed today as `reshard_after_forward=False` on PyTorch's `fully_shard` API.
 
 Which brings us to FSDP2.
+
+### 6. FSDP2 and the DTensor abstraction
+
+FSDP1 has been deprecated in favour of FSDP2. The new entry-point API is `fully_shard`, and the change isn't cosmetic.
+
+FSDP1 represented sharded parameters as one giant flat tensor per layer, with custom logic to wrap and unwrap them. That worked but it didn't compose well: combining FSDP1 with tensor parallel required custom code at every seam.
+
+FSDP2 represents each sharded parameter as a *DTensor*. A `DTensor` is a regular `torch.Tensor` with one extra piece of metadata: a *placement* on a *device mesh*.
+
+A `DeviceMesh` is just an n-dimensional array of GPU ranks. A 1D mesh for plain DDP on 8 GPUs is `[0, 1, 2, 3, 4, 5, 6, 7]`. A 2D mesh that combines data parallel (size 4) and tensor parallel (size 2) on the same 8 GPUs is `[[0,1], [2,3], [4,5], [6,7]]`. The mesh names the topology of the cluster.
+
+Each DTensor declares a placement on each axis of the mesh. Three placements cover everything we need:
+
+- `Shard(dim)`: the tensor is split along `dim` across that axis; each rank holds `1/(axis size)` of the tensor.
+- `Replicate()`: the tensor is fully copied to every rank along that axis.
+- `Partial(reduce_op)`: each rank holds a *partial* value, and a reduction (usually sum) is pending.
+
+On a 2D `[dp, tp]` mesh, a parameter can be sharded one way along the data-parallel axis (FSDP-style) and a different way along the tensor-parallel axis (the column-parallel matmul we'll see next section). Same tensor, two simultaneous shardings, no custom code at the seam. Each operator on the DTensor knows enough about the placements to insert the right collective.
+
+This is the substrate that makes 4D and 5D parallelism composable. Llama 3 declares its parameters on a 4D mesh `[dp, tp, cp, pp]`. DeepSeek-V3 uses a 3D mesh `[ep, pp, dp]` and skips tensor parallelism entirely. The user doesn't have to write code for the cross product.
+
+Two practical knobs from `MixedPrecisionPolicy` are worth naming. `param_dtype` controls what dtype parameters are computed in (typically BF16). `reduce_dtype` controls what dtype the gradient reduce-scatter happens in (sometimes FP32, instead of BF16, to avoid loss-of-precision in gradient sums on very large clusters). They're separable, and the separation matters for stability.
+
+That's all the FSDP2 we need for this post. The takeaway is the abstraction. A parameter is a `DTensor`. A `DTensor` knows how it's sharded across the mesh. Every later section is just a different choice of placements.
