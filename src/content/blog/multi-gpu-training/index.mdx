@@ -24,6 +24,7 @@ import MoeRouting from "@components/figures/multi-gpu-training/MoeRouting.svelte
 import MoeLoad from "@components/figures/multi-gpu-training/MoeLoad.svelte";
 import RingAttention from "@components/figures/multi-gpu-training/RingAttention.svelte";
 import FiveDMesh from "@components/figures/multi-gpu-training/FiveDMesh.svelte";
+import DecisionCalculator from "@components/figures/multi-gpu-training/DecisionCalculator.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -610,7 +611,9 @@ Same primitives, different composition. That's the takeaway.
 
 The decision is forced more by the hardware than by the model. The model picks ZeRO-3 vs PP vs EP at the coarsest level, but the exact configuration falls out of: how many GPUs you have, what's connected to what, the NVLink bandwidth within a node, the InfiniBand bandwidth between nodes, the model size, and whether the model is dense or sparse.
 
-{/* TODO: <Fig18DecisionCalculator /> interactive-canvas, sliders for model B, total GPUs, GPUs/node, NVLink GB/s, IB GB/s, output the recommended parallelism stack */}
+<Figure caption="A back-of-envelope decision calculator. Pick model size, GPU count, dense vs MoE, and H100 vs H800 (the bandwidth class is the proxy for everything else). The recommended TP × CP × PP × EP × DP mesh updates underneath. The memory bar shows per-GPU footprint against the 80 GB H100 cap. Match the inputs to Llama 3 405B (dense, 16k GPUs, H100) or DeepSeek-V3 (MoE, 2k GPUs, H800) to land near the published configurations." figNum={18}>
+  <DecisionCalculator client:visible />
+</Figure>
 
 Drag the model size up from 1B. At 1B parameters on a single 8-GPU node, plain DDP is correct: the model fits, the bandwidth is fast, no exotic axes are needed. At 7B, FSDP starts paying off. Per-rank optimizer footprint drops from 84 GB to 10 GB on 8 GPUs. At 70B, you have to pick between (a) FSDP across many nodes with IB-bound all-gathers, or (b) TP=8 within a node + PP across nodes + DP at the top. Most production stacks choose (b) for dense models because TP+PP are NVLink-bound and don't tax IB.
 
