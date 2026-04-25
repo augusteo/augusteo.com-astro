@@ -262,3 +262,33 @@ The combined recipe of the last two sections is what most production training st
 We've reached the size where this stops scaling. With TP=8, the matmul fits. With TP+SP, the activations fit. But the model can be deep enough that even with this, a single layer's parameters and gradients don't all fit on a node. Going TP=16 across two nodes throws the bandwidth budget away.
 
 When the layers themselves are too many for one node, we split *across* layers. That's pipeline parallel.
+
+### 9. Pipeline parallel and the bubble
+
+Pipeline parallel (PP) gives each GPU a contiguous slab of the model's layers. With K GPUs and L layers, GPU 0 owns layers 1..L/K, GPU 1 owns L/K+1..2L/K, and so on. Forward propagates left to right through the pipeline; backward propagates right to left.
+
+The naive version is bad. Send a batch through layer 0; while it's being processed, every other GPU is idle. When it finishes layer 0, send it to layer 1; now layer 0's GPU is idle. Only one GPU is ever busy. We've turned K GPUs into one GPU plus K-1 spectators.
+
+The fix is *micro-batching*. Split the batch of size N into M micro-batches of size N/M. Send micro-batch 1 through layer 0. As soon as layer 0 finishes with micro-batch 1, hand it off to layer 1, and start micro-batch 2 on layer 0 in the same time slot. By the time micro-batch 4 is on layer 0, micro-batch 3 is on layer 1, micro-batch 2 is on layer 2, and micro-batch 1 is on layer 3. The pipeline is full.
+
+But it took K-1 steps to fill the pipeline (the *warm-up*), and it'll take K-1 steps to drain it after the last micro-batch leaves layer 0. Those steps are partially idle. We call those gaps the *bubble*.
+
+{/* TODO: <Fig10PipelineSchedule /> interactive-canvas, K stages x time grid, slider K=4..16, slider M=1..32, toggle GPipe / 1F1B / Interleaved 1F1B */}
+
+Drag K and M. The bubble fraction is roughly `(K-1)/(M + K-1)`. With K=4, M=4, the bubble is 3/7 ≈ 43%, awful. Pump M to 16 and it drops to 3/19 ≈ 16%. With M=64 it's under 5%. Pipeline parallel needs many micro-batches to be efficient.
+
+Toggle the schedule between GPipe, 1F1B, and Interleaved 1F1B.
+
+GPipe (Huang 2018) is the simplest. Run all M forwards through the pipeline first, then all M backwards. Bubble fraction `(K-1)/(M + K-1)`. Cost: every micro-batch's forward activations live until backward consumes them, so peak activation memory per stage is `O(M)`.
+
+1F1B (Narayanan 2021) keeps the same first-order bubble but improves activation memory dramatically. After the warm-up, each stage alternates one forward and one backward. The backward of micro-batch `i` consumes its forward activations and frees them, immediately. Activations only accumulate for ~K micro-batches per stage instead of M. Same speed, less memory. 1F1B is what Megatron-LM and most production stacks ship.
+
+Interleaved 1F1B is the next refinement. Instead of giving stage `d` a contiguous block of layers, split the model into `K · v` chunks and assign chunks `d, d + K, d + 2K, …` to stage `d`. Each micro-batch crosses each stage `v` times instead of once, so the warm-up triangle is `v×` shorter:
+
+> bubble fraction ≈ (1/v) · (K-1)/M
+
+Cost: `v×` more communication volume because each micro-batch's activations cross each stage boundary `v` times. On a fast NVLink topology this trade is typically worth it.
+
+There's a subtle thing about pipeline parallel that's worth naming. The optimizer step only happens once per *batch* (after all M micro-batches have completed forward and backward), not once per micro-batch. The gradient on each parameter is the sum across the M micro-batches. If you also have data parallel wrapping the pipeline, the DP gradient all-reduce happens once per batch on top of that.
+
+We're not done with the bubble. There's a 2024 schedule that cuts the bubble nearly to zero by feeding the pipeline from both ends simultaneously.
