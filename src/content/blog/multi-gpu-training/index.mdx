@@ -102,3 +102,33 @@ for x, y in batches_for_this_rank:
 Compared to single-GPU, only one line is new: the `DDP(model)` wrap. The loop body is unchanged. The negotiation happens inside `loss.backward()`.
 
 We've sketched the cost of all-reduce as a single number ("it takes time"). We haven't said how N machines actually reach consensus on a vector without one of them becoming a bottleneck. That's the next section.
+
+### 3. The ring all-reduce
+
+How do N machines average a vector without one of them becoming a bottleneck?
+
+The naive answer is to nominate a leader. Every rank sends its gradient to GPU 0, GPU 0 sums and divides, GPU 0 sends the result back to everyone. Two phases of communication, each of size M (the full gradient vector). It works, but GPU 0's network link saturates first, and at scale it becomes the bottleneck. It also wastes the bandwidth of every other GPU's outbound link.
+
+A better way uses a ring.
+
+{/* TODO: <Fig3RingAllReduce /> interactive-canvas, ring of N nodes, slider N=4..8, scrubber 2(N-1) steps */}
+
+Drag the slider for N. Scrub from step 0 through step 2(N-1). The first N-1 steps are the *reduce-scatter*; the next N-1 steps are the *all-gather*.
+
+Set N=4 and watch step 0. Each rank holds the full gradient vector divided into 4 chunks; call them a, b, c, d. At step 0, every rank sends one chunk to its right-hand neighbor and receives one chunk from its left. Each rank accumulates the arriving chunk into its own value at the same position. After step 0, four sums exist around the ring, one per chunk position.
+
+At step 1, the chunks rotate again. Each rank forwards a different chunk (the one that just arrived) and accumulates again. After N-1 = 3 steps, exactly one slot on each rank holds the sum of its values across all N ranks. The chunks have lapped the ring once, and the partial sums have grown along the way.
+
+That's the reduce-scatter phase. Each rank ends up owning one chunk of the fully reduced result, the others still partial.
+
+Now do another lap, but this time without adding. Each rank passes its fully-reduced chunk forward; the neighbor copies it into the matching slot. After N-1 more steps, every rank holds every fully-reduced chunk. That's the all-gather phase.
+
+Total: 2(N-1) steps, each step shipping M/N bytes. Per-rank traffic:
+
+> 2(N-1)/N × M
+
+which approaches 2M as N grows and stops growing. This is the *bandwidth-flat* property: doubling the GPU count does not double the time to all-reduce a fixed vector. Tree algorithms have O(log N) latency but pay O(M log N) bandwidth and saturate the root link first. Ring trades a log factor in latency for a flat bandwidth cost. Once the gradient is megabytes, ring wins.
+
+Patarasuk and Yuan proved in 2009 that 2(N-1)/N × M is the lower bound for any all-reduce algorithm. The ring saturates it. Every multi-GPU training run you'll meet uses a ring or a close cousin for the gradient all-reduce. NCCL ships ring as its default for medium-sized messages, double-binary-tree for very large ones, and a few hierarchical variants for nodes with mixed NVLink and InfiniBand topology.
+
+There's one move worth holding onto. The ring split the work into two halves: reduce-scatter (each rank ends up with one chunk's full sum) and all-gather (every rank ends up with every chunk). For DDP we ran both back-to-back to recover the full all-reduce. Each half is a useful primitive on its own, and we'll see them reused in the next section to do something the all-reduce alone cannot.
