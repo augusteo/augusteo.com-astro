@@ -23,6 +23,7 @@ import DualPipe from "@components/figures/multi-gpu-training/DualPipe.svelte";
 import MoeRouting from "@components/figures/multi-gpu-training/MoeRouting.svelte";
 import MoeLoad from "@components/figures/multi-gpu-training/MoeLoad.svelte";
 import RingAttention from "@components/figures/multi-gpu-training/RingAttention.svelte";
+import FiveDMesh from "@components/figures/multi-gpu-training/FiveDMesh.svelte";
 
 *An intuition-first walk from the single-GPU training loop to a 16,000-GPU production run. For software engineers who haven't trained a model before. About a 50-minute read.*
 
@@ -589,7 +590,9 @@ We've collected five primitives. *Data parallel* with FSDP shards parameters, gr
 
 A real training run uses several at once. Each axis lives on a dimension of a `DeviceMesh`. A parameter is a `DTensor` with a placement on each axis. Forward and backward each turn into a sequence of collectives, one per axis, scheduled with as much overlap as possible.
 
-{/* TODO: <Fig17FiveDMesh /> interactive-canvas, drag a GPU in a 5D mesh, highlight its TP/CP/PP/EP/DP groups in five colors, mode toggle to render the active 4 of 5 axes */}
+<Figure caption="64 GPUs as an 8x8 grid. Each cell is one GPU sliced into stripes, one per parallelism axis. Drag any cell; the cells that share a comm group with it light up that group's stripe. The selected GPU lights all five (or four) stripes because it's in every group with itself; every other lit cell shares exactly one axis. Toggle between the 5D layout (with EP, mocking DeepSeek-style) and the 4D layout (no EP, mocking Llama 3)." figNum={17}>
+  <FiveDMesh client:visible />
+</Figure>
 
 Drag a GPU. The five colours light up the GPUs that share each of its parallelism groups. The TP and CP groups are tightly clustered (NVLink within a node), the PP and EP groups span nodes (InfiniBand), and the DP group typically spans many nodes. The mesh shape isn't chosen by ML. It's chosen by the network.
 
