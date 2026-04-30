@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Voice rules grep for any text file Vic intends to publish.
-# Implements the full banned-word and punctuation list from
-# .claude/skills/interactive-explainer/voice-rules.md.
+# High-recall subset of the banned-word and punctuation list in
+# .claude/explainer-shared/voice-rules.md. The rules doc is canonical;
+# this script catches the easy cases. Some figurative usages
+# ("landscape", "journey", "ecosystem", "unlock", "elevate") are matched
+# only in their most common phrase forms to keep false positives in
+# technical prose tolerable. Read voice-rules.md before publishing; the
+# script does not replace human judgment.
 #
 # Usage:  scripts/voice-check.sh <file> [<file>...]
 # Exit:   non-zero if any banned hit is found in any file.
@@ -29,9 +34,9 @@ EM_DASH=$'\xe2\x80\x94'
 
 # Banned word stems. Grouped by category for grep readability.
 # Word-boundary-anchored, case-insensitive.
-BANNED_VERBS='\b(delve|leverage|leverages|leveraged|leveraging|utilize|utilizes|utilized|utilizing|foster|fosters|fostered|fostering|embark|embarks|embarked|embarking|underscore|underscores|underscored|underscoring|showcase|showcases|showcased|showcasing|harness|harnesses|harnessed|harnessing|facilitate|facilitates|facilitated|facilitating|streamline|streamlines|streamlined|streamlining|garner|garners|garnered|garnering|spearhead|spearheads|spearheaded|spearheading|bolster|bolsters|bolstered|bolstering)\b'
+BANNED_VERBS='\b(delve|leverage|leverages|leveraged|leveraging|utilize|utilizes|utilized|utilizing|foster|fosters|fostered|fostering|embark|embarks|embarked|embarking|underscore|underscores|underscored|underscoring|showcase|showcases|showcased|showcasing|harness|harnesses|harnessed|harnessing|facilitate|facilitates|facilitated|facilitating|streamline|streamlines|streamlined|streamlining|garner|garners|garnered|garnering|spearhead|spearheads|spearheaded|spearheading|bolster|bolsters|bolstered|bolstering|craft|crafts|crafted|crafting)\b'
 
-BANNED_ADJECTIVES='\b(crucial|vital|pivotal|robust|comprehensive|multifaceted|intricate|seamless|seamlessly|holistic|meticulous|meticulously|vibrant|profound|profoundly|enduring|invaluable|paramount|transformative|innovative|groundbreaking|bespoke|tailored)\b|\bcutting-edge\b'
+BANNED_ADJECTIVES='\b(crucial|vital|pivotal|robust|comprehensive|multifaceted|intricate|seamless|seamlessly|holistic|meticulous|meticulously|vibrant|profound|profoundly|enduring|invaluable|paramount|transformative|innovative|groundbreaking|bespoke|tailored|nuanced)\b|\bcutting-edge\b|\brich\b'
 
 BANNED_NOUNS='\b(tapestry|realm|realms|testament|cornerstone|hallmark|symphony)\b'
 

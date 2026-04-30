@@ -1,6 +1,6 @@
 ---
 name: interactive-explainer
-description: Use when planning, researching, drafting, or shipping a long-form ciechanow.ski-style interactive explainer post for augusteo.com. Triggers include "let's plan a new explainer", "I want to write an interactive post about X", "start a new flagship", "brainstorm a new explainer on Y", or being given a topic and asked to outline. Drives a six-phase pipeline (topic lock-in, deep research, narrative + figure list, draft prose, implement figures, wire up + publish) using the Svelte 5 figure kit at `src/components/figure/`. Companion to `html-explainer-to-post`, which converts pre-baked HTML; this one creates from a topic.
+description: Long-form blog post with INTERACTIVE Svelte/Canvas figures (sliders, scrubbers, toggles, drag overlays) for augusteo.com, multi-session pipeline. Use ONLY when interactivity is named or strongly implied. Triggers include "interactive explainer", "interactive post about X", "ciechanow.ski-style", "post with sliders / scrubbers / drag", "let's plan a new flagship", "start a new flagship". Drives a six-phase pipeline (topic lock-in, deep research, narrative + figure list, draft prose, implement figures, wire up + publish) using the Svelte 5 figure kit at `src/components/figure/`. If the user says "deep narrative post" or "static illustrations" without naming interactivity, use `narrative-explainer` instead. If a pre-baked HTML file exists, use `html-explainer-to-post`.
 ---
 
 # Interactive explainer pipeline
@@ -11,17 +11,17 @@ A six-phase pipeline that takes a topic ("how multi-GPU training works", "how DN
 
 Read these companions in order before starting any phase:
 
-- `voice-rules.md`: the full "Write Like a Human, Not an AI" guide. Apply during drafting, not as cleanup.
+- `../../explainer-shared/voice-rules.md`: the full "Write Like a Human, Not an AI" guide. Apply during drafting, not as cleanup. (Shared with `narrative-explainer`.)
 - `figure-kit.md`: the seven primitives, palette tokens, when to use Canvas 2D vs SVG.
 - `figure-recipes.md`: cookbook patterns for the most common figure types.
-- `research-protocol.md`: what counts as a primary source, recency requirement, citation format.
-- `narrative-template.md`: section scaffold and reader-direction phrasing.
+- `../../explainer-shared/research-protocol.md`: what counts as a primary source, recency requirement, citation format. (Shared with `narrative-explainer`.)
+- `../../explainer-shared/narrative-template.md`: section scaffold and reader-direction phrasing. (Shared with `narrative-explainer`.)
 
 ## When to use
 
-- Vic says "let's plan a new explainer", "start a new flagship", "I want to write a deep post on X".
-- Vic gives a topic and asks for an outline.
-- Vic seeds 3–5 starter resources (papers, repos, blog posts) and says "write the explainer."
+- Vic says "let's plan a new explainer", "start a new flagship", "I want to write an interactive post on X".
+- Vic gives a topic and asks for an outline that names interactivity (sliders, scrubbers, Canvas plots).
+- Vic seeds 3-5 starter resources (papers, repos, blog posts) and says "write the explainer." (For static-only prose posts, use `narrative-explainer`.)
 - Vic says "continue the X explainer", "pick up the X post", "keep working on the X explainer", or names a topic that already has a `notes/<post-slug>.md` file. (See "Resuming an in-progress run" below.)
 - Vic asks to implement specific figures from a post that's already drafted.
 
@@ -68,7 +68,7 @@ Goal: a research notes file that the prose will draw from. Density and correctne
 
 1. Read every starter resource Vic provided. Quote the parts that matter.
 2. For each starter resource, follow at least three citation tails: papers it cites, repos it links, official docs it references.
-3. Run targeted web searches for primary sources newer than 18 months on the topic. Refer to `research-protocol.md` for what counts as primary, what doesn't, and how to verify recency.
+3. Run targeted web searches for primary sources newer than 18 months on the topic. Refer to `../../explainer-shared/research-protocol.md` for what counts as primary, what doesn't, and how to verify recency.
 4. **Hard rule:** if fewer than three primary sources newer than 18 months turn up after honest searching, halt and ask Vic whether to proceed with older sources or pick a different angle. Do not silently lower the bar.
 5. Where possible, run a small reference implementation in code. For ML topics: a 50-line PyTorch script that demonstrates the mechanism is worth more than a thousand words of paper summary. The script lives at `notes/<post-slug>-reference.<ext>` (or under `notes/<post-slug>/` for multi-file references).
 6. Output: append a "## Research notes" section to `notes/<post-slug>.md` with quoted excerpts, links, paper titles + arxiv IDs, and any code snippets used for verification. Group by sub-topic, not by source.
@@ -79,7 +79,7 @@ Goal: a research notes file that the prose will draw from. Density and correctne
 
 Goal: a section structure plus a numbered figure table modelled on the multi-GPU table in `~/.claude/plans/can-you-check-websites-fizzy-knuth.md`.
 
-1. Sketch the section list using the concept-then-decompose pattern in `narrative-template.md`. Start from the problem the topic solves, decompose into isolated mechanisms, reassemble at the end.
+1. Sketch the section list using the concept-then-decompose pattern in `../../explainer-shared/narrative-template.md`. Start from the problem the topic solves, decompose into isolated mechanisms, reassemble at the end.
 2. For each section, list the figures it needs. For each figure, write a one-line spec: **mechanism it isolates**, **what the reader controls**, **what they should walk away noticing**.
 3. Mark figures as `static-svg`, `interactive-canvas`, or `plot`. Aim for the ratio Vic chose for the multi-GPU essay: ~80% interactive at the v1-flagship tier.
 4. Append the outline + figure table to `notes/<post-slug>.md` under a "## Outline" section.
@@ -99,7 +99,7 @@ Goal: a working MDX file with figure placeholders and prose around them, written
    ```bash
    scripts/voice-check.sh src/content/blog/<post-slug>/index.mdx
    ```
-   The script implements the full banned-word list from `voice-rules.md` plus the em dash and curly quote checks. It exits non-zero on any hit. Any em dashes: zero allowed. Any banned words: rewrite, or if the word is a real technical term in this context (statistical or domain jargon that happens to overlap the banned list), leave a one-line comment in the source naming why it stays. Re-run until clean before showing the section to Vic.
+   The script implements a high-recall subset of the banned-word list from `../../explainer-shared/voice-rules.md` plus the em dash and curly quote checks. The rules doc is canonical; read it before publishing. The script exits non-zero on any hit. Any em dashes: zero allowed. Any banned words: rewrite, or if the word is a real technical term in this context (statistical or domain jargon that happens to overlap the banned list), leave a one-line comment in the source naming why it stays. Re-run until clean before showing the section to Vic.
 5. Commit at each section boundary so Vic can review and revert cleanly. After each commit, update the `## Resume here` tracker's phase-status row.
 6. When all sections are drafted, update the tracker: phase 4 → done.
 
