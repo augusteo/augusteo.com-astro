@@ -13,7 +13,7 @@
     label,
     value = $bindable(0),
     duration = 4,
-    autoLoop = false,
+    autoLoop = true,
   }: Props = $props();
 
   let playing = $state(false);
@@ -62,10 +62,11 @@
   <button
     type="button"
     class="play"
-    aria-label={playing ? "pause" : "play"}
+    aria-label={playing ? "pause animation" : "play looping animation"}
+    title={playing ? "Pause" : "Play loop"}
     onclick={toggle}
   >
-    {playing ? "⏸" : "▶"}
+    {playing ? "II" : "▶"}
   </button>
   <input
     type="range"
@@ -96,13 +97,15 @@
     border-radius: 50%;
     background: #6b6258;
     color: #f4eee3;
-    border: none;
+    border: 1px solid #4a4239;
     cursor: pointer;
-    font-size: 10px;
+    font-size: 9px;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
+    padding: 0;
   }
   .play:hover {
     background: #4a4239;

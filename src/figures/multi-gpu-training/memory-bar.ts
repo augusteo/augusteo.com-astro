@@ -1,11 +1,12 @@
 import { palette, font, drawLabel, fmt } from "@figures/shared";
 
-export type MemHw = "H100" | "H200" | "B200";
+export type MemHw = "H100" | "H200" | "B200" | "GB300";
 
 const HBM_GB: Record<MemHw, number> = {
   H100: 80,
-  H200: 144,
+  H200: 141,
   B200: 192,
+  GB300: 288,
 };
 
 export interface MemoryBarData {
@@ -143,9 +144,13 @@ export function drawMemoryBar(
       : `${fmt(totalCluster, 0)} GB`;
   ctx.fillText(totStr, readX, y);
 
-  drawLabel(ctx, "weights · grads · optimizer", barX + barW / 2, baseline + 16, {
-    align: "center",
-  });
+  drawLabel(
+    ctx,
+    "replicated DDP state only · activations not shown",
+    barX + barW / 2,
+    baseline + 16,
+    { align: "center" },
+  );
 }
 
 export const MEMORY_BAR_W = 540;

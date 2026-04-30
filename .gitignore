@@ -29,3 +29,4 @@ pnpm-debug.log*
 
 # generated public images for RSS feed
 public/assets/blog/
+.gstack/

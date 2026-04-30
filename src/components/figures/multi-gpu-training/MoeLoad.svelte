@@ -30,7 +30,7 @@
       { value: "aux-free", label: "aux-loss-free" },
     ]}
   />
-  <Scrubber bind:value={step} duration={6} autoLoop={false} />
+  <Scrubber bind:value={step} duration={6} />
 </div>
 
 <style>

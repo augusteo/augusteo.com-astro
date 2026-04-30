@@ -38,7 +38,7 @@
     step={2}
     format={(v) => `M=${v}`}
   />
-  <Scrubber bind:value={t} duration={8} autoLoop={false} />
+  <Scrubber bind:value={t} duration={8} />
 </div>
 
 <style>

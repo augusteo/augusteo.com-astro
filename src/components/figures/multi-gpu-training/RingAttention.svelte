@@ -41,7 +41,7 @@
     step={1}
     format={(v) => seqLabels[v]}
   />
-  <Scrubber bind:value={step} duration={6} autoLoop={false} />
+  <Scrubber bind:value={step} duration={6} />
 </div>
 
 <style>

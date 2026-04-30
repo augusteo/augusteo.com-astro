@@ -62,40 +62,53 @@ function recommend(
 
   if (isMoe) {
     tp = 1;
-    notes.push("no TP for MoE; EP replaces it");
-    const epCap = Math.min(64, total);
-    ep = pow2Floor(Math.max(gpn, Math.min(epCap, total / 4)));
-    ep = Math.min(ep, total);
-    pp = Math.min(
-      16,
-      Math.max(1, Math.ceil((memActive * ep) / total / memCap)),
-    );
-    pp = Math.min(pp, Math.max(1, Math.floor(total / ep)));
-    dp = Math.max(1, Math.floor(total / (tp * pp * ep)));
-    if (fastNvlink === false) notes.push("FP8 + DualPipe to hide all-to-all");
-  } else {
-    if (total <= gpn) {
-      tp = Math.min(total, fastNvlink ? 8 : 2);
-      pp = 1;
-      dp = Math.max(1, Math.floor(total / tp));
-      if (memTotal <= memCap * total)
-        notes.push("FSDP across the single node");
-      else notes.push("model overflows the node — add more GPUs");
-    } else if (memTotal <= memCap * total) {
-      tp = fastNvlink ? Math.min(8, gpn) : 1;
-      pp = 1;
-      dp = Math.max(1, Math.floor(total / tp));
-      notes.push("FSDP shards the rest across DP");
-      if (!fastNvlink) notes.push("slow NVLink: drop TP, FSDP only");
+    notes.push("MoE: use EP before TP");
+    if (bTotal >= 671 && total >= 1024) {
+      ep = 64;
+      pp = 16;
+      dp = Math.max(1, Math.floor(total / (ep * pp)));
+      notes.push("DeepSeek anchor: EP=64 PP=16 ZeRO-1");
+      notes.push("FP8 GEMMs + DualPipe hide comm");
     } else {
-      tp = fastNvlink ? Math.min(8, gpn) : 1;
-      const dpAvail = Math.max(1, Math.floor(total / tp));
+      const epCap = Math.min(64, total);
+      ep = pow2Floor(Math.max(gpn, Math.min(epCap, total / 4)));
+      ep = Math.min(ep, total);
       pp = Math.min(
         16,
-        Math.max(1, Math.ceil(memTotal / tp / dpAvail / memCap)),
+        Math.max(1, Math.ceil((memActive * ep) / total / memCap)),
       );
+      pp = Math.min(pp, Math.max(1, Math.floor(total / ep)));
+      dp = Math.max(1, Math.floor(total / (tp * pp * ep)));
+      if (!fastNvlink) notes.push("H800-class: overlap all-to-all");
+    }
+  } else {
+    if (bTotal <= 8) {
+      tp = 1;
+      pp = 1;
+      dp = total;
+      notes.push("small dense: DDP/FSDP only");
+    } else if (bTotal >= 405 && total >= 8192) {
+      tp = fastNvlink ? 8 : 1;
+      cp = 1;
+      pp = 16;
+      dp = Math.max(1, Math.floor(total / (tp * cp * pp)));
+      notes.push("Llama 3 405B 8K: TP=8 PP=16 CP=1");
+      if (total >= 16384) notes.push("for 128K context: CP=16, DP=8");
+    } else if (bTotal >= 200 && total >= 2048) {
+      tp = fastNvlink ? 8 : 1;
+      pp = 16;
       dp = Math.max(1, Math.floor(total / (tp * pp)));
-      notes.push("PP added because FSDP alone cannot fit");
+      notes.push("large dense: TP in node, PP across nodes");
+    } else if (bTotal >= 70 && total >= 128) {
+      tp = fastNvlink ? Math.min(8, gpn) : 1;
+      pp = total >= 512 ? 2 : 1;
+      dp = Math.max(1, Math.floor(total / (tp * pp)));
+      notes.push("70B class: TP=8 plus FSDP");
+    } else {
+      tp = 1;
+      pp = 1;
+      dp = total;
+      notes.push("start with FSDP; add axes when forced");
     }
   }
 
@@ -145,7 +158,9 @@ export function drawDecisionCalculator(
   ctx.textBaseline = "alphabetic";
   ctx.fillText(
     `${model.label} · ${total} GPUs · ${arch === "moe" ? "MoE" : "dense"} · ${
-      hardware === "h100" ? "H100 (NVLink 900 / IB 400)" : "H800 (NVLink 160 / IB 50)"
+      hardware === "h100"
+        ? "H100 (NVLink 900GB/s, fabric 400Gb/s)"
+        : "H800 (NVLink 160GB/s, IB 50GB/s)"
     }`,
     left,
     32,
@@ -196,8 +211,8 @@ export function drawDecisionCalculator(
   ctx.fillStyle = palette.text;
   ctx.fillText(
     arch === "moe"
-      ? "per-GPU memory (params + grads + opt, ZeRO-1)"
-      : "per-GPU memory (FSDP shards across TP × PP × DP)",
+      ? "state estimate (params/grads replicated, opt ZeRO-1)"
+      : "state estimate (FSDP on DP; activations omitted)",
     left,
     memY,
   );

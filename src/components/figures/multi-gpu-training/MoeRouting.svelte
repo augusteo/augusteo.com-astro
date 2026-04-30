@@ -22,7 +22,7 @@
     data={{ e, cf, dragX, dragY }}
     width={MOE_ROUTING_W}
     height={MOE_ROUTING_H}
-    ariaLabel="MoE top-1 routing across four GPU ranks. Drag x picks the expert that wins top-1 for the focused token; drag y picks the home rank where the token lives. When home and target ranks differ, two arcs are drawn: a blue dispatch arc over the top of the rank row, and a green return arc under the bottom. The right panel shows the selected expert, its rank, the per-expert capacity in tokens, the count of hot experts whose load exceeds capacity, and the percent of tokens dropped under the current capacity factor."
+    ariaLabel="MoE routing across four GPU ranks. Drag x picks the expert for the focused token; drag y picks the home rank where the token lives. When home and target ranks differ, two arcs are drawn: a blue dispatch arc over the top of the rank row, and a green return arc under the bottom. The right panel shows the selected expert, its rank, the per-expert capacity in tokens, hot experts, and capacity overflow for this generic capped-routing demonstration."
   />
   <div class="overlay-drag">
     <DragArea

@@ -53,15 +53,15 @@ export function drawMoeRouting(
 
   const capacity = Math.max(1, Math.ceil((SEQ_TOKENS / e) * cf));
   let hotExperts = 0;
-  let droppedTokens = 0;
+  let overflowTokens = 0;
   for (let i = 0; i < e; i++) {
     const load = tokenLoad(i, e);
     if (load > capacity) {
       hotExperts++;
-      droppedTokens += load - capacity;
+      overflowTokens += load - capacity;
     }
   }
-  const dropPct = (droppedTokens / SEQ_TOKENS) * 100;
+  const overflowPct = (overflowTokens / SEQ_TOKENS) * 100;
 
   const rankGap = 12;
   const rankW = (chartW - (NUM_RANKS - 1) * rankGap) / NUM_RANKS;
@@ -252,11 +252,18 @@ export function drawMoeRouting(
 
   ctx.font = `${font.sizeLabelSmall}px ${font.mono}`;
   ctx.fillStyle = palette.text;
-  ctx.fillText("dropped", panelX, py);
+  ctx.fillText("overflow", panelX, py);
   py += 16;
   ctx.font = `bold ${font.sizeLabel}px ${font.mono}`;
-  ctx.fillStyle = dropPct > 1 ? palette.secondary : palette.text;
-  ctx.fillText(`${fmt(dropPct, 0)}%`, panelX, py);
+  ctx.fillStyle = overflowPct > 1 ? palette.secondary : palette.text;
+  ctx.fillText(`${fmt(overflowPct, 0)}%`, panelX, py);
+  py += 22;
+
+  ctx.font = `${font.sizeLabelSmall}px ${font.mono}`;
+  ctx.fillStyle = palette.text;
+  ctx.fillText("cap demo, not", panelX, py);
+  py += 14;
+  ctx.fillText("DeepSeek behavior", panelX, py);
 }
 
 export const MOE_ROUTING_W = 620;

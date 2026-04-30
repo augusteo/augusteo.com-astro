@@ -46,6 +46,7 @@
       { value: "H100", label: "H100" },
       { value: "H200", label: "H200" },
       { value: "B200", label: "B200" },
+      { value: "GB300", label: "GB300" },
     ]}
   />
 </div>

@@ -2,7 +2,7 @@
 title: "How Multi-GPU Training Works"
 description: "An intuition-first walk from the single-GPU loop to a 16,000-GPU production run. DDP, ZeRO/FSDP, tensor and pipeline parallel, MoE, FP8: what each technique buys you and why we need it."
 pubDate: 2026-04-25
-heroAlt: "TODO hero image pending phase 6"
+heroAlt: "A stylized diagram of GPUs connected into a training cluster"
 tags: ["AI", "ML"]
 featured: false
 draft: false
@@ -94,7 +94,7 @@ The optimizer step uses the gradient to move the parameters slightly in the dire
 
 So far, plain. Here's the part that becomes load-bearing later.
 
-In modern training, every parameter is stored twice. There's an FP32 master copy that the optimizer reads and writes, and a half-precision copy (BF16 or FP16) that the forward and backward passes use. The half-precision copy makes training fast on tensor cores; the FP32 master keeps the optimizer's tiny updates from being swallowed by half-precision rounding error. Per parameter, mixed-precision Adam needs:
+In the common mixed-precision Adam budget, each parameter is effectively stored twice. There's an FP32 master copy that the optimizer reads and writes, and a half-precision copy (BF16 or FP16) that the forward and backward passes use. The half-precision copy makes training fast on tensor cores; the FP32 master keeps the optimizer's tiny updates from being swallowed by half-precision rounding error. Per parameter, this setup needs:
 
 - 2 bytes for the half-precision weight, used in forward/backward
 - 2 bytes for the half-precision gradient, filled by backward
@@ -191,7 +191,7 @@ Total: 2(N-1) steps, each step shipping M/N bytes. Per-rank traffic:
 
 which approaches 2M as N grows and stops growing. This is the *bandwidth-flat* property: doubling the GPU count does not double the time to all-reduce a fixed vector. Tree algorithms have O(log N) latency but pay O(M log N) bandwidth and saturate the root link first. Ring trades a log factor in latency for a flat bandwidth cost. Once the gradient is megabytes, ring wins.
 
-Patarasuk and Yuan proved in 2009 that 2(N-1)/N × M is the lower bound for any all-reduce algorithm. The ring saturates it. Every multi-GPU training run you'll meet uses a ring or a close cousin for the gradient all-reduce. NCCL ships ring as its default for medium-sized messages, double-binary-tree for very large ones, and a few hierarchical variants for nodes with mixed NVLink and InfiniBand topology.
+Patarasuk and Yuan proved in 2009 that 2(N-1)/N × M is the lower bound for any all-reduce algorithm. The ring saturates it. In real NCCL runs the library auto-selects among ring, tree, CollNet/NVLS/PAT-style variants, and topology-aware hybrids. Ring is the clean bandwidth-optimal model to keep in your head; production collectives are the topology-tuned version of the same pressure.
 
 There's one move worth holding onto. The ring split the work into two halves: reduce-scatter (each rank ends up with one chunk's full sum) and all-gather (every rank ends up with every chunk). For DDP we ran both back-to-back to recover the full all-reduce. Each half is a useful primitive on its own, and we'll see them reused in the next section to do something the all-reduce alone cannot.
 
@@ -201,11 +201,11 @@ Data parallel solved a wall-clock problem. It did not solve a memory problem.
 
 Picture training a 70B-parameter model with mixed-precision Adam. From section 1, that's 16 bytes per parameter, so the parameters, gradients, and optimizer states together come to 70 × 10⁹ × 16 = 1.12 terabytes. An H100 has 80 GB of HBM. A 70B Adam run is 14× over budget on memory before we've allocated a single activation tensor.
 
-<Figure caption="Per-rank memory under DDP. The bar's three segments are weights (2Ψ), gradients (2Ψ), and optimizer state (12Ψ); the dashed line is one GPU's HBM. Sliding ranks to 32 leaves the bar untouched: every replica holds the full 16Ψ. Switching to B200 (192 GB) lifts the line but doesn't reach a 70B model. The cluster-total readout is the bill." figNum={4}>
+<Figure caption="Per-rank memory under DDP. The bar's three segments are weights (2Ψ), gradients (2Ψ), and optimizer state (12Ψ); the dashed line is one GPU's HBM. Sliding ranks to 32 leaves the bar untouched: every replica holds the full 16Ψ. Switching to GB300 (288 GB) lifts the line but still doesn't reach a 70B model. The cluster-total readout is the bill." figNum={4}>
 <MemoryBar client:visible />
 </Figure>
 
-Drag the parameter slider up. Watch the bar overshoot the hardware line. Switch the hardware toggle to a B200 (192 GB). Try 70B again. Then 405B. Even the most generous single GPU on the market today can't hold the optimizer state for a frontier model.
+Drag the parameter slider up. Watch the bar overshoot the hardware line. Switch the hardware toggle to a GB300-class Blackwell Ultra GPU (288 GB). Try 70B again. Then 405B. Even the most generous single GPU shipping in 2026 can't hold the optimizer state for a frontier model.
 
 Now drag the GPU-count slider up. Notice the bar doesn't shrink. With DDP, every rank holds the full state, so adding GPUs scales compute, not memory. That is the wall we hit.
 
@@ -273,7 +273,7 @@ Each DTensor declares a placement on each axis of the mesh. Three placements cov
 
 On a 2D `[dp, tp]` mesh, a parameter can be sharded one way along the data-parallel axis (FSDP-style) and a different way along the tensor-parallel axis (the column-parallel matmul we'll see next section). Same tensor, two simultaneous shardings, no custom code at the seam. Each operator on the DTensor knows enough about the placements to insert the right collective.
 
-This is the substrate that makes 4D and 5D parallelism composable. Llama 3 declares its parameters on a 4D mesh `[dp, tp, cp, pp]`. DeepSeek-V3 uses a 3D mesh `[ep, pp, dp]` and skips tensor parallelism entirely. The user doesn't have to write code for the cross product.
+This is the substrate that makes 4D and 5D parallelism composable. Llama 3 describes a 4D mesh ordered `[TP, CP, PP, DP]`. DeepSeek-V3 uses a 3D mesh `[EP, PP, DP]` and skips tensor parallelism entirely. The user doesn't have to write code for the cross product.
 
 Two practical knobs from `MixedPrecisionPolicy` are worth naming. `param_dtype` controls what dtype parameters are computed in (typically BF16). `reduce_dtype` controls what dtype the gradient reduce-scatter happens in (sometimes FP32, instead of BF16, to avoid loss-of-precision in gradient sums on very large clusters). They're separable, and the separation matters for stability.
 
@@ -446,25 +446,25 @@ Scrub through one DualPipe step. The bubble has gone from a `(K-1)·(F+B)`-shape
 
 DualPipe overlaps two more communications. Forward and backward chunks fuse all-to-all comm (for MoE, see the next section) and PP comm into the same kernel slot, with what DeepSeek calls "warp specialization" and ten communication channels. From their paper: "both all-to-all and PP communication can be fully hidden during execution."
 
-DeepSeek-V3's actual production parallelism layout deserves a callout, because it shows how the choices compound at the frontier. They run 16-way pipeline parallel, 64-way expert parallel, and ZeRO-1 data parallel. There is *no tensor parallel*. They argue that DualPipe makes the pipeline's bubble small enough that they can use a deeper pipeline instead of TP, and the model is sparse enough (MoE) that EP replaces what TP would have done. The whole training run finishes in 2.788M H800 GPU-hours, roughly $5-6M at 2025 cloud prices.
+DeepSeek-V3's actual production parallelism layout deserves a callout, because it shows how the choices compound at the frontier. They run 16-way pipeline parallel, 64-way expert parallel, and ZeRO-1 data parallel. There is *no tensor parallel*. They argue that DualPipe makes the pipeline's bubble small enough that they can use a deeper pipeline instead of TP, and the model is sparse enough (MoE) that EP replaces what TP would have done. The whole training run finishes in 2.788M H800 GPU-hours.
 
 That's the production data point that says all the techniques in the post can compose. The missing axis is expert parallel, which is what makes DeepSeek-V3 a sparse model in the first place.
 
 ### 11. MoE and expert parallel
 
-Mixture-of-experts (MoE) is a different kind of scaling. Instead of making every parameter participate in every token's forward pass, you make most parameters *sit out* of most tokens. The model has `E` parallel "expert" sub-networks; for each token, a small router picks `k` experts (typically `k=1` or `k=2`) and only those experts process that token. The total parameter count grows by `E×`, but the FLOPs per token stay the same.
+Mixture-of-experts (MoE) is a different kind of scaling. Instead of making every parameter participate in every token's forward pass, you make most parameters *sit out* of most tokens. The model has `E` parallel "expert" sub-networks; for each token, a small router picks `k` experts (Switch uses top-1, Mixtral top-2, DeepSeek-V3 uses eight routed experts plus one shared expert) and only those experts process that token. The total parameter count grows by `E×`, but the FLOPs per token stay much closer to the active expert count.
 
 DeepSeek-V3 has 671B total parameters but only 37B active per token. Mixtral 8x7B has 56B total, ~13B active. The model is large; the compute is small.
 
 This creates a new comm pattern. Token `i` lives on rank `r`. Its assigned expert lives on rank `r'`, possibly far away. Every layer needs to *send* tokens to their expert's home, run the expert FFN, and *send* the outputs back. The collective that does this is *all-to-all*.
 
-<Figure caption="Top-1 routing for one token. Drag x picks which expert wins top-1; drag y picks the home rank the token lives on. When the chosen expert lives on a different rank, two arcs appear: a blue dispatch arc over the top, a green return arc under the bottom. Each cell's fill is that expert's load, capped by the capacity factor; cells past capacity flip red and the dropped-tokens percentage on the right tracks how much of the batch is lost." figNum={12}>
+<Figure caption="Capped top-1 routing for one token, shown as a simple teaching model. Drag x picks the selected expert; drag y picks the token's home rank. When the expert lives elsewhere, blue and green arcs show dispatch and return all-to-all traffic. Cell fill shows expert load against capacity; overflow marks imbalance. DeepSeek-V3 uses top-8 plus a shared expert and does not use this dropped-token Switch-style cap." figNum={12}>
   <MoeRouting client:visible />
 </Figure>
 
-Pick a different expert with the drag. Top-1 routing picks one expert. When that expert lives on a different GPU, the token is shipped via all-to-all to the GPU that holds that expert. The expert's FFN runs. A second all-to-all returns the result back to the token's home rank. Two all-to-alls per MoE layer in forward, two more in backward.
+Pick a different expert with the drag. In this simplified top-1 version, the router picks one expert. When that expert lives on a different GPU, the token is shipped via all-to-all to the GPU that holds that expert. The expert's FFN runs. A second all-to-all returns the result back to the token's home rank. Top-k systems do the same pattern with more selected experts per token: two all-to-alls per MoE layer in forward, two more in backward.
 
-All-to-all is heavier than all-reduce. Each rank sends a different chunk to each other rank, instead of all chunks being summed. Cost grows as `O(N·M)` where `N` is the number of ranks in the EP group and `M` is the per-token activation size. How much of the bandwidth you actually use depends on whether tokens are spread evenly across experts. Hot experts overload their host GPU; cold experts idle. *Load balance is the central problem.*
+All-to-all is harder to schedule than all-reduce. Each rank sends a different chunk to each other rank, instead of all chunks being summed. The total bytes are driven by the number of dispatched token activations, but the latency, link pressure, and kernel efficiency depend heavily on EP group size and whether tokens are spread evenly across experts. Hot experts overload their host GPU; cold experts idle. *Load balance is the central problem.*
 
 Switch Transformer (Fedus 2021) introduced the canonical balancing trick: an *auxiliary loss*.
 
@@ -510,11 +510,11 @@ That's all five axes. The post can now ask "what's actually in production" and a
 
 ### 13. FP8 in production
 
-Half precision saved memory; FP8 saves compute throughput. An H100's tensor cores are roughly 2× as fast in FP8 as BF16. If you can train end-to-end in FP8 without losing accuracy, your wall-clock training time roughly halves at the same hardware spend. That's a big number.
+Half precision saved memory; FP8 saves compute throughput. An H100's tensor cores have roughly 2× the FP8 tensor throughput of BF16. If your GEMMs are the bottleneck and you can train in FP8 without losing accuracy, that is a huge wall-clock lever. Communication, pipeline bubbles, and non-GEMM kernels keep the end-to-end speedup below the raw tensor-core ratio.
 
-The catch is that FP8 has only 4 bits of mantissa (E4M3 format). Activations and weights routinely contain large outliers, and a per-tensor scale tuned for the typical value will saturate or zero those outliers. Naive FP8 doesn't converge.
+The catch is that FP8 E4M3 has only three explicit mantissa bits. Activations and weights routinely contain large outliers, and a per-tensor scale tuned for the typical value will saturate or zero those outliers. Naive FP8 doesn't converge.
 
-DeepSeek-V3 made FP8 work for a 671B-parameter model. The recipe matters because it's the most-replicated production FP8 stack as of 2026.
+DeepSeek-V3 made FP8 work for a 671B-parameter model. The recipe matters because it's one of the clearest public production FP8 training recipes.
 
 <Figure caption="DeepSeek-V3's FP8 quantisation granularity. The activation tensor is sliced into 1x128 tiles (per token, per 128 channels). The weight tensor is sliced into 128x128 blocks. Each tile or block has its own FP32 scale. Outliers in one tile do not blow up the scale for the rest of the tensor." figNum={15}>
 <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="FP8 quantisation granularity: a 1x128 activation tile alongside a 128x128 weight block, both annotated.">
@@ -573,13 +573,13 @@ The first is *fine-grained scaling*. Activations are scaled per-token per-128-ch
 
 The second is *what stays out of FP8*. The three GEMMs in the linear layer (forward Fprop, backward-input Dgrad, backward-weight Wgrad) all run in FP8. Everything else stays in BF16 or FP32: the embedding, the output head, the MoE gating module, the norms, and the attention softmax. These components are the ones most sensitive to precision loss, and their compute cost is small enough that FP8 wouldn't save much there anyway.
 
-The third is *high-precision accumulation*. Hopper's FP8 tensor cores accumulate FP8 × FP8 into an internal format that retains around 14 bits of precision, which DeepSeek measured as not enough for stable training. Their fix: every 128 K-axis steps inside a GEMM, the partial sums are flushed from the tensor core's accumulator to CUDA cores and re-accumulated in FP32. The kernel adds the flush in software. Total FP8 GEMM throughput is preserved. Numerical precision is recovered.
+The third is *high-precision accumulation*. Hopper's FP8 tensor cores accumulate FP8 × FP8 into an internal format that retains around 14 bits of precision, which DeepSeek measured as not enough for stable training. Their fix: every 128 K-axis steps inside a GEMM, the partial sums are promoted out of the tensor-core accumulator and re-accumulated in FP32. The kernel pays careful scheduling work to recover numerical precision without giving up the FP8 throughput win.
 
-<Figure caption="FP8 vs BF16 across a DeepSeek-V3-style 14.8T-token run. The two loss curves overlap so tightly the dashed FP8 line is hard to find on the linear axis. The bottom panel is the relative error between them, plotted against a 0.25% bound. The gap drifts but never crosses." figNum={16}>
+<Figure caption="FP8 vs BF16, stylized from DeepSeek's reported validation experiments on baseline MoE models. The two loss curves overlap tightly; the bottom panel plots relative error against the reported 0.25% bound. This is not a public step-by-step loss log for the full 671B run." figNum={16}>
 <Fp8LossCurve client:visible />
 </Figure>
 
-The result: a relative loss-error vs the BF16 baseline that "remains consistently below 0.25%" across the entire 14.8T-token DeepSeek-V3 run. No catastrophic divergence. No rollbacks. No irrecoverable loss spikes for the whole training run.
+The result: in DeepSeek's baseline MoE validation, the FP8 relative loss error vs BF16 "remains consistently below 0.25%." For the full 14.8T-token DeepSeek-V3 run, the stronger public claim is operational: they report no irrecoverable loss spikes and no rollbacks.
 
 DeepSeek's hardware wishlist (V3 §3.5) is colour worth ending on. They explicitly ask NVIDIA for higher FP8 accumulation precision in tensor cores, native support for tile- and block-wise quantization, and online quantization. The most aggressive FP8 production team is on record saying current Hopper tensor cores leak precision and current kernels burn SMs on data movement. The fact that they made it work anyway, on a 2048-GPU cluster, is the data point.
 
@@ -599,7 +599,7 @@ Drag a GPU. The five colours light up the GPUs that share each of its parallelis
 
 Two production examples.
 
-Llama 3 405B uses a 4D mesh `[TP=8, CP, PP, DP]`. No expert parallel; it's a dense model. TP=8 stays within a node. CP varies with sequence length. The DP axis is FSDP with `reshard_after_forward=False`. On 16K H100s, this run achieves 38–43% BF16 MFU. The axis order is chosen so the most bandwidth-hungry comm gets the fastest links: TP on NVLink, DP on InfiniBand.
+Llama 3 405B uses a 4D mesh `[TP, CP, PP, DP]`. No expert parallel; it's a dense model. In the reported 8K-context configuration, TP=8, CP=1, PP=16, DP=128 on 16K H100s; for 128K context, CP rises to 16 and DP falls to 8. The DP axis is FSDP with `reshard_after_forward=False`. This run achieves 38–43% BF16 MFU. The axis order is chosen so the most bandwidth-hungry comm gets the fastest links: TP on NVLink, DP on InfiniBand.
 
 DeepSeek-V3 671B-MoE (37B active) uses a 3D mesh `[EP=64, PP=16, DP]`. No tensor parallel. The MoE replaces what TP would have done; DualPipe makes the deeper pipeline cheap. The DP axis is ZeRO-1 only (optimizer state partitioned, params and grads still replicated), because the model is sparse and per-rank parameter memory is already manageable. On 2048 H800s, this run finishes 14.8T tokens in 2.788M GPU-hours. FP8 throughout the GEMMs.
 
@@ -611,13 +611,13 @@ Same primitives, different composition. That's the takeaway.
 
 The decision is forced more by the hardware than by the model. The model picks ZeRO-3 vs PP vs EP at the coarsest level, but the exact configuration falls out of: how many GPUs you have, what's connected to what, the NVLink bandwidth within a node, the InfiniBand bandwidth between nodes, the model size, and whether the model is dense or sparse.
 
-<Figure caption="A back-of-envelope decision calculator. Pick model size, GPU count, dense vs MoE, and H100 vs H800 (the bandwidth class is the proxy for everything else). The recommended TP × CP × PP × EP × DP mesh updates underneath. The memory bar shows per-GPU footprint against the 80 GB H100 cap. Match the inputs to Llama 3 405B (dense, 16k GPUs, H100) or DeepSeek-V3 (MoE, 2k GPUs, H800) to land near the published configurations." figNum={18}>
+<Figure caption="A back-of-envelope decision calculator. Pick model size, GPU count, dense vs MoE, and H100 vs H800 (the bandwidth class is the proxy for everything else). The recommended TP × CP × PP × EP × DP mesh updates underneath. The memory bar shows coarse optimizer/parameter state against the 80 GB cap; activations and framework overhead are omitted. Match the inputs to Llama 3 405B (dense, 16k GPUs, H100) or DeepSeek-V3 (MoE, 2k GPUs, H800) to land near the published configurations." figNum={18}>
   <DecisionCalculator client:visible />
 </Figure>
 
-Drag the model size up from 1B. At 1B parameters on a single 8-GPU node, plain DDP is correct: the model fits, the bandwidth is fast, no exotic axes are needed. At 7B, FSDP starts paying off. Per-rank optimizer footprint drops from 84 GB to 10 GB on 8 GPUs. At 70B, you have to pick between (a) FSDP across many nodes with IB-bound all-gathers, or (b) TP=8 within a node + PP across nodes + DP at the top. Most production stacks choose (b) for dense models because TP+PP are NVLink-bound and don't tax IB.
+Drag the model size up from 1B. At 1B parameters on a single 8-GPU node, plain DDP is correct: the model fits, the bandwidth is fast, no exotic axes are needed. Around the 7B/8B class, FSDP starts paying off. Per-rank optimizer footprint drops from roughly 112 GB replicated to roughly 14 GB when sharded across 8 GPUs. At 70B, you have to pick between (a) FSDP across many nodes with IB-bound all-gathers, or (b) TP=8 within a node + PP across nodes + DP at the top. Most production dense-model stacks choose (b) once single-axis FSDP is no longer the clean answer.
 
-At 405B, you've reached Llama 3 territory: TP=8 + CP + PP + FSDP-on-DP, with `reshard_after_forward=False`, BF16 throughout. On 16K H100s, expect 38–43% MFU. If you have less than ~4K GPUs, the DP axis shrinks and the run just takes longer.
+At 405B, you've reached Llama 3 territory: TP=8 + PP=16 + FSDP-on-DP, with CP added when long context requires it and `reshard_after_forward=False` on the FSDP axis. On 16K H100s, expect 38–43% MFU for the reported Llama 3 405B setup.
 
 At 671B-MoE-37B-active, you've reached DeepSeek-V3 territory: EP=64 + PP=16 + ZeRO-1 + DualPipe, *no* TP, FP8 throughout the linear GEMMs, aux-loss-free balance with a sequence-wise safety net. The model is sparse, the comm pattern is all-to-all, and the trick is hiding both PP and all-to-all behind compute.
 
@@ -625,8 +625,8 @@ A few rules of thumb that fall out of the post:
 
 - Pre-2024 you'd start with TP+PP. In 2026, if you're not at 100B+, start with FSDP and add axes only as memory or activation pressure forces them.
 - TP almost always stops at 8 (one NVLink-connected node). Going higher trades NVLink for IB; the bandwidth cliff isn't worth it.
-- PP needs M ≥ 4K micro-batches for a decent bubble. At small global batch sizes you can't pay this; use FSDP instead.
-- FP8 is no longer experimental on H100/H800. It's the production default for new sparse runs. Dense runs are following.
+- PP wants M several times larger than K (the pipeline depth) for a decent bubble. At small global batch sizes you can't pay this; use FSDP instead.
+- FP8 is production-proven on H100/H800 for carefully engineered sparse runs. Treat dense FP8 training as stack- and model-dependent, not automatic.
 - Async TP (Megatron-Core) and Ladder-Residual are 2025 directions for hiding the TP all-reduce behind compute. Worth watching, not yet default.
 
 Adding GPUs is easy. Getting them to agree is the entire field.

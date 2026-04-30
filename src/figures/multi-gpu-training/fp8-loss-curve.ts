@@ -162,6 +162,9 @@ export function drawFp8LossCurve(
   drawLabel(ctx, "FP8 vs BF16", 0, 0, { align: "center" });
   ctx.restore();
   drawLabel(ctx, "tokens trained", padL + w / 2, H - 6, { align: "center" });
+  drawLabel(ctx, "stylized validation curve", padL + w - 4, topY + topH - 4, {
+    align: "right",
+  });
 
   const legX = padL + w + 10;
   ctx.strokeStyle = palette.primary;

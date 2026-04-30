@@ -40,7 +40,7 @@
       { value: "serial", label: "serial" },
     ]}
   />
-  <Scrubber bind:value={t} duration={6} autoLoop={false} />
+  <Scrubber bind:value={t} duration={6} />
 </div>
 
 <style>
