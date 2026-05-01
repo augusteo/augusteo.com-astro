@@ -1,0 +1,661 @@
+---
+title: "How PgBouncer Works"
+description: "A from-the-ground-up explanation of PgBouncer: why Postgres needs a connection pooler, what each pooling mode actually does, what breaks under transaction pooling, and how to run the thing in production."
+pubDate: 2026-04-30
+heroImage: "@assets/blog/how-pgbouncer-works/hero.png"
+heroAlt: "A watercolor and ink illustration of a 1920s wooden telephone switchboard standing at the seam between an old brick-walled room with a gas lamp on the left and a bright modern wood-paneled hallway on the right, with many fabric-wrapped cords on the left consolidating into a tight bundle on the right, an open ledger with a pen on a small shelf, an empty operator's chair, and a wall clock between the two spaces."
+tags: ["Tech"]
+featured: false
+draft: false
+essay: true
+---
+
+*A from-the-ground-up explanation of PgBouncer: why Postgres needs a connection pooler, what each pooling mode actually does, what breaks under transaction pooling, and how to run the thing in production. About a 30-minute read. Versions reference PgBouncer 1.25.1, the current stable as of writing.*
+
+### 1. The thing PgBouncer fixes
+
+If you have used Postgres for any length of time, you have probably run into some version of this story. Your app has been fine for months. Then you push a release that adds a few more workers, or traffic spikes during a launch, or your background job system starts running more parallel jobs than it used to. Suddenly the database starts refusing connections. Latency goes up. Memory usage on the database host climbs to ninety-something percent. The error logs are full of `FATAL: sorry, too many clients already`, and your `max_connections` setting, which seemed generous when you set it, is now the thing standing between you and a working application.
+
+The textbook fix is "add a connection pooler." The textbook recommendation is PgBouncer. And then, if you are like most people, you set `pool_mode = transaction`, point your app at port 6432 instead of 5432, and walk away thinking the problem is solved.
+
+It usually is. But the thing you just deployed is doing something quite specific, and if you do not understand what, the next bug you hit will be confusing in a way that direct Postgres bugs are not. Why doesn't `SET search_path` stick? Why did my long-running report time out at 5 seconds when I never set a 5-second timeout? Why does this Perl script work when I connect directly but fail through PgBouncer? PgBouncer presents itself as a transparent proxy, and in one mode it almost is, but in the mode you actually want to use, it isn't, and the gap between what looks transparent and what actually is transparent is where the bugs live.
+
+This piece is about that gap. We'll start with why Postgres connections cost something in the first place, work through the three pooling modes and what each one buys and breaks, then look at how to actually run PgBouncer in production: how to size the pool, how to authenticate without storing every password twice, how to monitor it, and the long list of small things that go subtly wrong.
+
+## Act 1 — Why connections are expensive
+
+*The Postgres process model and why it does not love thousands of clients.*
+
+### 2. The fork that started it all
+
+Postgres has been around since 1986. Its connection model dates from a time when the modern web did not exist and the typical workload was a handful of analysts running queries from terminals. The model is simple. There is one supervisor process called the *postmaster*. When a client connects, the postmaster calls `fork()` and produces a new child process called a *backend*. That backend is yours, exclusively, for the lifetime of the connection. When you disconnect, it exits. Every query you run, every transaction, every `SET`, every prepared statement, every temporary table, lives inside that one process.
+
+This design has real virtues. Each connection is isolated, so a memory bug in one query cannot corrupt another client's session. Cancellation is a SIGINT to a specific PID. The OS scheduler does the heavy lifting of fairness between connections. It is a very Unix design and it ages well in many ways.
+
+It does not age well in one specific way. A process is not free. Forking it is not free. Initializing the backend's catalog cache is not free. And keeping it around when it is doing nothing is not free either.
+
+<figure>
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Postgres process tree showing one postmaster forking a backend per client" width="100%" height="auto">
+  <rect fill="#f4ede0" x="0" y="0" width="700" height="320" rx="6"/>
+  <rect x="270" y="30" width="160" height="46" rx="4" fill="#fff" stroke="#1a1815" stroke-width="1.4"/>
+  <text font-family="serif" font-size="13" fill="#1a1815" x="350" y="50" text-anchor="middle">postmaster</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="66" text-anchor="middle">listens on 5432</text>
+  <g stroke="#4a4742" fill="none" stroke-width="1">
+    <path d="M 350 76 L 110 130" stroke-dasharray="3 3"/>
+    <path d="M 350 76 L 220 130" stroke-dasharray="3 3"/>
+    <path d="M 350 76 L 350 130" stroke-dasharray="3 3"/>
+    <path d="M 350 76 L 480 130" stroke-dasharray="3 3"/>
+    <path d="M 350 76 L 600 130" stroke-dasharray="3 3"/>
+  </g>
+  <g>
+    <rect x="40" y="130" width="140" height="58" rx="4" fill="#fff" stroke="#6a7d63" stroke-width="1.4"/>
+    <text font-family="serif" font-size="13" fill="#1a1815" x="110" y="150" text-anchor="middle">backend</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="110" y="167" text-anchor="middle">pid 1812</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="110" y="180" text-anchor="middle">~5–15 MB</text>
+
+    <rect x="150" y="130" width="140" height="58" rx="4" fill="#fff" stroke="#6a7d63" stroke-width="1.4"/>
+    <text font-family="serif" font-size="13" fill="#1a1815" x="220" y="150" text-anchor="middle">backend</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="220" y="167" text-anchor="middle">pid 1813</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="220" y="180" text-anchor="middle">idle</text>
+
+    <rect x="280" y="130" width="140" height="58" rx="4" fill="#fff" stroke="#6a7d63" stroke-width="1.4"/>
+    <text font-family="serif" font-size="13" fill="#1a1815" x="350" y="150" text-anchor="middle">backend</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="167" text-anchor="middle">pid 1814</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="180" text-anchor="middle">running query</text>
+
+    <rect x="410" y="130" width="140" height="58" rx="4" fill="#fff" stroke="#6a7d63" stroke-width="1.4"/>
+    <text font-family="serif" font-size="13" fill="#1a1815" x="480" y="150" text-anchor="middle">backend</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="480" y="167" text-anchor="middle">pid 1815</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="480" y="180" text-anchor="middle">idle in tx</text>
+
+    <rect x="540" y="130" width="140" height="58" rx="4" fill="#fff" stroke="#6a7d63" stroke-width="1.4"/>
+    <text font-family="serif" font-size="13" fill="#1a1815" x="610" y="150" text-anchor="middle">backend</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="610" y="167" text-anchor="middle">pid 1816</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="610" y="180" text-anchor="middle">idle</text>
+  </g>
+  <g>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="110" y="240" text-anchor="middle">client A</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="220" y="240" text-anchor="middle">client B</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="240" text-anchor="middle">client C</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="480" y="240" text-anchor="middle">client D</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="610" y="240" text-anchor="middle">client E</text>
+    <g stroke="#4a4742" fill="none" stroke-width="1">
+      <path d="M 110 220 L 110 195"/>
+      <path d="M 220 220 L 220 195"/>
+      <path d="M 350 220 L 350 195"/>
+      <path d="M 480 220 L 480 195"/>
+      <path d="M 610 220 L 610 195"/>
+    </g>
+  </g>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="290" text-anchor="middle">one process per client. always. even when the client is doing nothing.</text>
+</svg>
+<figcaption><strong>Fig 1.</strong> The Postgres connection model. Every client gets a dedicated OS process. The processes are isolated, which is great for stability, and unshared, which is bad for scaling.</figcaption>
+</figure>
+
+### 3. What an idle connection actually costs
+
+Memory is the headline cost, and the number you usually hear is "10 MB per connection." That number is roughly right but slightly misleading. The truth is that `ps` and `top` overcount, because Linux uses copy-on-write for forked processes and does not split out shared memory cleanly in those tools. When you measure more carefully — Andres Freund's writeup uses a mix of `/proc/[pid]/smaps_rollup` (an approximation, not an exact figure) and direct PSS accounting — the incremental private memory of an idle Postgres backend is closer to 1.5 to 2 MB on a fresh connection, growing to 5 to 15 MB once the connection has done some work and accumulated catalog cache, prepared plans, and per-process state. The AWS database team's RDS-side measurements landed at 1.5 to 14.5 MB depending on workload, which lines up.
+
+So it is not "10 MB per connection" exactly. It is more like "a few MB per connection, more if it does anything interesting, multiplied by however many connections you have, even if they are idle." On a host with 32 GB of RAM, where you also want most of that going to `shared_buffers` and the OS page cache, you cannot afford 2,000 idle connections. You probably cannot afford 1,000.
+
+Memory is not even the whole story. Each backend process is also a thing the OS scheduler has to consider. Each backend has a slot in Postgres' shared procarray, which is scanned during snapshot acquisition: a process that does nothing all day still gets walked over every time another transaction takes a snapshot. There's a known cliff somewhere in the low thousands of connections where Postgres spends measurably more CPU just managing the procarray than running queries. The exact number depends on hardware and version, but as a rule of thumb, past a few hundred connections per CPU core, you are buying overhead and not throughput.
+
+Then there is connection setup cost. Opening a fresh Postgres connection involves a TCP handshake, a TLS handshake (in any sane production setup), a fork on the server, a SCRAM exchange, sending startup parameters, loading the role's config, and setting the search path. On a healthy LAN this takes a few milliseconds. On a TLS connection across regions, it can be 30 to 100 ms. PHP-style "connect on every request" patterns make this a per-request tax. Hans Schoenig benchmarked the difference between connection-per-query and pooled-connection at 98.7% throughput loss, going from a couple hundred thousand simple queries per second down to 3,770. The fork is most of it.
+
+So a Postgres connection costs you four things: memory, scheduler overhead, snapshot-acquisition overhead, and the multi-millisecond setup tax that fires every time a new one is opened. Any one of these gets bad at scale. All four together are why you cannot solve "scale to a thousand app workers" by just raising `max_connections`.
+
+> *Raising `max_connections` is not scaling. It's just postponing.*
+
+### 4. What we actually want
+
+Here's the observation that motivates everything that follows. Most application connections are doing nothing most of the time. A web request typically spends 1 ms talking to the database and 50 ms doing other work: rendering, calling APIs, formatting responses, waiting for the user. A worker process holds a connection for its lifetime even though it spends 95% of that lifetime idle.
+
+If you could somehow let many app-side connections share a smaller pool of real Postgres connections, multiplexed so that whichever client actually needs the database right now gets a real connection, and everyone else gets a cheap proxy connection that costs essentially nothing while they're idle, you'd have your scaling. You'd also have a contention pattern that maps to your real workload (active query count) instead of your app's worker count.
+
+This is what a connection pooler is. PgBouncer is the one most people use.
+
+## Act 2 — Three modes of multiplexing
+
+*Session, transaction, statement: the spectrum of how aggressively you're willing to lie.*
+
+### 5. Meet PgBouncer
+
+PgBouncer is a single binary, written in C, single-threaded, event-driven, built on libevent. It speaks the Postgres wire protocol on both sides. To your application, it looks like a Postgres server. To the real Postgres, it looks like a bunch of clients. It sits in the middle and shuffles bytes back and forth, occasionally attaching and detaching client-to-server pairings according to whichever pooling mode you have configured.
+
+The numbers are striking. The PgBouncer process is small: a base of a few MB plus roughly 2 KB of bookkeeping per client connection (more once you turn on `max_prepared_statements` tracking). A single node can hold many thousands of client connections; configurations of `max_client_conn = 10000` are common in real deployments, with the practical ceiling set by file descriptors, TLS overhead, and the single-core CPU limit rather than memory. The per-query latency overhead is small (sub-millisecond in healthy LAN benchmarks), mostly because it does not parse SQL. It just looks at protocol messages, sees where one transaction ends and the next begins, and decides whether the current client/server pair should stay attached or get split apart.
+
+That last sentence is the entire concept. The pooling mode is the rule for when PgBouncer can detach a client from a server connection and reuse that server connection for someone else. There are three modes.
+
+<figure>
+<svg viewBox="0 0 700 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PgBouncer sitting between many clients and few server connections" width="100%" height="auto">
+  <rect fill="#f4ede0" x="0" y="0" width="700" height="360" rx="6"/>
+  <text font-family="serif" font-size="13" fill="#1a1815" x="40" y="30" text-anchor="start" font-weight="600">app workers</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="40" y="46" text-anchor="start">cheap proxy connections</text>
+  <g>
+    <g fill="#fff" stroke="#4a6f88" stroke-width="1">
+      <rect x="40" y="65"  width="80" height="22" rx="3"/>
+      <rect x="40" y="92"  width="80" height="22" rx="3"/>
+      <rect x="40" y="119" width="80" height="22" rx="3"/>
+      <rect x="40" y="146" width="80" height="22" rx="3"/>
+      <rect x="40" y="173" width="80" height="22" rx="3"/>
+      <rect x="40" y="200" width="80" height="22" rx="3"/>
+      <rect x="40" y="227" width="80" height="22" rx="3"/>
+      <rect x="40" y="254" width="80" height="22" rx="3"/>
+      <rect x="40" y="281" width="80" height="22" rx="3"/>
+      <rect x="40" y="308" width="80" height="22" rx="3"/>
+    </g>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="80" text-anchor="middle">w01</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="107" text-anchor="middle">w02</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="134" text-anchor="middle">w03</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="161" text-anchor="middle">w04</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="188" text-anchor="middle">w05</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="215" text-anchor="middle">w06</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="242" text-anchor="middle">w07</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="269" text-anchor="middle">w08</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="296" text-anchor="middle">w09</text>
+    <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="80" y="323" text-anchor="middle">w10</text>
+  </g>
+
+  <rect x="260" y="120" width="180" height="120" rx="6" fill="#fff" stroke="#1a1815" stroke-width="1.6"/>
+  <text font-family="serif" font-size="13" fill="#1a1815" x="350" y="148" text-anchor="middle" font-weight="600">PgBouncer</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="170" text-anchor="middle">single process</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="186" text-anchor="middle">single thread</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="202" text-anchor="middle">~3 MB RAM</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="218" text-anchor="middle">listens on 6432</text>
+
+  <g stroke="#4a6f88" fill="none" stroke-width="0.8">
+    <path d="M 120 76  L 260 145"/>
+    <path d="M 120 103 L 260 155"/>
+    <path d="M 120 130 L 260 165"/>
+    <path d="M 120 157 L 260 175"/>
+    <path d="M 120 184 L 260 185"/>
+    <path d="M 120 211 L 260 195"/>
+    <path d="M 120 238 L 260 205"/>
+    <path d="M 120 265 L 260 215"/>
+    <path d="M 120 292 L 260 225"/>
+    <path d="M 120 319 L 260 235"/>
+  </g>
+
+  <text font-family="serif" font-size="13" fill="#1a1815" x="660" y="30" text-anchor="end" font-weight="600">Postgres backends</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="660" y="46" text-anchor="end">expensive real connections</text>
+  <g fill="#fff" stroke="#6a7d63" stroke-width="1.2">
+    <rect x="540" y="140" width="120" height="28" rx="3"/>
+    <rect x="540" y="175" width="120" height="28" rx="3"/>
+    <rect x="540" y="210" width="120" height="28" rx="3"/>
+  </g>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="600" y="158" text-anchor="middle">backend 1</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="600" y="193" text-anchor="middle">backend 2</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="600" y="228" text-anchor="middle">backend 3</text>
+
+  <g stroke="#6a7d63" fill="none" stroke-width="1">
+    <path d="M 440 154 L 540 154"/>
+    <path d="M 440 189 L 540 189"/>
+    <path d="M 440 224 L 540 224"/>
+  </g>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="280" text-anchor="middle">10 clients in</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="296" text-anchor="middle">3 server connections out</text>
+</svg>
+<figcaption><strong>Fig 2.</strong> PgBouncer's job in one picture. Many cheap proxy connections on the client side, a small number of real Postgres backends on the server side, and a multiplexer in the middle deciding who gets which backend, when. The ratio (10:3 here, often 100:20 in production) is the whole point.</figcaption>
+</figure>
+
+### 6. Session pooling
+
+Session pooling is the conservative default. A client connects to PgBouncer, PgBouncer hands them a real backend, and that backend belongs to that client until the client disconnects. From the application's point of view, this is identical to talking to Postgres directly.
+
+What does this buy you? Not multiplexing. If you have 200 app workers, you have 200 server connections. The pooler is not really pooling anything during steady-state operation. What it *does* buy you is a few smaller wins. The connection setup cost is amortized: when a worker disconnects and another reconnects, the backend stays warm in PgBouncer's pool and gets reassigned without forking a new Postgres process. PgBouncer handles SCRAM authentication on the client side without holding open file descriptors during slow handshakes. And when Postgres restarts (for a parameter change, an HA failover, a scheduled maintenance), PgBouncer can reconnect on the back side while clients hold steady on the front side, which is genuinely useful for keeping your app from cascading.
+
+Session mode is the safe choice. Every Postgres feature works exactly as you'd expect: prepared statements, temp tables, `LISTEN/NOTIFY`, session-level advisory locks, `SET`, search paths, the lot. There is essentially nothing you have to change in your application.
+
+It is also, for most modern web workloads, the wrong choice. The whole reason we started this conversation is that 200 idle backends costs real money. Session pooling does not save you from that. It saves you only from the connect/disconnect tax, which is real but secondary.
+
+### 7. Transaction pooling
+
+Transaction pooling is the mode that makes PgBouncer worth running. The rule is simple: a server backend is bound to a client only for the duration of a transaction. As soon as the client commits or rolls back, the backend goes back to the pool, and the next client that wants to start a transaction gets it.
+
+This is where the math changes. A web request typically takes 50 ms total but actually has the database connection in a transaction for maybe 5 ms of that. If you measure your real "active in transaction" time and divide by your total request time, you get a multiplier somewhere between 5x and 50x for typical workloads. That is your effective overcommit ratio. With transaction pooling, you can comfortably support 200 concurrent app workers on 20 server connections, because at any given instant only ~5% of them are actually mid-transaction.
+
+<figure>
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline showing the three pooling modes and when server connections are bound to clients" width="100%" height="auto">
+  <rect fill="#f4ede0" x="0" y="0" width="700" height="320" rx="6"/>
+
+  <g>
+    <rect x="40" y="20" width="14" height="10" fill="#6a7d63"/>
+    <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="60" y="29">server bound to client</text>
+    <rect x="240" y="20" width="14" height="10" fill="#fff" stroke="#1a1815" stroke-width="1"/>
+    <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="260" y="29">server in pool, available</text>
+  </g>
+
+  <text font-family="serif" font-size="13" fill="#1a1815" x="40" y="70" font-weight="600">session</text>
+  <line x1="40" y1="80" x2="660" y2="80" stroke="#d9cfb9"/>
+  <rect x="100" y="74" width="540" height="14" fill="#6a7d63"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="100" y="105">connect</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="640" y="105" text-anchor="end">disconnect</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="370" y="105" text-anchor="middle">held the whole time, even when idle</text>
+
+  <text font-family="serif" font-size="13" fill="#1a1815" x="40" y="160" font-weight="600">transaction</text>
+  <line x1="40" y1="170" x2="660" y2="170" stroke="#d9cfb9"/>
+  <rect x="100" y="164" width="60" height="14" fill="#6a7d63"/>
+  <rect x="220" y="164" width="40" height="14" fill="#6a7d63"/>
+  <rect x="320" y="164" width="80" height="14" fill="#6a7d63"/>
+  <rect x="450" y="164" width="50" height="14" fill="#6a7d63"/>
+  <rect x="560" y="164" width="70" height="14" fill="#6a7d63"/>
+
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="130" y="195" text-anchor="middle">BEGIN…COMMIT</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="240" y="195" text-anchor="middle">tx</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="360" y="195" text-anchor="middle">tx</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="475" y="195" text-anchor="middle">tx</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="595" y="195" text-anchor="middle">tx</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="370" y="215" text-anchor="middle">in between, the backend is free for someone else</text>
+
+  <text font-family="serif" font-size="13" fill="#1a1815" x="40" y="260" font-weight="600">statement</text>
+  <line x1="40" y1="270" x2="660" y2="270" stroke="#d9cfb9"/>
+  <g fill="#6a7d63">
+    <rect x="100" y="264" width="14" height="14"/>
+    <rect x="130" y="264" width="14" height="14"/>
+    <rect x="170" y="264" width="14" height="14"/>
+    <rect x="220" y="264" width="14" height="14"/>
+    <rect x="280" y="264" width="14" height="14"/>
+    <rect x="330" y="264" width="14" height="14"/>
+    <rect x="370" y="264" width="14" height="14"/>
+    <rect x="420" y="264" width="14" height="14"/>
+    <rect x="470" y="264" width="14" height="14"/>
+    <rect x="510" y="264" width="14" height="14"/>
+    <rect x="560" y="264" width="14" height="14"/>
+    <rect x="600" y="264" width="14" height="14"/>
+    <rect x="640" y="264" width="14" height="14"/>
+  </g>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="370" y="298" text-anchor="middle">released after every single statement; multi-statement transactions forbidden</text>
+</svg>
+<figcaption><strong>Fig 3.</strong> The three modes, on the same timeline. Session holds a backend for the whole client lifetime. Transaction holds it only during <code>BEGIN…COMMIT</code> and releases it in the gaps. Statement releases after every query, and refuses to let you have multi-statement transactions at all. As you go down the spectrum, multiplexing improves and Postgres compatibility shrinks.</figcaption>
+</figure>
+
+The catch is that transaction pooling lies to your application about how connections work. If you set a session variable in transaction A, and the next call you make happens in transaction B, transaction B might be on a different server backend, where the variable is unset. If you create a temp table in transaction A, it will not be visible in transaction B, because temp tables live in a backend's session and the next backend doesn't know about it. Anything that depends on Postgres' notion of a "session" is now broken, because what your app thinks of as a session is no longer mapped onto a single backend's session. We'll come back to this. It's the bulk of what you have to think about when you adopt transaction pooling.
+
+### 8. Statement pooling
+
+Statement pooling is transaction pooling's wilder cousin. The server is released after every single statement, and multi-statement transactions are forbidden outright: if your client sends `BEGIN`, PgBouncer returns an error.
+
+This is genuinely too aggressive for almost any application. The use case is something like a key-value lookup workload run from a tool that does not need transactions, where the cost of even briefly holding a backend across statements is higher than the cost of losing transaction semantics. PL/Proxy historical setups used it. Most modern apps should not.
+
+I'm going to mostly ignore statement pooling for the rest of this piece. Its existence is mostly important because it shows you the spectrum: session is "bind for the whole connection," transaction is "bind for one transaction," statement is "bind for one query." There's no rule that says PgBouncer has to stop there. Statement pooling shows you the limit case, where the server is held only while a single SQL command is in flight. Past that, you'd be parsing SQL and rewriting it to push specific queries to specific backends, which is what middleware like Pgpool-II does, with all the complexity that entails.
+
+### 9. The compatibility table
+
+Here is the chart that PgBouncer's docs publish, condensed. It's worth memorizing if you're going to run transaction pooling.
+
+| Feature | session | transaction | statement |
+|---|---|---|---|
+| Multi-statement transactions | works | works | forbidden |
+| `SET` / `RESET` across queries | works | broken | broken |
+| `LISTEN` (receiving) | works | broken | broken |
+| `NOTIFY` (sending) | works | works | broken |
+| Session-level advisory locks | works | broken | broken |
+| Transaction-level advisory locks | works | works | broken |
+| Temporary tables | works | broken\* | broken\* |
+| `WITH HOLD` cursors | works | broken | broken |
+| Protocol prepared statements | works | works since 1.21 | works since 1.21 |
+| `PREPARE` / `EXECUTE` SQL | works | broken | broken |
+| `SET LOCAL` inside a transaction | works | works | broken |
+| `pg_dump` | works | broken | broken |
+| Logical replication connections | since 1.23 | unsupported | unsupported |
+
+"Broken" here means "may silently misbehave." Temp tables created inside a single transaction with `ON COMMIT DROP` work fine, because they do not outlive the transaction. The asterisk on temp tables is for the common `ON COMMIT PRESERVE ROWS` case, where the table is meant to live for the session. That's the one that breaks.
+
+Two of these have stories worth telling, because they're the ones that bite people most often. Prepared statements got a real fix in 2023. `SET` still doesn't, and the workarounds are awkward.
+
+### 10. Prepared statements: the asterisk that took ten years to remove
+
+For most of PgBouncer's history, you couldn't use prepared statements in transaction mode at all. The reason is straightforward. A prepared statement in Postgres is named, and it lives in a specific backend's session memory. If your driver does `PREPARE q1 AS SELECT ...` on backend A and then later does `EXECUTE q1`, but PgBouncer has by now moved you to backend B, backend B has never heard of `q1` and you get an error.
+
+The official advice for ten years was: turn off prepared statements at the driver level. JDBC users set `prepareThreshold=0`. PHP/PDO users set `PDO::ATTR_EMULATE_PREPARES`. Hibernate, ActiveRecord, and others have similar knobs. This works, but it costs you the parsing-and-planning savings that prepared statements were supposed to give you in the first place.
+
+PgBouncer 1.21, released in October 2023, finally added support for protocol-level named prepared statements in transaction pooling mode. The trick is clever. PgBouncer intercepts the prepare command from the client, gives the statement an internal name like `PGBOUNCER_1234`, and tracks the mapping. When the same client (or any other client) later asks to `EXECUTE` that statement on whatever backend they happen to land on, PgBouncer checks whether the backend already has the statement under the internal name. If it does, the statement runs. If it doesn't, PgBouncer prepares it on the fly, transparently, before forwarding the execute. The internal LRU cache of prepared statements per backend is bounded by the `max_prepared_statements` setting.
+
+<figure>
+<svg viewBox="0 0 700 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing how PgBouncer rewrites prepared statement names to internal identifiers shared across backends" width="100%" height="auto">
+  <rect fill="#f4ede0" x="0" y="0" width="700" height="360" rx="6"/>
+
+  <text font-family="serif" font-size="13" fill="#1a1815" x="80" y="30" text-anchor="middle" font-weight="600">client driver</text>
+  <rect x="20" y="50" width="160" height="34" rx="3" fill="#fff" stroke="#4a6f88" stroke-width="1.2"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="100" y="72" text-anchor="middle">Parse "my_q": SELECT…</text>
+  <rect x="20" y="100" width="160" height="34" rx="3" fill="#fff" stroke="#4a6f88" stroke-width="1.2"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="100" y="122" text-anchor="middle">Execute "my_q" (args)</text>
+
+  <rect x="220" y="40" width="260" height="160" rx="5" fill="#fff" stroke="#1a1815" stroke-width="1.4"/>
+  <text font-family="serif" font-size="13" fill="#1a1815" x="350" y="62" text-anchor="middle" font-weight="600">PgBouncer</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="84" text-anchor="middle">global query cache</text>
+  <rect x="240" y="96" width="220" height="32" rx="3" fill="#f1ebdc" stroke="#b07a4a" stroke-width="1"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="350" y="116" text-anchor="middle">my_q  →  PGBOUNCER_42</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="148" text-anchor="middle">prepares PGBOUNCER_42 on</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="164" text-anchor="middle">whichever backend the client</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="180" text-anchor="middle">lands on, transparently</text>
+
+  <g stroke="#4a4742" fill="none" stroke-width="1">
+    <path d="M 180 67 L 220 90"/>
+    <path d="M 180 117 L 220 130"/>
+  </g>
+
+  <rect x="540" y="65" width="140" height="50" rx="3" fill="#fff" stroke="#6a7d63" stroke-width="1.2"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="610" y="82" text-anchor="middle">backend 1</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="610" y="98" text-anchor="middle">PGBOUNCER_42 ✓</text>
+
+  <rect x="540" y="135" width="140" height="50" rx="3" fill="#fff" stroke="#6a7d63" stroke-width="1.2"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="610" y="152" text-anchor="middle">backend 2</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="610" y="168" text-anchor="middle">PGBOUNCER_42 ✓</text>
+
+  <rect x="540" y="205" width="140" height="50" rx="3" fill="#fff" stroke="#6a7d63" stroke-width="1.2"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="610" y="222" text-anchor="middle">backend 3</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="610" y="238" text-anchor="middle">PGBOUNCER_42 ✓</text>
+
+  <g stroke="#6a7d63" fill="none" stroke-width="1">
+    <path d="M 480 110 L 540 90"/>
+    <path d="M 480 130 L 540 160"/>
+    <path d="M 480 150 L 540 230"/>
+  </g>
+
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="290" text-anchor="middle">Same prepared SQL string is interned once. Each backend gets it</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="306" text-anchor="middle">prepared on first use, cached as PGBOUNCER_42, reused thereafter.</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="322" text-anchor="middle">The client thinks it's still talking about my_q. Everything stays consistent.</text>
+</svg>
+<figcaption><strong>Fig 4.</strong> How PgBouncer 1.21+ handles prepared statements under transaction pooling. The client's name is mapped to a PgBouncer-internal name. The same SQL string used by many clients gets a single internal identity. Each backend lazily prepares the statement on first use and caches it, bounded by <code>max_prepared_statements</code>.</figcaption>
+</figure>
+
+As of PgBouncer 1.24.0 (January 2025), prepared statement support is enabled by default with `max_prepared_statements = 200`. If you're on a fresh deploy from 2025 onward, you have it for free. If you're on an older config, set the value yourself; reasonable values are 100 to 500 depending on how many distinct prepared statements your app actually uses. Higher means more memory per backend, both in PgBouncer's tracking and in Postgres' plan cache. The Tiger Data team recommends matching your `max_prepared_statements` to the count of distinct statements your ORM emits, so the cache fits exactly.
+
+Two caveats remain. First, this only applies to *protocol-level* prepared statements, the ones your driver sends as `Parse`/`Bind`/`Execute` messages. SQL-level `PREPARE foo AS ...` followed by `EXECUTE foo` is still unsupported, because PgBouncer doesn't parse SQL and can't see those statements coming. If your app uses raw `PREPARE`, you have to stop. If your app uses an ORM or any modern driver, it's almost certainly using the protocol level, and you're fine.
+
+Second, and this is irritating: client-side `DEALLOCATE` for individual prepared statements is still not transparently rewritten. `DEALLOCATE ALL` and `DISCARD ALL` are handled (added in PgBouncer 1.22, January 2024) and correctly clear PgBouncer's tracking. But a single `DEALLOCATE my_q` goes straight through to whichever backend the client happens to be on, which may not have the statement under that name, throwing an error. The protocol-level *Close* message for prepared statements has been part of Postgres' wire protocol for years; what's new is libpq 17 (Postgres 17, September 2024) exposing it via `PQclosePrepared`, so drivers can finally deallocate without sending raw SQL. Driver adoption is uneven. The pragmatic fix in older drivers is to disable client-side deallocation and trust PgBouncer's LRU to evict old statements. PHP/PDO needs PHP 8.4+ and libpq 17 to be compatible with PgBouncer's prepared-statement support; for older PHP, set `PDO::ATTR_EMULATE_PREPARES = true`. Most other modern drivers (psycopg3, JDBC, Go's pgx) work but each has their own knob for controlling deallocation behavior. Verify before you ship.
+
+### 11. The other things that break, and what to do about them
+
+Prepared statements got fixed. Most of the other items on the compatibility list didn't, and probably won't, because the underlying issue is fundamental to transaction pooling: any feature that depends on persistent session state across transactions is incompatible with a model where transactions get scattered across different backends. You can't paper over that without losing the multiplexing.
+
+The list of practical things this means:
+
+**SET commands.** `SET search_path = 'tenant_42'` at the start of a request will succeed, but as soon as the request commits and starts a new transaction, the next backend you land on doesn't have that `search_path`. The fix is `SET LOCAL`, which is scoped to the current transaction. If you need session-scoped settings (multi-tenant search paths are the most common case), you have to either set them on every transaction, or set them at the role level with `ALTER ROLE ... SET search_path = ...`, or use parameters PgBouncer specifically tracks across transactions. The default tracked set is small: `client_encoding`, `application_name`, `DateStyle`, `TimeZone`, `standard_conforming_strings`, and (since 1.20) `IntervalStyle`. You can extend this list with `track_extra_parameters`, but only for parameters that Postgres reports back to the client (the GUC must be marked `GUC_REPORT`). For `search_path` specifically, this works on Citus 12+ and on Postgres 18, both of which mark `search_path` as reportable. On older Postgres versions, you cannot track `search_path` through PgBouncer no matter what you set; see the CVE note in the auth section for why this matters.
+
+**statement_timeout, the cursed one.** This is the bug that JP Camara wrote up and it's worth understanding because it bites people who think they understand the rules. If you set `statement_timeout` at the session level (`SET statement_timeout = '5s'`), and you set it on a backend that gets returned to the pool with that value still set, the next client to grab that backend inherits the 5-second timeout. They didn't ask for it. They might be a long-running background job. They will get killed at 5 seconds and never know why. This is solved by `server_reset_query = DISCARD ALL` in session pooling, which resets everything. But in transaction pooling mode, `server_reset_query` is not run by default, because the assumption is "you weren't doing anything session-y in the first place." If you set `statement_timeout` at the session level inside transaction pooling, you are leaking it to other clients. The fix is either to use `SET LOCAL statement_timeout` inside an explicit transaction, or to set the timeout at the role level with `ALTER ROLE web_app SET statement_timeout = '5s'` so it applies on connection establishment and never needs to change.
+
+**LISTEN / NOTIFY.** `LISTEN` registers an interest on a specific backend. In transaction pooling, you'll only receive notifications when you happen to land on that exact backend, which is essentially never. You can keep a separate direct connection (port 5432) for the LISTEN side and use the pooler for everything else, which works but undermines the pooling savings. For real pub/sub, use a real pub/sub system.
+
+**Session-level advisory locks.** Worse than the others. `pg_advisory_lock(123)` takes a lock that lives for the *backend's* session, not the client's transaction. In transaction pooling, your transaction ends at `COMMIT`, but the backend keeps running, holding your lock. Whoever lands on that backend next inherits the lock — meaning they can silently block on it, or release it themselves with an unrelated `pg_advisory_unlock(123)`, or step on each other's locking logic in ways that look impossible from the application side. Use `pg_advisory_xact_lock(123)` if your locking scope fits inside a transaction, or use a real distributed lock if it doesn't.
+
+**Temporary tables that outlive a transaction.** A temp table created with `ON COMMIT DROP` inside a single transaction works fine in transaction pooling. `ON COMMIT PRESERVE ROWS` (the default) creates a session-scoped temp table that won't be there next transaction. Most ORMs don't use temp tables, so this is mainly a problem for analytics tools and ETL.
+
+**pg_dump.** Don't run pg_dump through PgBouncer. It expects session-level state and behaves badly. Use a direct connection for backups, period.
+
+**WITH HOLD cursors and LOAD.** Both session-y. Both broken. Both rare enough that most apps don't notice.
+
+> **The mental model that makes this all easier.** Stop thinking of an app's connection to the database as a long-running thing. Start thinking of it as a request for a transaction. Each transaction is a brief encounter with some backend, and after it ends, you have no relationship to that backend. Anything you want to persist either has to be small (and PgBouncer-tracked, like `application_name`), or has to live somewhere that isn't a backend's memory: the database itself, your app's memory, Redis, whatever. As soon as you internalize this, the gotchas stop being surprises and start being obvious consequences of the pooling rules.
+
+> **Checkpoint: what you know now.**
+>
+> Postgres uses one OS process per connection. Each connection costs a few MB of private memory plus scheduler and snapshot overhead, and the connect-time fork/TLS dance is multiple milliseconds.
+>
+> PgBouncer is a single-threaded libevent-based proxy that multiplexes many client connections onto fewer real Postgres backends. It has three modes: session (one backend per client lifetime, mostly safe), transaction (backend bound only during `BEGIN…COMMIT`, the productive default), and statement (released after each query, too aggressive for normal apps).
+>
+> Transaction mode breaks any feature that depends on session state spanning transactions. The most-bitten items are `SET`, `LISTEN`, session-scoped advisory locks, persistent temp tables, and statement-level `PREPARE`. Protocol-level prepared statements work as of 1.21 (2023), enabled by default since 1.24 (January 2025).
+
+## Act 3 — Running it for real
+
+*Sizing, auth, deployment topology, and the small operational decisions that determine whether you sleep through the night.*
+
+### 12. Sizing the pool
+
+This is the question I get asked most often, and the one that most blog posts answer poorly. The honest answer is: do the math, and the math starts at the database, not the app.
+
+Step one: figure out how many concurrent transactions Postgres can actually handle. There's no formula, but a useful starting point is "two to four times the number of CPU cores." A 16-core database server can probably comfortably run 32 to 64 concurrent active transactions. Past that, you're queueing on CPU or I/O, and adding more concurrent transactions makes everything slower without making throughput higher. This is your ceiling.
+
+Step two: pick a `default_pool_size` below that ceiling, leaving headroom. If your ceiling is 50, set the pool size to 20 to 30. The pool size is per *(database, user)* pair: if you have one app user hitting one database, that's the whole pool. If you have multiple roles or multiple databases, those are separate pools that share the database's overall connection budget.
+
+Step three: pick a `max_client_conn` that's much larger than the pool size. This is the cap on how many clients can connect to PgBouncer at all. Set it to your worst-case scenario: total worker count across all your app servers, plus headroom. 1,000 to 5,000 is normal. The whole reason you have PgBouncer is so that this number can be much larger than your pool size.
+
+Step four: set `max_db_connections` as a safety cap. This is the absolute upper bound on real Postgres connections from this PgBouncer to this database, regardless of pool counts. Set it slightly below your Postgres `max_connections`, leaving room for direct admin sessions and replication.
+
+There's a more analytical formulation that's worth knowing about, even if you don't use it. The pool size you actually need is roughly the peak rate of new transactions multiplied by the average transaction duration. If you're processing 500 transactions per second and each takes 20 ms, that's 500 × 0.02 = 10 active transactions on average. Round up generously, because the average hides spikes. Pool size of 20 is a reasonable starting point. This is Little's Law applied to transactions.
+
+```ini
+# A reasonable starting pgbouncer.ini for a single-tenant web app
+
+[databases]
+appdb = host=db.internal port=5432 dbname=appdb
+
+[pgbouncer]
+listen_addr     = 0.0.0.0
+listen_port     = 6432
+auth_type       = scram-sha-256
+auth_file       = /etc/pgbouncer/userlist.txt
+
+pool_mode             = transaction
+max_client_conn       = 2000
+default_pool_size     = 25
+min_pool_size         = 5
+reserve_pool_size     = 5
+reserve_pool_timeout  = 3
+max_db_connections    = 80
+max_prepared_statements = 200
+
+server_idle_timeout   = 600
+server_lifetime       = 3600
+query_wait_timeout    = 60
+
+ignore_startup_parameters = extra_float_digits,options
+```
+
+Two settings deserve a footnote. `reserve_pool_size` and `reserve_pool_timeout` are PgBouncer's burst valve. If the regular pool is exhausted and clients have been waiting for more than `reserve_pool_timeout` seconds, PgBouncer can open up to `reserve_pool_size` additional backends to absorb the spike. Set this small. It's a release valve, not a primary sizing knob. If your reserve pool is firing constantly, your `default_pool_size` is too small.
+
+And `min_pool_size` tells PgBouncer to keep this many connections warm even when nothing is using them. The classic use case is avoiding cold-start fork latency on the first request after a quiet period. Don't set it too high; idle warmed connections are still real backends consuming real memory.
+
+### 13. Where to put PgBouncer
+
+There are three reasonable places to deploy PgBouncer, and the choice has real consequences.
+
+**On the database host.** One PgBouncer process running on the same machine as Postgres, listening on port 6432. This is the simplest setup and what most managed providers do (Azure Postgres, Crunchy Bridge, PlanetScale, Timescale Cloud). Latency between the pooler and the database is sub-millisecond because they're on a Unix socket or loopback. The downside is that if the database host falls over, the pooler falls over with it. Failover requires the standby to also have PgBouncer running.
+
+**On each app host (sidecar pattern).** One PgBouncer per application server, listening on localhost. Each app's connection goes to its local PgBouncer over a Unix socket. The PgBouncers all then connect across the network to Postgres. Pros: no single point of failure on the pooler tier. Cons: you have N PgBouncers, each maintaining their own pool, so the total connection budget is harder to reason about. If each app host has a pool of 25 and you have 10 hosts, you've got 250 server connections, not 25.
+
+**On a dedicated pooler tier.** A small number (2 to 4) of dedicated PgBouncer hosts behind a load balancer or VIP, fed by all app servers. The setup PgBouncer's docs explicitly support uses Linux's `SO_REUSEPORT` with multiple PgBouncer processes listening on the same port on the same host, which gives you parallelism without breaking the single-threaded model. This is the right pattern when your app servers fluctuate but your pooler tier should stay stable. It's also the most operationally complex.
+
+For most small to medium apps, "on the database host" is the answer and worrying about the others is premature. For larger systems, the sidecar pattern is the most resilient if you can do the math on total connections. The dedicated tier is where the very high-throughput shops end up.
+
+<figure>
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three deployment topologies: pooler on the database host, pooler as a sidecar, and a dedicated pooler tier" width="100%" height="auto">
+  <rect fill="#f4ede0" x="0" y="0" width="700" height="320" rx="6"/>
+  <text font-family="serif" font-size="13" fill="#1a1815" x="120" y="30" text-anchor="middle" font-weight="600">on db host</text>
+  <rect x="60" y="50" width="120" height="50" rx="3" fill="#fff" stroke="#4a6f88" stroke-width="1"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="120" y="80" text-anchor="middle">app servers</text>
+  <rect x="60" y="155" width="120" height="100" rx="3" fill="#fff" stroke="#1a1815" stroke-width="1.4"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="120" y="180" text-anchor="middle">db host</text>
+  <rect x="74" y="190" width="92" height="22" rx="3" fill="#f1ebdc" stroke="#b07a4a"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="120" y="206" text-anchor="middle">PgBouncer</text>
+  <rect x="74" y="220" width="92" height="22" rx="3" fill="#fff" stroke="#6a7d63"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="120" y="236" text-anchor="middle">postgres</text>
+  <line x1="120" y1="100" x2="120" y2="155" stroke="#4a4742" stroke-width="1"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="120" y="285" text-anchor="middle">simplest, single-host risk</text>
+
+  <text font-family="serif" font-size="13" fill="#1a1815" x="350" y="30" text-anchor="middle" font-weight="600">sidecar</text>
+  <g>
+    <rect x="280" y="50" width="60" height="60" rx="3" fill="#fff" stroke="#4a6f88" stroke-width="1"/>
+    <rect x="288" y="80" width="44" height="22" rx="2" fill="#f1ebdc" stroke="#b07a4a" stroke-width="0.8"/>
+    <text font-family="JetBrains Mono" fill="#1a1815" x="310" y="68" text-anchor="middle" font-size="10">app1</text>
+    <text font-family="JetBrains Mono" fill="#1a1815" x="310" y="96" text-anchor="middle" font-size="10">PgB</text>
+
+    <rect x="350" y="50" width="60" height="60" rx="3" fill="#fff" stroke="#4a6f88" stroke-width="1"/>
+    <rect x="358" y="80" width="44" height="22" rx="2" fill="#f1ebdc" stroke="#b07a4a" stroke-width="0.8"/>
+    <text font-family="JetBrains Mono" fill="#1a1815" x="380" y="68" text-anchor="middle" font-size="10">app2</text>
+    <text font-family="JetBrains Mono" fill="#1a1815" x="380" y="96" text-anchor="middle" font-size="10">PgB</text>
+  </g>
+  <rect x="290" y="170" width="120" height="50" rx="3" fill="#fff" stroke="#6a7d63" stroke-width="1"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="350" y="200" text-anchor="middle">postgres</text>
+  <g stroke="#4a4742" fill="none" stroke-width="1">
+    <path d="M 310 110 L 320 170"/>
+    <path d="M 380 110 L 380 170"/>
+  </g>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="285" text-anchor="middle">resilient, harder to reason</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="350" y="300" text-anchor="middle">about total connections</text>
+
+  <text font-family="serif" font-size="13" fill="#1a1815" x="580" y="30" text-anchor="middle" font-weight="600">dedicated tier</text>
+  <g>
+    <rect x="510" y="50" width="60" height="40" rx="3" fill="#fff" stroke="#4a6f88" stroke-width="1"/>
+    <text font-family="JetBrains Mono" fill="#1a1815" x="540" y="76" text-anchor="middle" font-size="10">app1</text>
+    <rect x="580" y="50" width="60" height="40" rx="3" fill="#fff" stroke="#4a6f88" stroke-width="1"/>
+    <text font-family="JetBrains Mono" fill="#1a1815" x="610" y="76" text-anchor="middle" font-size="10">app2</text>
+  </g>
+  <g>
+    <rect x="510" y="125" width="60" height="40" rx="3" fill="#f1ebdc" stroke="#b07a4a" stroke-width="1"/>
+    <text font-family="JetBrains Mono" fill="#1a1815" x="540" y="150" text-anchor="middle" font-size="10">PgB</text>
+    <rect x="580" y="125" width="60" height="40" rx="3" fill="#f1ebdc" stroke="#b07a4a" stroke-width="1"/>
+    <text font-family="JetBrains Mono" fill="#1a1815" x="610" y="150" text-anchor="middle" font-size="10">PgB</text>
+  </g>
+  <rect x="510" y="200" width="130" height="40" rx="3" fill="#fff" stroke="#6a7d63" stroke-width="1"/>
+  <text font-family="JetBrains Mono" font-size="12" fill="#1a1815" x="575" y="225" text-anchor="middle">postgres</text>
+  <g stroke="#4a4742" fill="none" stroke-width="1">
+    <path d="M 540 90 L 540 125"/>
+    <path d="M 610 90 L 610 125"/>
+    <path d="M 540 165 L 575 200"/>
+    <path d="M 610 165 L 575 200"/>
+  </g>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="575" y="285" text-anchor="middle">most operationally</text>
+  <text font-family="JetBrains Mono" font-size="12" fill="#4a4742" x="575" y="300" text-anchor="middle">flexible, most complex</text>
+</svg>
+<figcaption><strong>Fig 5.</strong> Three deployment topologies. The first one is what most managed Postgres providers do for you and is the right starting point. The third is what shops with high enough scale to justify a dedicated pooler tier do, often with <code>SO_REUSEPORT</code>-based parallelism on each pooler host.</figcaption>
+</figure>
+
+### 14. Authentication, and the auth_query trick
+
+By default, PgBouncer keeps its own user list in a file (`userlist.txt`), with one line per user containing the username and a password (plain text, MD5, or SCRAM secret). This is fine for tiny setups. For anything with more than a handful of users, or where users get added dynamically, you do not want to maintain a parallel password file in sync with Postgres' own auth.
+
+The right pattern is `auth_query`. You give PgBouncer a single privileged user (call it `pgbouncer`), and you tell it to look up other users' password hashes by querying Postgres directly. The setup looks like this:
+
+```sql
+-- In Postgres, once per database:
+CREATE ROLE pgbouncer LOGIN PASSWORD '...';
+
+CREATE SCHEMA IF NOT EXISTS pgbouncer;
+REVOKE ALL ON SCHEMA pgbouncer FROM PUBLIC;
+GRANT USAGE ON SCHEMA pgbouncer TO pgbouncer;
+
+CREATE OR REPLACE FUNCTION pgbouncer.get_auth(p_username TEXT)
+RETURNS TABLE(username TEXT, password TEXT)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
+AS $$
+    SELECT rolname::TEXT, rolpassword::TEXT
+    FROM pg_authid
+    WHERE rolname = p_username
+      AND rolcanlogin
+      AND NOT rolsuper
+      AND (rolvaliduntil IS NULL OR rolvaliduntil > CURRENT_TIMESTAMP);
+$$;
+
+REVOKE ALL ON FUNCTION pgbouncer.get_auth(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION pgbouncer.get_auth(TEXT) TO pgbouncer;
+```
+
+```ini
+# In pgbouncer.ini:
+auth_type  = scram-sha-256
+auth_user  = pgbouncer
+auth_query = SELECT username, password FROM pgbouncer.get_auth($1)
+
+# userlist.txt now only needs the pgbouncer user itself:
+"pgbouncer" "SCRAM-SHA-256$4096:..."
+```
+
+Now any user that exists in Postgres can authenticate through PgBouncer without ever appearing in PgBouncer's own files. Adding a user is a single Postgres `CREATE ROLE`; rotating a password is a single `ALTER ROLE`.
+
+Two things worth flagging, both of which have shown up as real CVEs in 2025. First, the `SET search_path = pg_catalog, pg_temp` line in the function definition is not optional. Without it, an attacker can hijack the function's name resolution by getting the right object to live earlier in the search path. CVE-2025-12819 in PgBouncer 1.25.1 (December 2025) was a real-world example. When `track_extra_parameters` includes `search_path` and `auth_user` is configured, a malicious `search_path` in the client's StartupMessage propagates into the auth-time `auth_query`. PgBouncer's shipped default query contained an unqualified operator (`<`), which the attacker's schema could redefine, executing arbitrary SQL during authentication. The hardened example above pins the search path inside the function and fully qualifies catalog references, which neutralizes the attack. Always schema-qualify your catalog references in `SECURITY DEFINER` functions, and always pin the search path.
+
+Second, notice the `(rolvaliduntil IS NULL OR rolvaliduntil > CURRENT_TIMESTAMP)` clause. This is also not optional. CVE-2025-2291 in PgBouncer 1.24.1 (April 2025) was the embarrassing case where the *shipped default* `auth_query` didn't check `VALID UNTIL`, so an expired password would still authenticate through the pooler even though it wouldn't authenticate against Postgres directly. The default was fixed; if you wrote a custom `auth_query` before April 2025, double-check that you're filtering on `rolvaliduntil`. The example above does. Many older blog post examples don't.
+
+Third, end-to-end SCRAM authentication is delicate. PgBouncer can pass SCRAM through to Postgres, but only when the SCRAM secrets in PgBouncer's userlist exactly match Postgres' (same salt, same iterations, not just the same password). Otherwise PgBouncer has to re-authenticate to Postgres on a separate channel, which introduces its own subtleties around credentials. For most setups, `auth_query` with a single privileged `pgbouncer` role is simpler and safer than trying to mirror SCRAM secrets exactly.
+
+### 15. Watching it run
+
+PgBouncer has a special database called `pgbouncer` that you can connect to (with an admin user) and run a small set of `SHOW` commands. They're how you understand what's actually happening.
+
+The two most useful are `SHOW POOLS` and `SHOW STATS`. `SHOW POOLS` tells you, for each (database, user) pool, how many client connections are active or waiting, how many server connections are in each state (active, idle, used, tested), and what the pool's mode is. `SHOW STATS` gives you per-database counters: total transactions, total queries, total bytes, and the average wait time for clients to be assigned a server connection. That last number is the one that tells you whether your sizing is right.
+
+Here's what I look at first when something is wrong:
+
+- `cl_waiting` in `SHOW POOLS`: how many clients are queued, waiting for a backend. If this is consistently nonzero, your pool is too small or your transactions are too slow.
+- `avg_wait_time` in `SHOW STATS`: average microseconds clients spent waiting for a server connection. Should be near zero. Tens of milliseconds means contention.
+- `sv_active` vs `sv_idle`: server connections currently doing work versus sitting in the pool. If `sv_active` is at the pool size and `cl_waiting` is climbing, you have your answer.
+- `avg_xact_time` and `avg_query_time`: how long the average transaction and query take. If transactions are way longer than queries, somebody is leaving transactions open.
+
+You can scrape these into Prometheus with one of several PgBouncer exporters. The metric you most want a dashboard on is `cl_waiting` over time. The metric you most want an alert on is sustained `cl_waiting > 0` for more than a minute or two, which means your pool sizing is wrong or your queries are slow.
+
+### 16. Operational levers added in the last two years
+
+A few features added since 2024 are worth knowing about because they fill specific operational gaps that used to require ugly workarounds.
+
+**`transaction_timeout` (1.25.0).** Caps the duration of any transaction at the pooler level. Without this, a client that opens a transaction and forgets to commit holds a backend forever, and your only recourse is killing the backend manually or waiting for `idle_in_transaction_session_timeout` on the Postgres side. Set this to something reasonable (60 seconds is conservative for OLTP, longer for batch jobs that need their own pool) and runaway transactions clear themselves.
+
+**`KILL_CLIENT` (1.24.0).** Lets you kill a specific client connection from the admin console without bouncing the whole pool. Combined with the unique IDs in `SHOW CLIENTS` output, you can surgically remove the one bad actor instead of the nuclear `KILL pool`. The combination of `SHOW CLIENTS` to find the offender and `KILL_CLIENT` to evict them is the modern equivalent of `pg_terminate_backend()` at the pooler tier.
+
+**`max_user_client_connections` and `max_db_client_connections` (1.24.0).** These cap how many clients can connect to PgBouncer for a given user or database, separately from the cap on backend connections. The intuition: if a misbehaving service tries to open ten thousand connections to your pooler, the pooler accepts all of them and starves everyone else. These limits give you per-tenant fairness without splitting into separate PgBouncer instances.
+
+**`query_wait_notify` (1.25.0).** When a client has been queued for a server connection for more than 5 seconds, PgBouncer sends a NOTICE message ("queued for X seconds"). This is great when debugging "why is my query slow" reports, because the latency might be entirely waiting on the pool, not the database. The default threshold is configurable.
+
+None of these are exotic. They're the kind of features that an SRE spending time with PgBouncer eventually wants. If you're running an older 1.21 or 1.22 from a Linux distro package, an upgrade buys you these.
+
+### 17. A real story: the Mattermost case
+
+The Mattermost team published a postmortem in 2022 that's worth reading because it shows how pool-size choices interact with multi-database/multi-tenant deployments in non-obvious ways.
+
+Mattermost runs thousands of customer workspaces, each with its own logical database in a shared Postgres cluster. They put PgBouncer in front. Their initial config looked reasonable: `pool_mode = transaction`, `min_pool_size = 20`, `default_pool_size = 20`, `reserve_pool_size = 5`, `max_client_conn = 10000`, `max_db_connections = 20`.
+
+Spot the problem? Each workspace gets its own pool of size 20. `max_db_connections = 20` is the cap on real Postgres connections from *all* workspaces combined. With 10 to 15 workspaces per database, every workspace was effectively competing for those 20 backend slots, and any time more than one workspace had a burst of activity, they were starving each other. The visible symptom was high CPU on the RDS cluster from connection churn: PgBouncer was constantly opening and closing real connections trying to satisfy workspaces that were each demanding more than the global cap allowed.
+
+The fix wasn't to raise the per-pool size proportionally. They dropped `min_pool_size` from 20 to 1 and `default_pool_size` from 20 to 5, so PgBouncer wasn't aggressively keeping warm connections that other pools needed. They raised `reserve_pool_size` to 20 and shortened `reserve_pool_timeout` from 5 seconds to 1, so bursty workspaces could grab reserve connections quickly. And critically, they raised `max_db_connections` from 20 to 100, so the global cap stopped being the bottleneck. The lesson is that in multi-tenant setups, pool sizes are not independent. They share a global cap, and configurations that look fine in isolation can deadlock or thrash when multiplied across tenants.
+
+There was a secondary lesson too. They discovered that some of their migrations used `pg_advisory_lock` at the session level, which doesn't work in transaction pooling. They had to either route migrations to a direct connection or rewrite them to use transaction-scoped locks. This is the kind of thing that doesn't show up in load testing and only surfaces when you actually run the migration against the pooled connection, so it's worth auditing your migration tooling explicitly when you adopt PgBouncer.
+
+### 18. When PgBouncer is the wrong tool
+
+It's worth saying out loud: PgBouncer doesn't fix every problem.
+
+If your app is genuinely doing heavy work on every connection, transaction pooling won't help much. Multiplexing only saves you if the connections are mostly idle. A worker process that's running queries 100% of the time will hold a backend the whole time, and PgBouncer adds latency without giving you ratio gains.
+
+If you need session-level features that don't have transaction-level analogs, transaction pooling will fight you. `LISTEN/NOTIFY`-heavy designs, long-running cursors, session-locked migrations: stay on session pooling, or use direct connections for those code paths and pool the rest.
+
+If you need read/write splitting, query routing, automatic failover, or replication management, PgBouncer doesn't do those. Pgpool-II does, at the cost of being much more complex (multi-process, parses SQL, has its own opinions about your queries). Recent Rust-based alternatives like PgCat are multi-threaded and add some routing features. Cloud-managed proxies like AWS RDS Proxy or Azure's built-in PgBouncer take the operational burden off you. Each of these is a real tradeoff. PgBouncer's appeal is that it does one thing and does it cleanly. The minute you want it to do more, you're better off picking a tool that's meant for the more.
+
+And if the real problem is that your queries are slow, PgBouncer can't help you. A 2-second query holding a backend for 2 seconds is a backend that no other client can use, regardless of how many clients are waiting in PgBouncer's queue. Connection pooling is a multiplier on the time backends spend not running queries. If they're always running queries, the multiplier is 1.
+
+### 19. Three ideas worth stealing
+
+If you only take three things away from all this, I'd pick these.
+
+**Pool what's expensive, not what's logical.** Postgres connections are expensive because they map 1:1 onto OS processes. App-side connections are cheap because they're just file descriptors. Resist the instinct to make your app's connection count match your real backend count. They aren't the same kind of thing. The same logic shows up everywhere: HTTP keepalive, TCP connection reuse, request-scoped sessions in web frameworks. Whenever you have a cheap thing the application thinks of as "the same as" an expensive thing, there's a multiplexer in your future.
+
+**Lying transparently is a strategy, until it isn't.** Transaction pooling works because it lies about what a session is, and the lie holds for most apps because most apps don't actually use sessions for anything. The interesting question isn't "should I pool" but "which session features does my app accidentally rely on, and can I take them out?" If you can, pool aggressively. If you can't, the lying breaks down and you should know which lies you're tolerating. The real engineering work is the audit, not the config.
+
+**The expensive case is the one you'll meet in production.** All the gotchas in this piece (statement_timeout leakage, search_path drift, advisory lock evaporation) only matter in the rare case. In the common case, transaction pooling is clean and obvious and your app works. The reason this stuff is worth knowing is because the rare cases are the ones that cause incidents, and incidents are the only times you'll be debugging connection pooling at all. The cost of learning this in a calm Tuesday afternoon is a lot lower than the cost of learning it during an outage.
+
+## Epilogue
+
+The history of databases is full of these layers that don't quite fit. Postgres is great at being a transactional database. It is not great at handling a thousand short-lived connections, because that workload didn't exist when its connection model was designed. Putting PgBouncer in front of it is a fix for an impedance mismatch between two eras of computing: the one where a database was something a few analysts logged into directly, and the one where it's something serving billions of HTTP requests through dozens of stateless web workers.
+
+What's interesting is that the fix is not a Postgres feature. It's a separate program, written by different people, that intercepts the wire protocol and shuffles bytes. It works because Postgres' protocol is open and stable, and because the place where the impedance mismatch lives (the cost of a backend process) is upstream of anything the app cares about. PgBouncer sits at the seam.
+
+You can read the development of features like protocol-level prepared statements in 1.21 as a slow tightening of that seam. The original PgBouncer was content to break a lot of session features outright, on the assumption that the multiplexing was worth it. Successive versions have figured out, one by one, how to support more session-flavored things without giving up the multiplexing. The pattern repeats: find a feature that breaks, look for a way to track its state across pooled backends, ship the fix. Prepared statements were the big one. `track_extra_parameters` handles GUC propagation. LDAP support landed in 1.25 (November 2025). The seam stays a seam, but it gets less visible every release.
+
+There's no big lesson at the end of this. PgBouncer is a small program that does a small thing well. Most of the value of writing about it is just demystifying it, so that the next time someone runs into one of its sharp edges, they know it's a sharp edge and not magic. Postgres' architecture is what it is. The pooler is a workaround. The workaround is solid, but it's a workaround, and knowing that is most of what you need to use it well.
+
+> *The connection isn't the thing. The transaction is the thing. Everything else is bookkeeping.*
+
+### References and further reading
+
+- PgBouncer 1.25.1 release and full changelog. [pgbouncer.org/changelog](https://www.pgbouncer.org/changelog.html).
+- PgBouncer features and pooling-mode compatibility table. [pgbouncer.org/features](https://www.pgbouncer.org/features.html).
+- PgBouncer configuration reference, including `auth_query`, `max_prepared_statements`, and the full pgbouncer.ini schema. [pgbouncer.org/config](https://www.pgbouncer.org/config.html).
+- Greg Sabino Mullane, "Prepared Statements in Transaction Mode for PgBouncer," Crunchy Data, 2023. The canonical writeup of how 1.21's prepared-statement support actually works.
+- JP Camara, "PgBouncer is useful, important, and fraught with peril," 2023. The best long-form writeup I've read on transaction-mode gotchas, with worked examples for statement_timeout leakage, advisory locks, and PHP/PDO quirks.
+- Andres Freund, "Measuring the Memory Overhead of a Postgres Connection," 2020. The careful per-connection memory measurement that "10 MB" comes from, with caveats.
+- Crunchy Data, "How to SCRAM in Postgres with pgBouncer." Walks through the SCRAM protocol mechanics that let PgBouncer authenticate to Postgres without ever seeing the plaintext password.
+- Mattermost engineering, "Optimizing Database Connection Loads With PgBouncer and Testwick," 2022. The multi-tenant pool-sizing case study used in this piece.
+- Cybertec, "PgBouncer Authentication Made Easy" (Laurenz Albe). Practical SCRAM and `auth_query` setup with a working SECURITY DEFINER pattern.
+- Heroku, "Best Practices for PgBouncer Configuration." Production-flavored sizing guidance and discussion of preboot interaction.
+- Microsoft Azure docs, "PgBouncer in Azure Database for PostgreSQL." Documents the managed-deployment pattern that ships PgBouncer 1.25.1 on the same VM as the database.
