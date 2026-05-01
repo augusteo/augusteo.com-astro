@@ -1,6 +1,8 @@
 # Playwright visual checks
 
-Per-figure-type failure modes to look for during Phase 7 of the `narrative-explainer` pipeline. The visual review is the only thing that proves a figure renders cleanly; SVG that looks right in your head can still ship overlapping labels, illegible contrast, or a clipped viewBox.
+Per-figure-type failure modes to look for during the playwright visual review phase of the `explainer-authoring` pipeline. The visual review is the only thing that proves a figure renders cleanly: an SVG that looks right in your head can still ship overlapping labels, illegible contrast, or a clipped viewBox; an interactive Canvas figure that compiles can still drop frames, ignore reduced-motion, or fail to hydrate.
+
+This file covers both static SVG figures and interactive Canvas/Plot figures. Setup, the per-figure loop, and universal checks apply to both. Type-specific checks branch into a static-SVG section and an interactive-figure section.
 
 ## Setup
 
@@ -36,7 +38,7 @@ Before running type-specific checks, verify these on every figure:
 - **Caption matches figure.** The figcaption's claim is something the figure actually shows. If the caption says "the curve peaks early," the curve in the figure should visibly peak early.
 - **Palette compliance.** All fills and strokes are from the palette in `illustration-style.md`. No off-brand colors.
 
-## Type-specific checks
+## Type-specific checks: static SVG figures
 
 ### Image-stand-in tile (Fig 1 pattern)
 
@@ -117,6 +119,57 @@ Check:
 - Panels are visibly the same size and use the same coordinate scale.
 - The "after" panel's change is unmistakable. If the difference is subtle, the figure is failing its job.
 - Captions / labels under each panel say "before" / "after" or the equivalent (the specific terms matter; use the post's vocabulary).
+
+## Type-specific checks: interactive figures
+
+Interactive figures (Canvas2D, Plot, anything with sliders, scrubbers, toggles, drag overlays) need behavioral checks on top of the visual ones above. The dev server has hot reload, so iterate in place.
+
+### Hydration
+
+Check:
+
+- No console errors after the figure scrolls into view. Hydrated islands log nothing in a clean run; a `Cannot read properties of undefined` or `[svelte] hydration_mismatch` is a structural failure.
+- The wrapper component renders before its first interaction. Take a screenshot before touching any control; the canvas should already show the initial draw, not a blank rectangle.
+- The kit primitive imports resolve. If a `Slider` or `Canvas2D` is missing, the figure renders as an empty `<div>` with no controls — visible in the snapshot as a blank gap.
+
+### Slider / scrubber / toggle responsiveness
+
+Check:
+
+- Move the slider via `mcp__plugin_playwright_playwright__browser_fill_form` (or `browser_evaluate` on the input element) and snapshot at multiple values. The canvas redraw should be visible at each step; a frozen canvas means the wrapper isn't passing state into `data` correctly, or the draw function is reading stale closure values.
+- Scrubber play/pause toggles state. Click play, wait one second, snapshot — the canvas should advance. Click pause, snapshot again — it should hold.
+- Toggle button groups change the visible state of the figure. The active variant should be styled differently and the canvas content should reflect the choice.
+- No layout shift when interacting. The figure's bounding box stays the same width/height across slider values; if the SVG/canvas reflows, the controls strip jumps.
+
+### Reduced motion
+
+Check:
+
+- With `prefers-reduced-motion: reduce` set (use `mcp__plugin_playwright_playwright__browser_evaluate` to set the media query, or run a separate Playwright context with the reduced-motion option), auto-loop scrubbers do not auto-play. Manual scrubbing still works.
+- Auto-rotating Canvas animations (camera orbits, particle drifts) freeze on the first frame. The user can still scrub forward manually.
+
+### Touch / drag
+
+Check (only for figures with `DragArea`):
+
+- The drag overlay accepts pointer events. Drag from the center to a corner via `browser_evaluate` dispatching `pointerdown` / `pointermove` / `pointerup`, snapshot mid-drag — the figure should update.
+- Touch events do not scroll the page during a drag. If the page scrolls behind the figure, `touch-action: none` is missing on the drag layer.
+
+### Frame budget (sanity check, not blocking)
+
+Not every figure needs profiling, but for canvas figures with 60fps loops, a quick check via `browser_evaluate`:
+
+```js
+const t0 = performance.now();
+for (let i = 0; i < 60; i++) {
+  // trigger one draw
+  document.querySelector('input[type="range"]').valueAsNumber += 0.01;
+  document.querySelector('input[type="range"]').dispatchEvent(new Event('input'));
+}
+performance.now() - t0;
+```
+
+If the loop takes > ~1000ms, the draw function is doing too much per frame. Investigate before shipping.
 
 ## Common failure patterns and fixes
 

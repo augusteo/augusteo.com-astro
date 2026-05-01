@@ -1,6 +1,8 @@
 # Illustration style
 
-Inline-SVG conventions for `narrative-explainer`. Mirror `src/content/blog/unified-vision-stack/index.mdx` figure-for-figure. No new design language.
+Inline-SVG conventions for static figures in the `explainer-authoring` pipeline. Mirror `src/content/blog/unified-vision-stack/index.mdx` figure-for-figure. No new design language.
+
+For interactive Canvas/Plot figures, the canonical palette is the TS `palette` object exported from `@figures/shared` and documented in `figure-kit.md`. The hex values below mirror that object so static and interactive figures within the same post stay visually consistent. If the kit's palette ever changes, update this file too — the two sources must agree.
 
 ## Palette tokens
 

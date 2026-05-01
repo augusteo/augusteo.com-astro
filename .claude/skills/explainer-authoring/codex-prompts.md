@@ -1,6 +1,8 @@
 # Codex prompts
 
-Exact prompts for the two `/codex` adversarial gates in the `narrative-explainer` pipeline. Use the `codex` skill in challenge mode (the skill's "challenge" mode is documented as "200 IQ adversarial developer that tries to break your code").
+Exact prompts for the two `/codex` adversarial gates in the `explainer-authoring` pipeline. Use the `codex` skill in challenge mode (the skill's "challenge" mode is documented as "200 IQ adversarial developer that tries to break your code").
+
+Both gates apply regardless of figure type — a post with all-static SVG figures and a post with interactive Canvas/Plot figures get the same hostile-research pass. The five attack categories per gate target prose, claims, and sources, not implementation.
 
 Both prompts share the same operating principle: **codex is doing a hostile, truth-seeking pass.** It is not here to validate. It is here to find what is wrong. Treat its findings as adversarial signal: if codex says "this claim is unsupported," default to assuming codex is right and re-check the source.
 
@@ -8,7 +10,7 @@ Stop iterating when codex's last critique is **cosmetic, not structural**. Cosme
 
 ## Gate 1: outline + research
 
-**When to run:** end of Phase 4, after the outline and figure list are drafted and the research notes are merged. Before any prose is written.
+**When to run:** after the outline and figure list are locked and the research notes are merged. Before any prose is written. (In the eight-phase pipeline, this is the boundary between Phase 3 and Phase 5.)
 
 **What you provide to codex:**
 
@@ -18,7 +20,7 @@ Stop iterating when codex's last critique is **cosmetic, not structural**. Cosme
 **The prompt:**
 
 ```
-You are reviewing the outline and research notes for a long-form narrative blog post on
+You are reviewing the outline and research notes for a long-form blog post on
 augusteo.com. The post is meant to be deeply researched and truth-seeking. Your job is to
 attack the outline before any prose is written.
 
@@ -61,7 +63,7 @@ issues found" and stop. Otherwise, keep finding things.
 
 ## Gate 2: final draft
 
-**When to run:** end of Phase 8, after all sections are drafted, all figures are implemented, and playwright review has signed off on each figure. Before final commit.
+**When to run:** after all sections are drafted, all figures are implemented (static or interactive), and playwright review has signed off on each figure. Before final commit. (In the eight-phase pipeline, this is Phase 8.)
 
 **What you provide to codex:**
 

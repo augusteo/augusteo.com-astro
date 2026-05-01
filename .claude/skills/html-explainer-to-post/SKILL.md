@@ -43,14 +43,7 @@ Then read `reference.md` in this directory for worked snippet examples of the tr
 
 ### Phase 2 — Hero image (skippable)
 
-10. **Compose the hero prompt** by filling in the canonical template (below). Output it as a fenced code block so Vic can copy-paste cleanly. Tell Vic he can also say "skip" to leave the post heroless.
-
-    **Treat this step like writing a brief, not filling in a label.** The image model has not read the post and only sees the prompt — every slot below should give it real context. Before writing, re-read the MDX you just produced (intro paragraph, act dividers, callouts, References) and pull from it. A short, generic prompt produces a generic image. Aim for the entire prompt to be ~25–40 lines once filled in.
-11. **Wait** for Vic to either (a) paste a path to a generated image, or (b) say "skip". On skip: report Phase 2 skipped and stop.
-12. **Copy the image** to `src/assets/blog/<slug>/hero.<ext>` where `<ext>` matches the source extension (png, jpg, jpeg, webp). Validate the source path exists before copying. Vic's convention is `hero.<ext>` rather than the auto-generated Gemini filename — see `src/assets/blog/unified-vision-stack/hero.png`.
-13. **View the destination image** with the `Read` tool — Claude Code reads PNG/JPG files visually. Propose a one-sentence `heroAlt` based on what is actually visible in the image.
-14. **Edit the MDX frontmatter:** add `heroImage: "@assets/blog/<slug>/hero.<ext>"` and update `heroAlt` with the proposed text.
-15. **Report** final result: post path, asset path, hero filename, proposed alt, and `http://localhost:4321/blog/<slug>` as the preview URL.
+The hero hand-off (prompt template + post-image flow + frontmatter edit) is shared with `explainer-authoring`. Follow the full flow at **`../../explainer-shared/hero-handoff.md`**. Specifically: compose the prompt with every slot filled in (re-reading the MDX you just produced), wait for Vic to paste a path or say "skip", validate, copy to `src/assets/blog/<slug>/hero.<ext>`, view via `Read`, propose `heroAlt`, edit frontmatter, report.
 
 ## Input validation
 
@@ -62,18 +55,22 @@ Before any conversion:
 
 ## Frontmatter derivation
 
+The full frontmatter schema, file-path conventions, slug rules, and `essay: true` heading hierarchy live in **`../../explainer-shared/mdx-output-spec.md`** (shared with `explainer-authoring`). Read it before writing the MDX.
+
+This skill's specific defaults at write time:
+
 | Field | Source |
 |---|---|
-| `title` | `<h1>` text content. **Strip `<em>` markers entirely** (YAML frontmatter does not render markdown). Example: `<h1>Image generators are <em>quietly</em> becoming the best vision models</h1>` → `"Image generators are quietly becoming the best vision models"`. |
+| `title` | `<h1>` text content. Strip `<em>` markers entirely (YAML frontmatter does not render markdown). Example: `<h1>Image generators are <em>quietly</em> becoming the best vision models</h1>` → `"Image generators are quietly becoming the best vision models"`. |
 | `description` | `<p class="dek">` text, plain. If no dek: first body paragraph, truncated to ~200 chars. |
-| `pubDate` | Today (ISO date, e.g. `2026-04-24`). |
-| `heroAlt` | `""` in Phase 1; replaced in Phase 2 if a hero is supplied. |
-| `heroImage` | Omitted in Phase 1; added in Phase 2 as `"@assets/blog/<slug>/hero.<ext>"` (Vic's convention — matches `src/assets/blog/unified-vision-stack/hero.png`). |
-| `tags` | Infer 1–3 tags. **First grep `src/content/blog/*/index.mdx` for the existing tag vocabulary** and prefer tags Vic has used before (commonly `"AI"`, `"ML"`, `"Tech"`). Only invent a new tag if no existing one fits. If genuinely uncertain, use `["Tech"]`. |
+| `pubDate` | Today (ISO date). |
+| `heroAlt` | `""` in Phase 1 (this skill's initial value per `mdx-output-spec.md`); replaced in Phase 2 if a hero is supplied. |
+| `heroImage` | Omitted in Phase 1; added in Phase 2 by the hero hand-off flow. |
+| `tags` | Infer 1–3 tags per the `mdx-output-spec.md` rules. Default to `["Tech"]` if uncertain. |
 | `featured` | `false`. |
 | `draft` | `false` (Vic publishes these directly; flip to `true` only if he asks). |
-| `essay` | `true` (every long-form explainer of this format gets the 3-tier heading hierarchy). |
-| `slug` | Kebab-case the title, drop articles ("the", "a", "and", "is", "are", "of"), cap at ~6 words. Aim for 3–4 words to match Vic's existing convention (`unified-vision-stack`, `claude-code-plugin-stack`, `claude-code-workflow-planning`). |
+| `essay` | `true`. |
+| `slug` | Kebab-case the title; drop articles; cap at ~6 words. See `mdx-output-spec.md` for the full slug rules. |
 
 ## Conversion table
 
@@ -122,36 +119,6 @@ For every `<svg>` inside a `<figure>`:
 - `SELECT`, `FROM`, `WHERE` → `sql`
 - `$ ` prefix or `cd `, `git `, `ls ` → `bash`
 - Otherwise omit the language fence label
-
-## Hero image prompt template (Phase 2 step 10)
-
-Output this verbatim with every bracketed slot filled in. Use a fenced code block in the chat so Vic can copy cleanly. The image model only sees this prompt — give it enough context to *understand the post*, not just paint a generic scene. Every slot below is required (no slot may be left empty or replaced with "n/a").
-
-```
-You are a "Blog Post Hero Image Generator"
-
-[STYLE DESCRIPTION]: Hero image in the style of watercolor and ink line-and-wash illustration, rendered like a loose, expressive urban sketch or travel-journal entry. The artwork features sketchy black ink pen outlines with visible hatching and scribbles for texture. Translucent, blended watercolor washes in soft, earthy greens, browns, blues, and warm orange-pinks fill the forms, showing wet-on-wet bleed and paper texture. The composition feels organic, atmospheric, and captured in the moment — not crisp or digital.
-
-Write the title of the blog post with hand-lettered, casual sans-serif text, written with the same ink pen, integrated into the upper middle portion of the composition.
-
-Add 'augusteo.com' below the title in smaller size font.
-
-[TITLE]: <post title verbatim from the MDX frontmatter>
-
-[ASPECT RATIO]: 16:9 (landscape)
-
-[POST SUMMARY]: <4–6 sentences describing what this specific post is about. State the central thesis or argument, the key technical concepts it walks the reader through, and what new understanding the reader walks away with. Quote or paraphrase a memorable line from the post if one exists. Avoid generic descriptions that could fit any AI/ML post — be specific to *this* post.>
-
-[KEY THEMES]: <3–6 short bullet points naming the conceptual threads, technical ideas, analogies, or recurring motifs the post leans on. Pull these from the actual section headings, callouts, and key terms (look for things wrapped in `*…*` from `<span class="keyterm">`). Examples of good themes: "the lens vs. the painter as two ways of seeing", "self-supervised learning at scale", "dense feature collapse". Examples of bad themes: "AI", "machine learning", "technology".>
-
-[TONE & MOOD]: <2–3 sentences capturing the emotional register and intellectual posture of the piece. Is it wry curiosity? Hard-won technical clarity? Quiet revelation? Skeptical investigation? Awe at scale? Mention pacing too — is the post a slow build, a punchy argument, a meditation? This tells the model what *feeling* the image should evoke.>
-
-[SCENE DESCRIPTION]: <4–6 sentences describing a metaphorical / symbolic scene that captures the post's central idea. Lean abstract for technical posts (ML / AI / engineering — picture the *concept* as a sketch, not a literal screenshot, UI, or org chart). Describe the spatial composition: foreground, middle ground, background. Describe what the viewer's eye lands on first. Describe lighting, mood, and any movement implied. Do NOT request specific real people, brand logos, or copyrighted imagery.>
-
-[VISUAL ANCHORS]: <3–5 concrete objects that should appear in the image, each tied to a specific concept from the post. Format as `object — what it represents`. Examples: "a magnifying glass over an unfinished sketch — the patch-level view", "two overlapping lenses — the dual-pathway architecture", "a half-developed Polaroid — features mid-formation". The image model will use these as compositional anchors, so make them paintable (physical objects, not abstract nouns).>
-
-[WHAT TO AVOID]: <1–2 sentences naming visual clichés that would weaken this specific image — e.g., "no glowing brains, no neural-net node-and-edge diagrams, no robots, no 'futuristic' chrome surfaces." Tailor this list to the post: a post about model training should avoid different clichés than a post about developer tooling.>
-```
 
 ## Edge cases
 
