@@ -11,7 +11,7 @@ The schema is defined in `src/content.config.ts` and rendered by `src/pages/blog
 | `title` | `z.string()` | The post title. **Strip Markdown emphasis markers entirely** (YAML frontmatter does not render). Example: `<h1>Image generators are <em>quietly</em> becoming the best vision models</h1>` → `"Image generators are quietly becoming the best vision models"`. |
 | `description` | `z.string()` | One-sentence summary, ~100-200 chars. Plain text. Used in post-card listings and the `<meta name="description">` tag. |
 | `pubDate` | `z.coerce.date()` | Today (ISO date, e.g. `2026-05-01`) at write time. |
-| `heroAlt` | `z.string()` (required) | A non-empty string is required by the schema. The two skills use different placeholder values; see "Initial heroAlt values" below. |
+| `heroAlt` | `z.string()` (required key, may be empty) | The schema is bare `z.string()` — the key must be present, but the empty string `""` is a valid value. The two skills use different initial values; see "Initial heroAlt values" below. |
 | `heroImage` | `image().optional()` | Omitted until a hero image is supplied; then set to `"@assets/blog/<slug>/hero.<ext>"`. The `@assets` alias resolves to `/src/assets` (configured in `astro.config.mjs`). |
 | `tags` | `z.array(z.string())`, at least one | Freeform strings. **First grep `src/content/blog/*/index.mdx` for the existing tag vocabulary** and prefer tags Vic has used before (commonly `"AI"`, `"ML"`, `"Tech"`). Only invent a new tag if no existing one fits. If genuinely uncertain, default to `["Tech"]`. The first tag in the array is used as the primary tag for display and filtering. |
 | `featured` | `z.boolean()` | `false` for new posts. Vic flips to `true` manually for the small set of featured cards on the home page. |
@@ -20,12 +20,12 @@ The schema is defined in `src/content.config.ts` and rendered by `src/pages/blog
 
 ## Initial `heroAlt` values
 
-The schema requires a non-empty string, but the two skills hand off the hero at different points and use different placeholders to satisfy that constraint:
+The schema (`z.string()`) accepts both empty and non-empty strings. The two skills choose different initial values based on when the hero hand-off happens in their pipeline:
 
-- **`html-explainer-to-post`** writes `heroAlt: ""` in Phase 1, then replaces it in Phase 2 if Vic supplies a hero. The empty string is acceptable to Zod's `z.string()` (`.min(1)` is not enforced) and the route renders fine with an empty alt; the post-card listing falls back to the title for accessibility.
-- **`explainer-authoring`** writes `heroAlt: "TODO: hero image not yet selected"` in Phase 5 and replaces it in Phase 8. The non-empty placeholder is preferred here because Phase 7's playwright review runs before the hero is supplied, and the `bun run dev` route renders cleanly only with a non-empty alt.
+- **`html-explainer-to-post`** writes `heroAlt: ""` in Phase 1, then replaces it in Phase 2 if Vic supplies a hero. Empty is fine because the post is generally not loaded in a dev browser between Phase 1 and Phase 2 — Vic either supplies a hero or ships heroless within the same session.
+- **`explainer-authoring`** writes `heroAlt: "TODO: hero image not yet selected"` in Phase 5 and replaces it in Phase 8. The non-empty placeholder is preferred here because Phase 7's playwright review loads the post in a dev browser before the hero is supplied; a non-empty alt makes the rendered page (and snapshot) easier to read at a glance.
 
-Both are valid initial states. Do not "normalize" one to the other — the difference reflects when in each pipeline the hero hand-off happens.
+Both are valid. Do not "normalize" one to the other — the difference reflects pipeline timing, not a schema requirement.
 
 ## File path conventions
 

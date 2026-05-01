@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Voice rules grep for any text file Vic intends to publish.
 # High-recall subset of the banned-word and punctuation list in
-# .claude/explainer-shared/voice-rules.md. The rules doc is canonical;
+# .claude/skills/explainer-authoring/voice-rules.md. The rules doc is canonical;
 # this script catches the easy cases. Some figurative usages
 # ("landscape", "journey", "ecosystem", "unlock", "elevate") are matched
 # only in their most common phrase forms to keep false positives in

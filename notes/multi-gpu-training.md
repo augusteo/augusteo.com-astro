@@ -397,7 +397,7 @@ Phase 5 is closed. Phase 6 needs Vic.
 1. Read this file (`notes/multi-gpu-training.md`) end-to-end. The `## Spec`, `## Research notes`, and `## Outline` sections capture every locked-in choice.
 2. `git log --oneline | head -20` to see commits since `c9cf9c7` (the spec commit).
 3. `grep TODO src/content/blog/multi-gpu-training/index.mdx` to see remaining figure placeholders.
-4. Read `.claude/skills/interactive-explainer/figure-kit.md` and `figure-recipes.md` for figure implementation patterns. **Read the "Phase 5 implementation note" below first** — there is a known mismatch between the recipes and what actually works in Astro.
+4. Read `.claude/skills/explainer-authoring/figure-kit.md` and `figure-recipes.md` for figure implementation patterns. **Read the "Phase 5 implementation note" below first** — there is a known mismatch between the recipes and what actually works in Astro.
 5. Confirm `draft: true` is still set on the post frontmatter before starting dev work.
 6. Pick the next batch from the table above and implement.
 
@@ -405,7 +405,7 @@ Phase 5 is closed. Phase 6 needs Vic.
 
 Every reactive figure is three files: a pure draw fn at `src/figures/multi-gpu-training/<kebab>.ts`, a wrapper at `src/components/figures/multi-gpu-training/<Pascal>.svelte`, and an MDX import that drops `<Wrapper client:visible />` inside `<Figure>`. The wrapper owns reactive `$state`, imports the draw fn and primitives via `@components/...` and `@figures/...` aliases, and renders the controls strip itself. Static SVG figures stay inline `<svg>` in MDX.
 
-Canonical examples in this post: `MemoryBar.svelte` (sliders + toggle), `Fp8LossCurve.svelte` (no controls). Full pattern documented in `.claude/skills/interactive-explainer/figure-kit.md` ("Astro hydration") and `figure-recipes.md`. Both were updated 2026-04-25.
+Canonical examples in this post: `MemoryBar.svelte` (sliders + toggle), `Fp8LossCurve.svelte` (no controls). Full pattern documented in `.claude/skills/explainer-authoring/figure-kit.md` ("Astro hydration") and `figure-recipes.md`. Both were updated 2026-04-25.
 
 ### Hard rules to keep applying
 
