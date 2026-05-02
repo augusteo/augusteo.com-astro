@@ -218,3 +218,31 @@ This is the architectural counterpart of what happens on the vision side. C-RADI
 The choice to use Parakeet's encoder rather than Whisper's encoder is itself worth a moment. Whisper is the more famous open speech model. Both produce log-mel-conditioned feature sequences, and a Whisper encoder could in principle be used the same way. NVIDIA picked Parakeet for the obvious reasons (it's an in-house model, integrated with the rest of the NVIDIA stack) and the technical one: FastConformer's linearly scalable attention is more efficient at long audio than Whisper's stack. The architectural pattern (encoder plus projector into LLM) is what matters. Parakeet versus Whisper is an implementation detail.
 
 The interesting question is what *not* to do, and that's §10.
+
+### 10. The cost of stitched chains
+
+The alternative to using Parakeet's encoder this way is the older "stitched chain" pattern: run Whisper end-to-end (encoder plus decoder), produce a transcript, feed the transcript text to the LLM. This was the dominant approach for any system needing to handle audio before native multimodal LLMs landed, and it still appears in production stacks today.
+
+It has three problems, in increasing order of how subtle they are.
+
+First, repetition loops. Whisper's own paper documents the failure mode in §3.8:
+
+> "Whisper models are trained on 30-second audio chunks and cannot consume longer audio inputs at once... Transcribing long-form audio using Whisper relies on accurate prediction of the timestamp tokens to determine the amount to shift the model's 30-second audio context window by, and inaccurate transcription in one window may negatively impact transcription in the subsequent windows. We have developed a set of heuristics that help avoid failure cases of long-form transcription... we use beam search with 5 beams using the log probability as the score function, to reduce repetition looping which happens more frequently in greedy decoding."
+
+The OpenAI authors are saying, plainly, that long-form Whisper occasionally falls into repetition loops in greedy decoding and needs hand-tuned heuristics to avoid window-to-window error compounding. When the LLM downstream consumes the transcript, those errors land in its context as if they were ground truth. There is no posterior signal to back out from.
+
+Second, lost paralinguistic information. Speech carries content beyond the words: prosody, stress, intonation, speaker identity, disfluency, overlap. A transcript collapses all of it to a string. Tsiamas et al. ran a controlled benchmark of cascade vs end-to-end speech translation systems and found that cascades transmit prosody to a *lesser extent* than end-to-end systems, with the gap depending on what surface form the transcriber chooses:
+
+> "The prosody of a spoken utterance, including features like stress, intonation and rhythm, can significantly affect the underlying semantics, and as a consequence can also affect its textual translation."
+
+A canonical example from their paper: "These are GERMAN teachers" (teachers from Germany) and "These are German TEACHERS" (teachers of German) are different statements that map to the same transcript if the transcriber doesn't capture the stress. The cascade has no way to recover what was lost; the end-to-end architecture can in principle preserve it.
+
+Third, latency hop. Whisper has to finish a chunk before the LLM sees anything from that chunk. For a 30-second audio segment, that's 30 seconds of buffering plus Whisper's own decode time before the agent loop can start reasoning. There is no controlled benchmark for this in the agent-loop literature, so the claim stays qualitative, but the architecture forces it: any cascade with an autoregressive ASR head pays this latency in addition to whatever the downstream model costs.
+
+Qwen2.5-Omni's Talker is the architectural answer in the *other* direction. Instead of generating speech via a text-to-speech head that reads a transcript from the LLM, Talker reads the LLM's hidden states directly:
+
+> "Talker directly receives high-dimensional representations from Thinker and shares all of Thinker's historical context information. ... The high-dimensional representations provided by Thinker implicitly convey [content's tone and attitude before the entire text is fully generated]."
+
+The point is the same as on the input side. Any time speech information has to round-trip through a text bottleneck, you lose what couldn't be written down. Native multimodal models avoid the round-trip by sharing hidden states across the modality boundary.
+
+That covers audio. Video has its own problem, and it's a bigger one.
