@@ -645,7 +645,7 @@ Iteration stops here: codex's findings are addressed. No structural fixes implie
 
 ## Resume here
 
-Last touched: 2026-05-01.
+Last touched: 2026-05-02.
 
 ### Phase status
 
@@ -656,7 +656,7 @@ Last touched: 2026-05-01.
 | 3. Outline + figure list | done | this file's `## Outline` (incl. per-figure type) |
 | 4. Codex gate 1 | done | this file's `## Codex outline review` |
 | 5. Draft prose | done | `src/content/blog/omni-modal-stack/index.mdx` (18 sections, References) |
-| 6. Implement figures | 3 of 14 done | per-figure table below |
+| 6. Implement figures | 7 of 14 done | per-figure table below |
 | 7. Playwright visual review | pending | playwright snapshots reviewed |
 | 8. Codex gate 2 + ship | pending | hero image, dev verification, ship |
 
@@ -667,12 +667,12 @@ Last touched: 2026-05-01.
 | 1 | UnifiedEyeRecap (C-RADIOv4 with three teachers) | static-svg | done | 1be30a6 |
 | 2 | ContrastiveVsAutoregressive | static-svg | done | fd710b5 |
 | 3 | DecoderZooFlamingoBlipLlava | static-svg | done | 584fc0a |
-| 4 | AdapterVsUnifiedDecoder | static-svg | TODO | — |
-| 5 | LogMelSpectrogramTile | static-svg | TODO | — |
-| 6 | ParakeetPipeline | static-svg | TODO | — |
+| 4 | AdapterVsUnifiedDecoder | static-svg | done | 928bd76 |
+| 5 | LogMelSpectrogramTile | static-svg | done | 0583ff2 |
+| 6 | ParakeetPipeline | static-svg | done | fafc8cb |
 | 7 | VideoTokenExplosion | interactive-canvas | TODO | — |
 | 8 | EvsPatchPruning | interactive-canvas | TODO | — |
-| 9 | Conv3dEvsPipeline | static-svg | TODO | — |
+| 9 | Conv3dEvsPipeline | static-svg | done | 3dd51d4 |
 | 10 | HybridBackboneLayers | static-svg | TODO | — |
 | 11 | MambaVsTransformerScaling | static-svg | TODO | — |
 | 12 | MoeTopKRouting | static-svg | TODO | — |
@@ -681,13 +681,16 @@ Last touched: 2026-05-01.
 
 ### Suggested next batch
 
-Phase 6 figure batch 2 (next 3-4 static figures): Fig 4 (information-flow boundary, two-panel comparison), Fig 5 (log-mel spectrogram tile + waveform), Fig 6 (Parakeet pipeline), Fig 9 (Conv3D + EVS pipeline). All static-svg. Each one matches the prequel's palette and figcaption shape. Test each in `bun run dev` at http://localhost:4321/blog/omni-modal-stack before committing.
+Phase 6 figure batch 3 (the Act 4 statics, all static-svg): Fig 10 (hybrid backbone layers, vertical 52-layer stack colored by Mamba-2 / GQA / MoE), Fig 11 (Mamba vs Transformer compute scaling, two-curve plot in the prequel Fig 2 style with reference points at 16K/49K/262K), Fig 12 (MoE top-k routing on a token, 128-expert columns with router scores and top-6 highlighted), Fig 13 (NVFP4 layout, one row of 16 weights as 4-bit E2M1 with FP8 micro-scale annotation and FP32 global scale, plus 61.5/32.8/20.9 GB memory accounting), Fig 14 (UnifiedLoopReassembly evidence ledger as a four-row table). Aim for two per session.
 
-After that, Phase 6 figure batch 3 (the Act 4 statics): Fig 10 (hybrid backbone layers), Fig 11 (Mamba vs Transformer scaling, two-curve plot in the prequel Fig 2 style), Fig 12 (MoE top-k routing on a token), Fig 13 (NVFP4 layout), Fig 14 (evidence ledger).
-
-Then Phase 6 figure batch 4 (the two interactive figures): Fig 7 (`VideoTokenExplosion`, sliders for duration/FPS/patches-per-frame, three overlaid token-count curves), Fig 8 (`EvsPatchPruning`, q slider over a frame pair). These need both `src/figures/omni-modal-stack/<name>.ts` (Canvas2D draw fn) and `src/components/figures/omni-modal-stack/<Name>.svelte` (wrapper with `$state` and kit primitives). Read `figure-kit.md` and `figure-recipes.md` before starting.
+After that, Phase 6 figure batch 4 (the two interactive figures): Fig 7 (`VideoTokenExplosion`, sliders for duration/FPS/patches-per-frame, three overlaid token-count curves vs a 262K context bar), Fig 8 (`EvsPatchPruning`, q slider over a frame pair, patches grey out as q rises with live "kept N of M" counter). These need both `src/figures/omni-modal-stack/<name>.ts` (Canvas2D draw fn) and `src/components/figures/omni-modal-stack/<Name>.svelte` (wrapper with `$state` and kit primitives). Read `figure-kit.md` and `figure-recipes.md` before starting.
 
 After all 14 figures land, Phase 7 (playwright per-figure review) → Phase 8 (codex gate 2 + hero hand-off + ship).
+
+### Notes from batch 2
+
+- §9 (Parakeet) had no Fig 6 placeholder during phase 5 drafting; the figure was inserted between the closing 2-layer-MLP quote and the "this is the architectural counterpart" hand-off. If any further figures are missing placeholders, place them at the natural visual beat rather than back-shoehorning a `{/* TODO */}` comment.
+- A pre-existing MDX parse failure (commit 2d9fa5f) was blocking the build before any figure work could be visually verified: the §12 EVS quote contained `0<t≤T` that MDX2 was parsing as JSX. Fix was wrapping each math expression in inline-code backticks.
 
 ### How to resume from a fresh context
 
