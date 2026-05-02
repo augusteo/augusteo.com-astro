@@ -706,13 +706,13 @@ That's the algorithm. *q* is user-tunable: q=0 keeps everything; q=0.75 keeps th
   <EvsPatchPruning client:visible />
 </Figure>
 
-Drag the *q* slider. Notice what survives. The patches that get kept are the parts of the scene that are actually changing: the moving objects, the camera-relative motion, the cut transitions. The patches that get dropped are the static background already represented in earlier frames. The intuition is that most of what you drop is redundancy. The cost is real but small; the EVS authors report "up to 4×" speedups with "minimal accuracy loss," and on Video-MME at *q*=0.75 with uptraining the score drops by about 1.2 points (their reported numbers; see §12 below). Pruning is not lossless, just cheap relative to the compute it saves.
+Drag the *q* slider. Notice what survives. The patches that get kept are the parts of the scene that are actually changing: the moving objects, the camera-relative motion, the cut transitions. The patches that get dropped are the static background already represented in earlier frames. The intuition is that most of what you drop is redundancy. The cost is real but small; the EVS authors report "up to 4×" speedups with "minimal accuracy loss," and on Video-MME at *q*=0.75 with uptraining the score drops by about 0.80 points (65.50 → 64.70 on 32-frame; see §12). Pruning is not lossless, just cheap relative to the compute it saves.
 
-There's a wrinkle. Naively dropping tokens breaks rotary position encodings, which expect a contiguous integer sequence of token indices. EVS handles this by *keeping* the original positional indices for the surviving patches:
+There's a wrinkle. Naively dropping tokens can disturb how downstream position embeddings interpret the resulting sequence, since they expect a contiguous progression of token indices. EVS's authors describe their algorithm as preserving positional identity:
 
 > "EVS preserves positional identity, requires no architectural changes or retraining."
 
-A kept patch at original spatial-temporal position (x, y, t) keeps that index even if many of its neighbors disappeared. The LLM's M-RoPE (multimodal rotary position embedding) sees a sparse but positionally faithful sequence, and its temporal reasoning is preserved.
+The implementation detail varies. The EVS paper's framing is that surviving patches retain their original spatial-temporal indices, so position embeddings stay faithful. Nemotron 3 Nano Omni's public code applies a boolean retention mask to the post-projection token sequence ("inputs_embeds" in the HF model), which is a related but more pedestrian implementation: the kept feature vectors are concatenated and fed to the LLM in their original order, without re-indexing or re-positioning. Either way, no architectural change to the LLM is needed and the post-prune sequence stays a drop-in replacement for the original.
 
 Two more details matter for production. First, training-time stochastic compression: the *q* value isn't a fixed inference-time hyperparameter, it's sampled from a beta distribution every mini-batch during training:
 
@@ -722,7 +722,7 @@ So at inference, you pick whatever *q* fits your latency budget and accuracy tar
 
 Second, the production deployment runs EVS in *embedding space*, not raw RGB. The simple RGB intuition above is exactly that, an intuition. In Nemotron 3 Nano Omni and in the EVS paper's own uptraining tables, similarity is computed on the *encoded* patch features (the vision encoder's output), not on raw pixels. Raw RGB L1 over-weights pixel differences that are visually salient but semantically unimportant (lighting drift, sensor noise, mild camera jitter) and under-weights changes that are small in pixels but large in meaning (a face turning, a hand crossing into frame). Computing the threshold on encoded features fixes both directions because the encoder has already discounted nuisance variation. The algorithm structure is the same; only the input space changes.
 
-Reported results, kept separate because they measure different things. The EVS paper reports a general "up to 4× LLM TTFT speedup with minimal accuracy loss," varying by model and *q*. Their Video-MME table at *q*=0.75 with uptraining shows a 1.23-point drop on the 32-frame setting (65.50 → 64.70). The two numbers are not the same number; don't bundle them into "4× at *q*=0.75."
+Reported results, kept separate because they measure different things. The EVS paper reports a general "up to 4× LLM TTFT speedup with minimal accuracy loss," varying by model and *q*. Their Video-MME table at *q*=0.75 with uptraining shows an absolute 0.80-point drop on the 32-frame setting (65.50 → 64.70, equivalent to about 1.2% relative). The two numbers measure different things; don't bundle them into "4× at *q*=0.75."
 
 EVS plus the tubelet encoding from §11 is what makes long video viable in a 262K-context LLM. The next section walks through how Nemotron actually composes the two.
 
