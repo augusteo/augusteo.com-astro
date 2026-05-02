@@ -769,39 +769,39 @@ Nemotron 3 Nano Omni's video path runs both reductions in series. First, frames 
 <text x="296" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">passes through</text>
 
 <line x1="344" y1="80" x2="369" y2="80" stroke="#6B6258" stroke-width="1.5" marker-end="url(#a9)"/>
-<text x="357" y="71" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="#B8651A">×0.0625</text>
+<text x="357" y="71" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="#B8651A">×0.125</text>
 
-<rect x="374" y="50" width="118" height="70" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
-<text x="433" y="73" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">pixel-shuffle ×4</text>
-<text x="433" y="87" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">+ EVS @ q=0.75</text>
-<text x="433" y="105" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">prune redundant 75%</text>
-<text x="433" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#15803D">23,040</text>
-<text x="433" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#15803D">32× total reduction</text>
+<rect x="374" y="50" width="124" height="70" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
+<text x="436" y="73" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">pixel-shuffle ×4</text>
+<text x="436" y="87" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">+ EVS @ q=0.5</text>
+<text x="436" y="105" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">prune redundant 50%</text>
+<text x="436" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#15803D">46,080</text>
+<text x="436" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#15803D">16× total reduction</text>
 
-<line x1="495" y1="80" x2="520" y2="80" stroke="#6B6258" stroke-width="1.5" marker-end="url(#a9)"/>
+<line x1="501" y1="80" x2="526" y2="80" stroke="#6B6258" stroke-width="1.5" marker-end="url(#a9)"/>
 
-<rect x="525" y="50" width="135" height="70" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
-<text x="592" y="74" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM</text>
-<text x="592" y="90" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#FEF3C7">Nemotron 30B-A3B</text>
-<text x="592" y="106" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#FEF3C7">262,144-token context</text>
+<rect x="531" y="50" width="129" height="70" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="595" y="74" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM</text>
+<text x="595" y="90" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#FEF3C7">Nemotron 30B-A3B</text>
+<text x="595" y="106" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#FEF3C7">262,144-token context</text>
 
-<text x="592" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#15803D">fits</text>
-<text x="592" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">9% of context budget</text>
+<text x="595" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#15803D">fits</text>
+<text x="595" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">18% of context budget</text>
 
 <rect x="40" y="190" width="500" height="14" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.5"/>
 <rect x="40" y="190" width="250" height="14" fill="#B8651A" opacity="0.45"/>
-<rect x="40" y="190" width="16" height="14" fill="#15803D" opacity="0.7"/>
+<rect x="40" y="190" width="31" height="14" fill="#15803D" opacity="0.7"/>
 <line x1="178" y1="190" x2="178" y2="204" stroke="#1A1A1A" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="178" y="216" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6B6258">262K context</text>
 
 <text x="555" y="200" font-family="JetBrains Mono" font-size="8" fill="#6B6258">naive 737K</text>
 <text x="555" y="211" font-family="JetBrains Mono" font-size="8" fill="#B8651A">+ tubelet 369K</text>
-<text x="555" y="222" font-family="JetBrains Mono" font-size="8" fill="#15803D">+ shuffle + EVS 23K</text>
+<text x="555" y="222" font-family="JetBrains Mono" font-size="8" fill="#15803D">+ shuffle + EVS 46K</text>
 </svg>
-<figcaption><strong>Fig 9.</strong> The three compressions Nemotron stacks for video. Conv3D tubelet fusion at the input layer halves the token count along time (Nemotron 3 Nano Omni report, §2). The vision encoder runs over the fused tubelets and emits patch features. The Nemotron pipeline then applies a 4× pixel-shuffle reduction prior to projection ("Prior to projection, we apply a pixel shuffle operation with 4× downsampling to reduce the token count presented to the language model," §2), and EVS at the encoder output drops three-quarters of what's left at q=0.75. Cascade total is ×0.5 × ×0.25 × ×0.25 = ×0.03125: a 30-second clip whose naive token count is 737,280 lands at 23,040 by the time it hits the LLM, well inside the 262,144-token context window.</figcaption>
+<figcaption><strong>Fig 9.</strong> The three compressions Nemotron stacks for video. Conv3D tubelet fusion at the input layer halves the token count along time (Nemotron 3 Nano Omni report, §2). The vision encoder runs over the fused tubelets and emits patch features. The Nemotron pipeline then applies a 4× pixel-shuffle reduction prior to projection ("Prior to projection, we apply a pixel shuffle operation with 4× downsampling to reduce the token count presented to the language model," §2). EVS is an optional inference-time pass that sits between the vision adapter and the LLM, dropping post-projection tokens that didn't change much from the previous frame; the report's published inference-efficiency setup runs EVS at q=0.5. Cascade total is ×0.5 × ×0.25 × ×0.5 = ×0.0625: a 30-second clip whose naive token count is 737,280 lands at 46,080 by the time it hits the LLM, well inside the 262,144-token context window. The cascade reaches ~23K if you crank EVS to q=0.75, but that isn't the Nemotron-deployed setting.</figcaption>
 </figure>
 
-Three compressions compose multiplicatively in Nemotron's actual pipeline. Tubelet halves the token count along time. A 4× pixel-shuffle reduction sits between the vision encoder and the projector, dropping the per-frame post-encoder count by another factor of four. EVS at *q*=0.75 then drops 75% of what's left. Together you're at roughly 1/32 of the naive frame-by-frame token total. For a 30-second clip at 24 FPS and 1024 patches per frame, the naive count is 30 × 24 × 1024 = 737,280 tokens. After tubelet fusion (×0.5), pixel-shuffle (×0.25), and EVS at *q*=0.75 (×0.25), you're at roughly 23,000 tokens. That fits comfortably in a 262K-context LLM.
+Three compressions compose multiplicatively in Nemotron's actual pipeline. Tubelet halves the token count along time. A 4× pixel-shuffle reduction sits between the vision encoder and the projector, dropping the per-frame post-encoder count by another factor of four. EVS, the optional inference-time pruner, sits between the vision adapter and the LLM and drops post-projection tokens that didn't change much from the previous frame; the report's published inference-efficiency setup runs EVS at *q*=0.5, so it removes about half of what's left. Together you're at roughly 1/16 of the naive frame-by-frame token total. For a 30-second clip at 24 FPS and 1024 patches per frame, the naive count is 30 × 24 × 1024 = 737,280 tokens. After tubelet fusion (×0.5), pixel-shuffle (×0.25), and EVS at *q*=0.5 (×0.5), you're at roughly 46,000 tokens. That fits comfortably in a 262K-context LLM. Crank EVS to *q*=0.75 (the EVS paper's headline setting) and the same 30-second clip lands at ~23K tokens; the report doesn't ship that as the default but the runtime knob is there.
 
 For images (single frames, no temporal axis), the pipeline simplifies. Tubelet fusion isn't applicable; only the spatial ViT runs. The patch count varies with resolution:
 
