@@ -366,7 +366,7 @@ The structural alternative is to drop the "frozen LLM" constraint. Instead of bo
 
 <line x1="340" y1="35" x2="340" y2="295" stroke="#C9BEAA" stroke-dasharray="3,3"/>
 
-<text x="510" y="20" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Unified (Nemotron, Gemini)</text>
+<text x="510" y="20" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Unified-decoder training</text>
 
 <text x="375" y="44" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">PRETRAINING SEQUENCE</text>
 <g font-family="JetBrains Mono" font-size="10">
@@ -397,16 +397,16 @@ The structural alternative is to drop the "frozen LLM" constraint. Instead of bo
 <line x1="466" y1="156" x2="466" y2="140" stroke="#15803D" stroke-width="0.8" stroke-dasharray="2,2"/>
 
 <rect x="375" y="190" width="270" height="40" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
-<text x="510" y="210" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM (jointly pretrained)</text>
-<text x="510" y="224" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#FEF3C7">on multimodal sequences</text>
+<text x="510" y="210" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM (trained on</text>
+<text x="510" y="224" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">multimodal sequences)</text>
 
 <line x1="510" y1="170" x2="510" y2="188" stroke="#6B6258" marker-end="url(#a4)"/>
 
-<text x="510" y="252" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">every modality saw the LLM's full</text>
-<text x="510" y="266" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">capacity during pretraining,</text>
-<text x="510" y="280" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">not just an instruction-tune at the end</text>
+<text x="510" y="252" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">multimodal sequences flow through</text>
+<text x="510" y="266" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">the LLM's full capacity during training</text>
+<text x="510" y="280" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">(joint pretraining or staged SFT)</text>
 </svg>
-<figcaption><strong>Fig 4.</strong> Two views of what the LLM was pretrained on. Adapter style (left) trains on text only; vision tokens show up at inference as a different shape from anything the LLM saw before, arriving through the projector. Unified style (right) trains on interleaved multimodal sequences, so an inference query is just a shorter version of the pretraining distribution.</figcaption>
+<figcaption><strong>Fig 4.</strong> Two views of what the LLM was exposed to multimodal data through. Adapter style (left) trains on text only; vision tokens show up at inference as a different shape from anything the LLM saw before, arriving through a thin projector. Unified-decoder style (right) trains the LLM on interleaved multimodal sequences, either as joint pretraining (Gemini) or as staged SFT on a text-pretrained backbone (Nemotron 3 Nano Omni). Either way, the LLM's full capacity sees multimodal data during training, not just at instruction-tune time.</figcaption>
 </figure>
 
 Two flavors of this exist, and the difference between them matters for what kinds of modalities are easy to add later.
@@ -415,7 +415,7 @@ The first flavor is *discrete-token unified vocabulary*, exemplified by Meta's [
 
 > "Our unified approach uses fully token-based representations for both image and textual modalities. By quantizing images into discrete tokens, analogous to words in text, we can apply the same transformer architecture to sequences of both image and text tokens, without the need for separate image/text encoders or domain-specific decoders."
 
-The second flavor is *continuous projected embeddings*. Instead of quantizing, run each modality through a modality-specific encoder that produces a sequence of continuous feature vectors, then project those vectors (via a learned MLP, the projector) into the LLM's hidden dimension, and concatenate them into the LLM's input sequence. The LLM still consumes a sequence of vectors, the same way it always does. The only difference is that some of those vectors came from a vision encoder or an audio encoder rather than from the text embedding table. Loss is computed on text outputs, but the gradient flows back through the LLM, the projectors, and (during joint pretraining stages) the encoders themselves, so all of the per-token text predictions are conditioned on the modality-projected positions appearing in the sequence.
+The second flavor is *continuous projected embeddings*. Instead of quantizing, run each modality through a modality-specific encoder that produces a sequence of continuous feature vectors, then project those vectors (via a learned MLP, the projector) into the LLM's hidden dimension, and concatenate them into the LLM's input sequence. The LLM still consumes a sequence of vectors, the same way it always does. The only difference is that some of those vectors came from a vision encoder or an audio encoder rather than from the text embedding table. Loss is computed on text outputs, but the gradient flows back through the LLM, the projectors, and (during the training stages where they're unfrozen) the encoders themselves, so all of the per-token text predictions are conditioned on the modality-projected positions appearing in the sequence.
 
 This is the family [Gemini](https://arxiv.org/abs/2312.11805), [Qwen2.5-Omni](https://arxiv.org/abs/2503.20215), and [Nemotron 3 Nano Omni](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Omni-report.pdf) belong to. Gemini frames it as native-from-scratch:
 
@@ -447,15 +447,15 @@ Unified-decoder style is more expensive. You pretrain (or substantially continue
 
 What you buy is depth. The LLM weights learn to expect multimodal input during pretraining. Reasoning that has to mix modalities (answer this question by reading the chart on page 4 of the PDF, or by listening to the speaker's tone in the third minute of the video) gets to use the LLM's full capacity, not just the capacity of a thin connector. And every additional modality you add (audio, video, robotics action sequences) plugs into the same input stream rather than adding a parallel adapter side-channel.
 
-Where Nemotron 3 Nano Omni sits is at the unified end of this dial. The omni model is *not* pretrained from scratch on multimodal data; the technical report describes a multi-stage post-training pipeline that takes the existing Nemotron 3 Nano 30B-A3B base LLM and runs it through seven SFT stages, several of which unfreeze all model parameters and train them jointly with the encoders and projectors over mixed-modality sequences. The model card lists the per-stage dataset totals:
+Where Nemotron 3 Nano Omni sits is at the unified end of this dial. The omni model is *not* pretrained from scratch on multimodal data; the technical report describes a multi-stage post-training pipeline that takes the existing Nemotron 3 Nano 30B-A3B base LLM and runs it through seven SFT stages plus an RL phase, several of which unfreeze all model parameters and train them jointly with the encoders and projectors over mixed-modality sequences. The technical report's per-stage SFT table sums to about 467 billion tokens across stages 0 through 6. The HF model card publishes a separate modality-inventory rollup of the training data:
 
 > "354,587,705 data points (~717.0B tokens) ... text+audio: 259,178,821 samples (~143,533.1M tokens); text+image: 70,143,901 samples (~180,347.1M tokens); text+video: 15,837,673 samples (~239,631.5M tokens); text+video+audio: 8,720,044 samples (~152,499.2M tokens); text: 707,187 samples (~958.4M tokens)."
 
-Roughly 717 billion tokens of mixed-modality SFT data, with text+image, text+audio, and text+video sequences all in the loss across the staged training. The 30B-A3B backbone itself was pretrained as a text-first model; the omni capabilities arrive through this staged, mixed-modality post-training rather than through a from-scratch native-multimodal pretraining run (Gemini's framing).
+This is the model card's full modality breakdown across the training pipeline. The two figures (467B SFT-stage total, 717B model-card modality rollup) come from different aggregations and don't simply nest, so this post quotes both rather than picking one as canonical. What's load-bearing is the shape of the training mix, not any single token total: text+image, text+audio, and text+video sequences all show up with the LLM in the loss, across many billions of tokens. The 30B-A3B backbone itself was pretrained as a text-first model; the omni capabilities arrive through staged mixed-modality post-training rather than through a from-scratch native-multimodal pretraining run (Gemini's framing).
 
-Compare to an adapter-style model where a small instruction-tuning dataset sits on top of a frozen text-pretrained LLM. The two regimes train on different distributions. Adapter models work well when the multimodal signal the LLM needs to use is something a thin projector can encode and the LLM's text-only weights can interpret as token-shaped input. They tend to struggle when the input drifts further out of distribution from anything the LLM saw during pretraining (long video, dense documents, audio whose information lives in prosody more than wording), because the projector becomes a bottleneck on what the LLM can possibly attend to. Unified-decoder models carry that distribution into the LLM's pretraining, so the bottleneck moves.
+Compare to an adapter-style model where a small instruction-tuning dataset sits on top of a frozen text-pretrained LLM. The two regimes train on different distributions. Adapter models work well when the multimodal signal the LLM needs to use is something a thin projector can encode and the LLM's text-only weights can interpret as token-shaped input. They tend to struggle when the input drifts further out of distribution from anything the LLM saw during pretraining (long video, dense documents, audio whose information lives in prosody more than wording), because the projector becomes a bottleneck on what the LLM can possibly attend to. Unified-decoder models carry that distribution into the LLM's training (whether as native pretraining or as staged SFT), so the bottleneck moves.
 
-Now we have the central design choice in place. Text decoder in the middle. Modality encoders feeding it through projectors. Trained jointly on multimodal sequences. The next question is what specifically each modality encoder has to do, and that's Act 3.
+Now we have the central design choice in place. Text decoder in the middle. Modality encoders feeding it through projectors. Trained jointly on multimodal sequences (whether as native pretraining or as staged SFT). The next question is what specifically each modality encoder has to do, and that's Act 3.
 
 ## Act 3: the other senses
 
