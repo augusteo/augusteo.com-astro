@@ -645,7 +645,7 @@ Iteration stops here: codex's findings are addressed. No structural fixes implie
 
 ## Resume here
 
-Last touched: 2026-05-02 (batch 4 — phase 6 done).
+Last touched: 2026-05-02 (phase 7 done — all 14 figures pass playwright review).
 
 ### Phase status
 
@@ -657,7 +657,7 @@ Last touched: 2026-05-02 (batch 4 — phase 6 done).
 | 4. Codex gate 1 | done | this file's `## Codex outline review` |
 | 5. Draft prose | done | `src/content/blog/omni-modal-stack/index.mdx` (18 sections, References) |
 | 6. Implement figures | 14 of 14 done | per-figure table below |
-| 7. Playwright visual review | pending | playwright snapshots reviewed |
+| 7. Playwright visual review | done | 14 of 14 passed (Fig 2 had a label-overlap fix at commit 2d6483e) |
 | 8. Codex gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Phase 6 figure progress
@@ -681,9 +681,14 @@ Last touched: 2026-05-02 (batch 4 — phase 6 done).
 
 ### Suggested next batch
 
-Phase 7 — playwright per-figure visual review across all 14 figures. Start `bun run dev` in the background, navigate to `http://localhost:4321/blog/omni-modal-stack/` (or whichever port the dev server picks; today it landed on 4324), and walk every `<figure>` against `playwright-checks.md` (universal checks plus the type-specific list). For interactive figures (Fig 7, Fig 8), specifically verify hydration succeeds (no `$$props.draw` errors), slider response drives the canvas, and reduced-motion path renders without auto-advance. There is one pre-existing console warning class on the post: every static SVG sets `width="100%" height="auto"` and Chrome flags "Expected length, 'auto'." for the height attribute. That's been carried since Fig 1 and is not blocking — note it during review but do not chase per-figure unless the figure itself fails to render.
+Phase 8 — codex gate 2 (challenge mode against the full MDX, per `codex-prompts.md`), final `scripts/voice-check.sh` pass, hero hand-off (per `../../explainer-shared/hero-handoff.md` — replace the `heroAlt: "TODO: hero image not yet selected"` placeholder once Vic picks the image), and the ship commit. Codex must close on cosmetic issues only; if it surfaces a claim that no quoted source in `## Research notes` supports, halt and surface to Vic.
 
-After Phase 7 lands, Phase 8 = codex gate 2 + voice-check on the full draft + hero hand-off (per `../../explainer-shared/hero-handoff.md`) + ship. The hero alt is currently the placeholder string `"TODO: hero image not yet selected"`.
+### Notes from phase 7
+
+- All 14 figures passed playwright review at `http://localhost:4326/blog/omni-modal-stack/` (port shifted from the tracker's 4324 because of other dev servers; the post slug is what matters).
+- Fig 2 had a real overlap bug discovered during review: the per-bar token labels (`beach`, `grass`, `floor`, …) sat horizontally at 17 px column spacing while each label was ~27 px wide at font-size 9, so they collided on top of each other. Fix at commit 2d6483e: rotate each label 35° below its bar (text-anchor="start", transform="rotate(35 cx cy)") and slide the sampled-token box from y=271 to y=285 so the rotated labels clear it. Lesson: when packing per-bar labels into narrow columns, rotate before shrinking the font; rotation keeps full legibility while a smaller font sacrifices it.
+- Interactive figures (Fig 7, Fig 8) hydrated without errors and responded correctly to slider input. Fig 7 cross-tested the overflow state at 30 s × 30 FPS × 1024 patches: naive 922K (3.5× over 262K), Conv3D 461K (1.8× over), EVS 115K — bars correctly switched from green to rust-red with "↑ Nx over" indicators inside the over-context bars. Fig 8 verified at q=0.95: 13 of 256 patches kept, concentrated at the rust disc's edge where the gradient is steepest.
+- The 12 pre-existing `height="auto"` Chrome warnings are unchanged. Not blocking; Chrome still renders the SVGs at the correct intrinsic ratio.
 
 ### Notes from batch 4
 
