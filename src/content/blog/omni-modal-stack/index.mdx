@@ -246,3 +246,94 @@ Qwen2.5-Omni's Talker is the architectural answer in the *other* direction. Inst
 The point is the same as on the input side. Any time speech information has to round-trip through a text bottleneck, you lose what couldn't be written down. Native multimodal models avoid the round-trip by sharing hidden states across the modality boundary.
 
 That covers audio. Video has its own problem, and it's a bigger one.
+
+### 11. Video is spatiotemporal redundancy
+
+A 2D image with 16×16 patches at 384×384 resolution is around 576 tokens. A modest number; an LLM with a 32k context window has room for it. Now stretch the same model to video.
+
+A video is a sequence of frames over time. The naive thing to do is treat each frame as an image, run the ViT, and concatenate the resulting tokens into one long sequence. The math, even at modest settings, is bad. The EVS paper opens with the cleanest version of this problem statement:
+
+> "a two-minute video at 24 FPS produces more than two million vision tokens, far beyond the effective context length of most language models"
+
+{/* TODO: Fig 7: VideoTokenExplosion. Sliders for clip duration, FPS, patches per frame. Live token count rendered against 262K context bar. Curves for naive / tubelet / EVS overlaid. */}
+
+Drag the duration slider above. Even at modest patch counts, the token total flies past a 262K-context LLM the moment the clip gets past about ten seconds. At 1024 patches per frame and 30 FPS, you're already over 262K at nine seconds. That's the cost ViViT-style naive frame-by-frame encoding pays, and it makes long-form video reasoning impossible without aggressive compression.
+
+The good news, made vivid by VideoMAE in 2022, is that video is wildly redundant along the time axis. VideoMAE found that you can mask out 90 to 95 percent of the patches in a video and still reconstruct it, where the equivalent ratio for static images is around 75 percent.
+
+> "VideoMAE is in favor of extremely high masking ratios (e.g. 90% to 95%) compared with the ImageMAE."
+
+The intuition is that two consecutive frames usually share most of their content. Static parts of a scene (the background, the unchanging foreground object, the camera angle) all contribute redundant patches at every frame. You don't need to encode them N times. You need to encode the parts that *change*, plus enough of the static structure to anchor where they change against.
+
+ViViT (Google, 2021) was the first widely-used architecture to bake this into the encoder. Instead of tokenizing each frame independently, ViViT extracts non-overlapping spatio-temporal "tubes" that span both spatial extent and a small number of consecutive frames:
+
+> "Extract non-overlapping, spatio-temporal 'tubes' from the input volume, and to linearly project this to ℝ^d ... nt=⌊T/t⌋, nh=⌊H/h⌋ and nw=⌊W/w⌋, tokens are extracted from the temporal, height, and width dimensions respectively."
+
+A single token now represents, say, a 2×16×16 chunk of video (two consecutive frames worth of one spatial patch). Tubelet tokenization halves the token count along the time axis at the input stage. Variants exist (TimeSformer's factorized space-time attention, MViT's pyramidal pooling) but the underlying observation is the same: time-axis redundancy is so high that you can collapse along it without losing the signal that matters.
+
+TimeSformer makes the cost story explicit:
+
+> "In practice, joint space-time attention causes a GPU memory overflow once the spatial frame resolution reaches 448 pixels, or once the number of frames is increased to 32."
+
+You can't stack a vanilla ViT and run full self-attention on a video; the (NF)² cost dominates the kernel. You either factorize attention (do spatial attention within frames, then temporal attention across frames) or you compress at the input (tubelets). Or both.
+
+Tubelet encoding gets you a 2× reduction. Good but not enough to make a 2-minute video fit in a 262K-context LLM. You need another order of magnitude. That's what the next section is about.
+
+### 12. Efficient Video Sampling
+
+The trick that closes the gap is straightforward. If patches at the same spatial location in consecutive frames are nearly identical (because nothing in the scene changed there), drop the later one. Keep only patches where something changed. This is what the EVS paper proposes.
+
+The intuition is easiest with raw pixels. Take a frame at time *t* and a frame at time *t−1*. For each spatial patch position *p*, compute the L1 distance between the two patches:
+
+```
+D_{p,t} = ‖p_t − p_{t−1}‖_1
+```
+
+You now have a 2D map of "how much did this patch change between these two frames." Collect these distances across the whole clip, pick the *q*-th percentile, and use that as a threshold. Drop every patch whose distance is below the threshold:
+
+> "For every patch p at time 0<t≤T, compute D_{p,t}=‖p_t − p_{t−1}‖_1, and denote {D_t} as the differences of all patches between frames t−1 and t."
+> "For each frame collect {D_t}_{t=1}^T and compute sequence-level cut-off threshold d as q-th percentile, where q is a user-selected pruning rate."
+> "For all patches in the consecutive frames, keep those that satisfy {D_{p,t}} ≥ d; this defines the binary mask M_t."
+
+That's the algorithm. *q* is user-tunable: q=0 keeps everything; q=0.75 keeps the top 25% of changing patches; q=0.95 keeps almost nothing. The first frame is always kept whole, since there's no *t−1* to diff against.
+
+{/* TODO: Fig 8: EvsPatchPruning. Two consecutive frames side-by-side. Slider for q. Patches grey out as q rises. Live counter: kept N of M patches, LLM prefill tokens reduced by (1-q)x. */}
+
+Drag the *q* slider. Notice what survives. The patches that get kept are the parts of the scene that are actually changing: the moving objects, the camera-relative motion, the cut transitions. The patches that get dropped are the static background already represented in earlier frames. Information-theoretically, you aren't throwing away anything the model needs; you're throwing away the redundancy.
+
+There's a wrinkle. Naively dropping tokens breaks rotary position encodings, which expect a contiguous integer sequence of token indices. EVS handles this by *keeping* the original positional indices for the surviving patches:
+
+> "EVS preserves positional identity, requires no architectural changes or retraining."
+
+A kept patch at original spatial-temporal position (x, y, t) keeps that index even if many of its neighbors disappeared. The LLM's M-RoPE (multimodal rotary position embedding) sees a sparse but positionally faithful sequence, and its temporal reasoning is preserved.
+
+Two more details matter for production. First, training-time stochastic compression: the *q* value isn't a fixed inference-time hyperparameter, it's sampled from a beta distribution every mini-batch during training:
+
+> "the pruning rate q is sampled from a beta distribution for every mini-batch. The model thus learns to be invariant to a continuum of compression ratios"
+
+So at inference, you pick whatever *q* fits your latency budget and accuracy target, and the model has already seen that compression level during training.
+
+Second, the production deployment runs EVS in *embedding space*, not raw RGB. The simple RGB intuition above is exactly that, an intuition. In Nemotron 3 Nano Omni and in the EVS paper's own uptraining tables, similarity is computed on the *encoded* patch features (the vision encoder's output), not on raw pixels. This avoids the corner cases where two frames look pixel-identical but represent different content (a scene cut where the new shot happens to share the background, for example). The algorithm structure is the same; only the input space changes.
+
+Reported results, kept separate because they measure different things. The EVS paper reports a general "up to 4× LLM TTFT speedup with minimal accuracy loss," varying by model and *q*. Their Video-MME table at *q*=0.75 with uptraining shows a 1.23-point drop on the 32-frame setting (65.50 → 64.70). The two numbers are not the same number; don't bundle them into "4× at *q*=0.75."
+
+EVS plus the tubelet encoding from §11 is what makes long video viable in a 262K-context LLM. The next section walks through how Nemotron actually composes the two.
+
+### 13. How Nemotron stacks the two
+
+Nemotron 3 Nano Omni's video path runs both reductions in series. First, frames are fused into tubelets at the input layer of the vision encoder (the ViViT idea). Then, after the encoder produces its dense patch features, EVS prunes those features at inference time on the encoded-feature similarity:
+
+> "For video, Nemotron 3 Nano Omni uses a dedicated Conv3D tubelet embedding path. Instead of embedding each frame independently, every pair of consecutive frames is fused into a single 'tubelet' before the ViT, halving the number of vision tokens the language model has to attend to."
+> "EVS is an important feature, enabled during inference time, that drops redundant video tokens after the vision encoder. ... The first frame of the video is kept entirely, then for each subsequent frame, EVS keeps the 'dynamic' tokens where the video is changing and drops the 'static' ones where nothing has changed from the previous frame."
+
+{/* TODO: Fig 9: Conv3D+EVS pipeline. Raw frames, tubelet fusion (x0.5), ViT, EVS pruning (x0.25 at q=0.75), LLM. */}
+
+The two compressions compose multiplicatively. Tubelet halves the token count. EVS at *q*=0.75 drops 75% of what's left. Combined, you're at roughly 1/8 of the naive frame-by-frame token total. For a 30-second clip at 24 FPS and 1024 patches per frame, the naive count is 30 × 24 × 1024 = 737,280 tokens. After tubelet fusion (×0.5) and EVS at *q*=0.75 (×0.25), you're at roughly 92,000. That fits comfortably in a 262K-context LLM.
+
+For images (single frames, no temporal axis), the pipeline simplifies. Tubelet fusion isn't applicable; only the spatial ViT runs. The patch count varies with resolution:
+
+> "Each image can be represented using a variable number of 16 x 16 patches, with a minimum of 1,024 to a maximum of 13,312 visual patches per image."
+
+A 13,312-patch image is roughly 1.5 megapixels at 16-pixel patches, which covers the resolutions you'd want for document understanding or fine-grained chart reading. The 1,024-patch lower bound is for thumbnail-sized images where dense detail isn't relevant.
+
+The model can now see, hear, and watch. The next question is what it costs to run.
