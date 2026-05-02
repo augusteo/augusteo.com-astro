@@ -15,7 +15,37 @@ essay: true
 
 The previous post left us with C-RADIOv4. One vision backbone, three teachers, a single forward pass whose features could be read by three different downstream tasks at once.
 
-{/* TODO: Fig 1: C-RADIOv4 with three teachers feeding in (DINOv3, SigLIP2, SAM3) -- mirror prequel Fig 7 layout */}
+<figure>
+<svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<g font-family="serif" font-size="14" font-weight="600">
+<rect x="30" y="30" width="110" height="40" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="85" y="55" text-anchor="middle" fill="#2563EB">DINOv3</text>
+<rect x="30" y="110" width="110" height="40" fill="#D1FAE5" stroke="#059669" stroke-width="1.5"/><text x="85" y="135" text-anchor="middle" fill="#059669">SigLIP2</text>
+<rect x="30" y="190" width="110" height="40" fill="#EDE0FC" stroke="#9333EA" stroke-width="1.5"/><text x="85" y="215" text-anchor="middle" fill="#9333EA">SAM3</text>
+</g>
+<text x="85" y="18" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">TEACHERS</text>
+<g stroke="#8F8578">
+<line x1="145" y1="50" x2="285" y2="120" marker-end="url(#a1)"/>
+<line x1="145" y1="130" x2="285" y2="130" marker-end="url(#a1)"/>
+<line x1="145" y1="210" x2="285" y2="140" marker-end="url(#a1)"/>
+</g>
+<defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8F8578"/></marker></defs>
+<rect x="290" y="100" width="120" height="60" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="350" y="125" text-anchor="middle" font-family="serif" font-size="15" font-weight="700" fill="#F4EEE3">student</text>
+<text x="350" y="145" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">C-RADIOv4</text>
+<line x1="412" y1="130" x2="432" y2="130" stroke="#8F8578" marker-end="url(#a1)"/>
+<rect x="435" y="115" width="100" height="30" fill="none" stroke="#B8651A" stroke-width="1.5"/>
+<text x="485" y="134" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">unified feature</text>
+<g font-family="JetBrains Mono" font-size="10">
+<line x1="540" y1="125" x2="565" y2="55" stroke="#8F8578" marker-end="url(#a1)"/>
+<rect x="565" y="40" width="100" height="30" fill="#DBEAFE" stroke="#2563EB"/><text x="615" y="59" text-anchor="middle" fill="#2563EB">DINOv3 head</text>
+<line x1="540" y1="130" x2="565" y2="130" stroke="#8F8578" marker-end="url(#a1)"/>
+<rect x="565" y="115" width="100" height="30" fill="#D1FAE5" stroke="#059669"/><text x="615" y="134" text-anchor="middle" fill="#059669">SigLIP head</text>
+<line x1="540" y1="135" x2="565" y2="205" stroke="#8F8578" marker-end="url(#a1)"/>
+<rect x="565" y="190" width="100" height="30" fill="#EDE0FC" stroke="#9333EA"/><text x="615" y="209" text-anchor="middle" fill="#9333EA">SAM3 head</text>
+</g>
+</svg>
+<figcaption><strong>Fig 1.</strong> Where C-RADIOv4 came from. Three frozen teachers feed one student backbone, and three small heads on the output read off the kind of feature each downstream task wants. The student is what we're about to bolt the rest of an omni-modal stack onto.</figcaption>
+</figure>
 
 DINOv3 brought dense patch geometry. SigLIP2 brought text alignment. SAM3 brought instance masks. C-RADIOv4 inherited all three through agglomerative distillation, and at inference you could read off whichever kind of feature your downstream task wanted by attaching a small head to the shared backbone.
 
