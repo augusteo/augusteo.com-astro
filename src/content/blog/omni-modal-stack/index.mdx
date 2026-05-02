@@ -174,3 +174,47 @@ Where Nemotron 3 Nano Omni sits is at the unified end of this dial. Its 30B-A3B 
 Compare to a typical adapter-style model: a few hundred thousand instruction-tuning samples sitting on top of a frozen text-pretrained LLM. The depth-of-joint-distribution gap is several orders of magnitude.
 
 Now we have the central design choice in place. Text decoder in the middle. Modality encoders feeding it through projectors. Trained jointly on multimodal sequences. The next question is what specifically each modality encoder has to do, and that's Act 3.
+
+## Act 3: the other senses
+
+*Why audio and video aren't more SigLIPs.*
+
+### 8. Audio is time-frequency, not pixel grid
+
+The first thing to notice about audio is that the natural input format is not 1D and not pixel-shaped. A microphone produces a time series of pressure values (a waveform), but every modern audio model converts the waveform into a 2D representation, called a log-mel spectrogram, before any neural network touches it.
+
+{/* TODO: Fig 5: A 1-second waveform on the left, an 80-channel by 100-frame log-mel spectrogram tile on the right, axes labeled */}
+
+A spectrogram is what you get when you take a sliding window of, say, 25 milliseconds across the waveform, and for each window compute the energy of the signal at each of a fixed set of frequency bins. The "mel" part means the frequency bins are spaced on the perceptual mel scale rather than linearly, because human auditory perception is approximately log-frequency. The "log" means you take the log of the energy in each bin, because perception is approximately log-amplitude. You end up with a 2D matrix whose rows are frequency bins (typically 80 of them) and whose columns are time frames (typically one every 10 milliseconds).
+
+Whisper uses exactly this representation, and it has become the de facto convention:
+
+> "All audio is re-sampled to 16,000 Hz, and an 80-channel log-magnitude Mel spectrogram representation is computed on 25-millisecond windows with a stride of 10 milliseconds."
+
+So a 30-second audio clip becomes an 80×3000 matrix. Whisper's first layer is a 1D convolutional stem that downsamples by a factor of 2 along the time axis, producing an 80×1500 feature map that gets fed into a Transformer.
+
+Here is why this matters for the omni-modal architecture. A vision encoder like C-RADIOv4 takes a 2D pixel grid and produces a sequence of patch tokens. The 2D grid has spatial locality: nearby patches depict the same object, lighting, texture. The encoder's inductive biases (patch tokenization, 2D rotary embeddings, sometimes window attention) are tuned for that.
+
+A spectrogram is also a 2D grid, but the two axes mean different things. The horizontal axis is time, with strong sequential structure: what happens at second 10 is causally tied to what happened at second 9. The vertical axis is frequency channel, with no spatial locality at all: bin 5 (a low-frequency band, maybe 100 Hz) and bin 6 (slightly higher, maybe 150 Hz) describe related parts of the signal, but bin 5 and bin 78 describe completely different aspects of the same signal at the same time.
+
+A vision ViT applied naively to a spectrogram would treat both axes the same and would miss the structure on both. You want temporal smoothing along the time axis (which is what attention plus convolutional downsampling buys) and you want full per-frame access to all frequency bins (no spatial cropping along the frequency axis). This is why audio encoders use Conformer-style architectures, which interleave local convolutions with attention, instead of plain ViTs. And why they downsample aggressively along time but preserve the full frequency dimension.
+
+C-RADIOv4 cannot just be reused for audio. The inductive biases are wrong. You need a different encoder built for this representation. That's the next section.
+
+### 9. Parakeet: a token-emitting audio encoder
+
+Nemotron 3 Nano Omni's audio encoder is Parakeet-TDT-0.6B-v2, an NVIDIA model that pairs a FastConformer encoder with a Token-and-Duration Transducer (TDT) decoder. 600 million parameters total. Its model card describes the shape:
+
+> "Architecture Type: FastConformer-TDT ... This model was developed based on FastConformer encoder architecture and TDT decoder. This model has 600 million model parameters."
+
+In its original ASR setting (automatic speech recognition), Parakeet ingests a log-mel spectrogram and emits a transcript. The encoder is the part that produces a sequence of audio feature vectors, downsampled 8× along the time axis from the spectrogram input. The TDT decoder is what turns those features into characters. Together they're a full speech-to-text model.
+
+In the omni-modal setting, the TDT decoder is thrown away. Nemotron uses only Parakeet's encoder, treating it as a feature extractor whose outputs pass through a 2-layer MLP projector and get concatenated into the LLM's input sequence:
+
+> "The audio side is powered by Parakeet-TDT-0.6B-v2, connected to the backbone through its own 2-layer MLP projector. Audio is sampled at 16 kHz, and the model is trained with inputs up to 1,200 seconds (20 minutes), while the LLM max context length supports 5+ hours."
+
+This is the architectural counterpart of what happens on the vision side. C-RADIOv4-H is a vision encoder; its outputs flow through a projector into the LLM. Parakeet's encoder is an audio encoder; its outputs flow through a projector into the same LLM. Two MLPs, two encoders, one decoder.
+
+The choice to use Parakeet's encoder rather than Whisper's encoder is itself worth a moment. Whisper is the more famous open speech model. Both produce log-mel-conditioned feature sequences, and a Whisper encoder could in principle be used the same way. NVIDIA picked Parakeet for the obvious reasons (it's an in-house model, integrated with the rest of the NVIDIA stack) and the technical one: FastConformer's linearly scalable attention is more efficient at long audio than Whisper's stack. The architectural pattern (encoder plus projector into LLM) is what matters. Parakeet versus Whisper is an implementation detail.
+
+The interesting question is what *not* to do, and that's §10.
