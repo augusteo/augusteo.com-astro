@@ -1,0 +1,845 @@
+---
+title: "Inside Gas Town"
+description: "An end-to-end, intuition-first explanation of Steve Yegge's multi-agent coding orchestrator, how it has evolved into Gas City, and what its design says about the next layer of developer tools."
+pubDate: 2026-05-01
+heroImage: "@assets/blog/inside-gas-town/hero.png"
+heroAlt: "Watercolor frontier town: a lit beacon with a small dog at its base, a piped refinery with rising smoke, and a one-eyed watchtower, linked by a rope of red beads."
+tags: ["Tech", "AI", "Claude Code"]
+featured: false
+draft: false
+essay: true
+---
+
+*An end-to-end, intuition-first explanation of Steve Yegge's multi-agent coding orchestrator, how it has evolved into Gas City, and what its design says about the next layer of developer tools. About a 30-minute read.*
+
+## Prologue: what must be made durable
+
+### 1. What a coding agent actually produces
+
+The argument starts with a small reframing. When you run Claude Code on a task, it feels like the artifact is a diff. The agent reads, the agent thinks, the agent writes. You merge the diff and you're done.
+
+But the diff is not really what the agent produces. The diff is what a *session* produces, using the agent. The agent itself produces something more like a trail: a sequence of decisions, lookups, mistakes, partial fixes, half-remembered constraints, scratch ideas about how to do the next part. The diff is a snapshot of where the trail happened to be when the context window ran out.
+
+This trail is mostly invisible to you, mostly invisible to the next session, and entirely lost when the context window fills up. The next session starts from zero. Whatever the previous session learned, it learned for the duration of one context window, and then it took it to the grave.
+
+Most of the friction in working with a single coding agent is downstream of this. The agent rediscovers facts you already taught it. It pursues approaches you already rejected. It writes the same broken function twice. It reaches the end of its context with the work two-thirds done and no good way to hand off. None of this is the model's fault, exactly. It's the medium.
+
+The job of an orchestrator (which is what Gas Town is) is to fix the medium. Make the trail durable, make the work survive the session, let multiple agents pass the work between them without losing what's on it. Once you accept that as the goal, almost everything else in Gas Town's design follows.
+
+### 2. The naive answer, and why it explodes
+
+Suppose you accept that one Claude Code is not enough. You want twenty.
+
+The naive way to do this is `tmux new-window` twenty times. Each window runs a fresh Claude Code in a separate worktree. Each one gets its own slice of work. You walk between them like a foreman, checking on each, prompting them when they get stuck, copying their output back to a master plan when they finish.
+
+This works for about an hour. Then it doesn't.
+
+Three things go wrong, all at the same time. First, the agents start stepping on each other. Two of them rebase against the same branch and pick different conflict resolutions, and now your repo has a private fork. Second, you forget what each window is doing. They all started with `let's go`, and after fifty turns of dialog the windows look identical. You cannot remember which one was redoing the auth migration and which one was fixing the flaky test. Third, half the agents have hit context exhaustion and are sitting silently waiting for input, which they are not going to receive because you are busy talking to one of the other agents who is currently telling you a long story about why the database schema is wrong.
+
+Yegge's framing for the resulting environment is, by his own account, the project's namesake. Gas Town is "an industrialized coding factory manned by superintelligent robot chimps, and when they feel like it, they can wreck your shit in an instant." The chimps are competing for tokens and breaking each other's work. You are armed only with a copy of `tmux send-keys`.
+
+<figure>
+<svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="Four parallel agents trying to merge into main, with conflicts and waiting agents.">
+  <g>
+    <g transform="translate(40,30)">
+      <rect x="0" y="0" width="150" height="80" fill="none" stroke="#1c1a15" stroke-width="1.5" rx="2"/>
+      <text x="10" y="20" font-size="11" font-weight="600">polecat-1</text>
+      <text x="10" y="40" font-family="JetBrains Mono" font-size="11" fill="#3a342a">$ git rebase main</text>
+      <text x="10" y="55" font-family="JetBrains Mono" font-size="11" fill="#b8543e">! conflict: auth.go</text>
+      <text x="10" y="70" font-family="JetBrains Mono" font-size="11" fill="#b8543e">push --force</text>
+    </g>
+    <g transform="translate(220,30)">
+      <rect x="0" y="0" width="150" height="80" fill="none" stroke="#1c1a15" stroke-width="1.5" rx="2"/>
+      <text x="10" y="20" font-size="11" font-weight="600">polecat-2</text>
+      <text x="10" y="40" font-family="JetBrains Mono" font-size="11" fill="#3a342a">$ git rebase main</text>
+      <text x="10" y="55" font-family="JetBrains Mono" font-size="11" fill="#b8543e">! conflict: auth.go</text>
+      <text x="10" y="70" font-family="JetBrains Mono" font-size="11" fill="#b8543e">push --force</text>
+    </g>
+    <g transform="translate(400,30)">
+      <rect x="0" y="0" width="150" height="80" fill="none" stroke="#1c1a15" stroke-width="1.5" rx="2"/>
+      <text x="10" y="20" font-size="11" font-weight="600">polecat-3</text>
+      <text x="10" y="40" font-family="JetBrains Mono" font-size="11" fill="#8a8377">waiting for input</text>
+      <text x="10" y="55" font-family="JetBrains Mono" font-size="11" fill="#8a8377">since 11 min ago</text>
+      <text x="10" y="70" font-family="JetBrains Mono" font-size="11" fill="#8a8377">. . .</text>
+    </g>
+    <g transform="translate(580,30)">
+      <rect x="0" y="0" width="150" height="80" fill="none" stroke="#1c1a15" stroke-width="1.5" rx="2"/>
+      <text x="10" y="20" font-size="11" font-weight="600">polecat-4</text>
+      <text x="10" y="40" font-family="JetBrains Mono" font-size="11" fill="#3a342a">explaining schema</text>
+      <text x="10" y="55" font-family="JetBrains Mono" font-size="11" fill="#3a342a">to user, going on</text>
+      <text x="10" y="70" font-family="JetBrains Mono" font-size="11" fill="#3a342a">third paragraph</text>
+    </g>
+  </g>
+  <g stroke="#b8543e" stroke-width="1.4" fill="none">
+    <path d="M115,110 Q150,160 380,200" stroke-dasharray="4 3"/>
+    <path d="M295,110 Q310,160 380,200" stroke-dasharray="4 3"/>
+    <path d="M475,110 Q470,160 380,200" stroke-dasharray="4 3"/>
+    <path d="M655,110 Q580,160 380,200" stroke-dasharray="4 3"/>
+  </g>
+  <text x="200" y="135" font-style="italic" font-size="11" fill="#b8543e">collisions</text>
+  <text x="500" y="135" font-style="italic" font-size="11" fill="#b8543e">silent timeouts</text>
+  <g transform="translate(255,205)">
+    <rect x="0" y="0" width="250" height="60" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.8" rx="2"/>
+  </g>
+  <g stroke="#b8543e" stroke-width="2" opacity="0.5">
+    <line x1="290" y1="220" x2="490" y2="255"/>
+    <line x1="490" y1="220" x2="290" y2="255"/>
+  </g>
+  <g transform="translate(255,205)">
+    <text x="125" y="22" text-anchor="middle" font-size="13" font-weight="600">main</text>
+    <text x="125" y="42" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#b8543e">two HEADs · history forked</text>
+  </g>
+  <text x="380" y="305" text-anchor="middle" font-style="italic" font-size="13" fill="#b8543e">"the kid's soccer team chasing the ball"</text>
+  <text x="380" y="330" text-anchor="middle" font-size="11" fill="#3a342a">no merge queue. no health monitor. no shared notion of what's done.</text>
+</svg>
+<figcaption><strong>Fig 1.</strong> What twenty parallel coding agents look like with no orchestrator. The work is happening; it is just not converging. The merge queue does not exist as a concept yet, so every agent thinks it owns main.</figcaption>
+</figure>
+
+The naive answer fails because it has no model of what the work is. The agents have no shared notion of what's done, what's queued, what's been merged, what's currently being attempted. There's no merge queue, no health monitor, no priority. There's just twenty independent processes shouting `git push --force`.
+
+You need a substrate. That's where Beads comes in.
+
+### 3. Beads, or what work looks like when AI reads it
+
+Beads is Yegge's earlier project, launched October 2025. It's a git-backed issue tracker. Originally each issue was a JSON object on its own line in a JSONL file kept in your repo, with a SQLite cache layer hydrating from that file for fast queries. As of v1.0 in April 2026, the storage layer is embedded Dolt, a git-versioned SQL database. The principle hasn't changed: work-as-data, in version control, queryable by an LLM. Just the substrate did.
+
+If you've used Linear or Jira, this looks like a step backwards. You're trading a slick web UI for a CLI and some structured text in a directory called `.beads/`.
+
+But there are two things Beads gets right that Linear and Jira can't.
+
+The first is that the issues are *in the repo*. Your branch and your work tracker move together. When you check out an old commit, the issue tracker rewinds to match. When you fork a branch to try something out, the work plan forks with it. Git's whole vocabulary for managing parallel work (branches, merges, rebases, cherry-picks) applies to your tickets the same way it applies to your code. This sounds small. It is not. It means an AI agent reading your repo has access to the full work history without any extra API call.
+
+The second is the data format. Whether the format is JSONL or a Dolt table, the agent gets structured records it can read, edit, append to, and version. There's no opaque database, no auth flow, no rate limit, no schema migration. The agent reads the work tracker the same way it reads your code: as queryable structured data, version-controlled by git.
+
+```
+# Original Beads (Oct 2025 - early 2026): JSONL in your repo
+{"id":"bd-a7je4","title":"fix rate limiter race","status":"ready",...}
+{"id":"bd-a7je5","title":"add backpressure metric","status":"blocked",...}
+
+# Beads v1.0 (Apr 2026): same shape, embedded Dolt as the store
+SELECT id, title, status FROM beads WHERE assignee = 'sully';
+```
+
+This is the foundation. Everything else in Gas Town is built on the assumption that work is a thing you can read, edit, append to, and version, the same way you do with code. Once you accept that as the substrate, a number of moves that look weird start to make sense.
+
+### 4. The unit-of-work inversion
+
+Here's the second move, and it's the central one.
+
+A Claude Code session runs for a while and then ends. Either you `/exit`, or the context runs out, or the host process gets killed. The session has a beginning and an end. It is, in Kubernetes terms, a pod: ephemeral, replaceable, anonymous. You don't name your pods.
+
+A pod managing a deployment, on the other hand, is persistent. It has a name, a role, an identity, a history. The deployment outlives any individual pod. Pods come and go; the deployment proceeds.
+
+Gas Town does the same inversion at the agent layer. *Sessions are cattle. Agents are pets.* An agent in Gas Town is not a session. An agent is a Bead, a row in your work tracker, with a name (Sully, Cooper, Maxine), a role (polecat, crew, refinery), a hook (a queue of pending work), and a CV (a list of completed *convoys*, which is what Gas Town calls a batch of related beads worked in parallel and landed together). The Bead lives in git. The CV is committed. The hook is committed. The agent persists across crashes, compactions, restarts, and machine reboots, because the agent is data.
+
+The session is the thing you spawn when the agent has work to do. The session reads the agent's identity from Beads, reads its hook to find the work, does the work, commits the result, and exits. Another session can come along five minutes later and pick up where the last one left off, because the work is still on the hook and the hook is in git.
+
+<figure>
+<svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="A persistent agent shown as a horizontal pillar in git, with multiple ephemeral sessions attached at different times.">
+  <g transform="translate(40,140)">
+    <rect x="0" y="0" width="680" height="50" fill="#fdfbf6" stroke="#1c1a15" stroke-width="2" rx="3"/>
+    <rect x="0" y="0" width="180" height="50" fill="#f5efe2"/>
+    <text x="20" y="22" font-size="13" font-weight="600">sully</text>
+    <text x="20" y="40" font-size="11" fill="#3a342a">role: polecat · rig-A</text>
+    <line x1="180" y1="0" x2="180" y2="50" stroke="#1c1a15" stroke-width="1.5"/>
+    <text x="200" y="22" font-family="JetBrains Mono" font-size="11" fill="#3a342a">hook: [bd-a7je4, bd-a7je9, bd-a7jf2]</text>
+    <text x="200" y="40" font-family="JetBrains Mono" font-size="11" fill="#8a8377">cv: [convoy-04, convoy-09, convoy-12, ...]</text>
+  </g>
+  <text x="40" y="135" font-size="10" fill="#8a8377" letter-spacing="0.05em" text-transform="uppercase">AGENT (persistent · in git)</text>
+  <g>
+    <line x1="60" y1="100" x2="720" y2="100" stroke="#8a8377" stroke-width="1" stroke-dasharray="2 4"/>
+    <text x="60" y="90" font-size="10" fill="#8a8377">9 AM</text>
+    <text x="180" y="90" font-size="10" fill="#8a8377">10 AM</text>
+    <text x="320" y="90" font-size="10" fill="#8a8377">11 AM</text>
+    <text x="450" y="90" font-size="10" fill="#8a8377">1 PM</text>
+    <text x="580" y="90" font-size="10" fill="#8a8377">3 PM</text>
+    <text x="690" y="90" font-size="10" fill="#8a8377">NOW</text>
+  </g>
+  <g>
+    <g transform="translate(70,30)">
+      <rect x="0" y="0" width="80" height="44" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.2" rx="2"/>
+      <text x="40" y="18" text-anchor="middle" font-size="11" fill="#3a342a">session 1</text>
+      <text x="40" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8377">2h, ctx full</text>
+      <line x1="40" y1="44" x2="40" y2="100" stroke="#b8543e" stroke-width="1" stroke-dasharray="2 3"/>
+    </g>
+    <g transform="translate(190,30)">
+      <rect x="0" y="0" width="80" height="44" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.2" rx="2"/>
+      <text x="40" y="18" text-anchor="middle" font-size="11" fill="#3a342a">session 2</text>
+      <text x="40" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8377">crashed</text>
+      <line x1="40" y1="44" x2="40" y2="100" stroke="#b8543e" stroke-width="1" stroke-dasharray="2 3"/>
+    </g>
+    <g transform="translate(310,30)">
+      <rect x="0" y="0" width="80" height="44" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.2" rx="2"/>
+      <text x="40" y="18" text-anchor="middle" font-size="11" fill="#3a342a">session 3</text>
+      <text x="40" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8377">handed off</text>
+      <line x1="40" y1="44" x2="40" y2="100" stroke="#b8543e" stroke-width="1" stroke-dasharray="2 3"/>
+    </g>
+    <g transform="translate(440,30)">
+      <rect x="0" y="0" width="80" height="44" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.2" rx="2"/>
+      <text x="40" y="18" text-anchor="middle" font-size="11" fill="#3a342a">session 4</text>
+      <text x="40" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8377">finished</text>
+      <line x1="40" y1="44" x2="40" y2="100" stroke="#b8543e" stroke-width="1" stroke-dasharray="2 3"/>
+    </g>
+    <g transform="translate(570,30)">
+      <rect x="0" y="0" width="80" height="44" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.2" rx="2"/>
+      <text x="40" y="18" text-anchor="middle" font-size="11" fill="#3a342a">session 5</text>
+      <text x="40" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#b8543e">running</text>
+      <line x1="40" y1="44" x2="40" y2="100" stroke="#b8543e" stroke-width="1.4"/>
+    </g>
+  </g>
+  <text x="40" y="20" font-size="10" fill="#b8543e" letter-spacing="0.05em">SESSIONS (ephemeral)</text>
+  <g transform="translate(40,230)">
+    <line x1="0" y1="20" x2="680" y2="20" stroke="#1c1a15" stroke-width="1"/>
+    <g fill="#1c1a15">
+      <circle cx="50" cy="20" r="3"/>
+      <circle cx="120" cy="20" r="3"/>
+      <circle cx="190" cy="20" r="3"/>
+      <circle cx="260" cy="20" r="3"/>
+      <circle cx="330" cy="20" r="3"/>
+      <circle cx="400" cy="20" r="3"/>
+      <circle cx="470" cy="20" r="3"/>
+      <circle cx="540" cy="20" r="3"/>
+      <circle cx="610" cy="20" r="3"/>
+      <circle cx="670" cy="20" r="3" fill="#b8543e"/>
+    </g>
+    <text x="0" y="50" font-size="10" fill="#8a8377">git history (commits, hook updates, CV entries)</text>
+  </g>
+</svg>
+<figcaption><strong>Fig 2.</strong> The agent is the row in the database. The sessions are short-lived processes that borrow the row to do a piece of work and then disappear. The history of what the agent has done lives in git, not in any one session.</figcaption>
+</figure>
+
+Once you make this inversion, the context-window problem becomes mundane. Sessions hit context limits all the time. Who cares. The agent is fine. Spawn another session. The work is still where it was. The agent's name is still on it.
+
+This is the conceptual hinge of Gas Town. Almost every other design choice is in service of making this inversion structurally sound.
+
+## Act 1: The Ledger
+
+### 5. MEOW, from the bottom up
+
+Once you've accepted that work is data, the next question is: what kind of data? A flat list of issues is fine for one human, fine for one agent. It breaks the moment your work has shape. "Migrate the auth schema, then in parallel update five backend services, then in parallel update three frontends, then deploy" is not a list. It's a graph with sequencing, branching, and joins. You can hold it in your head. You cannot sling it onto an agent's hook as one ticket. You need composition: a way to say "this big thing is made of these smaller things, in this order, with these constraints, and a worker can pick up wherever the previous one left off."
+
+The MEOW stack (Molecular Expression of Work) is Yegge's answer. It has four levels of composition (Beads, Molecules, Protomolecules, Formulas), with Epics living sideways as beads-with-children rather than as their own layer.
+
+<figure>
+<svg viewBox="0 0 600 470" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="The MEOW stack: Formula, Protomolecule, Molecule, Bead.">
+  <g transform="translate(120,30)">
+    <rect x="0" y="0" width="360" height="64" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="20" y="25" font-weight="600" font-size="14">Formula</text>
+    <text x="20" y="48" font-size="11" fill="#3a342a">TOML source. composable, has macros, gates, loops.</text>
+    <text x="350" y="25" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#b8543e">.toml</text>
+  </g>
+  <g transform="translate(300,100)">
+    <line x1="0" y1="0" x2="0" y2="22" stroke="#1c1a15" stroke-width="1.5"/>
+    <polygon points="-4,18 4,18 0,26" fill="#1c1a15"/>
+    <text x="14" y="18" font-style="italic" font-size="11" fill="#b8543e">cook</text>
+  </g>
+  <g transform="translate(105,128)">
+    <rect x="0" y="0" width="390" height="64" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="20" y="25" font-weight="600" font-size="14">Protomolecule</text>
+    <text x="20" y="48" font-size="11" fill="#3a342a">template graph of beads. has placeholders, no values yet.</text>
+  </g>
+  <g transform="translate(300,198)">
+    <line x1="0" y1="0" x2="0" y2="22" stroke="#1c1a15" stroke-width="1.5"/>
+    <polygon points="-4,18 4,18 0,26" fill="#1c1a15"/>
+    <text x="14" y="18" font-style="italic" font-size="11" fill="#b8543e">instantiate</text>
+  </g>
+  <g transform="translate(80,226)">
+    <rect x="0" y="0" width="440" height="64" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="20" y="25" font-weight="600" font-size="14">Molecule</text>
+    <text x="20" y="48" font-size="11" fill="#3a342a">concrete bead-chain workflow. running instance.</text>
+    <g transform="translate(290,28)">
+      <circle cx="0" cy="0" r="6" fill="#b8543e" stroke="#1c1a15"/>
+      <line x1="6" y1="0" x2="20" y2="0" stroke="#1c1a15" stroke-width="1"/>
+      <circle cx="26" cy="0" r="6" fill="#b8543e" stroke="#1c1a15"/>
+      <line x1="32" y1="0" x2="46" y2="0" stroke="#1c1a15" stroke-width="1"/>
+      <circle cx="52" cy="0" r="6" fill="#b8543e" stroke="#1c1a15"/>
+      <line x1="58" y1="0" x2="72" y2="0" stroke="#1c1a15" stroke-width="1"/>
+      <circle cx="78" cy="0" r="6" fill="#fdfbf6" stroke="#1c1a15"/>
+      <line x1="84" y1="0" x2="98" y2="0" stroke="#1c1a15" stroke-width="1"/>
+      <circle cx="104" cy="0" r="6" fill="#fdfbf6" stroke="#1c1a15"/>
+    </g>
+  </g>
+  <g transform="translate(300,296)">
+    <line x1="0" y1="0" x2="0" y2="22" stroke="#1c1a15" stroke-width="1.5"/>
+    <polygon points="-4,18 4,18 0,26" fill="#1c1a15"/>
+    <text x="14" y="18" font-style="italic" font-size="11" fill="#b8543e">walk one step at a time</text>
+  </g>
+  <g transform="translate(50,324)">
+    <rect x="0" y="0" width="500" height="80" fill="#fdfbf6" stroke="#1c1a15" stroke-width="2" rx="3"/>
+    <text x="20" y="25" font-weight="600" font-size="14">Bead</text>
+    <text x="20" y="46" font-size="11" fill="#3a342a">the atomic unit. one issue, version-controlled in git.</text>
+    <text x="20" y="66" font-family="JetBrains Mono" font-size="10" fill="#8a8377">id · status · depends_on · acceptance criteria · assignee · ...</text>
+    <text x="480" y="25" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#b8543e">dolt</text>
+  </g>
+  <text x="300" y="426" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">EPICS = BEADS WITH CHILDREN · LIVE BESIDE, NOT BELOW</text>
+  <text x="300" y="452" text-anchor="middle" font-style="italic" font-size="11" fill="#b8543e">all of this lives in your repo, queryable by SQL, version-controlled by git</text>
+</svg>
+<figcaption><strong>Fig 3.</strong> The MEOW stack. The atom is the bead. Going up the stack, you compose beads into runnable workflows, then templates, then a declarative source format. Going down the stack, you cook a formula into a protomolecule, instantiate it into a molecule, walk the molecule one bead at a time.</figcaption>
+</figure>
+
+**Beads** are the atoms. A bead is a single issue. It can be claimed, worked on, closed, blocked. Most bugs and features start life as a bead.
+
+**Epics** are beads that have children. The children can be epics themselves. The children are parallel by default; you add explicit dependencies if you need sequencing. Epics give you top-down planning: "ship the new auth flow" decomposes into "design the schema," "implement the backend," "implement the frontend," "write the tests," and so on. The leaves get done first; the root finishes last.
+
+**Molecules** are workflows. They're bead chains with arbitrary shapes, including branches, joins, gates, and loops. Crucially, a molecule is *executable*. The agent walks the chain one bead at a time, claiming and closing each in turn. Because the chain is in git, the agent can crash partway through, and the next session can resume from wherever the last claim was.
+
+**Protomolecules** are templates. A 20-step release process is a useful thing to have written down. A 20-step release process you can stamp out fresh on demand, with all the dependencies pre-wired, is more useful. A protomolecule is the template; a molecule is an instance, created by copying the template and substituting in the variables.
+
+**Formulas** are the source form. They're TOML files describing a workflow declaratively, with macros and gates and loops. A formula gets cooked into a protomolecule, which gets instantiated into a molecule, which gets executed by an agent. Three layers of indirection, each earning its keep: formulas are reusable, protomolecules are concrete graphs, molecules are running instances.
+
+There's also an escape hatch called **wisps**: ephemeral beads that live in the database but never get persisted. The orchestration agents (Refinery, Witness, Deacon) generate hundreds of wisps an hour for their internal patrol workflows. Persisting them all would bury your repo in orchestration noise, so wisps stay in memory and burn at the end of the run.
+
+If you've worked on workflow systems, this looks familiar. You've seen something like it in Airflow (DAGs and tasks), in Temporal (workflows and activities), in Argo (workflow templates and workflows). The interesting thing about MEOW is not the structure. The interesting thing is that it lives in git, with the same affordances as your codebase. An agent can read your work graph the way it reads your imports.
+
+### 6. GUPP, or how to fight LLM politeness
+
+OK, so work is in git. Workflows are in git. Agents are in git. How does an agent know to start working?
+
+Each agent has a **hook**. The hook is a special pinned bead, attached to the agent's identity. When you want to give an agent work, you `gt sling` it onto the agent's hook. The work sits there, waiting.
+
+The principle, called GUPP (Gastown Universal Propulsion Principle), is short:
+
+> *If there is work on your hook, you must run it.*
+
+That's the whole rule. Every agent is prompted with it on startup. The agent's first action, on every session, is to check its hook. If something's on the hook, the agent starts working. If not, the agent waits or sleeps.
+
+This is what makes Gas Town go without you driving it. You sling work onto a hook and walk away. The next time a session spins up for that agent, it picks up the work and runs.
+
+In theory.
+
+In practice, Claude Code is too polite for its own good. The startup prompt explicitly tells the agent to check its hook and act. The agent acknowledges this. It says "I'll check my hook now." Then it sits there, waiting for you to type something. Anything. Until the user has produced some input, the agent doesn't believe it has permission to actually do work.
+
+Yegge calls this "physics over politeness." The agent is physically allowed (and instructed) to do the work. It has the prompt. It has the tools. It has the hook. But its training pushes it toward waiting for human input, hard. So Gas Town has to nudge.
+
+The nudge is mechanical: a tmux `send-keys` that fires a few seconds after the session starts, simulating user input that says, in effect, "do your job." This bypasses the politeness deadlock. The agent reads the nudge, checks its hook, and starts working.
+
+There is something funny about this. A meaningful chunk of the orchestrator's complexity is dedicated to working around an alignment artifact. The agent has been so thoroughly trained to wait for the human that it cannot be unblocked by a system prompt alone. It needs to *see input arrive*. So the system fakes input arriving.
+
+I'd guess this layer vanishes over the next two model generations. The model providers know about this failure mode. Once Claude Code (and Codex, and Gemini CLI) ship versions willing to act on hook work without a manual prompt, GUPP becomes pure declarative. Until then, GUPP is a contract between the orchestrator and the model that requires a small amount of theater to enforce.
+
+### 7. Nondeterministic idempotence
+
+GUPP gets the agent moving. The next question is what keeps the work durable when the session dies mid-step. That's the runtime model.
+
+Temporal, the workflow engine that Yegge gestures at as a comparison, has a beautiful property called *deterministic durable replay*. You write a workflow as ordinary code. Temporal records every step it takes (every API call, every wait, every result). When the workflow crashes and resumes on a new machine, Temporal replays the recorded history to reconstruct local state, and then continues from where it left off. The replay is deterministic: given the same history, the workflow code produces exactly the same execution. This is what makes Temporal workflows feel like code that just doesn't crash.
+
+Gas Town can't do this. The reason is simple: the steps are written by an LLM. There's no determinism. If you replay a molecule, the agent making decisions inside each step will produce different output, take different code paths, and possibly reach a different end state.
+
+So Gas Town gets durability the other way. Yegge calls it Nondeterministic Idempotence (NDI). The shape is:
+
+1. The workflow (the molecule) is persistent. It's a chain of beads in git.
+2. Each step has well-specified acceptance criteria. The bead describes what "done" looks like, concretely enough that an agent reading the bead can tell.
+3. Agents claim steps one at a time, do them, and close them. A closed step is closed. An open step is open. There's no in-between.
+4. If a session crashes mid-step, the step stays open. The next session reads it, picks up where the last one left off (or starts the step over, if that's cheaper), and closes it.
+5. The path is fully nondeterministic. The outcome is the workflow, completed.
+
+It's a clean design. The bead acceptance criteria are the contract. The git history is the substrate. The agent is the reasoning engine that figures out, on each step, what "completing this bead" means in the current state of the world. If an agent makes a mistake, the next agent reads the bead, sees the work didn't match the criteria, and corrects it.
+
+NDI is weaker than Temporal's guarantees. Temporal will execute exactly the workflow you wrote. NDI will execute *some* workflow that satisfies the acceptance criteria you wrote, and the path may meander. For the kinds of work coding agents do (where there are usually many valid solutions and the goal is the outcome, not the trajectory) this is plenty, as long as the acceptance criteria are tight enough to catch trajectory-sensitive failures like races or partial migrations. Where they aren't, the LLM can pass each step and still produce a globally wrong result, and you fall back to the script approach for those steps.
+
+There's parallel academic work pointing in the same direction. The [MAKER paper](https://arxiv.org/abs/2511.09030) from Cognizant and UT Austin (Nov 2025) showed you can complete an LLM task with over a million dependent steps and zero errors, by decomposing the task into atomic microagents and applying per-step error correction. NDI is a less clinical version of the same insight: long LLM workflows complete reliably when each step is atomized, well-specified, and individually checkable. Gas Town adds the working substrate and the role hierarchy on top.
+
+> *The path is whatever the agent decides. The destination is whatever the bead says.*
+
+> **Checkpoint: what you know now.**
+>
+> **Coding agents fail at scale** because the work loses durability between sessions. Gas Town fixes this by inverting the unit-of-work: agents become persistent identities in git, sessions become disposable processes that borrow those identities for an hour at a time.
+>
+> **Work itself is structured** into a four-level composition stack (Beads, Molecules, Protomolecules, Formulas), with Epics sitting sideways as beads-with-children. The atomic level is Beads, which started as JSONL and migrated to embedded Dolt at v1.0. Higher levels compose into runnable workflows. Wisps give you ephemeral workflows for orchestration noise.
+>
+> **The runtime model is Nondeterministic Idempotence:** workflows live in git as bead chains, each step has clear acceptance criteria, sessions claim and close steps, and crashes are recovered by the next session re-reading the chain. The path varies; the outcome is invariant.
+>
+> What we haven't covered yet: how agents in the swarm avoid eating each other.
+
+## Act 2: The Town
+
+### 8. Seven roles, two tiers
+
+A durable bead tells you what work exists. It doesn't tell you who notices when nobody is moving it. It doesn't pick the next polecat to spawn, decide whether two agents are about to step on the same file, or restart a Witness that quietly died at 2 AM. The ledger is necessary. It isn't sufficient. You need agents whose job is watching other agents, and rules for who reports to whom.
+
+Gas Town's answer is seven roles, organized into two tiers. Twenty to thirty agents work concurrently across one or more git repos (called rigs); the coordination is what keeps them from eating each other.
+
+<figure>
+<svg viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="Gas Town hierarchy: Overseer, then Mayor and Deacon as town-tier peers, with Dogs attached to Deacon, and per-rig Witnesses, Polecats, Refinery, Crew descending from Deacon.">
+  <g transform="translate(330,15)">
+    <rect x="0" y="0" width="100" height="44" fill="#fdfbf6" stroke="#1c1a15" stroke-width="2" rx="22"/>
+    <text x="50" y="20" text-anchor="middle" font-weight="600" font-size="13">Overseer</text>
+    <text x="50" y="35" text-anchor="middle" font-size="11" fill="#3a342a">(you)</text>
+  </g>
+  <line x1="380" y1="59" x2="380" y2="72" stroke="#1c1a15" stroke-width="1.5"/>
+  <line x1="200" y1="72" x2="560" y2="72" stroke="#1c1a15" stroke-width="1.5"/>
+  <line x1="200" y1="72" x2="200" y2="90" stroke="#1c1a15" stroke-width="1.5"/>
+  <line x1="560" y1="72" x2="560" y2="90" stroke="#1c1a15" stroke-width="1.5"/>
+  <g transform="translate(130,90)">
+    <rect x="0" y="0" width="140" height="50" fill="#f5efe2" stroke="#1c1a15" stroke-width="2" rx="3"/>
+    <text x="70" y="22" text-anchor="middle" font-weight="600" font-size="13">The Mayor</text>
+    <text x="70" y="38" text-anchor="middle" font-size="11" fill="#3a342a">your front desk</text>
+  </g>
+  <g transform="translate(490,90)">
+    <rect x="0" y="0" width="140" height="50" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="70" y="22" text-anchor="middle" font-weight="600" font-size="13">The Deacon</text>
+    <text x="70" y="38" text-anchor="middle" font-size="11" fill="#3a342a">patrols the town</text>
+  </g>
+  <line x1="630" y1="115" x2="657" y2="115" stroke="#1c1a15" stroke-width="1.5"/>
+  <g transform="translate(657,98)">
+    <rect x="0" y="0" width="93" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="46" y="16" text-anchor="middle" font-weight="600" font-size="12">Dogs</text>
+    <text x="46" y="28" text-anchor="middle" font-size="10" fill="#3a342a">helpers</text>
+  </g>
+  <line x1="40" y1="170" x2="720" y2="170" stroke="#d8d2c4" stroke-width="1" stroke-dasharray="3 4"/>
+  <text x="40" y="163" font-size="10" fill="#b8543e" letter-spacing="0.05em">· TOWN TIER ·</text>
+  <text x="720" y="163" text-anchor="end" font-size="10" fill="#8a8377" letter-spacing="0.05em">across all rigs</text>
+  <text x="40" y="217" font-size="10" fill="#b8543e" letter-spacing="0.05em">· RIG TIER ·</text>
+  <text x="720" y="217" text-anchor="end" font-size="10" fill="#8a8377" letter-spacing="0.05em">per repo</text>
+  <line x1="560" y1="140" x2="560" y2="200" stroke="#1c1a15" stroke-width="1.5"/>
+  <line x1="180" y1="200" x2="580" y2="200" stroke="#1c1a15" stroke-width="1.5"/>
+  <line x1="180" y1="200" x2="180" y2="225" stroke="#1c1a15" stroke-width="1.5"/>
+  <line x1="380" y1="200" x2="380" y2="225" stroke="#1c1a15" stroke-width="1.5"/>
+  <line x1="580" y1="200" x2="580" y2="225" stroke="#1c1a15" stroke-width="1.5"/>
+  <g transform="translate(135,225)">
+    <rect x="0" y="0" width="90" height="40" fill="#f5efe2" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="45" y="18" text-anchor="middle" font-weight="600" font-size="11">Witness</text>
+    <text x="45" y="32" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8377">rig-A</text>
+  </g>
+  <g transform="translate(335,225)">
+    <rect x="0" y="0" width="90" height="40" fill="#f5efe2" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="45" y="18" text-anchor="middle" font-weight="600" font-size="11">Witness</text>
+    <text x="45" y="32" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8377">rig-B</text>
+  </g>
+  <g transform="translate(535,225)">
+    <rect x="0" y="0" width="90" height="40" fill="#f5efe2" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="45" y="18" text-anchor="middle" font-weight="600" font-size="11">Witness</text>
+    <text x="45" y="32" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8377">rig-C</text>
+  </g>
+  <line x1="180" y1="265" x2="180" y2="305" stroke="#1c1a15" stroke-width="1"/>
+  <line x1="380" y1="265" x2="380" y2="305" stroke="#1c1a15" stroke-width="1"/>
+  <line x1="580" y1="265" x2="580" y2="305" stroke="#1c1a15" stroke-width="1"/>
+  <g transform="translate(110,305)">
+    <rect x="0" y="0" width="140" height="100" fill="none" stroke="#d8d2c4" stroke-width="1" stroke-dasharray="3 3" rx="3"/>
+    <text x="70" y="-6" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">RIG-A WORKERS</text>
+    <g transform="translate(8,12)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">polecat</text></g>
+    <g transform="translate(72,12)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">polecat</text></g>
+    <g transform="translate(8,40)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.4" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">refinery</text></g>
+    <g transform="translate(72,40)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">crew</text></g>
+    <g transform="translate(40,68)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">crew</text></g>
+  </g>
+  <g transform="translate(310,305)">
+    <rect x="0" y="0" width="140" height="100" fill="none" stroke="#d8d2c4" stroke-width="1" stroke-dasharray="3 3" rx="3"/>
+    <text x="70" y="-6" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">RIG-B WORKERS</text>
+    <g transform="translate(8,12)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">polecat</text></g>
+    <g transform="translate(72,12)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">polecat</text></g>
+    <g transform="translate(8,40)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">polecat</text></g>
+    <g transform="translate(72,40)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.4" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">refinery</text></g>
+    <g transform="translate(40,68)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">crew</text></g>
+  </g>
+  <g transform="translate(510,305)">
+    <rect x="0" y="0" width="140" height="100" fill="none" stroke="#d8d2c4" stroke-width="1" stroke-dasharray="3 3" rx="3"/>
+    <text x="70" y="-6" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">RIG-C WORKERS</text>
+    <g transform="translate(8,12)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">polecat</text></g>
+    <g transform="translate(72,12)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.4" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">refinery</text></g>
+    <g transform="translate(8,40)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">crew</text></g>
+    <g transform="translate(72,40)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">crew</text></g>
+    <g transform="translate(40,68)"><rect x="0" y="0" width="60" height="22" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1" rx="2"/><text x="30" y="15" text-anchor="middle" font-size="11" fill="#3a342a">crew</text></g>
+  </g>
+  <text x="380" y="440" text-anchor="middle" font-style="italic" font-size="11" fill="#b8543e">everything anchored in Beads · in git</text>
+</svg>
+<figcaption><strong>Fig 4.</strong> The Gas Town role hierarchy. The Mayor and Deacon (and the Deacon's Dogs) operate town-wide. Each rig has its own Witness, its own Refinery, its own Polecats, and its own Crew. Beads is the substrate everything writes to.</figcaption>
+</figure>
+
+Three roles operate at the **town level** (across all rigs):
+
+**The Mayor** is your front desk. It's the agent you talk to most. When you have an idea ("we need to fix the rate limiter"), you talk to the Mayor. The Mayor files beads, drafts plans, slings work to other agents, and gathers status when convoys land. It's the only agent with a global view of the town.
+
+**The Deacon** is the watchdog. It runs a patrol loop, every couple of minutes, checking on the health of the town. It can dispatch maintenance work, restart stuck agents, escalate genuine problems to you. The Deacon is what makes Gas Town keep running while you're at lunch. (It is also, in early Gas Town versions, the role most likely to go feral. Yegge had to issue a public warning during the first month asking users to disable the Deacon because it was, in his words, ["spree-killing all the other workers while on his patrol."](https://steve-yegge.medium.com/gas-town-from-clown-show-to-v1-0-c239d9a407ec) This has since been fixed.)
+
+**The Dogs** are the Deacon's hands, plus one structural exception. The patrol loop got too crowded with chores (clean up stale branches, run plugins, GC merged worktrees), so the Deacon hands those off to dedicated maintenance agents. The exception is Boot the Dog, who isn't a maintenance helper at all: Boot wakes up every five minutes and checks whether the Deacon is alive. Boot watches the Deacon, the other Dogs work for the Deacon. We'll come back to that distinction in section 10.
+
+Four roles operate at the **rig level** (per repo):
+
+**Polecats** are the workers. They're ephemeral, named, claimed for a task, and decommissioned when the task is done. A polecat picks up a bead, opens a worktree, does the work, files a merge request, and gets recycled. Polecats are how throughput happens.
+
+**The Refinery** is the merge queue. When ten polecats finish their work simultaneously, you can't just merge ten branches into main. You'd get conflicts, broken builds, and a fork no one understands. The Refinery serializes merges, intelligently rebases, runs tests, and lands one MR at a time.
+
+**The Witness** is the per-rig health monitor. Same idea as the Deacon, but scoped to one repo. The Witness keeps polecats unstuck, prods the Refinery if the queue stalls, and escalates to the Deacon if a problem is bigger than one rig.
+
+**The Crew** are your collaborators. Crew agents are persistent, named (you pick the names), and work on whatever you tell them. They're the equivalent of the Claude Code session you used to keep open all day, except now there are several of them, each with its own identity and history. Crew is for the work where you want to be in the loop. Polecats are for the work where you don't.
+
+If you squint, this looks like Kubernetes. The Mayor is the scheduler. The Deacon is the controller manager. The Witness is the kubelet. The Polecats are the pods. Beads is etcd. Yegge points this out at the end of [his launch post](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04) and treats it as a discovery: these are the natural shapes that emerge when you need to herd cats at scale.
+
+I think the Kubernetes resemblance is more than a coincidence. The shape of any system that coordinates unreliable workers toward a goal converges on something like this. There's a top-level brain. There's a thing that watches the watchers. There's a queue. There's a recycler. There's an audit log. There's a place to put the source of truth. The names change. The shape doesn't.
+
+The interesting difference, and Yegge calls this out, is what each system optimizes for. Kubernetes asks "is it running?" It tries to keep N replicas alive forever. Gas Town asks "is it done?" It tries to land a convoy and then nuke the worker. K8s pods are anonymous; Gas Town polecats have names and CVs. K8s reconciles toward a continuous desired state; Gas Town proceeds toward a terminal goal. Same engine shape, different destination.
+
+### 9. The Refinery, or why the merge queue is the actual product
+
+If I had to point at one role and say "this is the thing that makes Gas Town more than a wrapper around tmux," it would be the Refinery.
+
+Here's the problem the Refinery solves. You have ten polecats working in parallel, each on its own worktree, against a base branch that started identical. They each finish around the same time and submit their merge requests. Now you have ten changes that all want to land. They overlap in places. They were each written assuming the base branch wouldn't move. You merge the first one. The other nine are now stale.
+
+A naive solution: rebase all nine and merge them in order. Half of them have textual conflicts. A few have semantic conflicts that the textual diff doesn't catch. One was working on the same file the second one already changed, and the rebase produces a perfectly valid-looking patch that breaks the test suite.
+
+The Refinery is an agent specifically prompted for this. It uses what's called a **Bors-style bisecting merge queue** (named after [Bors-NG](https://github.com/bors-ng/bors-ng), the merge bot the Rust language project used for years). The pattern is: instead of testing each MR one at a time, you batch them together, merge the batch onto main, and run the test suite once. If the batch passes, all the MRs land. If the batch fails, you split it in two and retry each half. The bad MR gets isolated in O(log N) batches instead of O(N) sequential tests, which is a meaningful difference when each test run takes ten minutes and you have thirty MRs in the queue.
+
+<figure>
+<svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="Bors-style bisecting merge queue: batch fails, splits in two, half passes, half splits again, isolating the bad MR in log N batches.">
+  <g transform="translate(60,30)">
+    <rect x="0" y="0" width="200" height="60" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="100" y="20" text-anchor="middle" font-weight="600" font-size="12">batch: MRs #1 #2 #3 #4 #5 #6 #7 #8</text>
+    <text x="100" y="40" text-anchor="middle" font-size="11" fill="#3a342a">try to merge all</text>
+    <text x="100" y="55" text-anchor="middle" font-style="italic" font-size="11" fill="#b8543e">test fails</text>
+  </g>
+
+  <g stroke="#1c1a15" stroke-width="1" fill="none">
+    <line x1="160" y1="90" x2="100" y2="120"/>
+    <line x1="160" y1="90" x2="220" y2="120"/>
+    <polygon points="100,120 96,114 104,114" fill="#1c1a15"/>
+    <polygon points="220,120 216,114 224,114" fill="#1c1a15"/>
+  </g>
+
+  <g transform="translate(40,125)">
+    <rect x="0" y="0" width="120" height="46" fill="#fdfbf6" stroke="#3a8c5c" stroke-width="1.5" rx="3"/>
+    <text x="60" y="18" text-anchor="middle" font-weight="600" font-size="11">#1 #2 #3 #4</text>
+    <text x="60" y="35" text-anchor="middle" font-size="11" fill="#3a8c5c">passes · landed</text>
+  </g>
+
+  <g transform="translate(180,125)">
+    <rect x="0" y="0" width="120" height="46" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.5" rx="3"/>
+    <text x="60" y="18" text-anchor="middle" font-weight="600" font-size="11">#5 #6 #7 #8</text>
+    <text x="60" y="35" text-anchor="middle" font-size="11" fill="#b8543e">fails · split</text>
+  </g>
+
+  <g stroke="#1c1a15" stroke-width="1" fill="none">
+    <line x1="240" y1="171" x2="200" y2="200"/>
+    <line x1="240" y1="171" x2="280" y2="200"/>
+    <polygon points="200,200 196,194 204,194" fill="#1c1a15"/>
+    <polygon points="280,200 276,194 284,194" fill="#1c1a15"/>
+  </g>
+
+  <g transform="translate(150,205)">
+    <rect x="0" y="0" width="100" height="40" fill="#fdfbf6" stroke="#3a8c5c" stroke-width="1.5" rx="3"/>
+    <text x="50" y="16" text-anchor="middle" font-weight="600" font-size="11">#5 #6</text>
+    <text x="50" y="32" text-anchor="middle" font-size="11" fill="#3a8c5c">passes</text>
+  </g>
+
+  <g transform="translate(260,205)">
+    <rect x="0" y="0" width="100" height="40" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.5" rx="3"/>
+    <text x="50" y="16" text-anchor="middle" font-weight="600" font-size="11">#7 #8</text>
+    <text x="50" y="32" text-anchor="middle" font-size="11" fill="#b8543e">fails · split</text>
+  </g>
+
+  <g stroke="#1c1a15" stroke-width="1" fill="none">
+    <line x1="310" y1="245" x2="290" y2="265"/>
+    <line x1="310" y1="245" x2="330" y2="265"/>
+    <polygon points="290,265 286,259 294,259" fill="#1c1a15"/>
+    <polygon points="330,265 326,259 334,259" fill="#1c1a15"/>
+  </g>
+
+  <g transform="translate(255,270)">
+    <rect x="0" y="0" width="60" height="36" fill="#fdfbf6" stroke="#3a8c5c" stroke-width="1.5" rx="3"/>
+    <text x="30" y="14" text-anchor="middle" font-weight="600" font-size="11">#7</text>
+    <text x="30" y="28" text-anchor="middle" font-size="11" fill="#3a8c5c">passes</text>
+  </g>
+
+  <g transform="translate(320,270)">
+    <rect x="0" y="0" width="60" height="36" fill="#fdfbf6" stroke="#b8543e" stroke-width="1.5" rx="3"/>
+    <text x="30" y="14" text-anchor="middle" font-weight="600" font-size="11">#8</text>
+    <text x="30" y="28" text-anchor="middle" font-size="11" fill="#b8543e">isolated</text>
+  </g>
+
+  <g transform="translate(450,90)">
+    <text x="0" y="0" font-weight="600" font-size="13">Bors-style bisection</text>
+    <text x="0" y="22" font-size="11" fill="#3a342a">Bad MR found in log₂(N) batches.</text>
+    <text x="0" y="40" font-size="11" fill="#3a342a">For 8 MRs with one bad, that's 4</text>
+    <text x="0" y="58" font-size="11" fill="#3a342a">test runs instead of 8.</text>
+    <text x="0" y="84" font-size="11" fill="#8a8377">Strategy invented for the Rust</text>
+    <text x="0" y="102" font-size="11" fill="#8a8377">language repo. The Refinery</text>
+    <text x="0" y="120" font-size="11" fill="#8a8377">is the agentic adaptation.</text>
+  </g>
+</svg>
+<figcaption><strong>Fig 5.</strong> How the Refinery's bisecting merge queue works. Eight MRs in a batch with one bad apple. The full batch fails. Split in two; the good half lands; the bad half splits again; eventually the offending MR is isolated. With one bad MR in a batch of N, you spend roughly 1 + log₂N test runs instead of N.</figcaption>
+</figure>
+
+Beyond the bisection, the Refinery has standing orders for what to do with the bad MR: ask the polecat to redo against new HEAD, replace it with another polecat's work, or escalate. It runs tests after each merge. It can restart its session and pick up where it left off, because the merge queue is in beads.
+
+This is one role, but it's the role that makes the whole system tractable. Without the Refinery, parallel polecats are a pretty way to corrupt your repo. With it, you can let twenty agents work overnight and wake up to a clean main branch with twelve features merged and two convoys flagged for your review.
+
+There's a lesson here that goes well beyond Gas Town. The hardest problems in multi-agent systems are not the agents. They're the points where parallel work tries to become serial. The merge queue. The shared resource. The handoff. Whoever owns those choke points owns the throughput. Most of the engineering effort in Gas Town went into the Refinery, the Witness, and the Deacon, not into making Polecats smarter. Polecats are just Claude Code. The thing Gas Town adds is the layer that turns a swarm of polecats into a working factory.
+
+### 10. Self-watching systems
+
+The other architectural choice worth pausing on is the patrol-and-heartbeat structure.
+
+You'd think a multi-agent system would be event-driven. Polecat finishes a task, emits an event, Refinery wakes up and merges. Witness emits a "stuck" event, Deacon dispatches a Dog. This is the design you'd draw on a whiteboard.
+
+Gas Town does some of this, but the dominant pattern is *patrols*: long-running loops that wake up periodically, check on the world, and act. The Deacon runs a patrol every couple of minutes. Each Witness runs a patrol per rig. The Refinery's main loop is a patrol that drains the merge queue.
+
+Patrols have exponential backoff. If a Witness wakes up and finds nothing to do, it goes back to sleep with a longer interval. If something does happen (a mutating `bd` or `gt` command), a daemon wakes the relevant patrol agents up.
+
+Why patrols and not pure events? Because LLM agents are flaky in ways event systems don't tolerate. An agent might miss an event. It might process the event and then go off and do something unrelated. It might get distracted by its own scratch thoughts and forget to come back. You don't want your merge queue depending on every relevant event reliably making it to a single subscriber.
+
+A patrol is forgiving. It re-checks the state of the world from scratch every iteration. If the previous iteration missed something, the next one catches it. If an agent dies in the middle of a patrol, the next agent picks up where it left off. The system is resilient to its own components being unreliable, because the components keep checking each other.
+
+Boot the Dog is the funniest, most-correct example of this principle. The Deacon patrols the town. But what if the Deacon falls asleep, or gets distracted, or quietly dies? Boot the Dog wakes up every five minutes and pokes the Deacon. Boot's whole job, on each wakeup, is to decide whether the Deacon needs a heartbeat, a nudge, a restart, or simply to be left alone, and then go back to sleep. It is the single dumbest agent in the whole system, and it has to be, because Yegge couldn't trust the Deacon to wake itself up reliably.
+
+<figure>
+<svg viewBox="0 0 760 500" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="The watcher chain: deterministic daemon at top, then Boot the Dog, then Deacon, Dogs and Witnesses, then Polecats and Refinery.">
+  <text x="380" y="22" text-anchor="middle" font-size="10" fill="#b8543e" letter-spacing="0.05em">↑ DUMBER · MORE RELIABLE</text>
+  <g transform="translate(380,60)">
+    <g>
+      <rect x="-100" y="0" width="200" height="50" fill="#1c1a15" stroke="#1c1a15" stroke-width="2" rx="3"/>
+      <text x="0" y="18" text-anchor="middle" fill="#fdfbf6" font-weight="600" font-size="13">Daemon</text>
+      <text x="0" y="32" text-anchor="middle" font-size="10" fill="#d8d2c4">deterministic Go process</text>
+      <text x="0" y="44" text-anchor="middle" font-size="10" fill="#d8d2c4">heartbeat every 3 min</text>
+    </g>
+    <line x1="0" y1="50" x2="0" y2="78" stroke="#1c1a15" stroke-width="1.5"/>
+    <polygon points="-4,72 4,72 0,80" fill="#1c1a15"/>
+    <text x="14" y="68" font-style="italic" font-size="11" fill="#b8543e">wakes every 5 min</text>
+    <g transform="translate(0,82)">
+      <rect x="-100" y="0" width="200" height="50" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+      <text x="0" y="22" text-anchor="middle" font-weight="600" font-size="13">Boot the Dog</text>
+      <text x="0" y="38" text-anchor="middle" font-size="11" fill="#3a342a">simplest LLM role: wake the Deacon</text>
+    </g>
+    <line x1="0" y1="132" x2="0" y2="160" stroke="#1c1a15" stroke-width="1.5"/>
+    <polygon points="-4,154 4,154 0,162" fill="#1c1a15"/>
+    <text x="14" y="150" font-style="italic" font-size="11" fill="#b8543e">decides if</text>
+    <g transform="translate(0,164)">
+      <rect x="-100" y="0" width="200" height="50" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+      <text x="0" y="22" text-anchor="middle" font-weight="600" font-size="13">The Deacon</text>
+      <text x="0" y="38" text-anchor="middle" font-size="11" fill="#3a342a">town patrol · health monitor</text>
+    </g>
+    <line x1="0" y1="214" x2="0" y2="242" stroke="#1c1a15" stroke-width="1.5"/>
+    <polygon points="-4,236 4,236 0,244" fill="#1c1a15"/>
+    <text x="14" y="232" font-style="italic" font-size="11" fill="#b8543e">dispatches / nudges</text>
+    <g transform="translate(0,246)">
+      <line x1="0" y1="0" x2="0" y2="14" stroke="#1c1a15" stroke-width="1.5"/>
+      <line x1="-160" y1="14" x2="160" y2="14" stroke="#1c1a15" stroke-width="1.5"/>
+      <line x1="-160" y1="14" x2="-160" y2="28" stroke="#1c1a15" stroke-width="1.5"/>
+      <line x1="160" y1="14" x2="160" y2="28" stroke="#1c1a15" stroke-width="1.5"/>
+      <g transform="translate(-260,30)">
+        <rect x="0" y="0" width="200" height="44" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+        <text x="100" y="20" text-anchor="middle" font-weight="600" font-size="12">Dogs</text>
+        <text x="100" y="34" text-anchor="middle" font-size="11" fill="#3a342a">maintenance helpers</text>
+      </g>
+      <g transform="translate(60,30)">
+        <rect x="0" y="0" width="200" height="44" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+        <text x="100" y="20" text-anchor="middle" font-weight="600" font-size="12">Witnesses</text>
+        <text x="100" y="34" text-anchor="middle" font-size="11" fill="#3a342a">per-rig patrols</text>
+      </g>
+      <line x1="160" y1="74" x2="160" y2="100" stroke="#1c1a15" stroke-width="1.5"/>
+      <polygon points="156,94 164,94 160,102" fill="#1c1a15"/>
+    </g>
+    <g transform="translate(0,360)">
+      <rect x="60" y="0" width="200" height="44" fill="#f5efe2" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+      <text x="160" y="20" text-anchor="middle" font-weight="600" font-size="12">Polecats / Refinery / Crew</text>
+      <text x="160" y="34" text-anchor="middle" font-size="11" fill="#3a342a">the workers actually doing things</text>
+    </g>
+  </g>
+  <text x="40" y="80" font-size="10" fill="#8a8377" letter-spacing="0.05em">deterministic root</text>
+  <text x="40" y="98" font-size="10" fill="#8a8377" letter-spacing="0.05em">(the chain stops here)</text>
+  <text x="720" y="180" text-anchor="end" font-style="italic" font-size="11" fill="#b8543e">each layer is dumber than what it watches</text>
+  <text x="720" y="200" text-anchor="end" font-style="italic" font-size="11" fill="#b8543e">but more reliable about waking up on time</text>
+  <text x="380" y="486" text-anchor="middle" font-size="10" fill="#b8543e" letter-spacing="0.05em">↓ SMARTER · LESS RELIABLE</text>
+</svg>
+<figcaption><strong>Fig 6.</strong> The watcher chain. The deterministic daemon at the top is the only thing in the system whose wake-up logic doesn't depend on an LLM staying coherent. Every layer below it is an LLM watching the layer below it. Each watcher is simpler than the thing it's watching, on purpose.</figcaption>
+</figure>
+
+The general principle: in a system of unreliable agents, the watcher needs a watcher. Eventually, you reach a primitive (a daemon, a cron job, something deterministic) and the chain terminates. Everything beneath that primitive is an LLM checking whether the LLM beneath it is doing its job. This is a humbling architecture pattern. It says the way to build reliable systems out of unreliable agents is not to make the agents more reliable; it's to make the agents watch each other.
+
+> **Checkpoint: what you know now.**
+>
+> **Gas Town has seven roles in two tiers.** The town tier (Mayor, Deacon, Dogs) coordinates across all repos. The rig tier (Witnesses, Polecats, Refinery, Crew) does the per-repo work.
+>
+> **The Refinery is the role that earns its keep on day one.** It uses a Bors-style bisecting merge queue to land parallel MRs in log N test runs instead of N.
+>
+> **Reliability is not in any single agent.** It's in the chain of patrols and watchers, with a deterministic daemon at the top of the chain heartbeat-pinging every three minutes.
+
+## Act 3: The City
+
+### 11. From Gas Town to Gas City
+
+Gas Town shipped with seven hardcoded roles. They are the right shape for coding agents. They aren't the right shape for moderating image submissions, running a nightly ops dashboard, or grading customer support tickets. The town worked; the town didn't generalize. The next problem isn't running one swarm. It's stamping out many differently shaped swarms.
+
+Gas City is the answer.
+
+Some chronology, because the timeline matters. Gas Town launched January 1, 2026: 17 days of vibe-coded Go, 75,000 lines, 2,000 commits. The community Discord and a handful of Fortune 100 trial deployments showed up almost immediately. By early March it had an 8-stage adoption framework, a [Wasteland federation layer](https://steve-yegge.medium.com/welcome-to-the-wasteland-a-thousand-gas-towns-a5eb9bc8dc1f) (a DoltHub-backed commons board where Gas Towns post wanted work and earn portable reputation by completing each others' tasks), and a measurable cost (one early adopter reported $100/hour in API spend during heavy use).
+
+<figure>
+<svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="Timeline of the Beads/Gas Town/Gas City stack from October 2025 to April 2026.">
+  <line x1="50" y1="100" x2="720" y2="100" stroke="#1c1a15" stroke-width="1.5"/>
+  <polygon points="715,96 715,104 725,100" fill="#1c1a15"/>
+
+  <g transform="translate(70,100)">
+    <circle cx="0" cy="0" r="6" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.8"/>
+    <line x1="0" y1="-6" x2="0" y2="-22" stroke="#1c1a15" stroke-width="1"/>
+    <text x="0" y="-32" text-anchor="middle" font-weight="600" font-size="12">Beads</text>
+    <text x="0" y="-48" text-anchor="middle" font-size="11" fill="#3a342a">git-backed issue tracker</text>
+    <text x="0" y="22" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">OCT 13, 2025</text>
+  </g>
+
+  <g transform="translate(290,100)">
+    <circle cx="0" cy="0" r="7" fill="#b8543e" stroke="#1c1a15" stroke-width="1.8"/>
+    <line x1="0" y1="6" x2="0" y2="22" stroke="#1c1a15" stroke-width="1"/>
+    <text x="0" y="36" text-anchor="middle" font-weight="600" font-size="12">Gas Town</text>
+    <text x="0" y="52" text-anchor="middle" font-size="11" fill="#3a342a">orchestrator (75k LOC)</text>
+    <text x="0" y="-14" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">JAN 1, 2026</text>
+  </g>
+
+  <g transform="translate(530,100)">
+    <circle cx="0" cy="0" r="6" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.8"/>
+    <line x1="0" y1="-6" x2="0" y2="-22" stroke="#1c1a15" stroke-width="1"/>
+    <text x="0" y="-32" text-anchor="middle" font-weight="600" font-size="12">Wasteland</text>
+    <text x="0" y="-48" text-anchor="middle" font-size="11" fill="#3a342a">federation network</text>
+    <text x="0" y="22" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">MAR 4, 2026</text>
+  </g>
+
+  <g transform="translate(665,100)">
+    <circle cx="-15" cy="0" r="6" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.8"/>
+    <line x1="-15" y1="6" x2="-15" y2="22" stroke="#1c1a15" stroke-width="1"/>
+    <text x="-15" y="36" text-anchor="middle" font-weight="600" font-size="11">Beads + GT v1.0</text>
+    <text x="-15" y="52" text-anchor="middle" font-size="11" fill="#3a342a">Dolt migration done</text>
+    <text x="-15" y="-14" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">APR 21</text>
+
+    <circle cx="35" cy="0" r="7" fill="#b8543e" stroke="#1c1a15" stroke-width="1.8"/>
+    <line x1="35" y1="-7" x2="35" y2="-22" stroke="#1c1a15" stroke-width="1"/>
+    <text x="35" y="-32" text-anchor="middle" font-weight="600" font-size="12">Gas City</text>
+    <text x="35" y="22" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">APR 24, 2026</text>
+
+    <path d="M-30,68 Q10,76 50,68" fill="none" stroke="#b8543e" stroke-width="1" opacity="0.6"/>
+    <text x="10" y="86" text-anchor="middle" font-style="italic" font-size="10" fill="#b8543e">3 days apart</text>
+  </g>
+
+  <text x="380" y="180" text-anchor="middle" font-style="italic" font-size="11" fill="#b8543e">six months · one developer started this</text>
+</svg>
+<figcaption><strong>Fig 7.</strong> The trajectory from Beads to Gas City. Six months between the first git-backed issue tracker and a deployable SDK for building agent factories. The cluster at the right is real: v1.0 of two projects and the launch of a third all landed within the same week of April 2026.</figcaption>
+</figure>
+
+By April both Gas Town and Beads hit v1.0. Beads' storage layer migrated from JSONL+SQLite to embedded Dolt, a git-versioned SQL database; the "single binary, no daemon" experience came back, with version history and SQL queries built in. Yegge's framing for the Dolt migration is that it's been the unsung hero of the whole stack: Dolt gives the agents Git-style branch/merge semantics on structured data, which is exactly what a federated work system needs.
+
+Then in late April, Yegge announced [Gas City](https://steve-yegge.medium.com/welcome-to-gas-city-57f564bb3607). Gas City is Gas Town disassembled and rebuilt as an SDK: roles, topology, and orchestration patterns become declarative *packs* that you can deploy and run. Yegge didn't write Gas City himself; it was built by Julian Knutsen and Chris Sells from the community, after Yegge sketched the vision. Yegge calls it a "Dark Factory Factory": Gas Town is one factory; Gas City is the toolkit for stamping out new ones.
+
+The strategic change is bigger than the technical one. The original Gas Town pitch was "Kubernetes for coding agents." The Gas City pitch is something more ambitious: agents-running-themselves, for any business process. Yegge calls these "dark factories" (agents working without humans watching) but he reframes Gas City as a "light factory," because every action is observable and auditable in Dolt.
+
+The example he gives is from his own MMORPG, Wyvern. Players who hit level 25 get to upload custom character images. Yegge has to review them for inappropriate content and approve or reject them. This is a small recurring task that has nothing to do with code. He describes a two-agent pack: one agent reviews each submission, another agent checks the first agent's work. Two agents instead of one because, as he puts it, any agent can go temporarily insane at any time. A second pair of eyes is cheap insurance.
+
+<figure>
+<svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="A two-agent pack handling Wyvern's player image queue: submission, reviewer, approver, hall of fame.">
+  <g transform="translate(20,90)">
+    <rect x="0" y="0" width="120" height="60" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="60" y="22" text-anchor="middle" font-weight="600" font-size="12">Submission</text>
+    <text x="60" y="36" text-anchor="middle" font-size="11" fill="#3a342a">queue (web form)</text>
+    <text x="60" y="50" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8377">→ JSON</text>
+  </g>
+  <text x="80" y="80" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">INPUT</text>
+  <line x1="142" y1="120" x2="178" y2="120" stroke="#1c1a15" stroke-width="1.5"/>
+  <polygon points="172,116 172,124 180,120" fill="#1c1a15"/>
+  <g transform="translate(180,80)">
+    <rect x="0" y="0" width="160" height="80" fill="#f5efe2" stroke="#1c1a15" stroke-width="1.8" rx="3"/>
+    <text x="80" y="22" text-anchor="middle" font-weight="600" font-size="13">Reviewer</text>
+    <text x="80" y="40" text-anchor="middle" font-size="11" fill="#3a342a">reads submission</text>
+    <text x="80" y="56" text-anchor="middle" font-size="11" fill="#3a342a">recommends:</text>
+    <text x="80" y="72" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#b8543e">approve · reject · flag</text>
+  </g>
+  <line x1="340" y1="120" x2="420" y2="120" stroke="#1c1a15" stroke-width="1"/>
+  <circle cx="380" cy="120" r="6" fill="#b8543e" stroke="#1c1a15" stroke-width="1"/>
+  <text x="380" y="72" text-anchor="middle" font-size="10" fill="#b8543e" letter-spacing="0.05em">recommendation</text>
+  <text x="380" y="178" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">(as a bead)</text>
+  <g transform="translate(420,80)">
+    <rect x="0" y="0" width="160" height="80" fill="#f5efe2" stroke="#1c1a15" stroke-width="1.8" rx="3"/>
+    <text x="80" y="22" text-anchor="middle" font-weight="600" font-size="13">Approver</text>
+    <text x="80" y="40" text-anchor="middle" font-size="11" fill="#3a342a">checks the recommendation</text>
+    <text x="80" y="56" text-anchor="middle" font-size="11" fill="#3a342a">takes action</text>
+    <text x="80" y="72" text-anchor="middle" font-size="11" fill="#3a342a">logs decision</text>
+  </g>
+  <line x1="582" y1="120" x2="618" y2="120" stroke="#1c1a15" stroke-width="1.5"/>
+  <polygon points="612,116 612,124 620,120" fill="#1c1a15"/>
+  <g transform="translate(620,90)">
+    <rect x="0" y="0" width="120" height="60" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.5" rx="3"/>
+    <text x="60" y="24" text-anchor="middle" font-weight="600" font-size="12">Hall of Fame</text>
+    <text x="60" y="42" text-anchor="middle" font-size="11" fill="#3a342a">(or rejection)</text>
+  </g>
+  <text x="680" y="80" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">OUTPUT</text>
+  <g transform="translate(80,200)">
+    <line x1="0" y1="0" x2="600" y2="0" stroke="#1c1a15" stroke-width="0.8" stroke-dasharray="4 3"/>
+    <text x="300" y="20" text-anchor="middle" font-style="italic" font-size="11" fill="#b8543e">audit trail in Dolt: which submission · which agent · which decision · timestamp</text>
+  </g>
+</svg>
+<figcaption><strong>Fig 8.</strong> A two-agent pack handling Wyvern's player image queue. The recommendation lives as a bead between the two agents. The full audit trail (which submission, which agent, which decision, which timestamp) is in Dolt. The pack itself is declarative TOML, not application code.</figcaption>
+</figure>
+
+Packs make the orchestrator generalize. What you'd actually use one for is a separate question.
+
+### 12. Replacing SaaS, badly enough
+
+The bigger pitch in the Gas City post is about replacing SaaS. The argument goes like this:
+
+1. SaaS started as a way for companies to share fixed costs across many customers.
+2. It evolved into the superset of every customer's needs. Most customers use 20% of the features and subsidize the other 80%.
+3. The 20% you actually use can be rebuilt in-house, badly, by an agent crew. And badly is good enough for a 200-person company, because you don't need Salesforce-grade compliance for a 200-person workflow.
+4. Gas City is the substrate for building the in-house replacement: declarative packs, git-versioned audit trails, identity, memory, recovery from failure.
+
+I was initially skeptical of this thesis. Replacing Atlassian with a Gas City pack is a much bigger lift than replacing your image-moderation queue. The evidence so far is two points, not a curve. Both are worth dwelling on.
+
+The small end is from [Yegge's v1.0 post](https://steve-yegge.medium.com/gas-town-from-clown-show-to-v1-0-c239d9a407ec). He describes a non-technical Comms major, four years out of school, who has been running Gas Town since "a few weeks after it came out" and has built an in-house replacement for a niche but pricey SaaS product her company was paying for. The substrate is now cheap enough that the rebuild does not require an engineer.
+
+The large end is from [a DoltHub blog post in late March](https://www.dolthub.com/blog/2026-03-24-a-week-in-gas-town/). Tim Sehn, the CEO of DoltHub (and an old colleague of Yegge's from Amazon), used Gas Town to rewrite roughly 30,000 lines of Dolt's storage backend from Go into C, embedded inside SQLite. By 4pm that day, all 87,000 SQLite acceptance tests were passing. He had not written serious C in twenty years. The whole experiment cost him about $3,000 in API credits. An experienced systems engineer using Gas Town to do something he plausibly could not have done by hand at all.
+
+The Comms major's case is small-SaaS displacement. Sehn's is an experienced engineer punching through a productivity ceiling Gas Town can move. Whether the wide territory between them, generic business processes run by small in-house packs that pay for themselves, is full or empty, no one knows yet. That's the Gas City bet, and the Gas City pivot says Yegge is making it. The interesting layer of the stack is no longer the coding orchestrator; it's the layer above it, where you stamp out small agent crews for whatever business process needs running. The coding case is just the first one anyone got working.
+
+> **The 11 stages of AI-assisted coding.**
+>
+> Yegge's adoption framework, originally 8 stages at Gas Town launch, extended to 11 with Gas City. Locate yourself before deciding what to install.
+>
+> **1.** Zero-AI · **2.** IDE agent, permissions on · **3.** IDE agent, YOLO · **4.** IDE wide-agent · **5.** CLI single-agent, YOLO · **6.** CLI multi-agent (3–5) · **7.** 10+ agents, hand-managed · **8.** Building your own orchestrator · **9.** First deployed pack (a real business process) · **10.** Many deployed packs (you become the bottleneck) · **11.** Factory builder (a meta-orchestrator manages your packs).
+>
+> Yegge's blunt advice: Stage 7+ to use Gas Town safely. Stage 5–6 should not install it. Stage 1–4 should not even read about it.
+
+> **Checkpoint: what you know now.**
+>
+> **Gas City is the SDK abstraction over Gas Town.** Roles, topology, and orchestration become declarative TOML packs. The same engine that runs a coding swarm can run image moderation, ops triage, anything you can describe as a graph of agents.
+>
+> **The strategic claim is SaaS replacement.** A non-technical Comms major has displaced a niche SaaS at her company with a pack. Tim Sehn rewrote 30,000 lines of Dolt's storage backend in C in a day, for $3,000 in API credits. The territory between those two points is the bet, not yet proven.
+
+## Four ideas worth stealing
+
+### Make the work durable, not the agent
+
+This is the central inversion. In a system where any individual component (sessions, agents, even hosts) is unreliable, the way to get reliability is to push state into a substrate that doesn't share the unreliability. Gas Town's substrate is git. Yours might be a database, or a queue, or a state machine in S3. The principle is: agents should be stateless and replaceable, work state should be persistent and idempotent. If you're building anything multi-agent, the first design question is "what does the work look like when no agent is currently holding it?" If you can't answer cleanly, your system will lose work.
+
+### Acceptance criteria beat scripts when the worker is an LLM
+
+NDI is the runtime version of this idea. If you write your workflows as imperative scripts that an LLM has to execute step-by-step, you'll spend forever debugging the cases where the LLM did something slightly different. If you write your workflows as a sequence of well-specified outcomes ("this bead is done when X is true"), the LLM has room to figure out how to satisfy the criteria, and you can verify completion mechanically. The MAKER paper's million-step result points at the same conclusion: long LLM workflows complete reliably when each step is atomic, locally checkable, and isolated from the others. Gas Town and MAKER are the production and academic versions of the same principle.
+
+### Reliability is a chain of watchers
+
+Boot the Dog watches the Deacon. The Deacon watches the Witnesses. The Witnesses watch the Polecats. At every layer, the watcher is dumber and more reliable than the thing it's watching. This is how Gas Town keeps a swarm of LLMs aimed at a goal. The pattern is older than Gas Town (it's how kubelet watches pods, it's how supervisord watches processes) but it's particularly sharp here because the things being watched are smart, the watchers don't have to be, and the bottom of the chain is a deterministic three-minute heartbeat. If you're building anything where agents need to keep going without human oversight, the design question is not "how do I make the agents more reliable?" It's "what's the simplest thing that can detect when an agent is stuck, and what does it do about it?"
+
+### Topology should be declarative, not hardcoded
+
+Gas Town v1 baked seven roles into the binary. Gas City pulled them out into TOML packs you can ship and version. The reason this matters: once you've built one swarm that works, the second one shouldn't require rewriting the orchestrator. It should require writing a config. The crew that watches your image-moderation queue, the crew that runs your nightly compliance review, and the crew that triages customer tickets are the same engine with different topologies. If you're building anything multi-agent, the question after "what does the work look like" is "what does the topology look like, and can someone who isn't an engineer change it?" The orchestrators that win the next two years will be the ones where the answer is yes.
+
+## Epilogue
+
+A year ago, the interesting engineering question in AI tooling was "how do I make a single coding agent work well." The answer (RAG, tool use, larger contexts, better prompts) was technically deep and mostly commodity by the end of 2025.
+
+The interesting question this year is one layer up. "How do I make a fleet of coding agents work well." The honest answer is that we don't fully know yet. Gas Town is one attempt, and it's a good one, but it's a 2026-shaped attempt. The model layer underneath it will keep moving. The agents will get more compliant about acting on their hooks without a fake keystroke. The session size will grow. The orchestrators will consolidate around two or three patterns and the rest will fade.
+
+What I think will not fade is the inversion at the heart of all of this. Work is persistent. Sessions are ephemeral. Agents are identities that connect work to sessions. Reliability comes from substrate, not from making the agents perfect. Acceptance criteria beat imperative scripts when the executor is a model. Watchers compose hierarchically. Topology is declarative. Whatever orchestrator we use a year from now, those facts will still be true.
+
+If you're at Stage 5 or 6 (one or a few coding agents, hand-managed) the lesson is not "rush to install Gas Town." Yegge himself [begs you not to](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04), repeatedly, on the grounds that you'll wreck your repo. The lesson is to start writing your work down. Get it out of your head and your chat history and into a thing the next session can read. Once your work is durable, you can swap in any orchestrator you want.
+
+We're going to start running this experiment ourselves at Boon, in a small way, this quarter. I'll write up what I learn.
+
+### References
+
+- Welcome to Gas Town. Steve Yegge, January 2026 ([medium](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04)).
+- The Future of Coding Agents. Steve Yegge, January 2026 ([medium](https://steve-yegge.medium.com/the-future-of-coding-agents-e9451a84207c)).
+- Welcome to the Wasteland. Steve Yegge, March 2026 ([medium](https://steve-yegge.medium.com/welcome-to-the-wasteland-a-thousand-gas-towns-a5eb9bc8dc1f)).
+- Gas Town: from Clown Show to v1.0. Steve Yegge, April 2026 ([medium](https://steve-yegge.medium.com/gas-town-from-clown-show-to-v1-0-c239d9a407ec)).
+- Welcome to Gas City. Steve Yegge, April 2026 ([medium](https://steve-yegge.medium.com/welcome-to-gas-city-57f564bb3607)).
+- A Week In Gas Town. Tim Sehn (DoltHub), March 2026 ([dolthub blog](https://www.dolthub.com/blog/2026-03-24-a-week-in-gas-town/)). The Dolt-in-C case study cited above.
+- Solving a Million-Step LLM Task with Zero Errors (MAKER). Meyerson et al., Cognizant + UT Austin, November 2025 ([arXiv:2511.09030](https://arxiv.org/abs/2511.09030)).
+- Gas Town source. [github.com/gastownhall/gastown](https://github.com/gastownhall/gastown).
+- Gas City source. [github.com/gastownhall/gascity](https://github.com/gastownhall/gascity).
+- Beads source. [github.com/gastownhall/beads](https://github.com/gastownhall/beads) (moved from `steveyegge/beads` at v1.0).
+- Dolt (git-versioned SQL database). [github.com/dolthub/dolt](https://github.com/dolthub/dolt).
+- Bors-NG (the bisecting merge queue Gas Town's Refinery is modeled after). [github.com/bors-ng/bors-ng](https://github.com/bors-ng/bors-ng).
