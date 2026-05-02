@@ -9,6 +9,9 @@ draft: false
 essay: true
 ---
 
+import Figure from "@components/figure/Figure.svelte";
+import VideoTokenExplosion from "@components/figures/omni-modal-stack/VideoTokenExplosion.svelte";
+
 *A sequel to [The Unified Vision Stack](/blog/unified-vision-stack). Picks up where C-RADIOv4 ended and asks what it takes to teach one eye to listen, watch, and speak. Worked example throughout: NVIDIA's Nemotron 3 Nano Omni, released April 2026. About a 45-minute read.*
 
 ### 1. A single eye, three teachers
@@ -652,7 +655,9 @@ A video is a sequence of frames over time. The naive thing to do is treat each f
 
 > "a two-minute video at 24 FPS produces more than two million vision tokens, far beyond the effective context length of most language models"
 
-{/* TODO: Fig 7: VideoTokenExplosion. Sliders for clip duration, FPS, patches per frame. Live token count rendered against 262K context bar. Curves for naive / tubelet / EVS overlaid. */}
+<Figure caption="Vision-token counts under three encoding strategies, against the 262K context window of Nemotron 3 Nano Omni. The naive per-frame ViT overflows the window for almost any non-trivial clip. Conv3D tubelet encoding halves the count by fusing pairs of frames before the ViT, and EVS at q = 0.75 then keeps only the top quartile of changing post-encoder patches. The product is what makes long video viable inside one decoder context." figNum={7}>
+  <VideoTokenExplosion client:visible />
+</Figure>
 
 Drag the duration slider above. Even at modest patch counts, the token total flies past a 262K-context LLM the moment the clip gets past about ten seconds. At 1024 patches per frame and 30 FPS, you're already over 262K at nine seconds. That's the cost ViViT-style naive frame-by-frame encoding pays, and it makes long-form video reasoning impossible without aggressive compression.
 
