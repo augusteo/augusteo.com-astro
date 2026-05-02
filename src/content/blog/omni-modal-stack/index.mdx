@@ -122,3 +122,55 @@ The pattern across all three: the LLM was trained on text alone. Vision is a sid
 A note on Qwen2.5-VL, which sometimes gets lumped in with this group. The Qwen team uses the LLaVA-style MLP projector pattern, but they train the LLM jointly with a from-scratch dynamic-resolution ViT. So Qwen2.5-VL inherits the *connector design* from LLaVA but the *training pattern* from the next section's native-multimodal approach. We'll handle it there.
 
 The thing about all three adapter approaches is that they work, well enough that they were the dominant multimodal-VLM pattern for two years. The interesting question is what they leave on the table compared to training the LLM jointly with the modalities from the start. That's §6.
+
+### 6. Native multimodal: one decoder, one sequence
+
+The structural alternative is to drop the "frozen LLM" constraint. Instead of bolting a vision adapter onto a finished language model, you train one transformer decoder on a single token stream that contains both modalities from the start. The LLM doesn't have to be told "now you're seeing an image" through a side-channel; the multimodal sequences are part of its pretraining distribution.
+
+{/* TODO: Fig 4: information-flow boundary, side-channel projection vs one decoder context */}
+
+Two flavors of this exist, and the difference between them matters for what kinds of modalities are easy to add later.
+
+The first flavor is *discrete-token unified vocabulary*, exemplified by Meta's Chameleon. Quantize images into discrete codes from a fixed codebook (Chameleon uses 8192 entries). Extend the text tokenizer's vocabulary to include those codes. Now an image is just a longer sequence of "tokens" drawn from a vocabulary that happens to be larger than a pure-text one. Train a standard autoregressive decoder on a mix of text-only sequences and interleaved text-and-image sequences, where the image segments are these new tokens. The model can read an image and write text, or read text and write image tokens, with no architectural difference between the two.
+
+> "Our unified approach uses fully token-based representations for both image and textual modalities. By quantizing images into discrete tokens, analogous to words in text, we can apply the same transformer architecture to sequences of both image and text tokens, without the need for separate image/text encoders or domain-specific decoders."
+
+The second flavor is *continuous projected embeddings*. Instead of quantizing, run each modality through a modality-specific encoder that produces a sequence of continuous feature vectors, then project those vectors (via a learned MLP, the projector) into the LLM's hidden dimension, and concatenate them into the LLM's input sequence. The LLM still consumes a sequence of vectors, the same way it always does. The only difference is that some of those vectors came from a vision encoder or an audio encoder rather than from the text embedding table. The training loss is computed jointly over the whole sequence, including the modality-projected positions.
+
+This is the family Gemini, Qwen2.5-Omni, and Nemotron 3 Nano Omni belong to. Gemini frames it as native-from-scratch:
+
+> "The Gemini models are natively multimodal, as they are trained jointly across text, image, audio, and video."
+
+Nemotron 3 Nano Omni names the design pattern explicitly:
+
+> "Our model follows an encoder-projector-decoder design, combining the Nemotron 3 Nano 30B-A3B language model with modality-specific encoders for vision and audio, connected via MLP projectors. ... Visual, audio, and text tokens are concatenated and fed to the LLM."
+
+A subtle point worth nailing down. The "tokens" the LLM sees in this setup are not raw pixels or raw waveform samples. They are the *outputs* of modality-specific encoders, projected by an MLP into the LLM's embedding dimension. So when we say the LLM consumes "vision tokens," we mean vectors in the LLM's hidden space that happen to have come from a ViT plus a projector, not 256-dimensional image patches. The projector matters. The encoder matters. The LLM sees the same kind of vector regardless of where it came from, and that's what makes the unified-decoder approach work as a drop-in extension of transformer architecture.
+
+Qwen2.5-VL fits here as a vision-only special case of the continuous-projected pattern. It uses an MLP projector (LLaVA-style), but trains the LLM jointly with the from-scratch ViT, so the LLM weights see the gradient of a multimodal pretraining loss, not just an instruction-tuning fine-tune at the end. Qwen2.5-VL is a vision-language model, not a four-modality omni model, but architecturally it sits closer to Nemotron 3 Nano Omni than to LLaVA.
+
+Qwen2.5-Omni adds the most subtle detail. Its speech-generation head, called Talker, doesn't read a transcript from the central decoder ("Thinker"). It reads Thinker's *hidden states* directly:
+
+> "Talker directly receives high-dimensional representations from Thinker and shares all of Thinker's historical context information. ... The high-dimensional representations provided by Thinker implicitly convey [content's tone and attitude before the entire text is fully generated]."
+
+This matters for the next act. When the speech-out side of an agent loop reads hidden states instead of transcribed text, things like prosody and intent never go through a text bottleneck. We'll come back to that in §10.
+
+### 7. The tradeoff
+
+The adapter approach (§5) and the unified-decoder approach (§6) are not really substitutes. They cost different things and they buy different things.
+
+Adapter style is cheap. You inherit a strong text LLM, you inherit a strong vision encoder, and you train a small connector module against an instruction-tuning dataset. Total compute is dominated by the connector training and the second-stage fine-tune; both are small compared to LLM pretraining. You can swap LLMs without touching the vision side. You can ship a working multimodal model on a few weeks of small-cluster compute.
+
+What you give up is depth of joint understanding. The LLM was trained on text. It learned how text sequences behave, how words constrain other words, how to follow instructions. It never learned what an image *looks like* in the sense of having to predict or condition on one across the multimodal pretraining distribution. Whatever cross-modal inference shows up has to come through the projector. For tasks where the answer requires fluently weaving visual evidence into a text response, this can be enough. For tasks where the visual structure has to drive the reasoning (long video, multi-page documents, fine-grained audio cues), the projector ends up as a thin pipe.
+
+Unified-decoder style is expensive. You pretrain (or fully fine-tune) a multi-billion-parameter LLM on multimodal sequences, which means months of GPU-cluster time, terabytes of curated multimodal data, and the engineering apparatus to do it. You can't easily swap the LLM. You're committed to one stack.
+
+What you buy is depth. The LLM weights learn to expect multimodal input during pretraining. Reasoning that has to mix modalities (answer this question by reading the chart on page 4 of the PDF, or by listening to the speaker's tone in the third minute of the video) gets to use the LLM's full capacity, not just the capacity of a thin connector. And every additional modality you add (audio, video, robotics action sequences) plugs into the same input stream rather than adding a parallel adapter side-channel.
+
+Where Nemotron 3 Nano Omni sits is at the unified end of this dial. Its 30B-A3B backbone was pretrained on roughly 717 billion tokens of mixed modalities, with text+image, text+audio, and text+video sequences all in the loss. The model card lists the totals:
+
+> "354,587,705 data points (~717.0B tokens) ... text+audio: 259,178,821 samples (~143,533.1M tokens); text+image: 70,143,901 samples (~180,347.1M tokens); text+video: 15,837,673 samples (~239,631.5M tokens); text+video+audio: 8,720,044 samples (~152,499.2M tokens); text: 707,187 samples (~958.4M tokens)."
+
+Compare to a typical adapter-style model: a few hundred thousand instruction-tuning samples sitting on top of a frozen text-pretrained LLM. The depth-of-joint-distribution gap is several orders of magnitude.
+
+Now we have the central design choice in place. Text decoder in the middle. Modality encoders feeding it through projectors. Trained jointly on multimodal sequences. The next question is what specifically each modality encoder has to do, and that's Act 3.
