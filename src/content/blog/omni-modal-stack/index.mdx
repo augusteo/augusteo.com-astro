@@ -1002,13 +1002,11 @@ What "selective" means is that the state-update equations have parameters that d
   <text x="531" y="42" text-anchor="middle">262K</text>
 </g>
 
-<text x="455" y="158" font-family="serif" font-size="12" font-style="italic" fill="#2563EB">Mamba</text>
-<line x1="478" y1="161" x2="510" y2="159" stroke="#2563EB" stroke-width="0.8"/>
-<text x="455" y="171" font-family="JetBrains Mono" font-size="10" fill="#2563EB">O(N)</text>
+<text x="555" y="125" font-family="serif" font-size="13" font-style="italic" fill="#2563EB">Mamba</text>
+<text x="555" y="138" font-family="JetBrains Mono" font-size="10" fill="#2563EB">O(N)</text>
 
-<text x="445" y="105" font-family="serif" font-size="12" font-style="italic" fill="#B91C1C">Transformer</text>
-<line x1="498" y1="108" x2="510" y2="92" stroke="#B91C1C" stroke-width="0.8"/>
-<text x="445" y="118" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">O(N²)</text>
+<text x="555" y="100" font-family="serif" font-size="13" font-style="italic" fill="#B91C1C">Transformer</text>
+<text x="555" y="113" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">O(N²)</text>
 </svg>
 <figcaption><strong>Fig 11.</strong> Compute scales linearly with context length for Mamba's selective state-space layer, and quadratically for self-attention. The two curves are indistinguishable at 1K tokens. At 16K (the bottom of Nemotron's training-context schedule) Transformer is already 16× more expensive than Mamba per forward pass; at 262K (the top of the schedule) the gap is 262×. The ratio is what makes long-context inference affordable.</figcaption>
 </figure>
