@@ -88,3 +88,37 @@ Pieces 4 and 5 do not exist in SigLIP's text tower. SigLIP has the first two (to
 That's what we mean when we say SigLIP doesn't generate. Pieces 4 and 5, the parts that turn hidden states into actual text, are absent. They're what generation requires, and they're what the contrastive training objective specifically did not select for.
 
 So we need an LLM in the middle. The question for the rest of the post becomes how to get the vision encoder's output into the LLM's input, and the parallel question for audio and video. That's Act 2.
+
+## Act 2: three ways to wire it up
+
+*Once you know you need a generative LLM, the question is how you feed it.*
+
+### 5. The adapter zoo: Flamingo, BLIP-2, LLaVA
+
+Suppose you have a strong text-only LLM. Pretraining cost millions of dollars and you don't want to redo it. You also have a strong vision encoder, frozen, that produces dense feature maps. The question is: how do you bolt them together so the LLM can answer questions about images without losing what it already knows about language?
+
+Three approaches dominated the 2022-2024 era, and the differences between them turn out to be load-bearing for what came after.
+
+{/* TODO: Fig 3: Three-panel comparison, Flamingo gated cross-attention / BLIP-2 Q-Former / LLaVA MLP projection */}
+
+Flamingo (DeepMind, 2022) inserts new layers into the frozen LLM. Specifically, between every pretrained block, Flamingo adds a `GATED XATTN-DENSE` block: a cross-attention layer where the query is the LLM's current hidden state and the key/value are visual features (after passing through a Perceiver Resampler that compresses the variable-size feature grid into 64 fixed slots). The cross-attention output is gated by a learned scalar α, multiplied through `tanh(α)` where α is initialized to zero. At step 0, every new block is a no-op:
+
+> "We freeze the pretrained LM blocks, and insert gated cross-attention dense blocks between the original layers, trained from scratch. To ensure that at initialization, the conditioned model yields the same results as the original language model, we use a tanh-gating mechanism."
+
+The training process pushes α off zero only as the cross-attention starts contributing useful signal. The LLM weights themselves are never updated. Catastrophic forgetting is averted by construction.
+
+BLIP-2 (Salesforce, 2023) takes a different shape. Instead of adding cross-attention into the LLM, it adds a separate small module (a 188-million-parameter Querying Transformer, or Q-Former) between the frozen vision encoder and the frozen LLM. Q-Former has a fixed set of learned "query" embeddings that attend to the vision encoder's outputs through cross-attention. The output is a short fixed-length sequence (32 vectors in the released checkpoints) that gets linearly projected and prepended to the LLM's prompt as if it were ordinary text tokens. Q-Former is trained in two stages: first in isolation against an image-text alignment objective, then together with the frozen LLM against a generation loss.
+
+> "BLIP-2 bridges the modality gap with a lightweight Querying Transformer, which is pre-trained in two stages. The first stage bootstraps vision-language representation learning from a frozen image encoder. The second stage bootstraps vision-to-language generative learning from a frozen language model."
+
+LLaVA (Microsoft and Wisconsin, 2023) is the simplest possible version of the same idea. Skip the cross-attention. Skip the Q-Former. Take the dense feature map from a frozen CLIP encoder, multiply it by a single trainable matrix `W` into the LLM's word-embedding dimension, and prepend the resulting vectors to the prompt. That's it.
+
+> "We consider a simple linear layer to connect image features into the word embedding space. Specifically, we apply a trainable projection matrix W to convert Z_v into language embedding tokens H_v, which have the same dimensionality as the word embedding space in the language model."
+
+LLaVA-1.5 upgraded the projector from a single linear layer to a two-layer MLP and reported gains, but the architectural shape stayed the same. One small module. No new layers in the LLM. The LLM weights are still frozen during stage-1 alignment training; they do get fine-tuned during stage-2 instruction tuning, but they never see the gradient of a *pretraining* loss applied to a multimodal sequence, only an instruction-tuning loss applied at the end.
+
+The pattern across all three: the LLM was trained on text alone. Vision is a side-loaded computation, translated into something that looks like text tokens (or, in Flamingo's case, attended to as cross-attention values), and the LLM consumes that translation. The LLM never learns the joint distribution over multimodal sequences during its own pretraining. Whatever multimodal understanding shows up has to come through the projector and the late-stage fine-tune.
+
+A note on Qwen2.5-VL, which sometimes gets lumped in with this group. The Qwen team uses the LLaVA-style MLP projector pattern, but they train the LLM jointly with a from-scratch dynamic-resolution ViT. So Qwen2.5-VL inherits the *connector design* from LLaVA but the *training pattern* from the next section's native-multimodal approach. We'll handle it there.
+
+The thing about all three adapter approaches is that they work, well enough that they were the dominant multimodal-VLM pattern for two years. The interesting question is what they leave on the table compared to training the LLM jointly with the modalities from the start. That's §6.
