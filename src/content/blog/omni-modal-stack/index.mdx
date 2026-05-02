@@ -1028,7 +1028,192 @@ The high-level pitch is that you can grow the parameter count by adding experts 
 
 Nemotron 3 Nano scales this up to 128 experts per MoE layer with top-6 routing, plus a shared expert that runs for every token regardless of routing.
 
-{/* TODO: Fig 12: MoE top-k routing on a token. 128 expert columns, router scores them, top-6 highlighted, shared expert always on, weighted-sum output. */}
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="a12" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<rect x="290" y="20" width="100" height="22" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/>
+<text x="340" y="36" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A">input token</text>
+
+<line x1="340" y1="44" x2="340" y2="58" stroke="#6B6258" marker-end="url(#a12)"/>
+
+<rect x="120" y="60" width="440" height="40" fill="#1A1A1A" stroke="#B8651A" stroke-width="1.5"/>
+<text x="340" y="80" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">Router (128-way softmax)</text>
+<text x="340" y="93" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#FEF3C7">scores expert i for this token</text>
+
+<g stroke="#6B6258" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.55">
+  <line x1="160" y1="100" x2="60" y2="116"/>
+  <line x1="270" y1="100" x2="280" y2="118"/>
+  <line x1="400" y1="100" x2="402" y2="120"/>
+  <line x1="520" y1="100" x2="486" y2="124"/>
+</g>
+
+<g fill="#D1AE7A" opacity="0.65">
+  <rect x="20" y="170" width="4" height="10"/>
+  <rect x="24" y="166" width="4" height="14"/>
+  <rect x="28" y="172" width="4" height="8"/>
+  <rect x="32" y="164" width="4" height="16"/>
+  <rect x="36" y="168" width="4" height="12"/>
+  <rect x="40" y="162" width="4" height="18"/>
+  <rect x="44" y="174" width="4" height="6"/>
+  <rect x="48" y="167" width="4" height="13"/>
+  <rect x="52" y="169" width="4" height="11"/>
+  <rect x="56" y="165" width="4" height="15"/>
+  <rect x="60" y="171" width="4" height="9"/>
+  <rect x="64" y="163" width="4" height="17"/>
+  <rect x="72" y="161" width="4" height="19"/>
+  <rect x="76" y="170" width="4" height="10"/>
+  <rect x="80" y="166" width="4" height="14"/>
+  <rect x="84" y="172" width="4" height="8"/>
+  <rect x="88" y="164" width="4" height="16"/>
+  <rect x="92" y="168" width="4" height="12"/>
+  <rect x="96" y="162" width="4" height="18"/>
+  <rect x="100" y="174" width="4" height="6"/>
+  <rect x="104" y="167" width="4" height="13"/>
+  <rect x="108" y="169" width="4" height="11"/>
+  <rect x="112" y="165" width="4" height="15"/>
+  <rect x="116" y="171" width="4" height="9"/>
+  <rect x="120" y="163" width="4" height="17"/>
+  <rect x="124" y="173" width="4" height="7"/>
+  <rect x="132" y="170" width="4" height="10"/>
+  <rect x="136" y="166" width="4" height="14"/>
+  <rect x="140" y="172" width="4" height="8"/>
+  <rect x="144" y="164" width="4" height="16"/>
+  <rect x="148" y="168" width="4" height="12"/>
+  <rect x="152" y="162" width="4" height="18"/>
+  <rect x="156" y="174" width="4" height="6"/>
+  <rect x="160" y="167" width="4" height="13"/>
+  <rect x="164" y="169" width="4" height="11"/>
+  <rect x="168" y="165" width="4" height="15"/>
+  <rect x="172" y="171" width="4" height="9"/>
+  <rect x="176" y="163" width="4" height="17"/>
+  <rect x="180" y="173" width="4" height="7"/>
+  <rect x="184" y="161" width="4" height="19"/>
+  <rect x="188" y="170" width="4" height="10"/>
+  <rect x="192" y="166" width="4" height="14"/>
+  <rect x="196" y="172" width="4" height="8"/>
+  <rect x="200" y="164" width="4" height="16"/>
+  <rect x="204" y="168" width="4" height="12"/>
+  <rect x="208" y="162" width="4" height="18"/>
+  <rect x="212" y="174" width="4" height="6"/>
+  <rect x="216" y="167" width="4" height="13"/>
+  <rect x="220" y="169" width="4" height="11"/>
+  <rect x="228" y="171" width="4" height="9"/>
+  <rect x="232" y="163" width="4" height="17"/>
+  <rect x="236" y="173" width="4" height="7"/>
+  <rect x="240" y="161" width="4" height="19"/>
+  <rect x="244" y="170" width="4" height="10"/>
+  <rect x="248" y="166" width="4" height="14"/>
+  <rect x="252" y="172" width="4" height="8"/>
+  <rect x="256" y="164" width="4" height="16"/>
+  <rect x="260" y="168" width="4" height="12"/>
+  <rect x="264" y="162" width="4" height="18"/>
+  <rect x="268" y="174" width="4" height="6"/>
+  <rect x="272" y="167" width="4" height="13"/>
+  <rect x="276" y="169" width="4" height="11"/>
+  <rect x="280" y="165" width="4" height="15"/>
+  <rect x="284" y="171" width="4" height="9"/>
+  <rect x="288" y="163" width="4" height="17"/>
+  <rect x="292" y="173" width="4" height="7"/>
+  <rect x="296" y="161" width="4" height="19"/>
+  <rect x="300" y="170" width="4" height="10"/>
+  <rect x="304" y="166" width="4" height="14"/>
+  <rect x="308" y="172" width="4" height="8"/>
+  <rect x="312" y="164" width="4" height="16"/>
+  <rect x="320" y="162" width="4" height="18"/>
+  <rect x="324" y="174" width="4" height="6"/>
+  <rect x="328" y="167" width="4" height="13"/>
+  <rect x="332" y="169" width="4" height="11"/>
+  <rect x="336" y="165" width="4" height="15"/>
+  <rect x="340" y="171" width="4" height="9"/>
+  <rect x="344" y="163" width="4" height="17"/>
+  <rect x="348" y="173" width="4" height="7"/>
+  <rect x="352" y="161" width="4" height="19"/>
+  <rect x="356" y="170" width="4" height="10"/>
+  <rect x="360" y="166" width="4" height="14"/>
+  <rect x="364" y="172" width="4" height="8"/>
+  <rect x="368" y="164" width="4" height="16"/>
+  <rect x="372" y="168" width="4" height="12"/>
+  <rect x="376" y="162" width="4" height="18"/>
+  <rect x="380" y="174" width="4" height="6"/>
+  <rect x="384" y="167" width="4" height="13"/>
+  <rect x="388" y="169" width="4" height="11"/>
+  <rect x="392" y="165" width="4" height="15"/>
+  <rect x="396" y="171" width="4" height="9"/>
+  <rect x="404" y="173" width="4" height="7"/>
+  <rect x="408" y="161" width="4" height="19"/>
+  <rect x="412" y="170" width="4" height="10"/>
+  <rect x="416" y="166" width="4" height="14"/>
+  <rect x="420" y="172" width="4" height="8"/>
+  <rect x="424" y="164" width="4" height="16"/>
+  <rect x="428" y="168" width="4" height="12"/>
+  <rect x="432" y="162" width="4" height="18"/>
+  <rect x="436" y="174" width="4" height="6"/>
+  <rect x="440" y="167" width="4" height="13"/>
+  <rect x="444" y="169" width="4" height="11"/>
+  <rect x="448" y="165" width="4" height="15"/>
+  <rect x="452" y="171" width="4" height="9"/>
+  <rect x="456" y="163" width="4" height="17"/>
+  <rect x="460" y="173" width="4" height="7"/>
+  <rect x="464" y="161" width="4" height="19"/>
+  <rect x="468" y="170" width="4" height="10"/>
+  <rect x="472" y="166" width="4" height="14"/>
+  <rect x="476" y="172" width="4" height="8"/>
+  <rect x="480" y="164" width="4" height="16"/>
+  <rect x="488" y="162" width="4" height="18"/>
+  <rect x="492" y="174" width="4" height="6"/>
+  <rect x="496" y="167" width="4" height="13"/>
+  <rect x="500" y="169" width="4" height="11"/>
+  <rect x="504" y="165" width="4" height="15"/>
+  <rect x="508" y="171" width="4" height="9"/>
+  <rect x="512" y="163" width="4" height="17"/>
+  <rect x="516" y="173" width="4" height="7"/>
+  <rect x="520" y="161" width="4" height="19"/>
+  <rect x="524" y="170" width="4" height="10"/>
+  <rect x="528" y="166" width="4" height="14"/>
+</g>
+<g fill="#B8651A">
+  <rect x="68" y="125" width="4" height="55"/>
+  <rect x="128" y="130" width="4" height="50"/>
+  <rect x="224" y="124" width="4" height="56"/>
+  <rect x="316" y="132" width="4" height="48"/>
+  <rect x="400" y="128" width="4" height="52"/>
+  <rect x="484" y="134" width="4" height="46"/>
+</g>
+
+<line x1="20" y1="180" x2="540" y2="180" stroke="#8F8578" stroke-width="0.8"/>
+
+<text x="22" y="194" font-family="JetBrains Mono" font-size="9" fill="#6B6258">e1</text>
+<text x="540" y="194" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#6B6258">e128</text>
+
+<rect x="555" y="135" width="20" height="45" fill="#D1FAE5" stroke="#15803D" stroke-width="1.2"/>
+<text x="565" y="158" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="#15803D">+1</text>
+<text x="565" y="194" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#15803D">shared</text>
+
+<text x="280" y="116" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="#B8651A">top-6 routed (highest scores)</text>
+<text x="565" y="123" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#15803D">always on</text>
+
+<g stroke="#B8651A" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6">
+  <line x1="70" y1="125" x2="320" y2="225"/>
+  <line x1="130" y1="130" x2="330" y2="225"/>
+  <line x1="226" y1="124" x2="340" y2="225"/>
+  <line x1="318" y1="132" x2="350" y2="225"/>
+  <line x1="402" y1="128" x2="360" y2="225"/>
+  <line x1="486" y1="134" x2="370" y2="225"/>
+</g>
+<line x1="565" y1="180" x2="380" y2="225" stroke="#15803D" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.7"/>
+
+<rect x="240" y="225" width="200" height="40" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
+<text x="340" y="245" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">Σ weighted sum</text>
+<text x="340" y="258" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">6 routed × score + 1 shared</text>
+
+<line x1="340" y1="267" x2="340" y2="282" stroke="#6B6258" marker-end="url(#a12)"/>
+
+<rect x="290" y="284" width="100" height="22" fill="#1A1A1A" stroke="#B8651A" stroke-width="1.5"/>
+<text x="340" y="300" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#F4EEE3">layer output</text>
+</svg>
+<figcaption><strong>Fig 12.</strong> What one MoE layer does for one token. The router runs a 128-way softmax and picks the six experts with the highest scores; the rest contribute nothing for this token. A separate "shared" expert runs for every token regardless of routing. The layer's output is a weighted sum of those six routed experts' outputs (weighted by router score) plus the shared expert. Aggregated over a batch, almost every expert sees some token, but each individual token only touches the seven the router and the shared slot select.</figcaption>
+</figure>
 
 The arithmetic, in rough terms: 128 routed experts at some parameter count each, plus a shared expert. For each token, the router computes scores for all 128, picks the top 6, and the layer's output is a weighted combination of those 6 experts' outputs (weighted by router scores) plus the shared expert's contribution. The 122 unselected experts contribute nothing for this token. They cost FLOPs only when *some* token in the batch routes to them.
 
