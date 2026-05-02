@@ -415,7 +415,7 @@ The first flavor is *discrete-token unified vocabulary*, exemplified by Meta's [
 
 > "Our unified approach uses fully token-based representations for both image and textual modalities. By quantizing images into discrete tokens, analogous to words in text, we can apply the same transformer architecture to sequences of both image and text tokens, without the need for separate image/text encoders or domain-specific decoders."
 
-The second flavor is *continuous projected embeddings*. Instead of quantizing, run each modality through a modality-specific encoder that produces a sequence of continuous feature vectors, then project those vectors (via a learned MLP, the projector) into the LLM's hidden dimension, and concatenate them into the LLM's input sequence. The LLM still consumes a sequence of vectors, the same way it always does. The only difference is that some of those vectors came from a vision encoder or an audio encoder rather than from the text embedding table. The training loss is computed jointly over the whole sequence, including the modality-projected positions.
+The second flavor is *continuous projected embeddings*. Instead of quantizing, run each modality through a modality-specific encoder that produces a sequence of continuous feature vectors, then project those vectors (via a learned MLP, the projector) into the LLM's hidden dimension, and concatenate them into the LLM's input sequence. The LLM still consumes a sequence of vectors, the same way it always does. The only difference is that some of those vectors came from a vision encoder or an audio encoder rather than from the text embedding table. Loss is computed on text outputs, but the gradient flows back through the LLM, the projectors, and (during joint pretraining stages) the encoders themselves, so all of the per-token text predictions are conditioned on the modality-projected positions appearing in the sequence.
 
 This is the family [Gemini](https://arxiv.org/abs/2312.11805), [Qwen2.5-Omni](https://arxiv.org/abs/2503.20215), and [Nemotron 3 Nano Omni](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Omni-report.pdf) belong to. Gemini frames it as native-from-scratch:
 
@@ -582,7 +582,7 @@ In the omni-modal setting, the TDT decoder is thrown away. Nemotron uses only Pa
   <rect x="278" y="125" width="14" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6"/>
   <rect x="294" y="125" width="14" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6"/>
 </g>
-<text x="270" y="160" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">~150 audio features</text>
+<text x="270" y="160" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">~12.5 features/sec</text>
 
 <text x="375" y="40" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258" opacity="0.55">DISCARDED IN OMNI-MODAL</text>
 
@@ -611,7 +611,7 @@ In the omni-modal setting, the TDT decoder is thrown away. Nemotron uses only Pa
 
 <text x="375" y="240" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">OMNI-MODAL HEAD</text>
 </svg>
-<figcaption><strong>Fig 6.</strong> What Nemotron actually keeps from Parakeet. The original Parakeet-TDT speech-recognition model is a FastConformer encoder feeding a Token-and-Duration Transducer that writes out a transcript. In omni-modal use, only the encoder runs; the TDT decoder is discarded, and the encoder's audio features (already 8× downsampled along time, so a 1-second clip lands as ~150 features) pass through a 2-layer MLP projector into the LLM's input sequence instead.</figcaption>
+<figcaption><strong>Fig 6.</strong> What Nemotron actually keeps from Parakeet. The original Parakeet-TDT speech-recognition model is a FastConformer encoder feeding a Token-and-Duration Transducer that writes out a transcript. In omni-modal use, only the encoder runs; the TDT decoder is discarded, and the encoder's audio features (8× temporal subsampling of a 100 Hz log-mel spectrogram, so the encoder emits ~12.5 features per second of audio) pass through a 2-layer MLP projector into the LLM's input sequence instead.</figcaption>
 </figure>
 
 This is the architectural counterpart of what happens on the vision side. C-RADIOv4-H is a vision encoder; its outputs flow through a projector into the LLM. Parakeet's encoder is an audio encoder; its outputs flow through a projector into the same LLM. Two MLPs, two encoders, one decoder.
@@ -656,7 +656,7 @@ A video is a sequence of frames over time. The naive thing to do is treat each f
 
 > "a two-minute video at 24 FPS produces more than two million vision tokens, far beyond the effective context length of most language models"
 
-<Figure caption="Vision-token counts under three encoding strategies, against the 262K context window of Nemotron 3 Nano Omni. The naive per-frame ViT overflows the window for almost any non-trivial clip. Conv3D tubelet encoding halves the count by fusing pairs of frames before the ViT, and EVS at q = 0.75 then keeps only the top quartile of changing post-encoder patches. The product is what makes long video viable inside one decoder context." figNum={7}>
+<Figure caption="Vision-token counts under three encoding strategies, against the 262K context window of Nemotron 3 Nano Omni. The naive per-frame ViT overflows the window for almost any non-trivial clip. Conv3D tubelet encoding halves the count by fusing pairs of frames before the ViT, and EVS at q = 0.75 then keeps only the top quartile of changing post-encoder patches. The product is what makes long video viable inside one decoder context. Nemotron's production recipe also applies a 4× pixel-shuffle reduction prior to projection (see Fig 9); this figure isolates the two compression ideas the post is teaching, and treats the patch-to-token mapping as 1:1 to keep the comparison honest as you drag the sliders." figNum={7}>
   <VideoTokenExplosion client:visible />
 </Figure>
 
@@ -767,39 +767,39 @@ Nemotron 3 Nano Omni's video path runs both reductions in series. First, frames 
 <text x="296" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">passes through</text>
 
 <line x1="344" y1="80" x2="369" y2="80" stroke="#6B6258" stroke-width="1.5" marker-end="url(#a9)"/>
-<text x="357" y="71" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="#B8651A">×0.25</text>
+<text x="357" y="71" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="600" fill="#B8651A">×0.0625</text>
 
-<rect x="374" y="50" width="90" height="70" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
-<text x="419" y="73" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">EVS</text>
-<text x="419" y="87" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">@ q=0.75</text>
-<text x="419" y="105" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">prune redundant 75%</text>
-<text x="419" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#15803D">92,160</text>
-<text x="419" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#15803D">8× total reduction</text>
+<rect x="374" y="50" width="118" height="70" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
+<text x="433" y="73" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">pixel-shuffle ×4</text>
+<text x="433" y="87" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">+ EVS @ q=0.75</text>
+<text x="433" y="105" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">prune redundant 75%</text>
+<text x="433" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#15803D">23,040</text>
+<text x="433" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#15803D">32× total reduction</text>
 
-<line x1="467" y1="80" x2="492" y2="80" stroke="#6B6258" stroke-width="1.5" marker-end="url(#a9)"/>
+<line x1="495" y1="80" x2="520" y2="80" stroke="#6B6258" stroke-width="1.5" marker-end="url(#a9)"/>
 
-<rect x="498" y="50" width="160" height="70" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
-<text x="578" y="74" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM</text>
-<text x="578" y="90" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#FEF3C7">Nemotron 30B-A3B</text>
-<text x="578" y="108" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#FEF3C7">262,144-token context</text>
+<rect x="525" y="50" width="135" height="70" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="592" y="74" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM</text>
+<text x="592" y="90" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#FEF3C7">Nemotron 30B-A3B</text>
+<text x="592" y="106" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#FEF3C7">262,144-token context</text>
 
-<text x="578" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#15803D">fits</text>
-<text x="578" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">35% of context budget</text>
+<text x="592" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#15803D">fits</text>
+<text x="592" y="158" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">9% of context budget</text>
 
 <rect x="40" y="190" width="500" height="14" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.5"/>
 <rect x="40" y="190" width="250" height="14" fill="#B8651A" opacity="0.45"/>
-<rect x="40" y="190" width="62.5" height="14" fill="#15803D" opacity="0.6"/>
+<rect x="40" y="190" width="16" height="14" fill="#15803D" opacity="0.7"/>
 <line x1="178" y1="190" x2="178" y2="204" stroke="#1A1A1A" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="178" y="216" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6B6258">262K context</text>
 
 <text x="555" y="200" font-family="JetBrains Mono" font-size="8" fill="#6B6258">naive 737K</text>
-<text x="555" y="211" font-family="JetBrains Mono" font-size="8" fill="#B8651A">tubelet 369K</text>
-<text x="555" y="222" font-family="JetBrains Mono" font-size="8" fill="#15803D">+EVS 92K</text>
+<text x="555" y="211" font-family="JetBrains Mono" font-size="8" fill="#B8651A">+ tubelet 369K</text>
+<text x="555" y="222" font-family="JetBrains Mono" font-size="8" fill="#15803D">+ shuffle + EVS 23K</text>
 </svg>
-<figcaption><strong>Fig 9.</strong> The two compressions Nemotron stacks for video. Conv3D tubelet fusion at the input layer halves the token count along time. EVS at the encoder output drops three-quarters of what's left, keeping only patches that changed from the previous frame. Cascade total is ×0.5 × ×0.25 = ×0.125: a 30-second clip whose naive token count is 737,280 lands at 92,160 by the time it hits the LLM, well inside the 262,144-token context window.</figcaption>
+<figcaption><strong>Fig 9.</strong> The three compressions Nemotron stacks for video. Conv3D tubelet fusion at the input layer halves the token count along time (Nemotron 3 Nano Omni report, §2). The vision encoder runs over the fused tubelets and emits patch features. The Nemotron pipeline then applies a 4× pixel-shuffle reduction prior to projection ("Prior to projection, we apply a pixel shuffle operation with 4× downsampling to reduce the token count presented to the language model," §2), and EVS at the encoder output drops three-quarters of what's left at q=0.75. Cascade total is ×0.5 × ×0.25 × ×0.25 = ×0.03125: a 30-second clip whose naive token count is 737,280 lands at 23,040 by the time it hits the LLM, well inside the 262,144-token context window.</figcaption>
 </figure>
 
-The two compressions compose multiplicatively. Tubelet halves the token count. EVS at *q*=0.75 drops 75% of what's left. Combined, you're at roughly 1/8 of the naive frame-by-frame token total. For a 30-second clip at 24 FPS and 1024 patches per frame, the naive count is 30 × 24 × 1024 = 737,280 tokens. After tubelet fusion (×0.5) and EVS at *q*=0.75 (×0.25), you're at roughly 92,000. That fits comfortably in a 262K-context LLM.
+Three compressions compose multiplicatively in Nemotron's actual pipeline. Tubelet halves the token count along time. A 4× pixel-shuffle reduction sits between the vision encoder and the projector, dropping the per-frame post-encoder count by another factor of four. EVS at *q*=0.75 then drops 75% of what's left. Together you're at roughly 1/32 of the naive frame-by-frame token total. For a 30-second clip at 24 FPS and 1024 patches per frame, the naive count is 30 × 24 × 1024 = 737,280 tokens. After tubelet fusion (×0.5), pixel-shuffle (×0.25), and EVS at *q*=0.75 (×0.25), you're at roughly 23,000 tokens. That fits comfortably in a 262K-context LLM.
 
 For images (single frames, no temporal axis), the pipeline simplifies. Tubelet fusion isn't applicable; only the spatial ViT runs. The patch count varies with resolution:
 
