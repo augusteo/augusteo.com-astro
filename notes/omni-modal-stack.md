@@ -645,7 +645,7 @@ Iteration stops here: codex's findings are addressed. No structural fixes implie
 
 ## Resume here
 
-Last touched: 2026-05-02.
+Last touched: 2026-05-02 (batch 3).
 
 ### Phase status
 
@@ -656,7 +656,7 @@ Last touched: 2026-05-02.
 | 3. Outline + figure list | done | this file's `## Outline` (incl. per-figure type) |
 | 4. Codex gate 1 | done | this file's `## Codex outline review` |
 | 5. Draft prose | done | `src/content/blog/omni-modal-stack/index.mdx` (18 sections, References) |
-| 6. Implement figures | 7 of 14 done | per-figure table below |
+| 6. Implement figures | 12 of 14 done (only the 2 interactive figures left) | per-figure table below |
 | 7. Playwright visual review | pending | playwright snapshots reviewed |
 | 8. Codex gate 2 + ship | pending | hero image, dev verification, ship |
 
@@ -673,19 +673,25 @@ Last touched: 2026-05-02.
 | 7 | VideoTokenExplosion | interactive-canvas | TODO | — |
 | 8 | EvsPatchPruning | interactive-canvas | TODO | — |
 | 9 | Conv3dEvsPipeline | static-svg | done | 3dd51d4 |
-| 10 | HybridBackboneLayers | static-svg | TODO | — |
-| 11 | MambaVsTransformerScaling | static-svg | TODO | — |
-| 12 | MoeTopKRouting | static-svg | TODO | — |
-| 13 | Nvfp4Layout | static-svg | TODO | — |
-| 14 | UnifiedLoopReassembly | static-svg | TODO | — |
+| 10 | HybridBackboneLayers | static-svg | done | 2b9ae57 |
+| 11 | MambaVsTransformerScaling | static-svg | done | 225733f |
+| 12 | MoeTopKRouting | static-svg | done | 9d71fb8 |
+| 13 | Nvfp4Layout | static-svg | done | 1f1c3ab |
+| 14 | UnifiedLoopReassembly | static-svg | done | fe19539 |
 
 ### Suggested next batch
 
-Phase 6 figure batch 3 (the Act 4 statics, all static-svg): Fig 10 (hybrid backbone layers, vertical 52-layer stack colored by Mamba-2 / GQA / MoE), Fig 11 (Mamba vs Transformer compute scaling, two-curve plot in the prequel Fig 2 style with reference points at 16K/49K/262K), Fig 12 (MoE top-k routing on a token, 128-expert columns with router scores and top-6 highlighted), Fig 13 (NVFP4 layout, one row of 16 weights as 4-bit E2M1 with FP8 micro-scale annotation and FP32 global scale, plus 61.5/32.8/20.9 GB memory accounting), Fig 14 (UnifiedLoopReassembly evidence ledger as a four-row table). Aim for two per session.
+Phase 6 figure batch 4: the two interactive figures, both Canvas2D Svelte islands. Each one needs `src/figures/omni-modal-stack/<name>.ts` (pure draw fn) and `src/components/figures/omni-modal-stack/<Name>.svelte` (wrapper with `$state`, kit primitives, `<Canvas2D>` usage). MDX side: `<FigureName client:visible />` inside `<Figure caption=".." figNum={N}>`. Read `figure-kit.md`'s "Astro hydration" section first.
 
-After that, Phase 6 figure batch 4 (the two interactive figures): Fig 7 (`VideoTokenExplosion`, sliders for duration/FPS/patches-per-frame, three overlaid token-count curves vs a 262K context bar), Fig 8 (`EvsPatchPruning`, q slider over a frame pair, patches grey out as q rises with live "kept N of M" counter). These need both `src/figures/omni-modal-stack/<name>.ts` (Canvas2D draw fn) and `src/components/figures/omni-modal-stack/<Name>.svelte` (wrapper with `$state` and kit primitives). Read `figure-kit.md` and `figure-recipes.md` before starting.
+- Fig 7 — `VideoTokenExplosion`. Three sliders: clip duration (1-120 s), FPS (1-30), patches per frame (256-1024 in steps of 256). Live token count rendered as a horizontal bar against a 262K-context reference. Three overlaid curves on a small inset plot: naive (N×P×F), tubelet ×0.5, tubelet ×0.5 + EVS ×0.25. The bar should fill rust as it approaches 262K and switch to red beyond it.
+- Fig 8 — `EvsPatchPruning`. A frame pair (two side-by-side image stand-ins, ~16×16 patch grid each). Slider for q in [0, 0.95]. As q rises, patches in the second frame grey out from the static background outward. Live counter below: "kept N of M patches; LLM prefill tokens reduced by (1−q)×". First frame is always fully kept (per the EVS algorithm).
 
-After all 14 figures land, Phase 7 (playwright per-figure review) → Phase 8 (codex gate 2 + hero hand-off + ship).
+After both interactive figures land, Phase 7 (playwright per-figure review across all 14) → Phase 8 (codex gate 2 + hero image hand-off + ship).
+
+### Notes from batch 3
+
+- Generating large repetitive SVG content (e.g., 128 expert columns in Fig 12) by hand is brittle. Used a one-shot Python script to compute the inactive-expert heights via a deterministic period-14 pattern, then pasted the generated `<rect>` elements. The figure source still has the data inline (no JSX/Svelte expansion needed); the generator is just for typing.
+- Voice-check caught two em-dashes inside SVG `<text>` labels in Fig 13 ("32 bits" and "8 bits" qualifiers). The script greps the raw file so SVG strings count. Use parentheticals or commas in figure labels instead.
 
 ### Notes from batch 2
 
