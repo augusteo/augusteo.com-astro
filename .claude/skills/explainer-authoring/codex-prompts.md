@@ -97,12 +97,22 @@ Find:
    Example: a claim about scaling that holds at one regime but breaks at another the
    post will eventually discuss.
 
-5. REFERENCES SECTION COMPLETENESS. Every primary source quoted in the notes file
-   must appear in the post's References section so the reader can trace any claim
-   back to its source. Flag missing entries. If the post has no References section
-   at all, that is itself a STRUCTURAL finding. The audit chain requires the
-   reader to be able to verify every load-bearing claim, and a private notes file
-   does not satisfy that.
+5. REFERENCES SECTION COMPLETENESS AND HYPERLINKING. Every primary source quoted
+   in the notes file must appear in the post's References section so the reader
+   can trace any claim back to its source. Flag missing entries. If the post has
+   no References section at all, that is itself a STRUCTURAL finding. The audit
+   chain requires the reader to be able to verify every load-bearing claim, and
+   a private notes file does not satisfy that.
+
+   Each References-section entry must be a markdown hyperlink (`[title](url)`),
+   not a bare title-and-author string. Flag any entry without a URL.
+
+   Additionally, for every inline mention in the prose that names a specific
+   external writeup, paper, post, or report (e.g. "Andres Freund's writeup",
+   "the Mattermost postmortem", "JP Camara's writeup"), the named source must
+   be a markdown hyperlink to the same URL used in the References section.
+   Flag any inline named source that is plain text. Generic mentions like
+   "the Postgres docs" without a specific page are exempt.
 
 For each finding, label it STRUCTURAL (must fix before shipping) or COSMETIC (nice to
 have). Order findings by load-bearing-ness. Cite the specific paragraph or sentence,

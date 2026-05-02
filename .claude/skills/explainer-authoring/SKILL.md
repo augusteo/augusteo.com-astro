@@ -127,7 +127,8 @@ Goal: a working MDX file with section prose and figure placeholders.
    scripts/voice-check.sh src/content/blog/<post-slug>/index.mdx
    ```
    It exits non-zero on any hit. Em dashes: zero. Banned words: rewrite, or if the word is a real technical term in this context, leave a one-line comment in the source naming why it stays. Re-run until clean.
-4. **Emit a `## References` section at the end of the post** by transcribing every quoted primary source from `notes/<post-slug>.md`'s `## Research notes`. One Markdown link per source: title, authors (or org), year, arxiv ID or URL. The reader must be able to trace every load-bearing claim to a source without reading the private notes file. (Gate 2 in Phase 8 will halt the post if this section is missing.)
+4. **Emit a `## References` section at the end of the post** by transcribing every quoted primary source from `notes/<post-slug>.md`'s `## Research notes`. One Markdown link per source: title, authors (or org), year, arxiv ID or URL. Every entry must be a real `[title](url)` hyperlink — never a bare title-and-author string. The reader must be able to trace every load-bearing claim to a source without reading the private notes file. (Gate 2 in Phase 8 will halt the post if this section is missing or if entries lack URLs.)
+5. **Hyperlink inline named-source mentions.** Whenever the prose names a specific external writeup, paper, post, postmortem, or report (e.g. "Andres Freund's writeup", "the Mattermost postmortem", "JP Camara's writeup"), wrap the named phrase in a markdown link to the same URL used in the References section. Generic mentions ("the Postgres docs", "the paper") without a specific target are exempt. Gate 2 will flag any inline named source left as plain text.
 5. Commit per section so each one is reviewable in isolation. After each commit, update the `## Resume here` tracker.
 6. When all sections are drafted, update the tracker: phase 5 → done.
 

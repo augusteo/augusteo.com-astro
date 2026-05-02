@@ -135,7 +135,8 @@ After writing the MDX:
 
 1. Confirm `bun run dev` is running, or tell Vic to start it. Default URL: `http://localhost:4321/blog/<slug>`.
 2. Spot-check: figures render, every `### N.` heading appears in section order, no raw HTML class attributes leaked through (`class="keyterm"`, `class="callout"`, etc.), no `<span class="…">` leftovers.
-3. Report decisions Vic might want to override: tags, slug, code-block languages.
+3. **References hyperlink check.** Every entry in the `### References` section must be a markdown hyperlink (`[title](url)`), not bare title-and-author text. If the source HTML left any reference without a URL, surface it to Vic and ask for the link before publishing. Likewise, scan the prose for inline named-source mentions ("X's writeup", "the Y postmortem", "Z et al.'s paper") and confirm each one is a markdown link to the same URL used in the References section. Flag any plain-text mention so Vic can decide whether to link or rewrite.
+4. Report decisions Vic might want to override: tags, slug, code-block languages.
 
 ## Reference
 
