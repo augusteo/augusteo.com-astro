@@ -11,6 +11,7 @@ essay: true
 
 import Figure from "@components/figure/Figure.svelte";
 import VideoTokenExplosion from "@components/figures/omni-modal-stack/VideoTokenExplosion.svelte";
+import EvsPatchPruning from "@components/figures/omni-modal-stack/EvsPatchPruning.svelte";
 
 *A sequel to [The Unified Vision Stack](/blog/unified-vision-stack). Picks up where C-RADIOv4 ended and asks what it takes to teach one eye to listen, watch, and speak. Worked example throughout: NVIDIA's Nemotron 3 Nano Omni, released April 2026. About a 45-minute read.*
 
@@ -699,7 +700,9 @@ You now have a 2D map of "how much did this patch change between these two frame
 
 That's the algorithm. *q* is user-tunable: q=0 keeps everything; q=0.75 keeps the top 25% of changing patches; q=0.95 keeps almost nothing. The first frame is always kept whole, since there's no *t−1* to diff against.
 
-{/* TODO: Fig 8: EvsPatchPruning. Two consecutive frames side-by-side. Slider for q. Patches grey out as q rises. Live counter: kept N of M patches, LLM prefill tokens reduced by (1-q)x. */}
+<Figure caption="EVS pruning on a synthetic two-frame scene. The left frame (t − 1) is always kept whole, since there is no preceding frame to diff against. In the right frame (t), patches whose L1 difference from the matching patch at t − 1 falls below the q-th percentile are greyed out. As q rises, only the patches around the moving object survive; the static background is dropped because earlier frames already represent it. The figure uses raw RGB difference for visual intuition; production EVS computes the same threshold on encoded features." figNum={8}>
+  <EvsPatchPruning client:visible />
+</Figure>
 
 Drag the *q* slider. Notice what survives. The patches that get kept are the parts of the scene that are actually changing: the moving objects, the camera-relative motion, the cut transitions. The patches that get dropped are the static background already represented in earlier frames. Information-theoretically, you aren't throwing away anything the model needs; you're throwing away the redundancy.
 
