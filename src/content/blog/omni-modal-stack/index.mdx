@@ -69,7 +69,84 @@ Cracking that question is the spine of the post. The short answer is that SigLIP
 
 The SigLIP head sitting on top of C-RADIOv4 produces caption-aligned features. An image goes in, a vector comes out, and that vector lives in the same embedding space SigLIP's text tower lives in. So you can take any sentence, embed it through the text tower, and ask: how close is its embedding to the image's? You get a similarity score. Higher score, the caption fits the image better. Lower score, it doesn't.
 
-{/* TODO: Fig 2: Contrastive (SigLIP) vs autoregressive (LLM) panel */}
+<figure>
+<svg viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="170" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">CONTRASTIVE (SIGLIP / CLIP)</text>
+
+<rect x="30" y="40" width="80" height="80" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="30" y="40" width="80" height="32" fill="#93C5FD" opacity=".7"/>
+<rect x="30" y="72" width="80" height="22" fill="#D1AE7A" opacity=".8"/>
+<rect x="30" y="94" width="80" height="26" fill="#059669" opacity=".6"/>
+<circle cx="90" cy="55" r="8" fill="#FEF3C7"/>
+<text x="70" y="135" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">image</text>
+
+<rect x="30" y="170" width="180" height="28" fill="#F9F5EB" stroke="#C9BEAA" rx="3"/>
+<text x="120" y="188" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">"a dog on a beach"</text>
+<text x="120" y="213" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">caption</text>
+
+<line x1="115" y1="80" x2="155" y2="80" stroke="#6B6258" marker-end="url(#a2)"/>
+<line x1="215" y1="184" x2="245" y2="184" stroke="#6B6258" marker-end="url(#a2)"/>
+
+<rect x="160" y="68" width="100" height="22" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<text x="210" y="83" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#2563EB">[0.7, -0.1, ...]</text>
+
+<rect x="248" y="172" width="100" height="22" fill="none" stroke="#059669" stroke-width="1.5"/>
+<text x="298" y="187" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#059669">[0.6, 0.0, ...]</text>
+
+<circle cx="295" cy="105" r="22" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="295" y="113" text-anchor="middle" font-family="JetBrains Mono" font-size="18" fill="#F4EEE3">·</text>
+
+<line x1="265" y1="83" x2="278" y2="98" stroke="#6B6258" marker-end="url(#a2)"/>
+<line x1="295" y1="172" x2="295" y2="130" stroke="#6B6258" marker-end="url(#a2)"/>
+
+<text x="345" y="111" font-family="JetBrains Mono" font-size="14" fill="#1A1A1A">= 0.81</text>
+<text x="295" y="244" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">one number per pair</text>
+<text x="295" y="261" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">"does this caption match</text>
+<text x="295" y="275" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">this image?"</text>
+
+<line x1="365" y1="40" x2="365" y2="285" stroke="#C9BEAA" stroke-dasharray="3,3"/>
+
+<text x="525" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">AUTOREGRESSIVE (LLM)</text>
+
+<g font-family="JetBrains Mono" font-size="11">
+<rect x="385" y="50" width="36" height="22" fill="#FBE9CE" stroke="#B8651A"/><text x="403" y="65" text-anchor="middle" fill="#1A1A1A">the</text>
+<rect x="423" y="50" width="38" height="22" fill="#FBE9CE" stroke="#B8651A"/><text x="442" y="65" text-anchor="middle" fill="#1A1A1A">dog</text>
+<rect x="463" y="50" width="28" height="22" fill="#FBE9CE" stroke="#B8651A"/><text x="477" y="65" text-anchor="middle" fill="#1A1A1A">is</text>
+<rect x="493" y="50" width="32" height="22" fill="#FBE9CE" stroke="#B8651A"/><text x="509" y="65" text-anchor="middle" fill="#1A1A1A">on</text>
+<rect x="527" y="50" width="36" height="22" fill="#FBE9CE" stroke="#B8651A"/><text x="545" y="65" text-anchor="middle" fill="#1A1A1A">the</text>
+<rect x="565" y="50" width="34" height="22" fill="none" stroke="#B91C1C" stroke-dasharray="3,2"/><text x="582" y="65" text-anchor="middle" fill="#B91C1C">?</text>
+</g>
+<text x="492" y="91" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">prefix</text>
+
+<rect x="405" y="115" width="180" height="40" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="495" y="140" text-anchor="middle" font-family="serif" font-size="14" font-weight="700" fill="#F4EEE3">LLM</text>
+
+<line x1="492" y1="78" x2="492" y2="113" stroke="#6B6258" marker-end="url(#a2)"/>
+<line x1="492" y1="156" x2="492" y2="178" stroke="#6B6258" marker-end="url(#a2)"/>
+
+<text x="492" y="194" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">P(NEXT TOKEN)</text>
+<g font-family="JetBrains Mono" font-size="9">
+<rect x="395" y="200" width="14" height="44" fill="#2563EB"/><text x="402" y="259" text-anchor="middle" fill="#1A1A1A">beach</text>
+<rect x="412" y="218" width="14" height="26" fill="#2563EB" opacity=".7"/><text x="419" y="259" text-anchor="middle" fill="#1A1A1A">grass</text>
+<rect x="429" y="223" width="14" height="21" fill="#2563EB" opacity=".55"/><text x="436" y="259" text-anchor="middle" fill="#1A1A1A">floor</text>
+<rect x="446" y="229" width="14" height="15" fill="#2563EB" opacity=".4"/><text x="453" y="259" text-anchor="middle" fill="#1A1A1A">car</text>
+<rect x="463" y="232" width="14" height="12" fill="#2563EB" opacity=".3"/><text x="470" y="259" text-anchor="middle" fill="#1A1A1A">deck</text>
+<rect x="480" y="236" width="14" height="8" fill="#2563EB" opacity=".22"/><text x="487" y="259" text-anchor="middle" fill="#1A1A1A">sand</text>
+<rect x="497" y="238" width="14" height="6" fill="#2563EB" opacity=".18"/><text x="504" y="259" text-anchor="middle" fill="#1A1A1A">moon</text>
+<rect x="514" y="240" width="14" height="4" fill="#2563EB" opacity=".15"/><text x="521" y="259" text-anchor="middle" fill="#1A1A1A">...</text>
+</g>
+<text x="615" y="222" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">over</text>
+<text x="615" y="234" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">~100k</text>
+<text x="615" y="246" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">tokens</text>
+
+<rect x="405" y="271" width="60" height="22" fill="#FBE9CE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="435" y="286" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#2563EB">beach</text>
+<text x="510" y="286" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">sample, append, repeat</text>
+</svg>
+<figcaption><strong>Fig 2.</strong> Two different operations on the same example. Left: SigLIP-style scoring takes an image and a caption, projects each into a shared space, and outputs a single number. Right: an LLM takes a partial sentence and outputs a probability distribution over what the next token should be, then samples one and appends it. Scaling SigLIP doesn't get you the right side. Scaling an LLM doesn't, by itself, get you the left side.</figcaption>
+</figure>
 
 What you can't do with that score is ask for a description of the image. The SigLIP text tower never learned to *produce* sentences. It only learned to *score* them.
 
