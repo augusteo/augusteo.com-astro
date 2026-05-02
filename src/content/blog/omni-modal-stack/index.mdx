@@ -451,7 +451,7 @@ Where Nemotron 3 Nano Omni sits is at the unified end of this dial. Its 30B-A3B 
 
 > "354,587,705 data points (~717.0B tokens) ... text+audio: 259,178,821 samples (~143,533.1M tokens); text+image: 70,143,901 samples (~180,347.1M tokens); text+video: 15,837,673 samples (~239,631.5M tokens); text+video+audio: 8,720,044 samples (~152,499.2M tokens); text: 707,187 samples (~958.4M tokens)."
 
-Compare to an adapter-style model where a small instruction-tuning dataset sits on top of a frozen text-pretrained LLM. The depth-of-joint-distribution gap between the two regimes is large enough that adapter-style models cannot, in general, learn to reason fluently across modalities the way unified-decoder models do; they are constrained by what the projector can carry into a frozen text LLM.
+Compare to an adapter-style model where a small instruction-tuning dataset sits on top of a frozen text-pretrained LLM. The two regimes train on different distributions. Adapter models work well when the multimodal signal the LLM needs to use is something a thin projector can encode and the LLM's text-only weights can interpret as token-shaped input. They tend to struggle when the input drifts further out of distribution from anything the LLM saw during pretraining (long video, dense documents, audio whose information lives in prosody more than wording), because the projector becomes a bottleneck on what the LLM can possibly attend to. Unified-decoder models carry that distribution into the LLM's pretraining, so the bottleneck moves.
 
 Now we have the central design choice in place. Text decoder in the middle. Modality encoders feeding it through projectors. Trained jointly on multimodal sequences. The next question is what specifically each modality encoder has to do, and that's Act 3.
 
@@ -718,7 +718,7 @@ Two more details matter for production. First, training-time stochastic compress
 
 So at inference, you pick whatever *q* fits your latency budget and accuracy target, and the model has already seen that compression level during training.
 
-Second, the production deployment runs EVS in *embedding space*, not raw RGB. The simple RGB intuition above is exactly that, an intuition. In Nemotron 3 Nano Omni and in the EVS paper's own uptraining tables, similarity is computed on the *encoded* patch features (the vision encoder's output), not on raw pixels. This avoids the corner cases where two frames look pixel-identical but represent different content (a scene cut where the new shot happens to share the background, for example). The algorithm structure is the same; only the input space changes.
+Second, the production deployment runs EVS in *embedding space*, not raw RGB. The simple RGB intuition above is exactly that, an intuition. In Nemotron 3 Nano Omni and in the EVS paper's own uptraining tables, similarity is computed on the *encoded* patch features (the vision encoder's output), not on raw pixels. Raw RGB L1 over-weights pixel differences that are visually salient but semantically unimportant (lighting drift, sensor noise, mild camera jitter) and under-weights changes that are small in pixels but large in meaning (a face turning, a hand crossing into frame). Computing the threshold on encoded features fixes both directions because the encoder has already discounted nuisance variation. The algorithm structure is the same; only the input space changes.
 
 Reported results, kept separate because they measure different things. The EVS paper reports a general "up to 4× LLM TTFT speedup with minimal accuracy loss," varying by model and *q*. Their Video-MME table at *q*=0.75 with uptraining shows a 1.23-point drop on the 32-frame setting (65.50 → 64.70). The two numbers are not the same number; don't bundle them into "4× at *q*=0.75."
 
@@ -902,21 +902,22 @@ Three things are happening here. The backbone is a hybrid of three layer types: 
   <text x="638" y="105" text-anchor="middle">52</text>
 </g>
 
-<rect x="20" y="130" width="200" height="80" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" rx="3"/>
+<rect x="20" y="130" width="200" height="92" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" rx="3"/>
 <rect x="28" y="138" width="14" height="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/>
 <text x="50" y="150" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">Mamba-2 ×23</text>
 <text x="28" y="170" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">selective state-space,</text>
 <text x="28" y="183" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">O(N) cost in sequence</text>
 <text x="28" y="196" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">length, no attention</text>
 
-<rect x="240" y="130" width="200" height="80" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="3"/>
+<rect x="240" y="130" width="200" height="92" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="3"/>
 <rect x="248" y="138" width="14" height="14" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/>
 <text x="270" y="150" font-family="serif" font-size="12" font-weight="600" fill="#B8651A">GQA attention ×6</text>
-<text x="248" y="170" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">~11.5% of the stack,</text>
-<text x="248" y="183" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">evenly dispersed; kept</text>
-<text x="248" y="196" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">for exact-position lookup</text>
+<text x="248" y="170" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">~11.5% of the stack;</text>
+<text x="248" y="183" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">kept for the kind of</text>
+<text x="248" y="196" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">exact-position lookup</text>
+<text x="248" y="207" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">attention is good at</text>
 
-<rect x="460" y="130" width="200" height="80" fill="#D1FAE5" stroke="#15803D" stroke-width="1.5" rx="3"/>
+<rect x="460" y="130" width="200" height="92" fill="#D1FAE5" stroke="#15803D" stroke-width="1.5" rx="3"/>
 <rect x="468" y="138" width="14" height="14" fill="#D1FAE5" stroke="#15803D" stroke-width="0.8"/>
 <text x="490" y="150" font-family="serif" font-size="12" font-weight="600" fill="#15803D">MoE feedforward ×23</text>
 <text x="468" y="170" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">128 routed experts,</text>
@@ -1225,7 +1226,7 @@ Nemotron 3 Nano scales this up to 128 experts per MoE layer with top-6 routing, 
 
 The arithmetic, in rough terms: 128 routed experts at some parameter count each, plus a shared expert. For each token, the router computes scores for all 128, picks the top 6, and the layer's output is a weighted combination of those 6 experts' outputs (weighted by router scores) plus the shared expert's contribution. The 122 unselected experts contribute nothing for this token. They cost FLOPs only when *some* token in the batch routes to them.
 
-Aggregated over a batch of N tokens, every expert sees on average about (6+1)·N/128 ≈ 5.5% of the tokens. So 30B total parameters, only ~3.5B active per token, but during a forward pass on a batch of, say, 1024 tokens, almost all 30B parameters touch *some* token.
+Aggregated over a batch of N tokens, the shared expert sees 100% of the tokens (it isn't routed) and each routed expert sees on average about 6N/128 ≈ 4.7% of the tokens under balanced routing. So 30B total parameters, only ~3.5B active per token, but during a forward pass on a batch of, say, 1024 tokens, the shared expert and most of the routed experts touch *some* token.
 
 Three things follow from this. Capacity scales with parameter count; you can keep adding experts. Compute scales with the active count, not the total. Memory bandwidth dominates inference, because all 30B parameters live in GPU memory and have to be addressable even if any one token only uses 3.5B of them.
 
@@ -1328,7 +1329,7 @@ The reason this works is that NVFP4 reuses E4M3 as the per-block scale factor. B
 
 The post just walked through how to wire perception across four modalities into a single decoder. The reasoning loop on top of that perception is a different and unfinished problem.
 
-What the model has at this point: a unified backbone that reads text, sees images, hears audio, and watches video, all in one forward pass; a hybrid Mamba+attention+MoE architecture that scales to 262K-token contexts; a quantization recipe that fits the whole thing in around 21 GB of weights. What it does not have: published benchmarks of tool-use, function-calling, planning, or multi-step reasoning specific to Nemotron 3 Nano Omni. The technical report and model cards I could find don't include any of that. The launch announcement frames the model as a "multimodal perception-and-context sub-agent within larger agentic systems," not as a planner.
+What the model has at this point: a unified backbone that reads text, sees images, hears audio, and watches video, all in one forward pass; a hybrid Mamba+attention+MoE architecture that scales to 262K-token contexts; a quantization recipe that fits the whole thing in around 21 GB of weights. The model card lists tool-calling support and reports OSWorld-style computer-use scores, so the post is not making the claim that no agentic numbers exist; what it is claiming is that the broader question of long-horizon planning, multi-step decomposition, and benchmark performance on suites like BFCL or GAIA is not yet what the report or model cards center on. The launch announcement frames the model as a "multimodal perception-and-context sub-agent within larger agentic systems," not as a planner.
 
 That framing is honest and worth taking seriously. Perception is not reasoning. A model that perceives well is a foundation for an agent loop; it is not the loop itself. The next problem in the stack is how the LLM in the middle generates *plans*, calls *tools*, and executes *multi-step trajectories* over the perceived state. None of that has the same shape as the perception story this post traced.
 
