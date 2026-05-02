@@ -663,7 +663,7 @@ Iteration stops here: codex's findings are addressed. No structural fixes implie
 
 ## Resume here
 
-Last touched: 2026-05-02 (phase 6 done in v2 numbering — all 14 figures pass playwright review).
+Last touched: 2026-05-02 (post shipped at commit 8a83041).
 
 **Migrated to v2 skill format on 2026-05-02.** v1 had 8 phases; v2 has 7 phases (no missing slot). The mapping is: v1 Phase 1 = v2 Phase 1; v1 Phase 2 = v2 Phase 2; v1 Phase 3 = v2 Phase 3; v1 Phase 4 (codex gate 1) = v2 Gate 1 at end of Phase 3; v1 Phase 5 = v2 Phase 4; v1 Phase 6 = v2 Phase 5; v1 Phase 7 = v2 Phase 6; v1 Phase 8 = v2 Phase 7 (now also includes the freshness re-check before Gate 2 fires). Tracker tables below use the v2 numbering.
 
@@ -677,16 +677,16 @@ Last touched: 2026-05-02 (phase 6 done in v2 numbering — all 14 figures pass p
 | 4. Draft prose | done | `src/content/blog/omni-modal-stack/index.mdx` (18 sections, References) |
 | 5. Implement figures | 14 of 14 done | per-figure table below |
 | 6. Playwright review | done | 14 of 14 passed (Fig 2 had a label-overlap fix at commit 2d6483e) |
-| 7. Freshness pass + Gate 2 + hero + ship | pending | freshness re-check on cited sources (NEW v2 step), codex final gate, hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + hero + ship | done | 11 codex rounds → no structural issues; hero shipped at commit 8a83041 |
 
 ### Codex history
 
 | Date | Gate | Outcome | Findings file |
 |---|---|---|---|
 | (pre-v2) | 1 (outline) | structural fixes applied, then closed | this file's `## Codex outline review` |
-| TBD | 2 (final) | TBD | TBD (will append after Gate 2 fires in Phase 7) |
+| 2026-05-02 | 2 (final) | 11 rounds total. R1: 13 STRUCTURAL + 1 COSMETIC → fixed (References format, narrowing claims, audio mental model, EVS/MoE/megapixel arithmetic, Fig 14 attribution). R2: 4 STRUCTURAL + 1 COSMETIC → fixed (Fig 10 placement claim, MoE batch math, adapter-vs-unified narrowing, EVS embedding rationale). R3: 3 STRUCTURAL → fixed (training-loss claim, audio token rate 12.5/sec not 150, pixel-shuffle 4× added to cascade). R4: 1 STRUCTURAL → fixed (717B-token figure framed as SFT not pretraining). R5: 2 STRUCTURAL → fixed (Fig 4 unified-decoder retitled, 467B vs 717B token-figure distinction). R6: 1 STRUCTURAL → fixed (EVS at q=0.5 not q=0.75 for Nemotron deployment). R7: 2 STRUCTURAL → fixed (0.80 vs 1.23 EVS drop arithmetic, M-RoPE source attribution). R8: 2 STRUCTURAL → fixed (uptraining recipe attribution, EVS placement). R9: 1 STRUCTURAL → fixed (post-adapter EVS placement consistency across post). R10: 1 STRUCTURAL → fixed (Nemotron-H-47B not 56B for the 2.9× speedup). R11: no structural issues found. Total 30 structural fixes across rounds. |
 
-Note: this post predates v2's Gate 0 (research-notes truthfulness pass) — Gate 0 was not run because the v1 skill only had two gates. Given research is already locked and Gate 1 already passed, Gate 0 is not retroactively required for ship; the existing research notes will be re-attacked under Gate 2's expanded "walk every prose claim, find its matrix row" check.
+Note: this post predates v2's Gate 0 (research-notes truthfulness pass) — Gate 0 was not run because the v1 skill only had two gates. Given research is already locked and Gate 1 already passed, Gate 0 is not retroactively required for ship; the existing research notes were re-attacked under Gate 2's expanded "walk every prose claim, find its matrix row" check (see codex round-by-round above).
 
 ### Phase 5 figure progress (v2 numbering — was Phase 6 under v1)
 
