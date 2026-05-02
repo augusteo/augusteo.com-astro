@@ -459,7 +459,62 @@ Now we have the central design choice in place. Text decoder in the middle. Moda
 
 The first thing to notice about audio is that the natural input format is not 1D and not pixel-shaped. A microphone produces a time series of pressure values (a waveform), but every modern audio model converts the waveform into a 2D representation, called a log-mel spectrogram, before any neural network touches it.
 
-{/* TODO: Fig 5: A 1-second waveform on the left, an 80-channel by 100-frame log-mel spectrogram tile on the right, axes labeled */}
+<figure>
+<svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="150" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">RAW WAVEFORM</text>
+<rect x="30" y="40" width="240" height="160" fill="#F9F5EB" stroke="#C9BEAA"/>
+<line x1="30" y1="120" x2="270" y2="120" stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,2"/>
+
+<polyline points="30,120 34,121 38,119 42,121 46,119 50,124 54,112 58,140 62,98 66,148 70,92 74,148 78,95 82,145 86,98 90,140 94,105 98,130 102,115 106,125 110,118 114,128 118,110 122,145 126,92 130,148 134,90 138,145 142,92 146,143 150,98 154,140 158,108 162,132 166,115 170,130 174,110 178,132 182,110 186,130 190,112 194,128 198,115 202,125 206,118 210,124 214,119 218,122 222,120 226,121 230,120 234,120 238,120 242,120 246,120 250,120 254,120 258,120 262,120 266,120 270,120" fill="none" stroke="#1A1A1A" stroke-width="0.8"/>
+
+<text x="24" y="44" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#6B6258">+1</text>
+<text x="24" y="124" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#6B6258">0</text>
+<text x="24" y="204" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#6B6258">-1</text>
+
+<text x="30" y="216" font-family="JetBrains Mono" font-size="9" fill="#6B6258">0</text>
+<text x="150" y="216" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">0.5 s</text>
+<text x="270" y="216" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#6B6258">1 s</text>
+
+<text x="150" y="240" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">16,000 samples / second</text>
+
+<line x1="282" y1="120" x2="368" y2="120" stroke="#6B6258" stroke-width="1.5" marker-end="url(#a5)"/>
+<text x="325" y="105" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">25 ms window,</text>
+<text x="325" y="118" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">10 ms stride,</text>
+<text x="325" y="139" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#1A1A1A">80 mel bins, log</text>
+
+<text x="500" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">LOG-MEL SPECTROGRAM</text>
+<rect x="380" y="40" width="240" height="160" fill="#F4EEE3" stroke="#8F8578"/>
+
+<rect x="380" y="160" width="240" height="40" fill="#B8651A" opacity="0.30"/>
+<rect x="380" y="130" width="240" height="30" fill="#B8651A" opacity="0.18"/>
+<rect x="380" y="100" width="240" height="30" fill="#B8651A" opacity="0.08"/>
+
+<rect x="399" y="60" width="51" height="140" fill="#B8651A" opacity="0.20"/>
+<rect x="471" y="80" width="29" height="120" fill="#B8651A" opacity="0.24"/>
+<rect x="507" y="65" width="43" height="135" fill="#B8651A" opacity="0.20"/>
+
+<rect x="399" y="120" width="51" height="40" fill="#B8651A" opacity="0.22"/>
+<rect x="507" y="115" width="43" height="45" fill="#B8651A" opacity="0.26"/>
+
+<rect x="399" y="50" width="5" height="42" fill="#B8651A" opacity="0.55"/>
+<rect x="471" y="55" width="5" height="32" fill="#B8651A" opacity="0.55"/>
+<rect x="507" y="50" width="5" height="40" fill="#B8651A" opacity="0.55"/>
+
+<rect x="382" y="44" width="34" height="13" fill="#F4EEE3" opacity="0.85"/>
+<text x="385" y="54" font-family="JetBrains Mono" font-size="9" fill="#6B6258">7 kHz</text>
+<rect x="382" y="186" width="34" height="13" fill="#F4EEE3" opacity="0.85"/>
+<text x="385" y="196" font-family="JetBrains Mono" font-size="9" fill="#6B6258">0 Hz</text>
+
+<text x="380" y="216" font-family="JetBrains Mono" font-size="9" fill="#6B6258">0</text>
+<text x="500" y="216" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">0.5 s</text>
+<text x="620" y="216" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#6B6258">1 s</text>
+
+<text x="500" y="240" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">100 time frames × 80 mel bins</text>
+</svg>
+<figcaption><strong>Fig 5.</strong> A 1-second utterance and the log-mel tile every modern audio model turns it into. Left: the microphone signal, sampled 16,000 times per second. Right: what comes out after a sliding 25 ms window, an 80-bin mel filterbank, and a per-bin log. Rows are mel-spaced frequency channels (low at the bottom, high at the top); columns are 10 ms time frames. Time means the same thing on both axes; the vertical axis on the right has no spatial locality.</figcaption>
+</figure>
 
 A spectrogram is what you get when you take a sliding window of, say, 25 milliseconds across the waveform, and for each window compute the energy of the signal at each of a fixed set of frequency bins. The "mel" part means the frequency bins are spaced on the perceptual mel scale rather than linearly, because human auditory perception is approximately log-frequency. The "log" means you take the log of the energy in each bin, because perception is approximately log-amplitude. You end up with a 2D matrix whose rows are frequency bins (typically 80 of them) and whose columns are time frames (typically one every 10 milliseconds).
 
