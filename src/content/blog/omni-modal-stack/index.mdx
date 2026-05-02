@@ -433,3 +433,52 @@ The numbers, plain: BF16 weights for the full model are 61.5 GB. FP8 is 32.8 GB.
 The mixed-precision recipe matters. Quantizing the routed experts to 4 bits is the bulk of the savings (most parameters in a 30B-A3B MoE live in those experts). Mamba projection layers, shared experts, and the attention output projection stay at FP8 because those layers are more sensitive. Vision and audio encoders stay at BF16 because they're small relative to the LLM and the accuracy cost isn't worth it.
 
 The reason this works is that NVFP4 reuses E4M3 as the per-block scale factor. Blackwell already has hardware for E4M3, so the micro-scale comes nearly for free. The format is a careful reuse of formats Blackwell already accelerates, not an exotic ad-hoc design.
+
+### 18. What's still missing
+
+The post just walked through how to wire perception across four modalities into a single decoder. The reasoning loop on top of that perception is a different and unfinished problem.
+
+What the model has at this point: a unified backbone that reads text, sees images, hears audio, and watches video, all in one forward pass; a hybrid Mamba+attention+MoE architecture that scales to 262K-token contexts; a quantization recipe that fits the whole thing in around 21 GB of weights. What it does not have: published benchmarks of tool-use, function-calling, planning, or multi-step reasoning specific to Nemotron 3 Nano Omni. The technical report and model cards I could find don't include any of that. The launch announcement frames the model as a "multimodal perception-and-context sub-agent within larger agentic systems," not as a planner.
+
+That framing is honest and worth taking seriously. Perception is not reasoning. A model that perceives well is a foundation for an agent loop; it is not the loop itself. The next problem in the stack is how the LLM in the middle generates *plans*, calls *tools*, and executes *multi-step trajectories* over the perceived state. None of that is settled in the way the perception layer is settled.
+
+{/* TODO: Fig 14: UnifiedLoopReassembly evidence ledger. Four rows: long-context throughput / system throughput / memory footprint / prosody preservation. Columns: claim, mechanism, source-backed number with baseline, limitation. */}
+
+So the post ends with a small concrete piece. Three architectural moves take you from a vision backbone to a four-modality perception model. A text-centric autoregressive decoder. Modality-specific encoders feeding it through MLP projectors. A stack of token-budget mechanisms (tubelet fusion, EVS, hybrid Mamba+attention+MoE, NVFP4) to keep inference affordable. The last one is what makes the first two shippable.
+
+> *None of them are agent reasoning. But you can't reason without seeing.*
+
+## References
+
+- The Unified Vision Stack (the prequel). Augusteo 2026 ([augusteo.com](https://augusteo.com/blog/unified-vision-stack)).
+- CLIP. Radford et al., OpenAI 2021 ([arXiv:2103.00020](https://arxiv.org/abs/2103.00020)).
+- SigLIP. Zhai et al., Google DeepMind 2023 ([arXiv:2303.15343](https://arxiv.org/abs/2303.15343)).
+- SigLIP 2. Tschannen et al., Google DeepMind 2025 ([arXiv:2502.14786](https://arxiv.org/abs/2502.14786)).
+- Flamingo. Alayrac et al., DeepMind 2022 ([arXiv:2204.14198](https://arxiv.org/abs/2204.14198)).
+- BLIP-2. Li et al., Salesforce 2023 ([arXiv:2301.12597](https://arxiv.org/abs/2301.12597)).
+- LLaVA (Visual Instruction Tuning). Liu et al., 2023 ([arXiv:2304.08485](https://arxiv.org/abs/2304.08485)).
+- LLaVA-1.5 (Improved Baselines with Visual Instruction Tuning). Liu et al., 2023 ([arXiv:2310.03744](https://arxiv.org/abs/2310.03744)).
+- Qwen2.5-VL Technical Report. Bai et al., Alibaba Qwen Team 2025 ([arXiv:2502.13923](https://arxiv.org/abs/2502.13923)).
+- Qwen2.5-Omni Technical Report. Xu et al., Alibaba Cloud Qwen Team 2025 ([arXiv:2503.20215](https://arxiv.org/abs/2503.20215)).
+- Whisper. Radford et al., OpenAI 2022 ([arXiv:2212.04356](https://arxiv.org/abs/2212.04356)).
+- Speech is More Than Words. Tsiamas, Sperber, Finch, Garg 2024 ([arXiv:2410.24019](https://arxiv.org/abs/2410.24019)).
+- Chameleon. Chameleon Team at FAIR Meta 2024 ([arXiv:2405.09818](https://arxiv.org/abs/2405.09818)).
+- Gemini. Gemini Team, Google 2023 ([arXiv:2312.11805](https://arxiv.org/abs/2312.11805)).
+- Nemotron 3 Nano Omni technical report. NVIDIA 2026 ([research.nvidia.com PDF](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Omni-report.pdf)).
+- Introducing NVIDIA Nemotron 3 Nano Omni (HF blog). NVIDIA 2026 ([huggingface.co](https://huggingface.co/blog/nvidia/nemotron-3-nano-omni-multimodal-intelligence)).
+- Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16 model card. NVIDIA 2026 ([huggingface.co](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16)).
+- Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4 model card. NVIDIA 2026 ([huggingface.co](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4)).
+- NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 base model card. NVIDIA 2026 ([huggingface.co](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16)).
+- parakeet-tdt-0.6b-v2 model card. NVIDIA 2025 ([huggingface.co](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2)).
+- Mamba. Gu and Dao 2023 ([arXiv:2312.00752](https://arxiv.org/abs/2312.00752)).
+- Mamba-2 (Transformers are SSMs). Dao and Gu 2024 ([arXiv:2405.21060](https://arxiv.org/abs/2405.21060)).
+- Nemotron-H. NVIDIA 2025 ([arXiv:2504.03624](https://arxiv.org/abs/2504.03624)).
+- Switch Transformers. Fedus, Zoph, Shazeer 2021 ([arXiv:2101.03961](https://arxiv.org/abs/2101.03961)).
+- Mixtral of Experts. Mistral AI 2024 ([arXiv:2401.04088](https://arxiv.org/abs/2401.04088)).
+- Introducing NVFP4. NVIDIA Developer Blog 2025 ([developer.nvidia.com](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)).
+- ViViT. Arnab et al., Google 2021 ([arXiv:2103.15691](https://arxiv.org/abs/2103.15691)).
+- TimeSformer. Bertasius, Wang, Torresani at Facebook AI 2021 ([arXiv:2102.05095](https://arxiv.org/abs/2102.05095)).
+- VideoMAE. Tong, Song, Wang, Wang 2022 ([arXiv:2203.12602](https://arxiv.org/abs/2203.12602)).
+- EVS (Efficient Video Sampling). Bagrov et al., NVIDIA + Deci 2025 ([arXiv:2510.14624](https://arxiv.org/abs/2510.14624)).
+
+*Sequel to [The Unified Vision Stack](/blog/unified-vision-stack), written May 2026.*
