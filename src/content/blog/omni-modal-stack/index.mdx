@@ -318,7 +318,92 @@ The thing about all three adapter approaches is that they work, well enough that
 
 The structural alternative is to drop the "frozen LLM" constraint. Instead of bolting a vision adapter onto a finished language model, you train one transformer decoder on a single token stream that contains both modalities from the start. The LLM doesn't have to be told "now you're seeing an image" through a side-channel; the multimodal sequences are part of its pretraining distribution.
 
-{/* TODO: Fig 4: information-flow boundary, side-channel projection vs one decoder context */}
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="170" y="20" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Adapter (LLaVA, Flamingo)</text>
+
+<text x="35" y="44" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">PRETRAINING SEQUENCE</text>
+<g font-family="JetBrains Mono" font-size="10">
+  <rect x="35" y="52" width="32" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="51" y="66" text-anchor="middle" fill="#1A1A1A">the</text>
+  <rect x="69" y="52" width="32" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="85" y="66" text-anchor="middle" fill="#1A1A1A">dog</text>
+  <rect x="103" y="52" width="32" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="119" y="66" text-anchor="middle" fill="#1A1A1A">is</text>
+  <rect x="137" y="52" width="32" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="153" y="66" text-anchor="middle" fill="#1A1A1A">on</text>
+  <rect x="171" y="52" width="32" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="187" y="66" text-anchor="middle" fill="#1A1A1A">the</text>
+  <rect x="205" y="52" width="38" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="224" y="66" text-anchor="middle" fill="#1A1A1A">sand</text>
+  <rect x="245" y="52" width="22" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="256" y="66" text-anchor="middle" fill="#1A1A1A">.</text>
+</g>
+<text x="151" y="86" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">text tokens only</text>
+
+<text x="35" y="110" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">INFERENCE SEQUENCE</text>
+<g font-family="JetBrains Mono" font-size="10">
+  <rect x="35" y="118" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="46" y="132" text-anchor="middle" fill="#2563EB">v1</text>
+  <rect x="59" y="118" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="70" y="132" text-anchor="middle" fill="#2563EB">v2</text>
+  <rect x="83" y="118" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="94" y="132" text-anchor="middle" fill="#2563EB">v3</text>
+  <rect x="107" y="118" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="118" y="132" text-anchor="middle" fill="#2563EB">v4</text>
+  <rect x="133" y="118" width="38" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="152" y="132" text-anchor="middle" fill="#1A1A1A">what</text>
+  <rect x="173" y="118" width="22" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="184" y="132" text-anchor="middle" fill="#1A1A1A">is</text>
+  <rect x="197" y="118" width="38" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="216" y="132" text-anchor="middle" fill="#1A1A1A">this</text>
+  <rect x="237" y="118" width="22" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="248" y="132" text-anchor="middle" fill="#1A1A1A">?</text>
+</g>
+<line x1="80" y1="155" x2="80" y2="140" stroke="#B91C1C" stroke-width="0.8" stroke-dasharray="2,2"/>
+<text x="80" y="166" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#B91C1C">vision (novel modality)</text>
+
+<rect x="35" y="190" width="270" height="40" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="170" y="210" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM (text-pretrained)</text>
+<text x="170" y="224" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#FEF3C7">+ vision adapter on top</text>
+
+<line x1="170" y1="170" x2="170" y2="188" stroke="#6B6258" marker-end="url(#a4)"/>
+
+<text x="170" y="252" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">vision tokens are out-of-distribution</text>
+<text x="170" y="266" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">relative to the LLM's pretraining,</text>
+<text x="170" y="280" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">arriving through a thin projector</text>
+
+<line x1="340" y1="35" x2="340" y2="295" stroke="#C9BEAA" stroke-dasharray="3,3"/>
+
+<text x="510" y="20" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Unified (Nemotron, Gemini)</text>
+
+<text x="375" y="44" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">PRETRAINING SEQUENCE</text>
+<g font-family="JetBrains Mono" font-size="10">
+  <rect x="375" y="52" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="386" y="66" text-anchor="middle" fill="#2563EB">v1</text>
+  <rect x="399" y="52" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="410" y="66" text-anchor="middle" fill="#2563EB">v2</text>
+  <rect x="423" y="52" width="32" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="439" y="66" text-anchor="middle" fill="#1A1A1A">the</text>
+  <rect x="457" y="52" width="22" height="20" fill="#D1FAE5" stroke="#15803D" stroke-width="0.8"/><text x="468" y="66" text-anchor="middle" fill="#15803D">a1</text>
+  <rect x="481" y="52" width="22" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="492" y="66" text-anchor="middle" fill="#1A1A1A">is</text>
+  <rect x="505" y="52" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="516" y="66" text-anchor="middle" fill="#2563EB">v3</text>
+  <rect x="529" y="52" width="22" height="20" fill="#D1FAE5" stroke="#15803D" stroke-width="0.8"/><text x="540" y="66" text-anchor="middle" fill="#15803D">a2</text>
+  <rect x="553" y="52" width="38" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="572" y="66" text-anchor="middle" fill="#1A1A1A">sand</text>
+  <rect x="593" y="52" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="604" y="66" text-anchor="middle" fill="#2563EB">v4</text>
+  <rect x="617" y="52" width="22" height="20" fill="#D1FAE5" stroke="#15803D" stroke-width="0.8"/><text x="628" y="66" text-anchor="middle" fill="#15803D">a3</text>
+</g>
+<text x="507" y="86" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">interleaved text + image + audio tokens</text>
+
+<text x="375" y="110" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">INFERENCE SEQUENCE</text>
+<g font-family="JetBrains Mono" font-size="10">
+  <rect x="375" y="118" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="386" y="132" text-anchor="middle" fill="#2563EB">v1</text>
+  <rect x="399" y="118" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="410" y="132" text-anchor="middle" fill="#2563EB">v2</text>
+  <rect x="423" y="118" width="38" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="442" y="132" text-anchor="middle" fill="#1A1A1A">what</text>
+  <rect x="463" y="118" width="22" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="474" y="132" text-anchor="middle" fill="#1A1A1A">is</text>
+  <rect x="487" y="118" width="22" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8"/><text x="498" y="132" text-anchor="middle" fill="#1A1A1A">?</text>
+  <rect x="511" y="118" width="22" height="20" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/><text x="522" y="132" text-anchor="middle" fill="#2563EB">v3</text>
+  <rect x="535" y="118" width="22" height="20" fill="#D1FAE5" stroke="#15803D" stroke-width="0.8"/><text x="546" y="132" text-anchor="middle" fill="#15803D">a1</text>
+</g>
+<text x="466" y="166" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#15803D">same shape, in-distribution</text>
+<line x1="466" y1="156" x2="466" y2="140" stroke="#15803D" stroke-width="0.8" stroke-dasharray="2,2"/>
+
+<rect x="375" y="190" width="270" height="40" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="510" y="210" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM (jointly pretrained)</text>
+<text x="510" y="224" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#FEF3C7">on multimodal sequences</text>
+
+<line x1="510" y1="170" x2="510" y2="188" stroke="#6B6258" marker-end="url(#a4)"/>
+
+<text x="510" y="252" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">every modality saw the LLM's full</text>
+<text x="510" y="266" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">capacity during pretraining,</text>
+<text x="510" y="280" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">not just an instruction-tune at the end</text>
+</svg>
+<figcaption><strong>Fig 4.</strong> Two views of what the LLM was pretrained on. Adapter style (left) trains on text only; vision tokens show up at inference as a different shape from anything the LLM saw before, arriving through the projector. Unified style (right) trains on interleaved multimodal sequences, so an inference query is just a shorter version of the pretraining distribution.</figcaption>
+</figure>
 
 Two flavors of this exist, and the difference between them matters for what kinds of modalities are easy to add later.
 
