@@ -655,8 +655,8 @@ Last touched: 2026-05-01.
 | 2. Deep research | done | this file's `## Research notes` |
 | 3. Outline + figure list | done | this file's `## Outline` (incl. per-figure type) |
 | 4. Codex gate 1 | done | this file's `## Codex outline review` |
-| 5. Draft prose | pending | `src/content/blog/omni-modal-stack/index.mdx` |
-| 6. Implement figures | pending | per-figure table below (populate at end of Phase 3) |
+| 5. Draft prose | done | `src/content/blog/omni-modal-stack/index.mdx` (18 sections, References) |
+| 6. Implement figures | 3 of 14 done | per-figure table below |
 | 7. Playwright visual review | pending | playwright snapshots reviewed |
 | 8. Codex gate 2 + ship | pending | hero image, dev verification, ship |
 
@@ -664,9 +664,9 @@ Last touched: 2026-05-01.
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | UnifiedEyeRecap (C-RADIOv4 with three teachers) | static-svg | TODO | — |
-| 2 | ContrastiveVsAutoregressive | static-svg | TODO | — |
-| 3 | DecoderZooFlamingoBlipLlava | static-svg | TODO | — |
+| 1 | UnifiedEyeRecap (C-RADIOv4 with three teachers) | static-svg | done | 1be30a6 |
+| 2 | ContrastiveVsAutoregressive | static-svg | done | fd710b5 |
+| 3 | DecoderZooFlamingoBlipLlava | static-svg | done | 584fc0a |
 | 4 | AdapterVsUnifiedDecoder | static-svg | TODO | — |
 | 5 | LogMelSpectrogramTile | static-svg | TODO | — |
 | 6 | ParakeetPipeline | static-svg | TODO | — |
@@ -681,7 +681,13 @@ Last touched: 2026-05-01.
 
 ### Suggested next batch
 
-Phase 5: draft prose. Create `src/content/blog/omni-modal-stack/index.mdx` with frontmatter (`heroAlt: "TODO: hero image not yet selected"`, `essay: true`, `draft: false`, no `heroImage` key yet). Draft section by section in numerical order: §1 Recap → §2-4 Act 1 → §5-7 Act 2 → §8-13 Act 3 → §14-17 Act 4 → §18 Coda. Voice-check (`scripts/voice-check.sh`) after each section. One commit per section. Apply all codex fixes from `## Codex outline review` as the prose lands. Reference the corresponding research-notes sub-topic when writing each section.
+Phase 6 figure batch 2 (next 3-4 static figures): Fig 4 (information-flow boundary, two-panel comparison), Fig 5 (log-mel spectrogram tile + waveform), Fig 6 (Parakeet pipeline), Fig 9 (Conv3D + EVS pipeline). All static-svg. Each one matches the prequel's palette and figcaption shape. Test each in `bun run dev` at http://localhost:4321/blog/omni-modal-stack before committing.
+
+After that, Phase 6 figure batch 3 (the Act 4 statics): Fig 10 (hybrid backbone layers), Fig 11 (Mamba vs Transformer scaling, two-curve plot in the prequel Fig 2 style), Fig 12 (MoE top-k routing on a token), Fig 13 (NVFP4 layout), Fig 14 (evidence ledger).
+
+Then Phase 6 figure batch 4 (the two interactive figures): Fig 7 (`VideoTokenExplosion`, sliders for duration/FPS/patches-per-frame, three overlaid token-count curves), Fig 8 (`EvsPatchPruning`, q slider over a frame pair). These need both `src/figures/omni-modal-stack/<name>.ts` (Canvas2D draw fn) and `src/components/figures/omni-modal-stack/<Name>.svelte` (wrapper with `$state` and kit primitives). Read `figure-kit.md` and `figure-recipes.md` before starting.
+
+After all 14 figures land, Phase 7 (playwright per-figure review) → Phase 8 (codex gate 2 + hero hand-off + ship).
 
 ### How to resume from a fresh context
 
