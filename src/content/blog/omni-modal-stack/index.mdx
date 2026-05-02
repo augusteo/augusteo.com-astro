@@ -132,22 +132,22 @@ The SigLIP head sitting on top of C-RADIOv4 produces caption-aligned features. A
 
 <text x="492" y="194" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">P(NEXT TOKEN)</text>
 <g font-family="JetBrains Mono" font-size="9">
-<rect x="395" y="200" width="14" height="44" fill="#2563EB"/><text x="402" y="259" text-anchor="middle" fill="#1A1A1A">beach</text>
-<rect x="412" y="218" width="14" height="26" fill="#2563EB" opacity=".7"/><text x="419" y="259" text-anchor="middle" fill="#1A1A1A">grass</text>
-<rect x="429" y="223" width="14" height="21" fill="#2563EB" opacity=".55"/><text x="436" y="259" text-anchor="middle" fill="#1A1A1A">floor</text>
-<rect x="446" y="229" width="14" height="15" fill="#2563EB" opacity=".4"/><text x="453" y="259" text-anchor="middle" fill="#1A1A1A">car</text>
-<rect x="463" y="232" width="14" height="12" fill="#2563EB" opacity=".3"/><text x="470" y="259" text-anchor="middle" fill="#1A1A1A">deck</text>
-<rect x="480" y="236" width="14" height="8" fill="#2563EB" opacity=".22"/><text x="487" y="259" text-anchor="middle" fill="#1A1A1A">sand</text>
-<rect x="497" y="238" width="14" height="6" fill="#2563EB" opacity=".18"/><text x="504" y="259" text-anchor="middle" fill="#1A1A1A">moon</text>
-<rect x="514" y="240" width="14" height="4" fill="#2563EB" opacity=".15"/><text x="521" y="259" text-anchor="middle" fill="#1A1A1A">...</text>
+<rect x="395" y="200" width="14" height="44" fill="#2563EB"/><text x="402" y="252" text-anchor="start" fill="#1A1A1A" transform="rotate(35 402 252)">beach</text>
+<rect x="412" y="218" width="14" height="26" fill="#2563EB" opacity=".7"/><text x="419" y="252" text-anchor="start" fill="#1A1A1A" transform="rotate(35 419 252)">grass</text>
+<rect x="429" y="223" width="14" height="21" fill="#2563EB" opacity=".55"/><text x="436" y="252" text-anchor="start" fill="#1A1A1A" transform="rotate(35 436 252)">floor</text>
+<rect x="446" y="229" width="14" height="15" fill="#2563EB" opacity=".4"/><text x="453" y="252" text-anchor="start" fill="#1A1A1A" transform="rotate(35 453 252)">car</text>
+<rect x="463" y="232" width="14" height="12" fill="#2563EB" opacity=".3"/><text x="470" y="252" text-anchor="start" fill="#1A1A1A" transform="rotate(35 470 252)">deck</text>
+<rect x="480" y="236" width="14" height="8" fill="#2563EB" opacity=".22"/><text x="487" y="252" text-anchor="start" fill="#1A1A1A" transform="rotate(35 487 252)">sand</text>
+<rect x="497" y="238" width="14" height="6" fill="#2563EB" opacity=".18"/><text x="504" y="252" text-anchor="start" fill="#1A1A1A" transform="rotate(35 504 252)">moon</text>
+<rect x="514" y="240" width="14" height="4" fill="#2563EB" opacity=".15"/><text x="521" y="252" text-anchor="start" fill="#1A1A1A" transform="rotate(35 521 252)">...</text>
 </g>
 <text x="615" y="222" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">over</text>
 <text x="615" y="234" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">~100k</text>
 <text x="615" y="246" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">tokens</text>
 
-<rect x="405" y="271" width="60" height="22" fill="#FBE9CE" stroke="#2563EB" stroke-width="1.5"/>
-<text x="435" y="286" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#2563EB">beach</text>
-<text x="510" y="286" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">sample, append, repeat</text>
+<rect x="405" y="285" width="60" height="22" fill="#FBE9CE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="435" y="300" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#2563EB">beach</text>
+<text x="510" y="300" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">sample, append, repeat</text>
 </svg>
 <figcaption><strong>Fig 2.</strong> Two different operations on the same example. Left: SigLIP-style scoring takes an image and a caption, projects each into a shared space, and outputs a single number. Right: an LLM takes a partial sentence and outputs a probability distribution over what the next token should be, then samples one and appends it. Scaling SigLIP doesn't get you the right side. Scaling an LLM doesn't, by itself, get you the left side.</figcaption>
 </figure>
