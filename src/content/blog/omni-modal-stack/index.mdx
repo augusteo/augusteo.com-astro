@@ -51,15 +51,15 @@ The previous post left us with C-RADIOv4. One vision backbone, three teachers, a
 <figcaption><strong>Fig 1.</strong> Where C-RADIOv4 came from. Three frozen teachers feed one student backbone, and three small heads on the output read off the kind of feature each downstream task wants. The student is what we're about to bolt the rest of an omni-modal stack onto.</figcaption>
 </figure>
 
-DINOv3 brought dense patch geometry. SigLIP2 brought text alignment. SAM3 brought instance masks. C-RADIOv4 inherited all three through agglomerative distillation, and at inference you could read off whichever kind of feature your downstream task wanted by attaching a small head to the shared backbone.
+[The prequel post](/blog/unified-vision-stack) walks through C-RADIOv4 in detail: DINOv3 brought dense patch geometry, SigLIP2 brought text alignment, SAM3 brought instance masks, and C-RADIOv4 inherited the three through [AM-RADIO-style](https://arxiv.org/abs/2312.06709) agglomerative distillation. At inference you can attach a small head to the shared backbone and read off whichever family of feature a downstream task wants.
 
-That model is a complete eye. Classification, retrieval, segmentation, depth estimation, video tracking, satellite analysis: all of it works. If the job is "look at an image and produce something about it," C-RADIOv4 is enough.
+For this post the relevant takeaway is narrower: the backbone is a strong "vision-only" model. Hand it an image and you can do dense prediction, retrieval, or segmentation through the appropriate head. Other vision tasks the family is reported to handle (depth, tracking, and beyond) are covered in the prequel; here we only need that the backbone can serve as a feature extractor for an LLM.
 
 But "look at an image" is not the job most modern systems are being built for. The thing people want is an agent: something that takes a photo, listens to a question, watches a video, and answers in language. The system has to perceive across modalities and then talk about what it perceived. C-RADIOv4 only handles half of that loop, and only for one of the modalities.
 
 What does the rest take?
 
-There's a clue in C-RADIOv4 itself. One of its teachers was SigLIP2, and the SigLIP-aligned head on the backbone produces features that share geometry with caption embeddings. An image vector and a caption vector for the same scene land near each other. We already have, through that head, an image encoder that "speaks text" in a specific sense.
+There's a clue in C-RADIOv4 itself. One of its teachers was SigLIP2, so the SigLIP-aligned head on the backbone is trained to put image features into a space shared with text embeddings. SigLIP itself trains image and caption towers to score together (more on the loss in §3); inheriting that head means the C-RADIOv4 backbone can produce vectors that are aligned with caption-space text in the [SigLIP](https://arxiv.org/abs/2303.15343) sense. We already have, through that head, an image encoder that "speaks text" in that specific sense.
 
 So why does Nemotron 3 Nano Omni, the open omni model NVIDIA shipped in April 2026, still bolt a separate text tokenizer onto the front of a 30-billion-parameter autoregressive language model and feed C-RADIOv4-H's features into it as if they were just another input? If the SigLIP head was meant to be the text bridge, what does the LLM do that the head can't?
 
@@ -188,7 +188,7 @@ A language model is doing the opposite thing. Take a sentence. For each prefix o
 
 These are two different functions, and the difference doesn't shrink with scale. The contrastive function takes (image, sentence) and returns a number. The autoregressive function takes (partial sentence) and returns a probability distribution over the next token. You can't use one to do the other's job, no matter how large you make it. Scaling SigLIP doesn't get you generation. Scaling an LLM doesn't, by itself, get you a calibrated image-caption similarity score; you have to fit a head on top to extract one.
 
-This is why every modern multimodal stack ships both. SigLIP-class encoders for *understanding* what's in an image. An autoregressive LLM in the middle for *producing* language. How the encoder's output becomes input to the LLM is the design problem Act 2 walks through. But the necessity of the LLM is settled here.
+This is why most production multimodal stacks ship both. SigLIP-class encoders for *understanding* what's in an image. An autoregressive LLM in the middle for *producing* language. (Some research designs go the other way, with an early-fusion model that tokenizes images straight into the LLM's vocabulary; [Chameleon](https://arxiv.org/abs/2405.09818) is the cleanest example of that branch. The pretraining cost story for that approach is much larger, and it isn't the path Nemotron 3 Nano Omni took.) How the encoder's output becomes input to the LLM is the design problem Act 2 walks through. But the LLM-in-the-middle role is the design choice the rest of this post will trace.
 
 ### 4. The text decoder is a different organ
 
@@ -427,7 +427,7 @@ Nemotron 3 Nano Omni names the design pattern explicitly:
 
 A subtle point worth nailing down. The "tokens" the LLM sees in this setup are not raw pixels or raw waveform samples. They are the *outputs* of modality-specific encoders, projected by an MLP into the LLM's embedding dimension. So when we say the LLM consumes "vision tokens," we mean vectors in the LLM's hidden space that happen to have come from a ViT plus a projector, not 256-dimensional image patches. The projector matters. The encoder matters. The LLM sees the same kind of vector regardless of where it came from, and that's what makes the unified-decoder approach work as a drop-in extension of transformer architecture.
 
-[Qwen2.5-VL](https://arxiv.org/abs/2502.13923) fits here as a vision-only special case of the continuous-projected pattern. It uses an MLP projector (LLaVA-style), but trains the LLM jointly with the from-scratch ViT, so the LLM weights see the gradient of a multimodal pretraining loss, not just an instruction-tuning fine-tune at the end. Qwen2.5-VL is a vision-language model, not a four-modality omni model, but architecturally it sits closer to Nemotron 3 Nano Omni than to LLaVA.
+[Qwen2.5-VL](https://arxiv.org/abs/2502.13923) fits here as a vision-only special case of the continuous-projected pattern. It uses an MLP-based vision-language merger (LLaVA-style spatial grouping plus a 2-layer MLP) and a redesigned ViT with windowed attention so that vision-encoder cost scales linearly with patch count. Qwen2.5-VL is a vision-language model, not a four-modality omni model, but architecturally it sits closer to Nemotron 3 Nano Omni's continuous-feature design than to LLaVA's frozen-LLM adapter.
 
 Qwen2.5-Omni adds the most subtle detail. Its speech-generation head, called Talker, doesn't read a transcript from the central decoder ("Thinker"). It reads Thinker's *hidden states* directly:
 
@@ -439,11 +439,11 @@ This matters for the next act. When the speech-out side of an agent loop reads h
 
 The adapter approach (§5) and the unified-decoder approach (§6) are not really substitutes. They cost different things and they buy different things.
 
-Adapter style is cheap. You inherit a strong text LLM, you inherit a strong vision encoder, and you train a small connector module against an instruction-tuning dataset. Total compute is dominated by the connector training and the second-stage fine-tune; both are small compared to LLM pretraining. You can swap LLMs without touching the vision side. You can ship a working multimodal model on a few weeks of small-cluster compute.
+Adapter style is the cheaper path. You inherit a pretrained text LLM, you inherit a pretrained vision encoder, and you train a small connector module against an instruction-tuning dataset. Total training compute is dominated by the connector training and the second-stage fine-tune; both are small compared to a from-scratch LLM pretraining run. You can swap LLMs without touching the vision side, and the work to add the modality is bounded.
 
 What you give up is depth of joint understanding. The LLM was trained on text. It learned how text sequences behave, how words constrain other words, how to follow instructions. It never learned what an image *looks like* in the sense of having to predict or condition on one across the multimodal pretraining distribution. Whatever cross-modal inference shows up has to come through the projector. For tasks where the answer requires fluently weaving visual evidence into a text response, this can be enough. For tasks where the visual structure has to drive the reasoning (long video, multi-page documents, fine-grained audio cues), the projector ends up as a thin pipe.
 
-Unified-decoder style is expensive. You pretrain (or fully fine-tune) a multi-billion-parameter LLM on multimodal sequences, which means months of GPU-cluster time, terabytes of curated multimodal data, and the engineering apparatus to do it. You can't easily swap the LLM. You're committed to one stack.
+Unified-decoder style is more expensive. You pretrain (or substantially continue-train) a multi-billion-parameter LLM on multimodal sequences, with curated text+image, text+audio, and text+video data in the training mix and the cluster engineering to run it. You can't easily swap the LLM. You're committed to one stack.
 
 What you buy is depth. The LLM weights learn to expect multimodal input during pretraining. Reasoning that has to mix modalities (answer this question by reading the chart on page 4 of the PDF, or by listening to the speaker's tone in the third minute of the video) gets to use the LLM's full capacity, not just the capacity of a thin connector. And every additional modality you add (audio, video, robotics action sequences) plugs into the same input stream rather than adding a parallel adapter side-channel.
 
@@ -451,7 +451,7 @@ Where Nemotron 3 Nano Omni sits is at the unified end of this dial. Its 30B-A3B 
 
 > "354,587,705 data points (~717.0B tokens) ... text+audio: 259,178,821 samples (~143,533.1M tokens); text+image: 70,143,901 samples (~180,347.1M tokens); text+video: 15,837,673 samples (~239,631.5M tokens); text+video+audio: 8,720,044 samples (~152,499.2M tokens); text: 707,187 samples (~958.4M tokens)."
 
-Compare to a typical adapter-style model: a few hundred thousand instruction-tuning samples sitting on top of a frozen text-pretrained LLM. The depth-of-joint-distribution gap is several orders of magnitude.
+Compare to an adapter-style model where a small instruction-tuning dataset sits on top of a frozen text-pretrained LLM. The depth-of-joint-distribution gap between the two regimes is large enough that adapter-style models cannot, in general, learn to reason fluently across modalities the way unified-decoder models do; they are constrained by what the projector can carry into a frozen text LLM.
 
 Now we have the central design choice in place. Text decoder in the middle. Modality encoders feeding it through projectors. Trained jointly on multimodal sequences. The next question is what specifically each modality encoder has to do, and that's Act 3.
 
@@ -461,7 +461,7 @@ Now we have the central design choice in place. Text decoder in the middle. Moda
 
 ### 8. Audio is time-frequency, not pixel grid
 
-The first thing to notice about audio is that the natural input format is not 1D and not pixel-shaped. A microphone produces a time series of pressure values (a waveform), but every modern audio model converts the waveform into a 2D representation, called a log-mel spectrogram, before any neural network touches it.
+The first thing to notice about audio is that the natural input format is not 1D and not pixel-shaped. A microphone produces a time series of pressure values (a waveform), but modern audio models almost always convert the waveform into a 2D representation, called a log-mel spectrogram, before any neural network touches it.
 
 <figure>
 <svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
@@ -526,13 +526,13 @@ A spectrogram is what you get when you take a sliding window of, say, 25 millise
 
 > "All audio is re-sampled to 16,000 Hz, and an 80-channel log-magnitude Mel spectrogram representation is computed on 25-millisecond windows with a stride of 10 milliseconds."
 
-So a 30-second audio clip becomes an 80×3000 matrix. Whisper's first layer is a 1D convolutional stem that downsamples by a factor of 2 along the time axis, producing an 80×1500 feature map that gets fed into a Transformer.
+So a 30-second audio clip becomes an 80×3000 matrix. A Conv1D stem then downsamples 2× along the time axis and projects the 80 mel bins into the model hidden dimension, producing a 1500-step sequence of model-dimension vectors that gets fed into a Transformer. The frequency axis is folded into channels at the stem rather than carried through as 80 separate rows; what survives downstream is a sequence-of-vectors view of the audio.
 
 Here is why this matters for the omni-modal architecture. A vision encoder like C-RADIOv4 takes a 2D pixel grid and produces a sequence of patch tokens. The 2D grid has spatial locality: nearby patches depict the same object, lighting, texture. The encoder's inductive biases (patch tokenization, 2D rotary embeddings, sometimes window attention) are tuned for that.
 
 A spectrogram is also a 2D grid, but the two axes mean different things. The horizontal axis is time, with strong sequential structure: what happens at second 10 is causally tied to what happened at second 9. The vertical axis is frequency channel, with no spatial locality at all: bin 5 (a low-frequency band, maybe 100 Hz) and bin 6 (slightly higher, maybe 150 Hz) describe related parts of the signal, but bin 5 and bin 78 describe completely different aspects of the same signal at the same time.
 
-A vision ViT applied naively to a spectrogram would treat both axes the same and would miss the structure on both. You want temporal smoothing along the time axis (which is what attention plus convolutional downsampling buys) and you want full per-frame access to all frequency bins (no spatial cropping along the frequency axis). This is why audio encoders use Conformer-style architectures, which interleave local convolutions with attention, instead of plain ViTs. And why they downsample aggressively along time but preserve the full frequency dimension.
+A vision ViT applied naively to a spectrogram would treat both axes the same and would miss the structure on both. You want temporal smoothing along the time axis (which is what attention plus convolutional downsampling buys) and you want every frequency bin to be visible to every step of the encoder, not split across patches. Audio encoders therefore use Conformer-style architectures, which interleave local convolutions with attention, instead of plain ViTs; they project the frequency axis into model channels at the stem rather than tokenizing it spatially, and they downsample aggressively along time.
 
 C-RADIOv4 cannot just be reused for audio. The inductive biases are wrong. You need a different encoder built for this representation. That's the next section.
 
@@ -616,7 +616,7 @@ In the omni-modal setting, the TDT decoder is thrown away. Nemotron uses only Pa
 
 This is the architectural counterpart of what happens on the vision side. C-RADIOv4-H is a vision encoder; its outputs flow through a projector into the LLM. Parakeet's encoder is an audio encoder; its outputs flow through a projector into the same LLM. Two MLPs, two encoders, one decoder.
 
-The choice to use Parakeet's encoder rather than Whisper's encoder is itself worth a moment. Whisper is the more famous open speech model. Both produce log-mel-conditioned feature sequences, and a Whisper encoder could in principle be used the same way. NVIDIA picked Parakeet for the obvious reasons (it's an in-house model, integrated with the rest of the NVIDIA stack) and the technical one: FastConformer's linearly scalable attention is more efficient at long audio than Whisper's stack. The architectural pattern (encoder plus projector into LLM) is what matters. Parakeet versus Whisper is an implementation detail.
+The choice to use Parakeet's encoder rather than Whisper's encoder is itself worth a moment. Whisper is the more famous open speech model, and either encoder produces a log-mel-conditioned feature sequence that an LLM can in principle consume. The technical report and model card don't justify the choice in detail, so this post won't either; the architectural pattern (encoder plus projector into LLM) is what matters, and Parakeet versus Whisper sits below that as an implementation detail.
 
 The interesting question is what *not* to do, and that's §10.
 
@@ -638,7 +638,7 @@ Second, lost paralinguistic information. Speech carries content beyond the words
 
 A canonical example from their paper: "These are GERMAN teachers" (teachers from Germany) and "These are German TEACHERS" (teachers of German) are different statements that map to the same transcript if the transcriber doesn't capture the stress. The cascade has no way to recover what was lost; the end-to-end architecture can in principle preserve it.
 
-Third, latency hop. Whisper has to finish a chunk before the LLM sees anything from that chunk. For a 30-second audio segment, that's 30 seconds of buffering plus Whisper's own decode time before the agent loop can start reasoning. There is no controlled benchmark for this in the agent-loop literature, so the claim stays qualitative, but the architecture forces it: any cascade with an autoregressive ASR head pays this latency in addition to whatever the downstream model costs.
+Third, latency hop. Whisper has to finish a chunk before the LLM sees anything from that chunk. The architecture forces an extra serial step: any cascade with an autoregressive ASR head must commit to a transcript before the downstream model sees the input. There is no controlled benchmark for this in the agent-loop literature, so the claim stays qualitative; what's load-bearing is that the cascade introduces a latency hop the unified design doesn't, not any specific number.
 
 Qwen2.5-Omni's Talker is the architectural answer in the *other* direction. Instead of generating speech via a text-to-speech head that reads a transcript from the LLM, Talker reads the LLM's hidden states directly:
 
@@ -704,7 +704,7 @@ That's the algorithm. *q* is user-tunable: q=0 keeps everything; q=0.75 keeps th
   <EvsPatchPruning client:visible />
 </Figure>
 
-Drag the *q* slider. Notice what survives. The patches that get kept are the parts of the scene that are actually changing: the moving objects, the camera-relative motion, the cut transitions. The patches that get dropped are the static background already represented in earlier frames. Information-theoretically, you aren't throwing away anything the model needs; you're throwing away the redundancy.
+Drag the *q* slider. Notice what survives. The patches that get kept are the parts of the scene that are actually changing: the moving objects, the camera-relative motion, the cut transitions. The patches that get dropped are the static background already represented in earlier frames. The intuition is that most of what you drop is redundancy. The cost is real but small; the EVS authors report "up to 4×" speedups with "minimal accuracy loss," and on Video-MME at *q*=0.75 with uptraining the score drops by about 1.2 points (their reported numbers; see §12 below). Pruning is not lossless, just cheap relative to the compute it saves.
 
 There's a wrinkle. Naively dropping tokens breaks rotary position encodings, which expect a contiguous integer sequence of token indices. EVS handles this by *keeping* the original positional indices for the surviving patches:
 
@@ -805,7 +805,7 @@ For images (single frames, no temporal axis), the pipeline simplifies. Tubelet f
 
 > "Each image can be represented using a variable number of 16 x 16 patches, with a minimum of 1,024 to a maximum of 13,312 visual patches per image."
 
-A 13,312-patch image is roughly 1.5 megapixels at 16-pixel patches, which covers the resolutions you'd want for document understanding or fine-grained chart reading. The 1,024-patch lower bound is for thumbnail-sized images where dense detail isn't relevant.
+A 13,312-patch image at 16-pixel patches is roughly 3.4 megapixels of input area (13,312 × 256 = 3,407,872 pixels), enough resolution for document understanding or fine-grained chart reading. The 1,024-patch lower bound (about 0.26 MP) is for thumbnail-sized images where dense detail isn't relevant.
 
 The model can now see, hear, and watch. The next question is what it costs to run.
 
@@ -1330,7 +1330,7 @@ The post just walked through how to wire perception across four modalities into 
 
 What the model has at this point: a unified backbone that reads text, sees images, hears audio, and watches video, all in one forward pass; a hybrid Mamba+attention+MoE architecture that scales to 262K-token contexts; a quantization recipe that fits the whole thing in around 21 GB of weights. What it does not have: published benchmarks of tool-use, function-calling, planning, or multi-step reasoning specific to Nemotron 3 Nano Omni. The technical report and model cards I could find don't include any of that. The launch announcement frames the model as a "multimodal perception-and-context sub-agent within larger agentic systems," not as a planner.
 
-That framing is honest and worth taking seriously. Perception is not reasoning. A model that perceives well is a foundation for an agent loop; it is not the loop itself. The next problem in the stack is how the LLM in the middle generates *plans*, calls *tools*, and executes *multi-step trajectories* over the perceived state. None of that is settled in the way the perception layer is settled.
+That framing is honest and worth taking seriously. Perception is not reasoning. A model that perceives well is a foundation for an agent loop; it is not the loop itself. The next problem in the stack is how the LLM in the middle generates *plans*, calls *tools*, and executes *multi-step trajectories* over the perceived state. None of that has the same shape as the perception story this post traced.
 
 <figure>
 <svg viewBox="0 0 680 365" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
@@ -1373,20 +1373,20 @@ That framing is honest and worth taking seriously. Perception is not reasoning. 
 <rect x="10" y="138" width="660" height="70" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="0.5"/>
 <rect x="10" y="138" width="4" height="70" fill="#15803D"/>
 <g font-family="serif" font-size="11" fill="#1A1A1A">
-  <text x="22" y="155" font-weight="600" fill="#15803D">Per-GPU</text>
-  <text x="22" y="169" font-weight="600" fill="#15803D">output</text>
-  <text x="22" y="189" font-style="italic" fill="#6B6258" font-size="10">throughput</text>
-  <text x="170" y="155">MoE sparse activation:</text>
-  <text x="170" y="169">top-6 of 128 routed</text>
-  <text x="170" y="183">+ 1 shared expert,</text>
-  <text x="170" y="197">3.5B / 30B active per token</text>
-  <text x="370" y="155">2.4× output tokens/sec/GPU</text>
-  <text x="370" y="169">on Nemotron-H-56B-Base</text>
-  <text x="370" y="189" font-style="italic" font-size="10" fill="#6B6258">(vs Qwen-2.5-72B, Llama-3.1-70B)</text>
-  <text x="570" y="155" font-size="10">Per-token win</text>
-  <text x="570" y="169" font-size="10">depends on batch</text>
-  <text x="570" y="183" font-size="10">balance and routing</text>
-  <text x="570" y="197" font-size="10">load</text>
+  <text x="22" y="155" font-weight="600" fill="#15803D">Active</text>
+  <text x="22" y="169" font-weight="600" fill="#15803D">parameters</text>
+  <text x="22" y="189" font-style="italic" fill="#6B6258" font-size="10">per token</text>
+  <text x="170" y="155">MoE sparse routing:</text>
+  <text x="170" y="169">top-6 of 128 experts</text>
+  <text x="170" y="183">+ 1 always-on shared,</text>
+  <text x="170" y="197">router decides per token</text>
+  <text x="370" y="155">3.5B active /</text>
+  <text x="370" y="169">30B total params</text>
+  <text x="370" y="189" font-style="italic" font-size="10" fill="#6B6258">(per Nemotron 3 Nano Omni model card)</text>
+  <text x="570" y="155" font-size="10">Wall-clock win</text>
+  <text x="570" y="169" font-size="10">depends on serving</text>
+  <text x="570" y="183" font-size="10">stack and batch</text>
+  <text x="570" y="197" font-size="10">routing balance</text>
 </g>
 
 <rect x="10" y="213" width="660" height="70" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="0.5"/>
@@ -1426,7 +1426,7 @@ That framing is honest and worth taking seriously. Perception is not reasoning. 
   <text x="570" y="347" font-size="10">benchmark</text>
 </g>
 </svg>
-<figcaption><strong>Fig 14.</strong> What the post can claim and where each claim comes from. Three measured efficiency wins, all on Nemotron-family models against named baselines, plus a fourth qualitative claim about prosody. The post does not promise a controlled benchmark of "unified-decoder beats stitched cascades" in the abstract; it reports these four rows and stops.</figcaption>
+<figcaption><strong>Fig 14.</strong> What the post can claim and where each claim comes from. Two measured efficiency wins on Nemotron-family models against named baselines (long-context throughput from Nemotron-H, memory footprint from Nemotron 3 Nano Omni's NVFP4 recipe), one structural claim from the model card (3.5B active out of 30B total per token), and a fourth qualitative claim about prosody. The post does not promise a controlled benchmark of "unified-decoder beats stitched cascades" in the abstract; it reports these four rows and stops.</figcaption>
 </figure>
 
 So the post ends with a small concrete piece. Three architectural moves take you from a vision backbone to a four-modality perception model. A text-centric autoregressive decoder. Modality-specific encoders feeding it through MLP projectors. A stack of token-budget mechanisms (tubelet fusion, EVS, hybrid Mamba+attention+MoE, NVFP4) to keep inference affordable. The last one is what makes the first two shippable.
@@ -1435,35 +1435,41 @@ So the post ends with a small concrete piece. Three architectural moves take you
 
 ## References
 
-- The Unified Vision Stack (the prequel). Augusteo 2026 ([augusteo.com](https://augusteo.com/blog/unified-vision-stack)).
-- CLIP. Radford et al., OpenAI 2021 ([arXiv:2103.00020](https://arxiv.org/abs/2103.00020)).
-- SigLIP. Zhai et al., Google DeepMind 2023 ([arXiv:2303.15343](https://arxiv.org/abs/2303.15343)).
-- SigLIP 2. Tschannen et al., Google DeepMind 2025 ([arXiv:2502.14786](https://arxiv.org/abs/2502.14786)).
-- Flamingo. Alayrac et al., DeepMind 2022 ([arXiv:2204.14198](https://arxiv.org/abs/2204.14198)).
-- BLIP-2. Li et al., Salesforce 2023 ([arXiv:2301.12597](https://arxiv.org/abs/2301.12597)).
-- LLaVA (Visual Instruction Tuning). Liu et al., 2023 ([arXiv:2304.08485](https://arxiv.org/abs/2304.08485)).
-- LLaVA-1.5 (Improved Baselines with Visual Instruction Tuning). Liu et al., 2023 ([arXiv:2310.03744](https://arxiv.org/abs/2310.03744)).
-- Qwen2.5-VL Technical Report. Bai et al., Alibaba Qwen Team 2025 ([arXiv:2502.13923](https://arxiv.org/abs/2502.13923)).
-- Qwen2.5-Omni Technical Report. Xu et al., Alibaba Cloud Qwen Team 2025 ([arXiv:2503.20215](https://arxiv.org/abs/2503.20215)).
-- Whisper. Radford et al., OpenAI 2022 ([arXiv:2212.04356](https://arxiv.org/abs/2212.04356)).
-- Speech is More Than Words. Tsiamas, Sperber, Finch, Garg 2024 ([arXiv:2410.24019](https://arxiv.org/abs/2410.24019)).
-- Chameleon. Chameleon Team at FAIR Meta 2024 ([arXiv:2405.09818](https://arxiv.org/abs/2405.09818)).
-- Gemini. Gemini Team, Google 2023 ([arXiv:2312.11805](https://arxiv.org/abs/2312.11805)).
-- Nemotron 3 Nano Omni technical report. NVIDIA 2026 ([research.nvidia.com PDF](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Omni-report.pdf)).
-- Introducing NVIDIA Nemotron 3 Nano Omni (HF blog). NVIDIA 2026 ([huggingface.co](https://huggingface.co/blog/nvidia/nemotron-3-nano-omni-multimodal-intelligence)).
-- Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16 model card. NVIDIA 2026 ([huggingface.co](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16)).
-- Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4 model card. NVIDIA 2026 ([huggingface.co](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4)).
-- NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 base model card. NVIDIA 2026 ([huggingface.co](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16)).
-- parakeet-tdt-0.6b-v2 model card. NVIDIA 2025 ([huggingface.co](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2)).
-- Mamba. Gu and Dao 2023 ([arXiv:2312.00752](https://arxiv.org/abs/2312.00752)).
-- Mamba-2 (Transformers are SSMs). Dao and Gu 2024 ([arXiv:2405.21060](https://arxiv.org/abs/2405.21060)).
-- Nemotron-H. NVIDIA 2025 ([arXiv:2504.03624](https://arxiv.org/abs/2504.03624)).
-- Switch Transformers. Fedus, Zoph, Shazeer 2021 ([arXiv:2101.03961](https://arxiv.org/abs/2101.03961)).
-- Mixtral of Experts. Mistral AI 2024 ([arXiv:2401.04088](https://arxiv.org/abs/2401.04088)).
-- Introducing NVFP4. NVIDIA Developer Blog 2025 ([developer.nvidia.com](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)).
-- ViViT. Arnab et al., Google 2021 ([arXiv:2103.15691](https://arxiv.org/abs/2103.15691)).
-- TimeSformer. Bertasius, Wang, Torresani at Facebook AI 2021 ([arXiv:2102.05095](https://arxiv.org/abs/2102.05095)).
-- VideoMAE. Tong, Song, Wang, Wang 2022 ([arXiv:2203.12602](https://arxiv.org/abs/2203.12602)).
-- EVS (Efficient Video Sampling). Bagrov et al., NVIDIA + Deci 2025 ([arXiv:2510.14624](https://arxiv.org/abs/2510.14624)).
+- [The Unified Vision Stack](https://augusteo.com/blog/unified-vision-stack). the prequel post, Augusteo 2026.
+- [Learning Transferable Visual Models From Natural Language Supervision (CLIP)](https://arxiv.org/abs/2103.00020). Radford et al., OpenAI 2021.
+- [Sigmoid Loss for Language Image Pre-Training (SigLIP)](https://arxiv.org/abs/2303.15343). Zhai, Mustafa, Kolesnikov, Beyer (Google DeepMind) 2023.
+- [SigLIP 2: Multilingual Vision-Language Encoders with Improved Semantic Understanding, Localization, and Dense Features](https://arxiv.org/abs/2502.14786). Tschannen et al. (Google DeepMind) 2025.
+- [AM-RADIO: Agglomerative Vision Foundation Model](https://arxiv.org/abs/2312.06709). Ranzinger et al. (NVIDIA) 2023, the framework that became C-RADIO.
+- [RADIOv2.5: Improved Baselines for Agglomerative Vision Foundation Models](https://arxiv.org/abs/2412.07679). Heinrich et al. (NVIDIA) 2024.
+- [Flamingo: a Visual Language Model for Few-Shot Learning](https://arxiv.org/abs/2204.14198). Alayrac et al. (DeepMind) 2022.
+- [BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models](https://arxiv.org/abs/2301.12597). Li et al. (Salesforce) 2023.
+- [Visual Instruction Tuning (LLaVA)](https://arxiv.org/abs/2304.08485). Liu, Li, Wu, Lee 2023.
+- [Improved Baselines with Visual Instruction Tuning (LLaVA-1.5)](https://arxiv.org/abs/2310.03744). Liu et al. 2023.
+- [Qwen2.5-VL Technical Report](https://arxiv.org/abs/2502.13923). Bai et al. (Alibaba Qwen Team) 2025.
+- [Qwen2.5-Omni Technical Report](https://arxiv.org/abs/2503.20215). Xu et al. (Alibaba Cloud Qwen Team) 2025.
+- [Whisper: large-scale weak-supervision speech recognition](https://arxiv.org/abs/2212.04356). Radford et al. (OpenAI) 2022.
+- [Speech is More Than Words](https://arxiv.org/abs/2410.24019). Tsiamas, Sperber, Finch, Garg 2024 (cascade vs end-to-end speech translation, prosody study).
+- [Chameleon: Mixed-Modal Early-Fusion Foundation Models](https://arxiv.org/abs/2405.09818). Chameleon Team (FAIR at Meta) 2024.
+- [Gemini: A Family of Highly Capable Multimodal Models](https://arxiv.org/abs/2312.11805). Gemini Team (Google) 2023.
+- [NVIDIA Nemotron 3 Omni technical report](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Omni-report.pdf). NVIDIA 2026.
+- [Introducing NVIDIA Nemotron 3 Nano Omni: Multimodal Intelligence](https://huggingface.co/blog/nvidia/nemotron-3-nano-omni-multimodal-intelligence). NVIDIA 2026 (HF blog).
+- [Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16 model card](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16). NVIDIA 2026.
+- [Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4 model card](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4). NVIDIA 2026.
+- [NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 base model card](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16). NVIDIA 2026.
+- [parakeet-tdt-0.6b-v2 model card](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2). NVIDIA 2025.
+- [Mamba: Linear-Time Sequence Modeling with Selective State Spaces](https://arxiv.org/abs/2312.00752). Gu and Dao 2023.
+- [Transformers are SSMs (Mamba-2)](https://arxiv.org/abs/2405.21060). Dao and Gu 2024.
+- [Nemotron-H: A Family of Accurate and Efficient Hybrid Mamba-Transformer Models](https://arxiv.org/abs/2504.03624). NVIDIA 2025.
+- [Nemotron-H research page](https://research.nvidia.com/labs/adlr/nemotronh/). NVIDIA ADLR 2025.
+- [Jamba: A Hybrid Transformer-Mamba Language Model](https://arxiv.org/abs/2403.19887). AI21 Labs 2024.
+- [Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity](https://arxiv.org/abs/2101.03961). Fedus, Zoph, Shazeer 2021.
+- [Mixtral of Experts](https://arxiv.org/abs/2401.04088). Mistral AI 2024.
+- [Introducing NVFP4 for Efficient and Accurate Low-Precision Inference](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/). NVIDIA Developer Blog 2025.
+- [FP8 Formats for Deep Learning](https://arxiv.org/abs/2209.05433). Micikevicius et al. (NVIDIA, Arm, Intel) 2022.
+- [ViViT: A Video Vision Transformer](https://arxiv.org/abs/2103.15691). Arnab et al. (Google) 2021.
+- [Is Space-Time Attention All You Need for Video Understanding? (TimeSformer)](https://arxiv.org/abs/2102.05095). Bertasius, Wang, Torresani (Facebook AI) 2021.
+- [VideoMAE: Masked Autoencoders are Data-Efficient Learners for Self-Supervised Video Pre-Training](https://arxiv.org/abs/2203.12602). Tong, Song, Wang, Wang 2022.
+- [VideoMAE V2: Scaling Video Masked Autoencoders with Dual Masking](https://arxiv.org/abs/2303.16727). Wang et al. 2023.
+- [Efficient Video Sampling (EVS): Token Reduction for Long Videos in Multimodal LLMs](https://arxiv.org/abs/2510.14624). Bagrov et al. (NVIDIA + Deci) 2025.
 
 *Sequel to [The Unified Vision Stack](/blog/unified-vision-stack), written May 2026.*
