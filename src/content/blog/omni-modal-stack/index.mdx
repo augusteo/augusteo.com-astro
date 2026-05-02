@@ -60,3 +60,21 @@ The "different organ" is what the next sections build up. Briefly: a tokenizer t
 The architectural consequence is the central design choice of every modern omni-modal stack. The text decoder sits in the middle. Vision goes in as features. Audio goes in as features. Video goes in as features. The decoder is the only thing in the system that can run a softmax over the next word, and everything else feeds it.
 
 That's the reframe for the rest of the post. C-RADIOv4 is one of the best things you can put in front of a decoder. It is not, by itself, a decoder. The next section makes the contrast precise.
+
+### 3. Contrastive vs autoregressive
+
+The split between scoring and generating is structural, not a difference of degree. To see why, look at what each model is being trained to optimize.
+
+CLIP's loss is the cleanest version. Take a batch of N image-caption pairs. Run each image through the image tower, each caption through the text tower. You now have N image vectors and N text vectors. Compute every pairwise dot product: that gives you an N×N matrix of similarities. The training loss says, for each row of this matrix, the diagonal entry should be the largest (because the image at row *i* pairs with the caption at column *i*, the matched pair). For each column, same thing. Apply softmax cross-entropy over the rows and over the columns, average them. That's the whole loss.
+
+> "Given a batch of N (image, text) pairs, CLIP is trained to predict which of the N × N possible (image, text) pairings across a batch actually occurred. ... We optimize a symmetric cross entropy loss over these similarity scores."
+
+SigLIP swaps the softmax for a sigmoid binary classification on each cell of the matrix: each pair is either matched (label +1) or unmatched (label −1), and every cell contributes independently. Computationally cheaper to scale. Same architectural shape: dual towers, dot product, scalar score per pair.
+
+What this loss does *not* teach the model is anything about *next words*. The matched-pair signal at any cell tells the towers "make these two embeddings closer." It says nothing about what should come after a given word in a sentence. Both towers, image and text, are trained to produce one embedding each, then compared. The text tower never has to predict the next token. There is no decoder loss. There is no autoregressive supervision anywhere in the training procedure.
+
+A language model is doing the opposite thing. Take a sentence. For each prefix of the sentence (the first 1 word, the first 2 words, and so on), compute a probability distribution over what the next word should be. The loss is the negative log-likelihood of the actual next word, summed over all positions. This *does* teach the model about next words. It teaches almost only about next words. After enough data, you have a function that takes a partial sentence and returns a probability distribution over every possible continuation, which you can sample from to make new text.
+
+These are two different functions, and the difference doesn't shrink with scale. The contrastive function takes (image, sentence) and returns a number. The autoregressive function takes (partial sentence) and returns a probability distribution over the next token. You can't use one to do the other's job, no matter how large you make it. Scaling SigLIP doesn't get you generation. Scaling an LLM doesn't, by itself, get you a calibrated image-caption similarity score; you have to fit a head on top to extract one.
+
+This is why every modern multimodal stack ships both. SigLIP-class encoders for *understanding* what's in an image. An autoregressive LLM in the middle for *producing* language. How the encoder's output becomes input to the LLM is the design problem Act 2 walks through. But the necessity of the LLM is settled here.
