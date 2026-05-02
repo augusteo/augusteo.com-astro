@@ -1324,7 +1324,102 @@ What the model has at this point: a unified backbone that reads text, sees image
 
 That framing is honest and worth taking seriously. Perception is not reasoning. A model that perceives well is a foundation for an agent loop; it is not the loop itself. The next problem in the stack is how the LLM in the middle generates *plans*, calls *tools*, and executes *multi-step trajectories* over the perceived state. None of that is settled in the way the perception layer is settled.
 
-{/* TODO: Fig 14: UnifiedLoopReassembly evidence ledger. Four rows: long-context throughput / system throughput / memory footprint / prosody preservation. Columns: claim, mechanism, source-backed number with baseline, limitation. */}
+<figure>
+<svg viewBox="0 0 680 365" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+
+<text x="340" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">EFFICIENCY EVIDENCE LEDGER (NEMOTRON-FAMILY MEASUREMENTS)</text>
+
+<rect x="10" y="35" width="660" height="25" fill="#1A1A1A"/>
+<g font-family="serif" font-size="11" font-weight="700" fill="#F4EEE3">
+  <text x="20" y="52">Claim</text>
+  <text x="170" y="52">Mechanism</text>
+  <text x="370" y="52">Number (vs baseline)</text>
+  <text x="570" y="52">Limitation</text>
+</g>
+
+<g stroke="#1A1A1A" stroke-width="0.4" opacity="0.3">
+  <line x1="160" y1="35" x2="160" y2="358"/>
+  <line x1="360" y1="35" x2="360" y2="358"/>
+  <line x1="560" y1="35" x2="560" y2="358"/>
+</g>
+
+<rect x="10" y="63" width="660" height="70" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="0.5"/>
+<rect x="10" y="63" width="4" height="70" fill="#2563EB"/>
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="22" y="80" font-weight="600" fill="#2563EB">Long-context</text>
+  <text x="22" y="94" font-weight="600" fill="#2563EB">inference</text>
+  <text x="22" y="114" font-style="italic" fill="#6B6258" font-size="10">throughput</text>
+  <text x="170" y="80">Mamba-2 selective</text>
+  <text x="170" y="94">SSM, O(N) cost in</text>
+  <text x="170" y="108">sequence length, plus</text>
+  <text x="170" y="122">6 attention for retrieval</text>
+  <text x="370" y="80">2.9× tokens/sec at 64K</text>
+  <text x="370" y="94">input, 1024 output, on H100</text>
+  <text x="370" y="114" font-style="italic" font-size="10" fill="#6B6258">(vs Llama-3.1-70B)</text>
+  <text x="570" y="80" font-size="10">Measured on</text>
+  <text x="570" y="94" font-size="10">Nemotron-H-56B,</text>
+  <text x="570" y="108" font-size="10">not on Nemotron 3</text>
+  <text x="570" y="122" font-size="10">Nano Omni</text>
+</g>
+
+<rect x="10" y="138" width="660" height="70" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="0.5"/>
+<rect x="10" y="138" width="4" height="70" fill="#15803D"/>
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="22" y="155" font-weight="600" fill="#15803D">Per-GPU</text>
+  <text x="22" y="169" font-weight="600" fill="#15803D">output</text>
+  <text x="22" y="189" font-style="italic" fill="#6B6258" font-size="10">throughput</text>
+  <text x="170" y="155">MoE sparse activation:</text>
+  <text x="170" y="169">top-6 of 128 routed</text>
+  <text x="170" y="183">+ 1 shared expert,</text>
+  <text x="170" y="197">3.5B / 30B active per token</text>
+  <text x="370" y="155">2.4× output tokens/sec/GPU</text>
+  <text x="370" y="169">on Nemotron-H-56B-Base</text>
+  <text x="370" y="189" font-style="italic" font-size="10" fill="#6B6258">(vs Qwen-2.5-72B, Llama-3.1-70B)</text>
+  <text x="570" y="155" font-size="10">Per-token win</text>
+  <text x="570" y="169" font-size="10">depends on batch</text>
+  <text x="570" y="183" font-size="10">balance and routing</text>
+  <text x="570" y="197" font-size="10">load</text>
+</g>
+
+<rect x="10" y="213" width="660" height="70" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="0.5"/>
+<rect x="10" y="213" width="4" height="70" fill="#B8651A"/>
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="22" y="230" font-weight="600" fill="#B8651A">Memory</text>
+  <text x="22" y="244" font-weight="600" fill="#B8651A">footprint</text>
+  <text x="170" y="230">NVFP4 mixed precision:</text>
+  <text x="170" y="244">routed experts FP4,</text>
+  <text x="170" y="258">attention and Mamba projs FP8,</text>
+  <text x="170" y="272">vision/audio encoders BF16</text>
+  <text x="370" y="230">61.5 GB (BF16) →</text>
+  <text x="370" y="244">20.9 GB (NVFP4) on</text>
+  <text x="370" y="258">Nemotron 3 Nano Omni</text>
+  <text x="370" y="272" font-style="italic" font-size="10" fill="#6B6258">(3× reduction)</text>
+  <text x="570" y="230" font-size="10">−0.38-point mean</text>
+  <text x="570" y="244" font-size="10">drop across 9</text>
+  <text x="570" y="258" font-size="10">multimodal</text>
+  <text x="570" y="272" font-size="10">benchmarks</text>
+</g>
+
+<rect x="10" y="288" width="660" height="70" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="0.5"/>
+<rect x="10" y="288" width="4" height="70" fill="#9333EA"/>
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="22" y="305" font-weight="600" fill="#9333EA">Prosody</text>
+  <text x="22" y="319" font-weight="600" fill="#9333EA">preservation</text>
+  <text x="170" y="305">Speech-out reads LLM</text>
+  <text x="170" y="319">hidden states directly</text>
+  <text x="170" y="333">(Qwen2.5-Omni Talker:</text>
+  <text x="170" y="347">no transcript bottleneck)</text>
+  <text x="370" y="305">Tsiamas et al. 2024:</text>
+  <text x="370" y="319">cascades transmit prosody</text>
+  <text x="370" y="333">to a "lesser extent"</text>
+  <text x="570" y="305" font-size="10">Qualitative;</text>
+  <text x="570" y="319" font-size="10">no Nemotron 3</text>
+  <text x="570" y="333" font-size="10">Nano Omni</text>
+  <text x="570" y="347" font-size="10">benchmark</text>
+</g>
+</svg>
+<figcaption><strong>Fig 14.</strong> What the post can claim and where each claim comes from. Three measured efficiency wins, all on Nemotron-family models against named baselines, plus a fourth qualitative claim about prosody. The post does not promise a controlled benchmark of "unified-decoder beats stitched cascades" in the abstract; it reports these four rows and stops.</figcaption>
+</figure>
 
 So the post ends with a small concrete piece. Three architectural moves take you from a vision backbone to a four-modality perception model. A text-centric autoregressive decoder. Modality-specific encoders feeding it through MLP projectors. A stack of token-budget mechanisms (tubelet fusion, EVS, hybrid Mamba+attention+MoE, NVFP4) to keep inference affordable. The last one is what makes the first two shippable.
 
