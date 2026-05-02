@@ -1,0 +1,32 @@
+---
+title: "The Unified Multimodal Stack"
+description: "How modern multimodal models are wired, and why moving from a vision backbone to a four-modality model takes more than plugging in more encoders."
+pubDate: 2026-05-01
+heroAlt: "TODO: hero image not yet selected"
+tags: ["AI", "ML"]
+featured: false
+draft: false
+essay: true
+---
+
+*A sequel to [The Unified Vision Stack](/blog/unified-vision-stack). Picks up where C-RADIOv4 ended and asks what it takes to teach one eye to listen, watch, and speak. Worked example throughout: NVIDIA's Nemotron 3 Nano Omni, released April 2026. About a 45-minute read.*
+
+### 1. A single eye, three teachers
+
+The previous post left us with C-RADIOv4. One vision backbone, three teachers, a single forward pass whose features could be read by three different downstream tasks at once.
+
+{/* TODO: Fig 1: C-RADIOv4 with three teachers feeding in (DINOv3, SigLIP2, SAM3) -- mirror prequel Fig 7 layout */}
+
+DINOv3 brought dense patch geometry. SigLIP2 brought text alignment. SAM3 brought instance masks. C-RADIOv4 inherited all three through agglomerative distillation, and at inference you could read off whichever kind of feature your downstream task wanted by attaching a small head to the shared backbone.
+
+That model is a complete eye. Classification, retrieval, segmentation, depth estimation, video tracking, satellite analysis: all of it works. If the job is "look at an image and produce something about it," C-RADIOv4 is enough.
+
+But "look at an image" is not the job most modern systems are being built for. The thing people want is an agent: something that takes a photo, listens to a question, watches a video, and answers in language. The system has to perceive across modalities and then talk about what it perceived. C-RADIOv4 only handles half of that loop, and only for one of the modalities.
+
+What does the rest take?
+
+There's a clue in C-RADIOv4 itself. One of its teachers was SigLIP2, and the SigLIP-aligned head on the backbone produces features that share geometry with caption embeddings. An image vector and a caption vector for the same scene land near each other. We already have, through that head, an image encoder that "speaks text" in a specific sense.
+
+So why does Nemotron 3 Nano Omni, the open omni model NVIDIA shipped in April 2026, still bolt a separate text tokenizer onto the front of a 30-billion-parameter autoregressive language model and feed C-RADIOv4-H's features into it as if they were just another input? If the SigLIP head was meant to be the text bridge, what does the LLM do that the head can't?
+
+Cracking that question is the spine of the post. The short answer is that SigLIP-style alignment scores; it doesn't generate. Once that's clear, the rest of the architecture falls into place. We end up needing three architectural moves: a text-centric autoregressive decoder at the center, modality-specific encoders for everything that isn't text, and a stack of token-budget mechanisms to keep the inference cost from collapsing under its own weight. The post takes them one at a time.
