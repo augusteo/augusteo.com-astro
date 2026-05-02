@@ -645,7 +645,7 @@ Iteration stops here: codex's findings are addressed. No structural fixes implie
 
 ## Resume here
 
-Last touched: 2026-05-02 (batch 3).
+Last touched: 2026-05-02 (batch 4 — phase 6 done).
 
 ### Phase status
 
@@ -656,7 +656,7 @@ Last touched: 2026-05-02 (batch 3).
 | 3. Outline + figure list | done | this file's `## Outline` (incl. per-figure type) |
 | 4. Codex gate 1 | done | this file's `## Codex outline review` |
 | 5. Draft prose | done | `src/content/blog/omni-modal-stack/index.mdx` (18 sections, References) |
-| 6. Implement figures | 12 of 14 done (only the 2 interactive figures left) | per-figure table below |
+| 6. Implement figures | 14 of 14 done | per-figure table below |
 | 7. Playwright visual review | pending | playwright snapshots reviewed |
 | 8. Codex gate 2 + ship | pending | hero image, dev verification, ship |
 
@@ -670,8 +670,8 @@ Last touched: 2026-05-02 (batch 3).
 | 4 | AdapterVsUnifiedDecoder | static-svg | done | 928bd76 |
 | 5 | LogMelSpectrogramTile | static-svg | done | 0583ff2 |
 | 6 | ParakeetPipeline | static-svg | done | fafc8cb |
-| 7 | VideoTokenExplosion | interactive-canvas | TODO | — |
-| 8 | EvsPatchPruning | interactive-canvas | TODO | — |
+| 7 | VideoTokenExplosion | interactive-canvas | done | 3f954db |
+| 8 | EvsPatchPruning | interactive-canvas | done | 868b9e2 |
 | 9 | Conv3dEvsPipeline | static-svg | done | 3dd51d4 |
 | 10 | HybridBackboneLayers | static-svg | done | 2b9ae57 |
 | 11 | MambaVsTransformerScaling | static-svg | done | 225733f |
@@ -681,12 +681,15 @@ Last touched: 2026-05-02 (batch 3).
 
 ### Suggested next batch
 
-Phase 6 figure batch 4: the two interactive figures, both Canvas2D Svelte islands. Each one needs `src/figures/omni-modal-stack/<name>.ts` (pure draw fn) and `src/components/figures/omni-modal-stack/<Name>.svelte` (wrapper with `$state`, kit primitives, `<Canvas2D>` usage). MDX side: `<FigureName client:visible />` inside `<Figure caption=".." figNum={N}>`. Read `figure-kit.md`'s "Astro hydration" section first.
+Phase 7 — playwright per-figure visual review across all 14 figures. Start `bun run dev` in the background, navigate to `http://localhost:4321/blog/omni-modal-stack/` (or whichever port the dev server picks; today it landed on 4324), and walk every `<figure>` against `playwright-checks.md` (universal checks plus the type-specific list). For interactive figures (Fig 7, Fig 8), specifically verify hydration succeeds (no `$$props.draw` errors), slider response drives the canvas, and reduced-motion path renders without auto-advance. There is one pre-existing console warning class on the post: every static SVG sets `width="100%" height="auto"` and Chrome flags "Expected length, 'auto'." for the height attribute. That's been carried since Fig 1 and is not blocking — note it during review but do not chase per-figure unless the figure itself fails to render.
 
-- Fig 7 — `VideoTokenExplosion`. Three sliders: clip duration (1-120 s), FPS (1-30), patches per frame (256-1024 in steps of 256). Live token count rendered as a horizontal bar against a 262K-context reference. Three overlaid curves on a small inset plot: naive (N×P×F), tubelet ×0.5, tubelet ×0.5 + EVS ×0.25. The bar should fill rust as it approaches 262K and switch to red beyond it.
-- Fig 8 — `EvsPatchPruning`. A frame pair (two side-by-side image stand-ins, ~16×16 patch grid each). Slider for q in [0, 0.95]. As q rises, patches in the second frame grey out from the static background outward. Live counter below: "kept N of M patches; LLM prefill tokens reduced by (1−q)×". First frame is always fully kept (per the EVS algorithm).
+After Phase 7 lands, Phase 8 = codex gate 2 + voice-check on the full draft + hero hand-off (per `../../explainer-shared/hero-handoff.md`) + ship. The hero alt is currently the placeholder string `"TODO: hero image not yet selected"`.
 
-After both interactive figures land, Phase 7 (playwright per-figure review across all 14) → Phase 8 (codex gate 2 + hero image hand-off + ship).
+### Notes from batch 4
+
+- Fig 7 (`VideoTokenExplosion`): three stacked horizontal bars (one per encoding strategy) against a 262K reference, with secondary-color overflow bars and a "↑ Nx over" white-text indicator inside the bar. The stacked-bars layout absorbs the brief's "three overlaid curves" by giving the reader all three counts at the current input simultaneously — adding a separate inset plot would have been redundant. Default state: 10 s × 12 FPS × 512 patches, all three modes green (under 262K). Cross to 30 FPS at 1024 patches and naive overflows past 7×.
+- Fig 8 (`EvsPatchPruning`): two 16×16 patch grids with a deterministic synthetic two-frame scene (smooth bg gradient + a rust disc that shifts ~4 patches between frames). Critical fix during build: the first version used a frame-independent `bgColor(i, j)` so all bg patches had diff = 0 between frames. The percentile threshold algo then collapsed to threshold = 0 and "diff >= threshold" kept everything until q crossed ~0.7, even though the label said "50% pruned". Fix was per-frame deterministic noise of ±2.4 RGB units injected into the bg color so every patch has a unique non-zero diff and the percentile actually bisects. With the noise: q=0 → 256 kept (clean view, disc shift visible); q=0.5 → 128 kept (motion region intact + speckled bg); q=0.75 → 64 kept (only the motion swath); q=0.95 → 13 kept (the steepest gradient patches at the disc edges).
+- The MDX file uses raw `<figure>` HTML for the 12 static SVG figures from earlier batches but the proper `<Figure caption=... figNum=...>` Svelte wrapper for the two interactive figures (which need `client:visible`). The two patterns coexist fine in the same MDX. Adding `import Figure from "@components/figure/Figure.svelte"` and per-figure wrapper imports near the frontmatter is the same convention multi-gpu-training uses.
 
 ### Notes from batch 3
 
