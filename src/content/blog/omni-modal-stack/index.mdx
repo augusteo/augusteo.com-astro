@@ -30,3 +30,33 @@ There's a clue in C-RADIOv4 itself. One of its teachers was SigLIP2, and the Sig
 So why does Nemotron 3 Nano Omni, the open omni model NVIDIA shipped in April 2026, still bolt a separate text tokenizer onto the front of a 30-billion-parameter autoregressive language model and feed C-RADIOv4-H's features into it as if they were just another input? If the SigLIP head was meant to be the text bridge, what does the LLM do that the head can't?
 
 Cracking that question is the spine of the post. The short answer is that SigLIP-style alignment scores; it doesn't generate. Once that's clear, the rest of the architecture falls into place. We end up needing three architectural moves: a text-centric autoregressive decoder at the center, modality-specific encoders for everything that isn't text, and a stack of token-budget mechanisms to keep the inference cost from collapsing under its own weight. The post takes them one at a time.
+
+## Act 1: the puzzle
+
+*Why a vision backbone that already aligns to text still cannot answer in language.*
+
+### 2. The SigLIP puzzle
+
+The SigLIP head sitting on top of C-RADIOv4 produces caption-aligned features. An image goes in, a vector comes out, and that vector lives in the same embedding space SigLIP's text tower lives in. So you can take any sentence, embed it through the text tower, and ask: how close is its embedding to the image's? You get a similarity score. Higher score, the caption fits the image better. Lower score, it doesn't.
+
+{/* TODO: Fig 2: Contrastive (SigLIP) vs autoregressive (LLM) panel */}
+
+What you can't do with that score is ask for a description of the image. The SigLIP text tower never learned to *produce* sentences. It only learned to *score* them.
+
+This is easy to lose track of, because SigLIP and CLIP are routinely described as "vision-language models" in a way that suggests they understand language in some general sense. They don't, in the sense the rest of the post is going to need. Here's what they actually do, taken straight from the CLIP paper:
+
+> "The text sequence is bracketed with [SOS] and [EOS] tokens and the activations of the highest layer of the transformer at the [EOS] token are treated as the feature representation of the text which is layer normalized and then linearly projected into the multi-modal embedding space."
+
+The text tower runs through the sentence once, takes one vector from one position in the final layer, and stops. Whatever happened in the per-token states gets thrown away. The output is a single embedding that says "this sentence as a whole means X" in some compressed form, and that is the entire output. The training loss never asked the model to expose a per-token next-token distribution, so it never learned to produce one.
+
+SigLIP and SigLIP 2 keep the same shape, just with different losses (sigmoid binary classification per pair instead of softmax over the batch). SigLIP 2 even attaches a *decoder* during training to push the encoder representations harder, but the decoder gets thrown away before release:
+
+> "Finally, we note that the decoder only serves for representation learning here and is not part of the model release."
+
+So the artifact you actually get is still a contrastive embedder. It scores. If you want to generate, you need a different organ.
+
+The "different organ" is what the next sections build up. Briefly: a tokenizer that splits text into sub-word pieces, a learned embedding table for those pieces, a transformer trained on next-token prediction over a vocabulary of around 100,000 entries, and the autoregressive sampling loop that makes actual sentences come out. This is what the L in LLM stands for, and none of it lives inside SigLIP.
+
+The architectural consequence is the central design choice of every modern omni-modal stack. The text decoder sits in the middle. Vision goes in as features. Audio goes in as features. Video goes in as features. The decoder is the only thing in the system that can run a softmax over the next word, and everything else feeds it.
+
+That's the reframe for the rest of the post. C-RADIOv4 is one of the best things you can put in front of a decoder. It is not, by itself, a decoder. The next section makes the contrast precise.
