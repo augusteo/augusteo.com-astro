@@ -43,13 +43,13 @@ The SigLIP head sitting on top of C-RADIOv4 produces caption-aligned features. A
 
 What you can't do with that score is ask for a description of the image. The SigLIP text tower never learned to *produce* sentences. It only learned to *score* them.
 
-This is easy to lose track of, because SigLIP and CLIP are routinely described as "vision-language models" in a way that suggests they understand language in some general sense. They don't, in the sense the rest of the post is going to need. Here's what they actually do, taken straight from the CLIP paper:
+This is easy to lose track of, because SigLIP and CLIP are routinely described as "vision-language models" in a way that suggests they understand language in some general sense. They don't, in the sense the rest of the post is going to need. Here's what they actually do, taken straight from the [CLIP paper](https://arxiv.org/abs/2103.00020):
 
 > "The text sequence is bracketed with [SOS] and [EOS] tokens and the activations of the highest layer of the transformer at the [EOS] token are treated as the feature representation of the text which is layer normalized and then linearly projected into the multi-modal embedding space."
 
 The text tower runs through the sentence once, takes one vector from one position in the final layer, and stops. Whatever happened in the per-token states gets thrown away. The output is a single embedding that says "this sentence as a whole means X" in some compressed form, and that is the entire output. The training loss never asked the model to expose a per-token next-token distribution, so it never learned to produce one.
 
-SigLIP and SigLIP 2 keep the same shape, just with different losses (sigmoid binary classification per pair instead of softmax over the batch). SigLIP 2 even attaches a *decoder* during training to push the encoder representations harder, but the decoder gets thrown away before release:
+[SigLIP](https://arxiv.org/abs/2303.15343) and [SigLIP 2](https://arxiv.org/abs/2502.14786) keep the same shape, just with different losses (sigmoid binary classification per pair instead of softmax over the batch). SigLIP 2 even attaches a *decoder* during training to push the encoder representations harder, but the decoder gets thrown away before release:
 
 > "Finally, we note that the decoder only serves for representation learning here and is not part of the model release."
 
@@ -101,21 +101,21 @@ Three approaches dominated the 2022-2024 era, and the differences between them t
 
 {/* TODO: Fig 3: Three-panel comparison, Flamingo gated cross-attention / BLIP-2 Q-Former / LLaVA MLP projection */}
 
-Flamingo (DeepMind, 2022) inserts new layers into the frozen LLM. Specifically, between every pretrained block, Flamingo adds a `GATED XATTN-DENSE` block: a cross-attention layer where the query is the LLM's current hidden state and the key/value are visual features (after passing through a Perceiver Resampler that compresses the variable-size feature grid into 64 fixed slots). The cross-attention output is gated by a learned scalar α, multiplied through `tanh(α)` where α is initialized to zero. At step 0, every new block is a no-op:
+[Flamingo](https://arxiv.org/abs/2204.14198) (DeepMind, 2022) inserts new layers into the frozen LLM. Specifically, between every pretrained block, Flamingo adds a `GATED XATTN-DENSE` block: a cross-attention layer where the query is the LLM's current hidden state and the key/value are visual features (after passing through a Perceiver Resampler that compresses the variable-size feature grid into 64 fixed slots). The cross-attention output is gated by a learned scalar α, multiplied through `tanh(α)` where α is initialized to zero. At step 0, every new block is a no-op:
 
 > "We freeze the pretrained LM blocks, and insert gated cross-attention dense blocks between the original layers, trained from scratch. To ensure that at initialization, the conditioned model yields the same results as the original language model, we use a tanh-gating mechanism."
 
 The training process pushes α off zero only as the cross-attention starts contributing useful signal. The LLM weights themselves are never updated. Catastrophic forgetting is averted by construction.
 
-BLIP-2 (Salesforce, 2023) takes a different shape. Instead of adding cross-attention into the LLM, it adds a separate small module (a 188-million-parameter Querying Transformer, or Q-Former) between the frozen vision encoder and the frozen LLM. Q-Former has a fixed set of learned "query" embeddings that attend to the vision encoder's outputs through cross-attention. The output is a short fixed-length sequence (32 vectors in the released checkpoints) that gets linearly projected and prepended to the LLM's prompt as if it were ordinary text tokens. Q-Former is trained in two stages: first in isolation against an image-text alignment objective, then together with the frozen LLM against a generation loss.
+[BLIP-2](https://arxiv.org/abs/2301.12597) (Salesforce, 2023) takes a different shape. Instead of adding cross-attention into the LLM, it adds a separate small module (a 188-million-parameter Querying Transformer, or Q-Former) between the frozen vision encoder and the frozen LLM. Q-Former has a fixed set of learned "query" embeddings that attend to the vision encoder's outputs through cross-attention. The output is a short fixed-length sequence (32 vectors in the released checkpoints) that gets linearly projected and prepended to the LLM's prompt as if it were ordinary text tokens. Q-Former is trained in two stages: first in isolation against an image-text alignment objective, then together with the frozen LLM against a generation loss.
 
 > "BLIP-2 bridges the modality gap with a lightweight Querying Transformer, which is pre-trained in two stages. The first stage bootstraps vision-language representation learning from a frozen image encoder. The second stage bootstraps vision-to-language generative learning from a frozen language model."
 
-LLaVA (Microsoft and Wisconsin, 2023) is the simplest possible version of the same idea. Skip the cross-attention. Skip the Q-Former. Take the dense feature map from a frozen CLIP encoder, multiply it by a single trainable matrix `W` into the LLM's word-embedding dimension, and prepend the resulting vectors to the prompt. That's it.
+[LLaVA](https://arxiv.org/abs/2304.08485) (Microsoft and Wisconsin, 2023) is the simplest possible version of the same idea. Skip the cross-attention. Skip the Q-Former. Take the dense feature map from a frozen CLIP encoder, multiply it by a single trainable matrix `W` into the LLM's word-embedding dimension, and prepend the resulting vectors to the prompt. That's it.
 
 > "We consider a simple linear layer to connect image features into the word embedding space. Specifically, we apply a trainable projection matrix W to convert Z_v into language embedding tokens H_v, which have the same dimensionality as the word embedding space in the language model."
 
-LLaVA-1.5 upgraded the projector from a single linear layer to a two-layer MLP and reported gains, but the architectural shape stayed the same. One small module. No new layers in the LLM. The LLM weights are still frozen during stage-1 alignment training; they do get fine-tuned during stage-2 instruction tuning, but they never see the gradient of a *pretraining* loss applied to a multimodal sequence, only an instruction-tuning loss applied at the end.
+[LLaVA-1.5](https://arxiv.org/abs/2310.03744) upgraded the projector from a single linear layer to a two-layer MLP and reported gains, but the architectural shape stayed the same. One small module. No new layers in the LLM. The LLM weights are still frozen during stage-1 alignment training; they do get fine-tuned during stage-2 instruction tuning, but they never see the gradient of a *pretraining* loss applied to a multimodal sequence, only an instruction-tuning loss applied at the end.
 
 The pattern across all three: the LLM was trained on text alone. Vision is a side-loaded computation, translated into something that looks like text tokens (or, in Flamingo's case, attended to as cross-attention values), and the LLM consumes that translation. The LLM never learns the joint distribution over multimodal sequences during its own pretraining. Whatever multimodal understanding shows up has to come through the projector and the late-stage fine-tune.
 
@@ -131,13 +131,13 @@ The structural alternative is to drop the "frozen LLM" constraint. Instead of bo
 
 Two flavors of this exist, and the difference between them matters for what kinds of modalities are easy to add later.
 
-The first flavor is *discrete-token unified vocabulary*, exemplified by Meta's Chameleon. Quantize images into discrete codes from a fixed codebook (Chameleon uses 8192 entries). Extend the text tokenizer's vocabulary to include those codes. Now an image is just a longer sequence of "tokens" drawn from a vocabulary that happens to be larger than a pure-text one. Train a standard autoregressive decoder on a mix of text-only sequences and interleaved text-and-image sequences, where the image segments are these new tokens. The model can read an image and write text, or read text and write image tokens, with no architectural difference between the two.
+The first flavor is *discrete-token unified vocabulary*, exemplified by Meta's [Chameleon](https://arxiv.org/abs/2405.09818). Quantize images into discrete codes from a fixed codebook (Chameleon uses 8192 entries). Extend the text tokenizer's vocabulary to include those codes. Now an image is just a longer sequence of "tokens" drawn from a vocabulary that happens to be larger than a pure-text one. Train a standard autoregressive decoder on a mix of text-only sequences and interleaved text-and-image sequences, where the image segments are these new tokens. The model can read an image and write text, or read text and write image tokens, with no architectural difference between the two.
 
 > "Our unified approach uses fully token-based representations for both image and textual modalities. By quantizing images into discrete tokens, analogous to words in text, we can apply the same transformer architecture to sequences of both image and text tokens, without the need for separate image/text encoders or domain-specific decoders."
 
 The second flavor is *continuous projected embeddings*. Instead of quantizing, run each modality through a modality-specific encoder that produces a sequence of continuous feature vectors, then project those vectors (via a learned MLP, the projector) into the LLM's hidden dimension, and concatenate them into the LLM's input sequence. The LLM still consumes a sequence of vectors, the same way it always does. The only difference is that some of those vectors came from a vision encoder or an audio encoder rather than from the text embedding table. The training loss is computed jointly over the whole sequence, including the modality-projected positions.
 
-This is the family Gemini, Qwen2.5-Omni, and Nemotron 3 Nano Omni belong to. Gemini frames it as native-from-scratch:
+This is the family [Gemini](https://arxiv.org/abs/2312.11805), [Qwen2.5-Omni](https://arxiv.org/abs/2503.20215), and [Nemotron 3 Nano Omni](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Omni-report.pdf) belong to. Gemini frames it as native-from-scratch:
 
 > "The Gemini models are natively multimodal, as they are trained jointly across text, image, audio, and video."
 
@@ -147,7 +147,7 @@ Nemotron 3 Nano Omni names the design pattern explicitly:
 
 A subtle point worth nailing down. The "tokens" the LLM sees in this setup are not raw pixels or raw waveform samples. They are the *outputs* of modality-specific encoders, projected by an MLP into the LLM's embedding dimension. So when we say the LLM consumes "vision tokens," we mean vectors in the LLM's hidden space that happen to have come from a ViT plus a projector, not 256-dimensional image patches. The projector matters. The encoder matters. The LLM sees the same kind of vector regardless of where it came from, and that's what makes the unified-decoder approach work as a drop-in extension of transformer architecture.
 
-Qwen2.5-VL fits here as a vision-only special case of the continuous-projected pattern. It uses an MLP projector (LLaVA-style), but trains the LLM jointly with the from-scratch ViT, so the LLM weights see the gradient of a multimodal pretraining loss, not just an instruction-tuning fine-tune at the end. Qwen2.5-VL is a vision-language model, not a four-modality omni model, but architecturally it sits closer to Nemotron 3 Nano Omni than to LLaVA.
+[Qwen2.5-VL](https://arxiv.org/abs/2502.13923) fits here as a vision-only special case of the continuous-projected pattern. It uses an MLP projector (LLaVA-style), but trains the LLM jointly with the from-scratch ViT, so the LLM weights see the gradient of a multimodal pretraining loss, not just an instruction-tuning fine-tune at the end. Qwen2.5-VL is a vision-language model, not a four-modality omni model, but architecturally it sits closer to Nemotron 3 Nano Omni than to LLaVA.
 
 Qwen2.5-Omni adds the most subtle detail. Its speech-generation head, called Talker, doesn't read a transcript from the central decoder ("Thinker"). It reads Thinker's *hidden states* directly:
 
@@ -187,7 +187,7 @@ The first thing to notice about audio is that the natural input format is not 1D
 
 A spectrogram is what you get when you take a sliding window of, say, 25 milliseconds across the waveform, and for each window compute the energy of the signal at each of a fixed set of frequency bins. The "mel" part means the frequency bins are spaced on the perceptual mel scale rather than linearly, because human auditory perception is approximately log-frequency. The "log" means you take the log of the energy in each bin, because perception is approximately log-amplitude. You end up with a 2D matrix whose rows are frequency bins (typically 80 of them) and whose columns are time frames (typically one every 10 milliseconds).
 
-Whisper uses exactly this representation, and it has become the de facto convention:
+[Whisper](https://arxiv.org/abs/2212.04356) uses exactly this representation, and it has become the de facto convention:
 
 > "All audio is re-sampled to 16,000 Hz, and an 80-channel log-magnitude Mel spectrogram representation is computed on 25-millisecond windows with a stride of 10 milliseconds."
 
@@ -203,7 +203,7 @@ C-RADIOv4 cannot just be reused for audio. The inductive biases are wrong. You n
 
 ### 9. Parakeet: a token-emitting audio encoder
 
-Nemotron 3 Nano Omni's audio encoder is Parakeet-TDT-0.6B-v2, an NVIDIA model that pairs a FastConformer encoder with a Token-and-Duration Transducer (TDT) decoder. 600 million parameters total. Its model card describes the shape:
+Nemotron 3 Nano Omni's audio encoder is [Parakeet-TDT-0.6B-v2](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2), an NVIDIA model that pairs a FastConformer encoder with a Token-and-Duration Transducer (TDT) decoder. 600 million parameters total. Its model card describes the shape:
 
 > "Architecture Type: FastConformer-TDT ... This model was developed based on FastConformer encoder architecture and TDT decoder. This model has 600 million model parameters."
 
@@ -231,7 +231,7 @@ First, repetition loops. Whisper's own paper documents the failure mode in §3.8
 
 The OpenAI authors are saying, plainly, that long-form Whisper occasionally falls into repetition loops in greedy decoding and needs hand-tuned heuristics to avoid window-to-window error compounding. When the LLM downstream consumes the transcript, those errors land in its context as if they were ground truth. There is no posterior signal to back out from.
 
-Second, lost paralinguistic information. Speech carries content beyond the words: prosody, stress, intonation, speaker identity, disfluency, overlap. A transcript collapses all of it to a string. Tsiamas et al. ran a controlled benchmark of cascade vs end-to-end speech translation systems and found that cascades transmit prosody to a *lesser extent* than end-to-end systems, with the gap depending on what surface form the transcriber chooses:
+Second, lost paralinguistic information. Speech carries content beyond the words: prosody, stress, intonation, speaker identity, disfluency, overlap. A transcript collapses all of it to a string. [Tsiamas et al.](https://arxiv.org/abs/2410.24019) ran a controlled benchmark of cascade vs end-to-end speech translation systems and found that cascades transmit prosody to a *lesser extent* than end-to-end systems, with the gap depending on what surface form the transcriber chooses:
 
 > "The prosody of a spoken utterance, including features like stress, intonation and rhythm, can significantly affect the underlying semantics, and as a consequence can also affect its textual translation."
 
@@ -251,7 +251,7 @@ That covers audio. Video has its own problem, and it's a bigger one.
 
 A 2D image with 16×16 patches at 384×384 resolution is around 576 tokens. A modest number; an LLM with a 32k context window has room for it. Now stretch the same model to video.
 
-A video is a sequence of frames over time. The naive thing to do is treat each frame as an image, run the ViT, and concatenate the resulting tokens into one long sequence. The math, even at modest settings, is bad. The EVS paper opens with the cleanest version of this problem statement:
+A video is a sequence of frames over time. The naive thing to do is treat each frame as an image, run the ViT, and concatenate the resulting tokens into one long sequence. The math, even at modest settings, is bad. The [EVS paper](https://arxiv.org/abs/2510.14624) opens with the cleanest version of this problem statement:
 
 > "a two-minute video at 24 FPS produces more than two million vision tokens, far beyond the effective context length of most language models"
 
@@ -259,19 +259,19 @@ A video is a sequence of frames over time. The naive thing to do is treat each f
 
 Drag the duration slider above. Even at modest patch counts, the token total flies past a 262K-context LLM the moment the clip gets past about ten seconds. At 1024 patches per frame and 30 FPS, you're already over 262K at nine seconds. That's the cost ViViT-style naive frame-by-frame encoding pays, and it makes long-form video reasoning impossible without aggressive compression.
 
-The good news, made vivid by VideoMAE in 2022, is that video is wildly redundant along the time axis. VideoMAE found that you can mask out 90 to 95 percent of the patches in a video and still reconstruct it, where the equivalent ratio for static images is around 75 percent.
+The good news, made vivid by [VideoMAE](https://arxiv.org/abs/2203.12602) in 2022, is that video is wildly redundant along the time axis. VideoMAE found that you can mask out 90 to 95 percent of the patches in a video and still reconstruct it, where the equivalent ratio for static images is around 75 percent.
 
 > "VideoMAE is in favor of extremely high masking ratios (e.g. 90% to 95%) compared with the ImageMAE."
 
 The intuition is that two consecutive frames usually share most of their content. Static parts of a scene (the background, the unchanging foreground object, the camera angle) all contribute redundant patches at every frame. You don't need to encode them N times. You need to encode the parts that *change*, plus enough of the static structure to anchor where they change against.
 
-ViViT (Google, 2021) was the first widely-used architecture to bake this into the encoder. Instead of tokenizing each frame independently, ViViT extracts non-overlapping spatio-temporal "tubes" that span both spatial extent and a small number of consecutive frames:
+[ViViT](https://arxiv.org/abs/2103.15691) (Google, 2021) was the first widely-used architecture to bake this into the encoder. Instead of tokenizing each frame independently, ViViT extracts non-overlapping spatio-temporal "tubes" that span both spatial extent and a small number of consecutive frames:
 
 > "Extract non-overlapping, spatio-temporal 'tubes' from the input volume, and to linearly project this to ℝ^d ... nt=⌊T/t⌋, nh=⌊H/h⌋ and nw=⌊W/w⌋, tokens are extracted from the temporal, height, and width dimensions respectively."
 
 A single token now represents, say, a 2×16×16 chunk of video (two consecutive frames worth of one spatial patch). Tubelet tokenization halves the token count along the time axis at the input stage. Variants exist (TimeSformer's factorized space-time attention, MViT's pyramidal pooling) but the underlying observation is the same: time-axis redundancy is so high that you can collapse along it without losing the signal that matters.
 
-TimeSformer makes the cost story explicit:
+[TimeSformer](https://arxiv.org/abs/2102.05095) makes the cost story explicit:
 
 > "In practice, joint space-time attention causes a GPU memory overflow once the spatial frame resolution reaches 448 pixels, or once the number of frames is increased to 32."
 
@@ -371,7 +371,7 @@ Self-attention has cost proportional to sequence length squared. For a 1K-token 
 
 What "selective" means is that the state-update equations have parameters that depend on the current input token, instead of being shared across all positions. This is what lets Mamba pick what to remember and what to drop, with the input deciding rather than a fixed weight. The trade-off is that the recurrence is no longer the kind of linear time-invariant system you can compute with a single FFT-based convolution; you need a hardware-aware scan kernel to keep training fast.
 
-Mamba-2 (Dao and Gu, 2024) shows that this scan and a restricted form of attention turn out to be the same matrix-multiplication structure under the hood, which the authors call structured state-space duality. Mamba-2's core layer is 2-8× faster than the original Mamba's:
+[Mamba-2](https://arxiv.org/abs/2405.21060) (Dao and Gu, 2024) shows that this scan and a restricted form of attention turn out to be the same matrix-multiplication structure under the hood, which the authors call structured state-space duality. Mamba-2's core layer is 2-8× faster than the original Mamba's:
 
 > "Our state space duality (SSD) framework allows us to design a new architecture (Mamba-2) whose core layer is a refinement of Mamba's selective SSM that is 2-8X faster, while continuing to be competitive with Transformers."
 
@@ -379,7 +379,7 @@ Mamba-2 (Dao and Gu, 2024) shows that this scan and a restricted form of attenti
 
 Drag your eye along the context length. At 1K tokens the two curves are indistinguishable. At 16K (the bottom of the Nemotron context-scaling progression), Mamba is already a substantial win. At 262K (the top of Nemotron's training context), pure-attention is unaffordable. This is what Mamba buys.
 
-Why not pure Mamba? Because pure-Mamba models suffer on certain in-context retrieval tasks where attention's exact-position lookups matter. NVIDIA's Nemotron-H paper, which has a similar hybrid layout, says it directly:
+Why not pure Mamba? Because pure-Mamba models suffer on certain in-context retrieval tasks where attention's exact-position lookups matter. NVIDIA's [Nemotron-H](https://arxiv.org/abs/2504.03624) paper, which has a similar hybrid layout, says it directly:
 
 > "Roughly 8% of the total layers in the model are self-attention layers; these layers are evenly dispersed throughout the model."
 
@@ -393,11 +393,11 @@ A separate measurement on long contexts: 2.9× speedup at 64K input, 1024 output
 
 ### 16. MoE: total parameters versus active parameters
 
-The other half of the "30B total / 3.5B active" math comes from the MoE layers. The idea is older than Mamba and goes back at least to Switch Transformer in 2021. Each token gets routed to a small subset of experts; the rest sit out:
+The other half of the "30B total / 3.5B active" math comes from the MoE layers. The idea is older than Mamba and goes back at least to [Switch Transformer](https://arxiv.org/abs/2101.03961) in 2021. Each token gets routed to a small subset of experts; the rest sit out:
 
 > "We simplify the MoE routing algorithm and design intuitive improved models with reduced communication and computational costs."
 
-The high-level pitch is that you can grow the parameter count by adding experts without growing the per-token compute, because each token only sees a fixed number of them. Switch routes each token to exactly one expert (top-1). Mixtral's 8x7B in 2024 generalized to top-2 across 8 experts, popularizing the "total params vs active params" naming convention:
+The high-level pitch is that you can grow the parameter count by adding experts without growing the per-token compute, because each token only sees a fixed number of them. Switch routes each token to exactly one expert (top-1). [Mixtral 8x7B](https://arxiv.org/abs/2401.04088) in 2024 generalized to top-2 across 8 experts, popularizing the "total params vs active params" naming convention:
 
 > "For every token, at each layer, a router network selects two experts to process the current state and combine their outputs."
 > "Each token has access to 47B parameters, but only uses 13B active parameters during inference."
@@ -416,7 +416,7 @@ The third point is what NVFP4 attacks, which is the next section.
 
 ### 17. NVFP4: 4-bit weights, BF16 accuracy
 
-The cheapest way to spend less memory bandwidth is to use fewer bits per weight. NVIDIA's Blackwell-era format for this is NVFP4, a 4-bit floating-point representation with a two-level scaling scheme. The format itself:
+The cheapest way to spend less memory bandwidth is to use fewer bits per weight. NVIDIA's Blackwell-era format for this is [NVFP4](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/), a 4-bit floating-point representation with a two-level scaling scheme. The format itself:
 
 > "NVFP4 employs a dual-tier approach: 1 shared FP8 scale per 16 value block (E4M3) and 1 FP32 per tensor second-level scaling factor."
 
