@@ -945,7 +945,61 @@ What "selective" means is that the state-update equations have parameters that d
 
 > "Our state space duality (SSD) framework allows us to design a new architecture (Mamba-2) whose core layer is a refinement of Mamba's selective SSM that is 2-8X faster, while continuing to be competitive with Transformers."
 
-{/* TODO: Fig 11: Mamba vs Transformer compute scaling. Two curves: O(N²) for Transformer, O(N) for Mamba, on a context-length x-axis from 1K to 1M. Reference points marked at 16K, 49K, 262K. */}
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+
+<text x="340" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">RELATIVE COMPUTE COST vs CONTEXT LENGTH (log–log)</text>
+
+<line x1="80" y1="50" x2="80" y2="220" stroke="#8F8578"/>
+<line x1="80" y1="220" x2="640" y2="220" stroke="#8F8578"/>
+
+<g stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3">
+  <line x1="80" y1="106.7" x2="640" y2="106.7"/>
+  <line x1="80" y1="163.3" x2="640" y2="163.3"/>
+  <line x1="267" y1="50" x2="267" y2="220"/>
+  <line x1="453" y1="50" x2="453" y2="220"/>
+</g>
+
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258">
+  <text x="74" y="223" text-anchor="end">1×</text>
+  <text x="74" y="166" text-anchor="end">100×</text>
+  <text x="74" y="110" text-anchor="end">10K×</text>
+  <text x="74" y="53" text-anchor="end">1M×</text>
+  <text x="80" y="237" text-anchor="middle">1K</text>
+  <text x="267" y="237" text-anchor="middle">10K</text>
+  <text x="453" y="237" text-anchor="middle">100K</text>
+  <text x="640" y="237" text-anchor="middle">1M</text>
+</g>
+
+<text x="360" y="258" text-anchor="middle" font-family="serif" font-size="11" fill="#6B6258">context length (tokens)</text>
+<text x="80" y="42" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">cost (×1K-token baseline)</text>
+
+<polyline points="80,220 136,212 211,200 267,192 305,186 361,177 396,172 453,163 510,155 531,152 584,144 640,135" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+
+<polyline points="80,220 136,203 211,180 267,163 305,152 361,135 396,124 453,107 510,90 531,83 584,67 640,50" fill="none" stroke="#B91C1C" stroke-width="2.5"/>
+
+<g stroke="#1A1A1A" stroke-width="0.6" stroke-dasharray="3,2">
+  <line x1="305" y1="50" x2="305" y2="220"/>
+  <line x1="396" y1="50" x2="396" y2="220"/>
+  <line x1="531" y1="50" x2="531" y2="220"/>
+</g>
+
+<g font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#1A1A1A">
+  <text x="305" y="42" text-anchor="middle">16K</text>
+  <text x="396" y="42" text-anchor="middle">49K</text>
+  <text x="531" y="42" text-anchor="middle">262K</text>
+</g>
+
+<text x="455" y="158" font-family="serif" font-size="12" font-style="italic" fill="#2563EB">Mamba</text>
+<line x1="478" y1="161" x2="510" y2="159" stroke="#2563EB" stroke-width="0.8"/>
+<text x="455" y="171" font-family="JetBrains Mono" font-size="10" fill="#2563EB">O(N)</text>
+
+<text x="445" y="105" font-family="serif" font-size="12" font-style="italic" fill="#B91C1C">Transformer</text>
+<line x1="498" y1="108" x2="510" y2="92" stroke="#B91C1C" stroke-width="0.8"/>
+<text x="445" y="118" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">O(N²)</text>
+</svg>
+<figcaption><strong>Fig 11.</strong> Compute scales linearly with context length for Mamba's selective state-space layer, and quadratically for self-attention. The two curves are indistinguishable at 1K tokens. At 16K (the bottom of Nemotron's training-context schedule) Transformer is already 16× more expensive than Mamba per forward pass; at 262K (the top of the schedule) the gap is 262×. The ratio is what makes long-context inference affordable.</figcaption>
+</figure>
 
 Drag your eye along the context length. At 1K tokens the two curves are indistinguishable. At 16K (the bottom of the Nemotron context-scaling progression), Mamba is already a substantial win. At 262K (the top of Nemotron's training context), pure-attention is unaffordable. This is what Mamba buys.
 
