@@ -544,6 +544,72 @@ In the omni-modal setting, the TDT decoder is thrown away. Nemotron uses only Pa
 
 > "The audio side is powered by Parakeet-TDT-0.6B-v2, connected to the backbone through its own 2-layer MLP projector. Audio is sampled at 16 kHz, and the model is trained with inputs up to 1,200 seconds (20 minutes), while the LLM max context length supports 5+ hours."
 
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="50" y="32" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">INPUT</text>
+<rect x="20" y="110" width="60" height="60" fill="#F4EEE3" stroke="#8F8578"/>
+<rect x="20" y="155" width="60" height="15" fill="#B8651A" opacity="0.32"/>
+<rect x="22" y="120" width="14" height="32" fill="#B8651A" opacity="0.22"/>
+<rect x="40" y="125" width="12" height="28" fill="#B8651A" opacity="0.20"/>
+<rect x="56" y="118" width="14" height="38" fill="#B8651A" opacity="0.24"/>
+<rect x="22" y="113" width="3" height="18" fill="#B8651A" opacity="0.5"/>
+<rect x="56" y="115" width="3" height="14" fill="#B8651A" opacity="0.5"/>
+<text x="50" y="186" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">log-mel</text>
+<text x="50" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">80×100</text>
+
+<line x1="85" y1="140" x2="103" y2="140" stroke="#6B6258" marker-end="url(#a6)"/>
+
+<text x="155" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">SHARED ENCODER</text>
+<rect x="105" y="95" width="100" height="90" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="155" y="118" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">FastConformer</text>
+<text x="155" y="132" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">encoder</text>
+<text x="155" y="151" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">600M params</text>
+<text x="155" y="164" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">8× temporal</text>
+<text x="155" y="176" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">subsample</text>
+
+<line x1="208" y1="140" x2="226" y2="140" stroke="#6B6258" marker-end="url(#a6)"/>
+
+<g font-family="JetBrains Mono" font-size="9">
+  <rect x="230" y="125" width="14" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6"/>
+  <rect x="246" y="125" width="14" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6"/>
+  <rect x="262" y="125" width="14" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6"/>
+  <rect x="278" y="125" width="14" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6"/>
+  <rect x="294" y="125" width="14" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6"/>
+</g>
+<text x="270" y="160" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">~150 audio features</text>
+
+<text x="375" y="40" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258" opacity="0.55">DISCARDED IN OMNI-MODAL</text>
+
+<g opacity="0.5">
+  <path d="M 270 122 Q 280 90 305 75 L 320 75" fill="none" stroke="#6B6258" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#a6)"/>
+  <rect x="325" y="55" width="100" height="44" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.2" stroke-dasharray="4,3"/>
+  <text x="375" y="75" text-anchor="middle" font-family="serif" font-size="11" fill="#6B6258">TDT decoder</text>
+  <text x="375" y="91" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">(thrown away)</text>
+  <line x1="430" y1="77" x2="448" y2="77" stroke="#6B6258" stroke-dasharray="3,3" marker-end="url(#a6)"/>
+  <rect x="450" y="62" width="84" height="30" fill="#F9F5EB" stroke="#8F8578" stroke-dasharray="3,2"/>
+  <text x="492" y="82" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#6B6258">"hello..."</text>
+  <text x="544" y="80" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">(original ASR path)</text>
+</g>
+
+<path d="M 270 148 Q 280 180 305 195 L 320 195" fill="none" stroke="#6B6258" stroke-width="1.2" marker-end="url(#a6)"/>
+
+<rect x="325" y="180" width="100" height="40" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
+<text x="375" y="198" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">2-layer MLP</text>
+<text x="375" y="212" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">→ LLM hidden dim</text>
+
+<line x1="430" y1="200" x2="448" y2="200" stroke="#6B6258" marker-end="url(#a6)"/>
+
+<rect x="450" y="180" width="200" height="40" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="550" y="198" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">LLM input sequence</text>
+<text x="550" y="212" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#FEF3C7">audio + text + image tokens</text>
+
+<text x="375" y="240" text-anchor="middle" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">OMNI-MODAL HEAD</text>
+</svg>
+<figcaption><strong>Fig 6.</strong> What Nemotron actually keeps from Parakeet. The original Parakeet-TDT speech-recognition model is a FastConformer encoder feeding a Token-and-Duration Transducer that writes out a transcript. In omni-modal use, only the encoder runs; the TDT decoder is discarded, and the encoder's audio features (already 8× downsampled along time, so a 1-second clip lands as ~150 features) pass through a 2-layer MLP projector into the LLM's input sequence instead.</figcaption>
+</figure>
+
 This is the architectural counterpart of what happens on the vision side. C-RADIOv4-H is a vision encoder; its outputs flow through a projector into the LLM. Parakeet's encoder is an audio encoder; its outputs flow through a projector into the same LLM. Two MLPs, two encoders, one decoder.
 
 The choice to use Parakeet's encoder rather than Whisper's encoder is itself worth a moment. Whisper is the more famous open speech model. Both produce log-mel-conditioned feature sequences, and a Whisper encoder could in principle be used the same way. NVIDIA picked Parakeet for the obvious reasons (it's an in-house model, integrated with the rest of the NVIDIA stack) and the technical one: FastConformer's linearly scalable attention is more efficient at long audio than Whisper's stack. The architectural pattern (encoder plus projector into LLM) is what matters. Parakeet versus Whisper is an implementation detail.
