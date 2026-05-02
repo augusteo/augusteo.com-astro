@@ -447,7 +447,133 @@ Three-recent-primary-source bar: passed comfortably.
 
 ## Outline
 
-(Phase 3 — pending.)
+Three-act structure plus a recap and a coda, mirroring the prequel's shape (set up the problem → decompose into mechanisms → reassemble). Section numbering matches the prequel convention: numbered sections (`### 1.`, `### 2.`, …) with act dividers between major narrative turns.
+
+Total: 17 sections, 14 figures. **12 static-svg, 2 interactive-canvas.** ~80% static / 20% interactive matches the spec's "mostly static, lean static" preference. Interactive figures are reserved for the two places where a parameter sweep is the load-bearing intuition: video-token explosion (the cost is so counterintuitive a static plot understates it) and EVS pruning (the q-percentile sweep IS the mechanism).
+
+### Section structure
+
+#### Recap
+
+**1. A single eye, three teachers.** Hand the reader C-RADIOv4 from the prequel: a vision backbone that distilled DINOv3 + SigLIP2 + SAM3 into one student. Re-establish the SigLIP2 inheritance specifically — the student's features already share a space with caption embeddings. Set up the puzzle for Act 1.
+
+#### Act 1 — The puzzle
+
+*Why a vision backbone with SigLIP-aligned features still isn't enough to talk to.*
+
+**2. The SigLIP puzzle.** SigLIP2 was one of C-RADIOv4's teachers. Its outputs match the geometry of caption embeddings. Surely we just bolt on a text head and we're done? No. SigLIP scores; it doesn't generate.
+
+**3. Contrastive vs autoregressive.** What CLIP and SigLIP actually do (cosine similarity between pooled embeddings; symmetric cross-entropy over a similarity matrix). The text encoder collapses sentences to one vector. SigLIP 2 added a caption-decoding loss but threw the decoder away. There is no per-token next-token distribution exposed by these towers.
+
+**4. The text decoder is a different organ.** What the LLM brings that contrastive towers cannot: tokenizer, learned token embeddings, autoregressive generation, full vocabulary. The vision encoder is a perception summary; the decoder is a language generator. This is the central design choice the rest of the post is structured around.
+
+#### Act 2 — Three ways to wire it up
+
+*Once you know you need a generative LLM, the question is how you feed it.*
+
+**5. The adapter zoo: Flamingo, BLIP-2, LLaVA, Qwen2.5-VL.** Frozen LLM, vision bolted on as a side-loaded computation. Flamingo's gated cross-attention with `tanh(α=0)` initialization; BLIP-2's Q-Former bottleneck; LLaVA's MLP projection that re-embeds vision features as soft tokens; Qwen2.5-VL's dynamic resolution + M-RoPE. Each kept the LLM frozen; each treats vision as a translated side-channel.
+
+**6. Native multimodal: one decoder, one sequence.** The structural alternative — one decoder consumes a single token stream containing every modality. Two flavors: discrete-token shared vocabulary (Chameleon) and continuous encoder embeddings concatenated into the LLM's hidden space (Gemini, Qwen2.5-Omni, Nemotron 3 Nano Omni). The LLM is trained on the joint distribution from scratch (or with full unfreezing), not learning to read a translated side-channel.
+
+**7. The tradeoff.** Adapter style: cheap to train, swaps any LLM in, but the language model never learns the joint distribution. Unified-decoder style: native multimodal reasoning, but full retraining, much more data, much more compute. Where Nemotron 3 Nano Omni sits ("encoder-projector-decoder," tech report §2). Hand off: "now let's add the other senses."
+
+#### Act 3 — The other senses
+
+*Why audio and video aren't more SigLIPs.*
+
+**8. Audio is time-frequency, not pixel grid.** Modern audio encoders consume a log-mel spectrogram (16 kHz, 25 ms windows, 80-channel mel — Whisper §2.2). A vision-style 2D ViT can't be reused — the inductive biases are wrong (frequency channels aren't pixels, time isn't a 2D direction). This is what the "more SigLIPs" framing collapses.
+
+**9. Parakeet: a token-emitting audio encoder.** What Nemotron actually uses. FastConformer encoder + TDT decoder, 600M params, 8× temporal subsampling. In Nemotron 3 Nano Omni, Parakeet's encoder activations feed the LLM via a 2-layer MLP projector — *not* a transcript. This is the "ingest audio tokens directly" path of the unified-decoder design.
+
+**10. The cost of stitched chains.** Whisper-then-LLM is the alternative. Whisper §3.8 documents repetition loops in greedy decoding and window-to-window error propagation. Tsiamas et al. show prosody loss in cascade speech systems even with perfect transcripts ("GERMAN teachers" vs "German TEACHERS"). Qwen2.5-Omni's Thinker/Talker hidden-state coupling is the structural answer: the speech generator never sees a transcript, only the LLM's hidden states. Latency claims kept qualitative — no controlled benchmark at the primary-source bar.
+
+**11. Video is spatiotemporal redundancy.** EVS framing: a two-minute video at 24 FPS produces over two million vision tokens, far past any LLM's context. ViViT's tubelet idea (fuse pairs of frames at extraction). TimeSformer's cost ceiling: joint full space-time attention OOMs at 32 frames or 448 px. VideoMAE: 90-95% mask ratios reconstruct cleanly — temporal redundancy is structural.
+
+**12. Efficient Video Sampling.** The load-bearing trick of Nemotron 3 Nano Omni's video path. The L1-difference patch-pruning algorithm in detail (`D_{p,t} = ‖p_t − p_{t−1}‖_1`, threshold at the q-th percentile, mask). Position-preserving (selected patches keep their original spatial-temporal indices so M-RoPE / RoPE still works). Training-time stochastic compression: q sampled from a beta distribution, so the model is invariant to inference-time q. Reported result: 4× TTFT speedup at q=0.75 with 1.23% Video-MME drop.
+
+**13. Conv3D + EVS in Nemotron.** The two-stage video reduction Nemotron 3 Nano Omni actually ships. Conv3D tubelet path that fuses pairs of frames before the ViT (a 2× reduction at extraction). EVS at inference time on top (typically another 2-4×). Image-side patch range: 1,024 to 13,312 patches per image, depending on resolution. Hand off: "the model can now see, hear, and watch. What does it cost to run?"
+
+#### Act 4 — The inference math
+
+*Why the unified loop is cheaper than fragmented chains, with the receipts.*
+
+**14. The hybrid backbone.** Nemotron 3 Nano 30B-A3B layer composition: **23 Mamba-2 + 6 grouped-query attention + 23 MoE = 52 layers; 128 routed experts + 1 shared per MoE layer; top-6 routing; 30B total, 3.5B active per token.** The "A3B" naming convention rounds 3.5B down. **Anti-claim explicitly handled:** routing is token-level top-k, *not* per-modality. Experts specialize and the router learns to send modality-specific tokens to them; that's how token-level routing on multimodal data behaves, but it isn't a modality-conditioned gate.
+
+**15. Why Mamba: selection plus linear-time inference.** Mamba v1 makes SSM state-update matrices functions of the input, breaking the convolutional fast-path and adding hardware-aware parallel scan. Mamba-2 SSD: 2-8× faster core layer. Nemotron-H: 2.9× output tokens/sec/GPU at 64K input vs Qwen-2.5-72B and Llama-3.1-70B on H100. Hybrid is forced because pure-Mamba is weak on retrieval and pure-Transformer is quadratic. Nemotron-H's 8% attention vs Nemotron 3 Nano's ~11.5% reflect the same tradeoff dial.
+
+**16. MoE expert routing: total vs active.** Switch + Mixtral set the template — top-k routing, decouple parameters from compute. Mixtral's 47B total / 13B active per token is the closest direct precedent for "A3B" naming. Nemotron 3 Nano's 30B / 3.5B active works the same way at a smaller scale.
+
+**17. NVFP4: 4-bit weights, mixed-precision recipe.** Format: E2M1 values + per-block FP8 E4M3 micro-scale + per-tensor FP32 global scale, 16-element blocks (finer than MXFP4's 32). Mixed precision in Nemotron 3 Nano Omni: only routed MoE experts are 4-bit; Mamba projections, shared experts, and attention `o_proj` stay FP8; vision/audio encoders stay BF16. **Memory: BF16 = 61.5 GB, FP8 = 32.8 GB, NVFP4 = 20.9 GB. Accuracy delta: 65.43 vs 65.80 on the 9-benchmark mean (0.38 point drop).** Anti-claim explicitly handled: the "4× memory and compute efficiency" line in the dev blog has no single-statement primary anchor; we'll cite Nemotron-H's measured 2.9× and the NVFP4 weight footprint instead.
+
+#### Coda
+
+**18. What's still missing.** No tool-use evals (no AgentBench / BFCL / GAIA in the report). The "agent reasoning" framing is mostly perception — Nemotron 3 Nano Omni positions itself as a "multimodal perception-and-context sub-agent within larger agentic systems," not a planner. What a follow-up post might cover: native tool use, structured planning, multi-step reasoning traces. Closing on the small concrete point: the post just walked through how to wire perception. The reasoning loop is still being built.
+
+### Figure list
+
+Per-figure type is **locked here**. Cannot be silently re-typed in Phase 6. If a figure's mechanism turns out to need a different type during implementation, halt and discuss before re-typing.
+
+| # | Figure | Type | Mechanism / what to show | Reader notices |
+|---|---|---|---|---|
+| 1 | C-RADIOv4 with three teachers | static-svg | Three-teacher distillation diagram (DINOv3, SigLIP2, SAM3 → C-RADIOv4 student). Mirror prequel Fig 7 layout. | The student inherits SigLIP2's text alignment as one of three signals, not all of them. |
+| 2 | Contrastive vs autoregressive panel | static-svg | Left: SigLIP-style scoring (image vector ↔ caption vector, dot product, top-N matched captions). Right: LLM autoregressive generation (token sequence with conditional next-token softmax). | One produces a number; the other produces a token stream. They are different operations, not different sizes of the same operation. |
+| 3 | The decoder zoo: Flamingo / BLIP-2 / LLaVA | static-svg | Three-panel side-by-side. Flamingo: gated cross-attention into frozen LLM with `tanh(α=0)` annotation. BLIP-2: Q-Former with learned queries between two frozen models. LLaVA: linear projection from CLIP features straight into LLM token space. | The shapes are different but the principle is the same — LLM is frozen, vision is bolted on. |
+| 4 | Adapter-style vs unified-decoder | static-svg | Two-panel comparison. Left: side-loaded vision branch reading into frozen LLM. Right: one decoder consuming a single concatenated token stream of (text, vision, audio, video) tokens, with modality-specific encoders + projectors at the front. | The LLM in the right panel sees raw modality tokens during training; the LLM in the left panel never does. |
+| 5 | Audio as a log-mel spectrogram tile | static-svg | A 1-second audio waveform on the left → an 80-channel × 100-frame log-mel spectrogram tile on the right, with axes labeled (time, frequency channel). | Audio's natural representation is a 2D matrix where one axis is time and the other is frequency — not pixels and not 1D. |
+| 6 | Parakeet pipeline + integration | static-svg | Two stacked diagrams. Top: Whisper-style cascade — audio → mel → encoder → autoregressive decoder → text → LLM. Bottom: Nemotron-style — audio → mel → FastConformer encoder → MLP projector → LLM (no transcript hop). | The transcript bottleneck is the architectural difference. The bottom path keeps the encoder activations alive; the top path collapses them to text. |
+| 7 | Video token explosion | **interactive-canvas** | Sliders for clip duration (1 s to 5 min), FPS (1-30), and patches-per-frame (256-1024). Live token count on the right, displayed against a horizontal "context window" bar (262K tokens for Nemotron). The bar overflows fast. Annotation: "naive: N×F", "tubelet: N×F/2", "tubelet+EVS: 0.25×N×F/2" curves overlaid as colored lines. | The cost grows so fast that compression isn't optional — even modest durations blow the context. The three lines show why each compression stage exists. |
+| 8 | EVS patch pruning | **interactive-canvas** | A side-by-side "frame t-1 / frame t" view. A slider for q (0.0 to 0.95). At q=0.0 all patches are kept; as q rises, patches with low L1 difference grey out and drop. A small live counter: "kept N of M patches" + "TTFT speedup ≈ 1.0 / (1−q)". | The dropped patches are the static parts of the scene. What survives is exactly the motion — which is what the model needs to reason about temporally. |
+| 9 | Conv3D + EVS pipeline in Nemotron | static-svg | Five-stage pipeline: raw frames → Conv3D tubelet (pairs fused) → ViT → EVS pruning → LLM. Annotated with the reduction factor at each stage (×0.5 from tubelet, ×0.25 from EVS at q=0.75). | Two compounding compressions, not one. Each sits in a different place in the pipeline (extraction vs post-encoder). |
+| 10 | Hybrid backbone layer composition | static-svg | A vertical stack of 52 layers, each colored by type: Mamba-2 (23, blue), GQA (6, rust), MoE (23, green). Layers shown evenly distributed (not grouped). Side annotations: "30B total / 3.5B active per token", "128 experts + 1 shared per MoE layer, top-6 routing". | The attention layers are sprinkled, not stacked. ~11.5% of layers are attention; the rest is Mamba or MoE. |
+| 11 | Mamba vs Transformer compute scaling | static-svg | Two curves on a context-length x-axis (1K to 1M tokens). Transformer: quadratic. Mamba: linear (with a small offset). Italic curve labels matching the prequel's Fig 2 style. Reference points marked: 16K, 49K, 262K (Nemotron context-scaling stages). | The crossover is well below the model's max context — by the time you're at 49K tokens, Mamba is already a large win. |
+| 12 | MoE expert routing on a token | static-svg | A single token's pass through one MoE layer. Router scores 128 experts; top-6 selected (highlighted); shared expert always-on. Output is the weighted sum. | Routing is per-token, not per-modality. The same router sees all modality tokens and learns specialization through training, not architecture. |
+| 13 | NVFP4 layout | static-svg | One row of 16 weights laid out as E2M1 4-bit values, with the per-block FP8 E4M3 scale annotation above and the per-tensor FP32 scale at the side. Memory accounting at the bottom: BF16 → FP8 → NVFP4 sizes for the 30B model (61.5 / 32.8 / 20.9 GB). | Two levels of scaling. The micro-scale is FP8 because Blackwell already has E4M3 hardware; the global scale is FP32 to keep tensor-wide range. |
+| 14 | The unified loop pays off | static-svg | A small comparison panel. Three rows: a stitched chain (Whisper → LLM → TTS) showing latency hops + lost prosody; an adapter-style omni model showing one decoder + bolted-on vision/audio; the unified-decoder Nemotron path showing one decoder consuming all modality tokens directly. Throughput numbers from Nemotron-H + Nemotron 3 Nano Omni reasoning checkpoint annotated where they hold up at the primary-source bar. | The architectural choice from Act 2 + the modality encoders from Act 3 + the inference machinery from Act 4 are what make the unified loop cheaper. |
+
+### Figure-type rationale
+
+Two interactive figures are load-bearing where a slider sweep teaches the mechanism:
+
+- **Fig 7 (video token explosion):** the cost of video tokens is so counterintuitive that a static plot understates it. Watching a "5-second clip at 12 FPS = ~150K tokens" number tick past the 262K context bar as a slider crosses 10 seconds is the moment the reader internalizes why compression isn't optional.
+- **Fig 8 (EVS):** the q parameter IS the mechanism. Showing patches drop as q rises is what makes the algorithm visible. A static three-panel "q=0.5 / 0.75 / 0.9" works but loses the continuous-sweep intuition.
+
+Everything else is static SVG. Justifications for why specific candidates stayed static:
+
+- Fig 11 (Mamba vs Transformer scaling): two curves with a clear crossover. Same shape as prequel's Fig 2 and prequel didn't make that interactive either. Static earns it.
+- Fig 12 (top-k MoE routing): structural diagram, not a parameter sweep. A slider for k would be a gimmick — k is fixed at 6.
+- Fig 14 (the cost story): comparison panel with a few annotated numbers. No parameter to sweep.
+
+### Section-to-figure mapping
+
+| Section | Figure(s) |
+|---|---|
+| 1. A single eye, three teachers | Fig 1 |
+| 2. The SigLIP puzzle | Fig 2 |
+| 3. Contrastive vs autoregressive | (covered by Fig 2) |
+| 4. The text decoder is a different organ | (no figure, prose) |
+| 5. The adapter zoo | Fig 3 |
+| 6. Native multimodal | Fig 4 |
+| 7. The tradeoff | (no figure, prose) |
+| 8. Audio is time-frequency | Fig 5 |
+| 9. Parakeet | Fig 6 |
+| 10. The cost of stitched chains | (covered by Fig 6) |
+| 11. Video is spatiotemporal redundancy | Fig 7 (interactive) |
+| 12. Efficient Video Sampling | Fig 8 (interactive) |
+| 13. Conv3D + EVS in Nemotron | Fig 9 |
+| 14. The hybrid backbone | Fig 10 |
+| 15. Why Mamba | Fig 11 |
+| 16. MoE expert routing | Fig 12 |
+| 17. NVFP4 | Fig 13 |
+| 18. What's still missing (coda) | Fig 14 (closing reassembly) |
+
+### Anti-claims baked into the outline
+
+The following marketing framings from the seed blog are explicitly excluded by the outline:
+
+1. **"Experts activate per modality"** — Section 14 names the correction in prose. Routing is token-level top-k.
+2. **"4× improved memory and compute efficiency"** — Section 17 cites Nemotron-H's 2.9× and the NVFP4 footprint instead.
+3. **30s/30fps/256-tokens-per-frame ≈ 230k tokens math** — Section 11 uses EVS's primary-sourced framing ("two-minute video at 24 FPS produces more than two million vision tokens"). Fig 7's interactive slider lets the reader rederive any version of this number themselves.
+4. **"Stitched chains add latency"** without a number — Section 10 keeps latency claims qualitative; only prosody loss has a primary-source benchmark (Tsiamas).
 
 ## Codex outline review
 
@@ -463,8 +589,8 @@ Last touched: 2026-05-01.
 |---|---|---|
 | 1. Topic + audience lock-in | done | this file's `## Spec` |
 | 2. Deep research | done | this file's `## Research notes` |
-| 3. Outline + figure list | in progress | this file's `## Outline` (incl. per-figure type) |
-| 4. Codex gate 1 | pending | this file's `## Codex outline review` |
+| 3. Outline + figure list | done | this file's `## Outline` (incl. per-figure type) |
+| 4. Codex gate 1 | in progress | this file's `## Codex outline review` |
 | 5. Draft prose | pending | `src/content/blog/omni-modal-stack/index.mdx` |
 | 6. Implement figures | pending | per-figure table below (populate at end of Phase 3) |
 | 7. Playwright visual review | pending | playwright snapshots reviewed |
@@ -472,11 +598,26 @@ Last touched: 2026-05-01.
 
 ### Phase 6 figure progress
 
-(Populate at end of Phase 3.)
+| # | Figure | Type | Status | Commit |
+|---|---|---|---|---|
+| 1 | UnifiedEyeRecap (C-RADIOv4 with three teachers) | static-svg | TODO | — |
+| 2 | ContrastiveVsAutoregressive | static-svg | TODO | — |
+| 3 | DecoderZooFlamingoBlipLlava | static-svg | TODO | — |
+| 4 | AdapterVsUnifiedDecoder | static-svg | TODO | — |
+| 5 | LogMelSpectrogramTile | static-svg | TODO | — |
+| 6 | ParakeetPipeline | static-svg | TODO | — |
+| 7 | VideoTokenExplosion | interactive-canvas | TODO | — |
+| 8 | EvsPatchPruning | interactive-canvas | TODO | — |
+| 9 | Conv3dEvsPipeline | static-svg | TODO | — |
+| 10 | HybridBackboneLayers | static-svg | TODO | — |
+| 11 | MambaVsTransformerScaling | static-svg | TODO | — |
+| 12 | MoeTopKRouting | static-svg | TODO | — |
+| 13 | Nvfp4Layout | static-svg | TODO | — |
+| 14 | UnifiedLoopReassembly | static-svg | TODO | — |
 
 ### Suggested next batch
 
-Phase 3: write `## Outline` with per-figure type. Then Phase 4: codex gate 1 challenge against spec + research notes + outline. Outline must thread through the 17 research sub-topics in narrative order, lock per-figure type for ~10-14 figures, and bake in the four anti-claims from Sub-topic 17 so the draft doesn't quietly propagate marketing framing.
+Phase 4: run `/codex challenge` against spec + research notes + outline. Use the gate-1 prompt in `.claude/skills/explainer-authoring/codex-prompts.md`. Iterate on what codex finds; halt and ask Vic if codex surfaces a structural issue that implies rescoping. Then Phase 5: draft prose section by section, voice-check after each section, one commit per section.
 
 ### How to resume from a fresh context
 
