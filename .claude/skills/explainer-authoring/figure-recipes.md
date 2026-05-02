@@ -2,6 +2,41 @@
 
 Cookbook patterns for the figure shapes that come up repeatedly in technical explainers. Use these as templates, not as a contract. Adapt for each figure's specific concept.
 
+## Static-default rule
+
+**Default to `static-svg` for every new figure.** Switch to `interactive-canvas` or `plot` only if the figure's intuition value depends on at least one of:
+
+1. **A continuous parameter sweep** the reader can't simulate mentally (e.g., temperature → token distribution shape across 50+ values; learning rate → loss landscape across 100+ steps).
+2. **An animated time evolution** where stepping through frames is the load-bearing insight (e.g., gradient accumulation across micro-batches; one DDP step's forward → backward → all-reduce → optimizer phase rhythm).
+3. **Drag-based spatial reasoning** where the reader's hand-eye gives them the intuition (e.g., dragging a query token to see attention weights light up; dragging an observer position to see what they see).
+4. **Comparison-by-toggle across more states than a 3-panel side-by-side static figure can show** (e.g., 6+ tensor-parallel layouts; routing patterns across 8+ MoE experts).
+
+"It would feel nicer interactive" is not a justification. If two static panels and a one-line caption deliver the insight, ship the static figure. Interactive carries hidden cost (Svelte wrapper, hydration, playwright check, mobile fallback, accessibility) — that cost must buy intuition the reader can't get otherwise.
+
+### For HTML-import mode
+
+The static-default rule applies to **new figures**. Imported figures are auto-classified at extraction time:
+
+- Inline `<svg>` with no scripts/handlers → `static-svg`. Preserve as-is.
+- `<canvas>`, `<script>`, or event handlers → `imported-interactive`. Preserve as-is unless Gate 1 demands otherwise.
+
+`imported-interactive` is a distinct figure type from `interactive-canvas`. It bypasses Phase 5's static-default rule (the figure was authored elsewhere) and bypasses the kit-primitive constraint (it doesn't need to use the kit). Phase 6 (playwright) still verifies it renders cleanly.
+
+## Per-figure-type unlock protocol
+
+Phase 3 locks each figure's type. Phase 5 implements them. **The lock has one exception:** a Gate 1 STRUCTURAL finding labeled `TYPE-CHANGE STRUCTURAL` can demand a re-type.
+
+When Gate 1 fires a TYPE-CHANGE finding:
+
+1. Codex's finding is recorded in the `### Codex history` table.
+2. Vic is shown the proposed re-type via `AskUserQuestion`. Options: "approve re-type", "keep current type and ignore the finding (Vic's call)", "drop the figure entirely".
+3. On approval, the figure table is updated and a "(re-typed at Gate 1, <date>)" annotation is added.
+4. Re-type is then locked again; no further changes without another Gate 1 finding.
+
+This applies in both topic mode and HTML-import mode. Without this protocol, "type locked at Phase 3" + "Gate 1 can demand changes" would be a contradiction.
+
+The protocol does NOT fire for cosmetic improvements ("the figure could be tighter"); only for findings labeled STRUCTURAL by codex. The lock-with-one-exception keeps Phase 5 implementation cost predictable.
+
 Every recipe follows the per-figure-wrapper pattern documented in `figure-kit.md` under "Astro hydration." Each interactive figure is three pieces:
 
 1. **Pure draw function** at `src/figures/<post-slug>/<figure-name>.ts`

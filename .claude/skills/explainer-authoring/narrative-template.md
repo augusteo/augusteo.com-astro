@@ -12,6 +12,37 @@ Every long explainer follows the same three-act shape:
 
 A short coda after the reassembly is fine. It's the only place you talk about what's changing right now in the field, what's open, what the reader should look at next.
 
+## Throughline rhythm
+
+The post's `## Throughline` (set in Phase 1, locked) is a real-world scenario the reader returns to in every act. It is the *concrete* layer underneath the *abstract* mechanisms. Without it, each section is a fact card; with it, each section is a step in one continuous story.
+
+For each act, follow this rhythm:
+
+1. **Open the act with a throughline reference.** Concrete, no preamble. "We left the 1024-H100 cluster sitting at 47% MFU..." or "Andres Freund's first instinct after seeing 600ms latency was..." The reader should know within one sentence which scenario the act is anchored to.
+2. **Inside the act, run the mechanism.** This is the abstract / decompositional content — the actual teaching.
+3. **Close the act with what the throughline now looks like differently.** "After this section the cluster sits at 64% MFU; the next act will explain the comm pattern that took it there." Not a summary; a concrete update to the running scenario.
+
+Anti-pattern: dropping the throughline in the middle of the post and bringing it back at the very end. If an act doesn't visibly carry the throughline, Gate 1 will flag it.
+
+When the throughline number changes inside an act (the cluster's MFU rises, the latency drops, the failed query succeeds), name the change explicitly in prose. Don't make the reader infer it from a figure.
+
+## Section-connection check
+
+After drafting each section in Phase 4, write a one-line HTML comment in the MDX immediately after the section's last paragraph:
+
+```mdx
+{/* Reader can now: <one-line description of what they can predict, see, or do that they couldn't before this section> */}
+```
+
+Examples:
+- `{/* Reader can now: predict why the bubble shrinks as microbatch count rises */}`
+- `{/* Reader can now: tell the difference between contrastive and autoregressive losses by looking at the loss term */}`
+- `{/* Reader can now: see why a 70B model can't fit on 8 H100s without sharding */}`
+
+If you can't write that line for a section, the section isn't pulling weight — halt and rework before drafting the next.
+
+The comment stays in the source MDX (it's stripped from rendered HTML). It serves three purposes: a working forcing-function during drafting, a Gate-2 cross-check (each section's "what reader now sees" should chain into the next section's claim), and a resume-aid (a future agent picking up the post can scan the chain quickly).
+
 ## The per-section rhythm
 
 Inside each decomposition section, follow this rhythm:

@@ -48,6 +48,20 @@
 
 **Hard rules to apply throughout:** voice rules (no em dashes, banned-word list), sentence-case headings, no fabricated benchmark numbers, every load-bearing claim quotes a primary source in the `## Research notes` section, `essay: true`, `draft: false` from Phase 1 onward.
 
+## Throughline
+
+*Pre-v2 post; throughline added retroactively after the v2 skill rewrite (2026-05-02). Throughline thread for this post is implicit rather than explicit: the recurring real-world scenario is **Nemotron 3 Nano Omni** (NVIDIA's April 2026 omni-modal model), which surfaces in every act as the worked example.*
+
+**How it threads (post-hoc analysis):**
+- Recap: hand the reader C-RADIOv4 from the prequel (the vision spine that Nemotron 3 Nano Omni still uses).
+- Act 1 (the puzzle): Nemotron 3 Nano Omni ships a 30B autoregressive decoder despite having a SigLIP-aligned C-RADIOv4 head. Why?
+- Act 2 (decoder-centric architecture): walk the three wiring options, land on Nemotron 3 Nano Omni's choice (unified-encoders-into-one-decoder).
+- Act 3 (other modalities): Parakeet for audio, EVS for video — both are Nemotron 3 Nano Omni's specific picks.
+- Act 4 (inference math): Nemotron-H 2.9× receipts, NVFP4 weight footprint, Nemotron 3 Nano Omni vs Qwen3-Omni 30B-A3B.
+- Coda: what's still missing in Nemotron 3 Nano Omni (no tool-use evals, no native planning).
+
+The post is not Nemotron-centric in framing (architecture-centric, with Nemotron as the most recent worked example), but the throughline analysis post-v2 confirms the scenario is the through-line whether or not it was named that way during Phase 1.
+
 ## Research notes
 
 Merged from three parallel subagents on 2026-05-01. Grouped by sub-topic, not by source. Every quoted excerpt is from a primary source that has been read directly.
@@ -446,6 +460,10 @@ Foundational sources exempt from the 18-month rule because they introduce a conc
 
 Three-recent-primary-source bar: passed comfortably (six recent primaries listed above).
 
+## Claim-source matrix
+
+*Pre-v2 post; matrix not retroactively populated. The post predates the v2 skill rewrite (2026-05-02) which makes the claim-source matrix a Phase 2 deliverable. Claim-to-source backing for this post is captured implicitly in the `## Research notes` section above (every load-bearing claim has a quoted primary source under one of the 17 sub-topic headings). For Phase 7 freshness re-check and Gate 2, the source list to walk is the union of the sub-topics' primary citations plus the post's `### References` section.*
+
 ## Outline
 
 Three-act structure plus a recap and a coda, mirroring the prequel's shape (set up the problem → decompose into mechanisms → reassemble). Section numbering matches the prequel convention: numbered sections (`### 1.`, `### 2.`, …) with act dividers between major narrative turns.
@@ -645,22 +663,32 @@ Iteration stops here: codex's findings are addressed. No structural fixes implie
 
 ## Resume here
 
-Last touched: 2026-05-02 (phase 7 done — all 14 figures pass playwright review).
+Last touched: 2026-05-02 (phase 6 done in v2 numbering — all 14 figures pass playwright review).
 
-### Phase status
+**Migrated to v2 skill format on 2026-05-02.** v1 had 8 phases; v2 has 7 phases (no missing slot). The mapping is: v1 Phase 1 = v2 Phase 1; v1 Phase 2 = v2 Phase 2; v1 Phase 3 = v2 Phase 3; v1 Phase 4 (codex gate 1) = v2 Gate 1 at end of Phase 3; v1 Phase 5 = v2 Phase 4; v1 Phase 6 = v2 Phase 5; v1 Phase 7 = v2 Phase 6; v1 Phase 8 = v2 Phase 7 (now also includes the freshness re-check before Gate 2 fires). Tracker tables below use the v2 numbering.
+
+### Phase status (v2 numbering)
 
 | Phase | Status | Output |
 |---|---|---|
-| 1. Topic + audience lock-in | done | this file's `## Spec` |
-| 2. Deep research | done | this file's `## Research notes` |
-| 3. Outline + figure list | done | this file's `## Outline` (incl. per-figure type) |
-| 4. Codex gate 1 | done | this file's `## Codex outline review` |
-| 5. Draft prose | done | `src/content/blog/omni-modal-stack/index.mdx` (18 sections, References) |
-| 6. Implement figures | 14 of 14 done | per-figure table below |
-| 7. Playwright visual review | done | 14 of 14 passed (Fig 2 had a label-overlap fix at commit 2d6483e) |
-| 8. Codex gate 2 + ship | pending | hero image, dev verification, ship |
+| 1. Lock-in | done | this file's `## Spec` + `## Throughline` (added at migration) |
+| 2. Research / fact-check | done | this file's `## Research notes` (claim-source matrix not retroactively populated; see `## Claim-source matrix` note) |
+| 3. Outline + figure list (incl. Gate 1) | done | this file's `## Outline` + `## Codex outline review` |
+| 4. Draft prose | done | `src/content/blog/omni-modal-stack/index.mdx` (18 sections, References) |
+| 5. Implement figures | 14 of 14 done | per-figure table below |
+| 6. Playwright review | done | 14 of 14 passed (Fig 2 had a label-overlap fix at commit 2d6483e) |
+| 7. Freshness pass + Gate 2 + hero + ship | pending | freshness re-check on cited sources (NEW v2 step), codex final gate, hero image, dev verification, ship |
 
-### Phase 6 figure progress
+### Codex history
+
+| Date | Gate | Outcome | Findings file |
+|---|---|---|---|
+| (pre-v2) | 1 (outline) | structural fixes applied, then closed | this file's `## Codex outline review` |
+| TBD | 2 (final) | TBD | TBD (will append after Gate 2 fires in Phase 7) |
+
+Note: this post predates v2's Gate 0 (research-notes truthfulness pass) — Gate 0 was not run because the v1 skill only had two gates. Given research is already locked and Gate 1 already passed, Gate 0 is not retroactively required for ship; the existing research notes will be re-attacked under Gate 2's expanded "walk every prose claim, find its matrix row" check.
+
+### Phase 5 figure progress (v2 numbering — was Phase 6 under v1)
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
@@ -681,7 +709,16 @@ Last touched: 2026-05-02 (phase 7 done — all 14 figures pass playwright review
 
 ### Suggested next batch
 
-Phase 8 — codex gate 2 (challenge mode against the full MDX, per `codex-prompts.md`), final `scripts/voice-check.sh` pass, hero hand-off (per `../../explainer-shared/hero-handoff.md` — replace the `heroAlt: "TODO: hero image not yet selected"` placeholder once Vic picks the image), and the ship commit. Codex must close on cosmetic issues only; if it surfaces a claim that no quoted source in `## Research notes` supports, halt and surface to Vic.
+Phase 7 (v2 numbering) — pre-ship freshness pass + Gate 2 + hero hand-off + ship.
+
+**Step-by-step:**
+
+1. **Freshness re-check** on every primary source cited in `## Research notes`. Per `research-protocol.md`'s Phase 7 procedure: re-query arxiv IDs for v-bumps, re-fetch blog/docs URLs for "updated" dates newer than the cited access date, check repos for substantive commits since cited hash. For each row: if the source has moved AND the claim is affected, halt and update the prose; otherwise bump the access date.
+2. **Force `pubDate := today`** in the MDX frontmatter so the publication date matches the freshness check's reference point.
+3. **Run Gate 2** (challenge mode against the full MDX + this notes file) per `codex-prompts.md`. Codex must walk every prose claim and find its supporting source. Halt if any claim has no source.
+4. **Final `scripts/voice-check.sh`** pass on the full file. Em dashes: zero. Banned words: zero or justified.
+5. **Hero hand-off** per `../../explainer-shared/hero-handoff.md` — replace the `heroAlt: "TODO: hero image not yet selected"` placeholder once Vic picks the image.
+6. **Ship commit** + update this tracker (Phase 7 → done).
 
 ### Notes from phase 7
 
