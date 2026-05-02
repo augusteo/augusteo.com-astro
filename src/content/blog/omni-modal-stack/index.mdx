@@ -337,3 +337,99 @@ For images (single frames, no temporal axis), the pipeline simplifies. Tubelet f
 A 13,312-patch image is roughly 1.5 megapixels at 16-pixel patches, which covers the resolutions you'd want for document understanding or fine-grained chart reading. The 1,024-patch lower bound is for thumbnail-sized images where dense detail isn't relevant.
 
 The model can now see, hear, and watch. The next question is what it costs to run.
+
+## Act 4: the inference math
+
+*The Nemotron-specific efficiency receipts, and what they actually show.*
+
+There's no controlled benchmark at the primary-source bar that proves "unified-decoder beats fragmented chains" in general. What we *do* have are three measured efficiency wins on specific models against specific baselines, plus the architectural reasons each one shows up. The post reports the numbers, names the baselines, and stops there.
+
+### 14. The hybrid backbone
+
+Nemotron 3 Nano Omni's language model is 30 billion parameters total but only activates about 3.5 billion of them per input token. The model card spells out how:
+
+> "The model employs a hybrid Mixture-of-Experts (MoE) architecture, consisting of 23 Mamba-2 and MoE layers, along with 6 Attention layers. Each MoE layer includes 128 experts plus 1 shared expert, with 6 experts activated per token. The model has 3.5B active parameters and 30B parameters in total."
+
+Three things are happening here. The backbone is a hybrid of three layer types: Mamba-2 selective state-space layers, grouped-query attention layers, and Mixture-of-Experts feedforward layers. It uses sparse activation: of the 128 experts in each MoE layer, only the 6 the router picks (plus a shared expert that's always on) get computed for each token. And the layer counts are uneven: 23 Mamba-2 + 6 attention + 23 MoE = 52 total layers, with attention only ~11.5% of the stack.
+
+{/* TODO: Fig 10: Hybrid backbone layer composition. Vertical stack of 52 layers colored by type (23 Mamba-2 blue, 6 GQA rust, 23 MoE green). Counts and top-k annotated. Note that exact within-stack ordering is illustrative; model card states counts and routing but not placement. */}
+
+The model card states the counts and the routing top-k. It does not state the exact within-stack ordering of attention layers. NVIDIA's earlier Nemotron-H paper places attention layers "evenly dispersed throughout the model," but Nemotron-H is a different model and a literal copy of that arrangement isn't quoted for the omni model anywhere I could find. The figure draws an evenly dispersed layout because that's a reasonable default and matches the family pattern. The placement is illustrative, not authoritative.
+
+A note worth pinning down: the routing is *per token*, not per modality. The same router sees text tokens, vision tokens, audio tokens (all of them, after projection, are vectors in the LLM's hidden space), and selects 6 experts for each one based on the token's content. Experts can and do specialize on patterns that show up disproportionately in one modality, but that specialization is learned, not architecturally enforced. There is no "vision gate" or "audio gate." The marketing material occasionally suggests there is. The published primary sources don't.
+
+The next three sections take the three architectural choices apart one at a time. Why Mamba? Why MoE? Why low-precision quantization on top? Each one is a separate efficiency story.
+
+### 15. Why Mamba
+
+The reason a hybrid uses Mamba layers at all is that long-context inference is what kills attention.
+
+Self-attention has cost proportional to sequence length squared. For a 1K-token context, this doesn't matter; for a 256K-token context, it dominates everything. Mamba is what you get when you keep the residual-stream architecture of a transformer but replace the attention layer with a *selective state-space model*, which has cost proportional to sequence length. Linear, not quadratic.
+
+> "Letting the SSM parameters be functions of the input addresses their weakness with discrete modalities, allowing the model to selectively propagate or forget information."
+> "Mamba enjoys fast inference (5× higher throughput than Transformers) and linear scaling in sequence length."
+
+What "selective" means is that the state-update equations have parameters that depend on the current input token, instead of being shared across all positions. This is what lets Mamba pick what to remember and what to drop, with the input deciding rather than a fixed weight. The trade-off is that the recurrence is no longer the kind of linear time-invariant system you can compute with a single FFT-based convolution; you need a hardware-aware scan kernel to keep training fast.
+
+Mamba-2 (Dao and Gu, 2024) shows that this scan and a restricted form of attention turn out to be the same matrix-multiplication structure under the hood, which the authors call structured state-space duality. Mamba-2's core layer is 2-8× faster than the original Mamba's:
+
+> "Our state space duality (SSD) framework allows us to design a new architecture (Mamba-2) whose core layer is a refinement of Mamba's selective SSM that is 2-8X faster, while continuing to be competitive with Transformers."
+
+{/* TODO: Fig 11: Mamba vs Transformer compute scaling. Two curves: O(N²) for Transformer, O(N) for Mamba, on a context-length x-axis from 1K to 1M. Reference points marked at 16K, 49K, 262K. */}
+
+Drag your eye along the context length. At 1K tokens the two curves are indistinguishable. At 16K (the bottom of the Nemotron context-scaling progression), Mamba is already a substantial win. At 262K (the top of Nemotron's training context), pure-attention is unaffordable. This is what Mamba buys.
+
+Why not pure Mamba? Because pure-Mamba models suffer on certain in-context retrieval tasks where attention's exact-position lookups matter. NVIDIA's Nemotron-H paper, which has a similar hybrid layout, says it directly:
+
+> "Roughly 8% of the total layers in the model are self-attention layers; these layers are evenly dispersed throughout the model."
+
+Nemotron 3 Nano Omni is at ~11.5% attention, slightly higher than Nemotron-H's 8%, consistent with NVIDIA's framing about preserving stronger global interaction in the omni model. Either way, the principle is the same: keep enough attention layers to handle the retrieval-flavored tasks attention is good at, and replace the rest with Mamba to make long-context inference affordable.
+
+The headline number from Nemotron-H, the closest primary source for the family's hybrid efficiency claims:
+
+> "Nemotron-H-56B-Base can generate 2.4× more output tokens per second per GPU compared to Qwen-2.5-72B and Llama-3.1-70B."
+
+A separate measurement on long contexts: 2.9× speedup at 64K input, 1024 output tokens, on H100. The same architectural choice carries forward into Nemotron 3 Nano Omni, where the language backbone is a smaller hybrid sized for omni-modal serving rather than monolingual chat.
+
+### 16. MoE: total parameters versus active parameters
+
+The other half of the "30B total / 3.5B active" math comes from the MoE layers. The idea is older than Mamba and goes back at least to Switch Transformer in 2021. Each token gets routed to a small subset of experts; the rest sit out:
+
+> "We simplify the MoE routing algorithm and design intuitive improved models with reduced communication and computational costs."
+
+The high-level pitch is that you can grow the parameter count by adding experts without growing the per-token compute, because each token only sees a fixed number of them. Switch routes each token to exactly one expert (top-1). Mixtral's 8x7B in 2024 generalized to top-2 across 8 experts, popularizing the "total params vs active params" naming convention:
+
+> "For every token, at each layer, a router network selects two experts to process the current state and combine their outputs."
+> "Each token has access to 47B parameters, but only uses 13B active parameters during inference."
+
+Nemotron 3 Nano scales this up to 128 experts per MoE layer with top-6 routing, plus a shared expert that runs for every token regardless of routing.
+
+{/* TODO: Fig 12: MoE top-k routing on a token. 128 expert columns, router scores them, top-6 highlighted, shared expert always on, weighted-sum output. */}
+
+The arithmetic, in rough terms: 128 routed experts at some parameter count each, plus a shared expert. For each token, the router computes scores for all 128, picks the top 6, and the layer's output is a weighted combination of those 6 experts' outputs (weighted by router scores) plus the shared expert's contribution. The 122 unselected experts contribute nothing for this token. They cost FLOPs only when *some* token in the batch routes to them.
+
+Aggregated over a batch of N tokens, every expert sees on average about (6+1)·N/128 ≈ 5.5% of the tokens. So 30B total parameters, only ~3.5B active per token, but during a forward pass on a batch of, say, 1024 tokens, almost all 30B parameters touch *some* token.
+
+Three things follow from this. Capacity scales with parameter count; you can keep adding experts. Compute scales with the active count, not the total. Memory bandwidth dominates inference, because all 30B parameters live in GPU memory and have to be addressable even if any one token only uses 3.5B of them.
+
+The third point is what NVFP4 attacks, which is the next section.
+
+### 17. NVFP4: 4-bit weights, BF16 accuracy
+
+The cheapest way to spend less memory bandwidth is to use fewer bits per weight. NVIDIA's Blackwell-era format for this is NVFP4, a 4-bit floating-point representation with a two-level scaling scheme. The format itself:
+
+> "NVFP4 employs a dual-tier approach: 1 shared FP8 scale per 16 value block (E4M3) and 1 FP32 per tensor second-level scaling factor."
+
+Decoding the layout: each weight is stored as a 4-bit floating-point value with one sign bit, two exponent bits, and one mantissa bit (E2M1). Sixteen of those weights share an FP8 scale factor in E4M3 (the same format Hopper and Blackwell already had hardware support for). And the entire tensor shares a single FP32 global scale on top of that. The two-level structure lets the format keep both wide tensor-level dynamic range (the FP32 scale) and per-block precision tracking (the FP8 micro-scale), at a cost of about 5 effective bits per weight rather than a flat 4.
+
+Memory savings versus the alternatives, on the Nemotron 3 Nano Omni reasoning checkpoint specifically:
+
+> "The NVFP4 variant uses a mixed-precision recipe inspired by Nemotron 3 Super: routed MoE experts are quantized to NVFP4 (FP4 E2M1 values with per-block FP8 E4M3 scales over groups of 16 elements and an additional per-tensor FP32 global scale), while the Mamba in_proj / out_proj, shared experts, and attention o_proj are quantized to FP8, yielding 4.98 effective bits per weight (20.9 GB). In both variants the vision and audio encoders and their MLP projectors are kept in BF16."
+
+The numbers, plain: BF16 weights for the full model are 61.5 GB. FP8 is 32.8 GB. NVFP4 (with the mixed-precision recipe) is 20.9 GB. The reasoning-checkpoint mean across nine multimodal benchmarks: BF16 65.80, NVFP4 65.43. A 0.38-point drop on the mean for a 3× memory reduction.
+
+{/* TODO: Fig 13: NVFP4 layout. One row of 16 weights as 4-bit E2M1 values, FP8 E4M3 micro-scale annotated above, FP32 global scale annotated at the side. Memory accounting at the bottom: 61.5 / 32.8 / 20.9 GB. */}
+
+The mixed-precision recipe matters. Quantizing the routed experts to 4 bits is the bulk of the savings (most parameters in a 30B-A3B MoE live in those experts). Mamba projection layers, shared experts, and the attention output projection stay at FP8 because those layers are more sensitive. Vision and audio encoders stay at BF16 because they're small relative to the LLM and the accuracy cost isn't worth it.
+
+The reason this works is that NVFP4 reuses E4M3 as the per-block scale factor. Blackwell already has hardware for E4M3, so the micro-scale comes nearly for free. The format is a careful reuse of formats Blackwell already accelerates, not an exotic ad-hoc design.
