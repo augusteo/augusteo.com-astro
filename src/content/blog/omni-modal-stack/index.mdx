@@ -78,3 +78,13 @@ A language model is doing the opposite thing. Take a sentence. For each prefix o
 These are two different functions, and the difference doesn't shrink with scale. The contrastive function takes (image, sentence) and returns a number. The autoregressive function takes (partial sentence) and returns a probability distribution over the next token. You can't use one to do the other's job, no matter how large you make it. Scaling SigLIP doesn't get you generation. Scaling an LLM doesn't, by itself, get you a calibrated image-caption similarity score; you have to fit a head on top to extract one.
 
 This is why every modern multimodal stack ships both. SigLIP-class encoders for *understanding* what's in an image. An autoregressive LLM in the middle for *producing* language. How the encoder's output becomes input to the LLM is the design problem Act 2 walks through. But the necessity of the LLM is settled here.
+
+### 4. The text decoder is a different organ
+
+The five things an autoregressive LLM contains, in the order an input flows through them: a tokenizer that splits text into sub-word pieces from a fixed vocabulary; a learned embedding table that maps token IDs to continuous vectors; a stack of attention (and sometimes state-space) blocks that produce contextualized hidden states; a learned LM head that projects each hidden state back to the vocabulary as logits; and an autoregressive sampling loop that picks one token from the final logits, appends it to the input, and runs the whole thing again.
+
+Pieces 4 and 5 do not exist in SigLIP's text tower. SigLIP has the first two (tokenizer, embedding table) and *something like* the third (a small transformer over the tokens), but the output gets projected once into the shared image-text space and then the model stops. There is no head that produces a distribution over next tokens, and no sampling loop to consume one.
+
+That's what we mean when we say SigLIP doesn't generate. Pieces 4 and 5, the parts that turn hidden states into actual text, are absent. They're what generation requires, and they're what the contrastive training objective specifically did not select for.
+
+So we need an LLM in the middle. The question for the rest of the post becomes how to get the vision encoder's output into the LLM's input, and the parallel question for audio and video. That's Act 2.
