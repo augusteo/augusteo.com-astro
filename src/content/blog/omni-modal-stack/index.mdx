@@ -1024,7 +1024,7 @@ The headline number from Nemotron-H, the closest primary source for the family's
 
 > "Nemotron-H-56B-Base can generate 2.4× more output tokens per second per GPU compared to Qwen-2.5-72B and Llama-3.1-70B."
 
-A separate measurement on long contexts: 2.9× speedup at 64K input, 1024 output tokens, on H100. The same architectural choice carries forward into Nemotron 3 Nano Omni, where the language backbone is a smaller hybrid sized for omni-modal serving rather than monolingual chat.
+A separate measurement on long contexts: the Nemotron-H research page reports a 2.9× speedup for the smaller Nemotron-H-47B at 64K input, 1024 output tokens on H100, again versus Qwen-2.5-72B and Llama-3.1-70B. The same architectural choice carries forward into Nemotron 3 Nano Omni, where the language backbone is a smaller hybrid sized for omni-modal serving rather than monolingual chat.
 
 ### 16. MoE: total parameters versus active parameters
 
@@ -1366,9 +1366,9 @@ That framing is honest and worth taking seriously. Perception is not reasoning. 
   <text x="170" y="122">6 attention for retrieval</text>
   <text x="370" y="80">2.9× tokens/sec at 64K</text>
   <text x="370" y="94">input, 1024 output, on H100</text>
-  <text x="370" y="114" font-style="italic" font-size="10" fill="#6B6258">(vs Llama-3.1-70B)</text>
+  <text x="370" y="114" font-style="italic" font-size="10" fill="#6B6258">(vs Qwen-2.5-72B, Llama-3.1-70B)</text>
   <text x="570" y="80" font-size="10">Measured on</text>
-  <text x="570" y="94" font-size="10">Nemotron-H-56B,</text>
+  <text x="570" y="94" font-size="10">Nemotron-H-47B,</text>
   <text x="570" y="108" font-size="10">not on Nemotron 3</text>
   <text x="570" y="122" font-size="10">Nano Omni</text>
 </g>
