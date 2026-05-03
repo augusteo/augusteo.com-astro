@@ -213,7 +213,7 @@ Each of these baselines is a recent, dedicated, well-understood specialist in it
 <text x="80" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">binary masks</text>
 
 <rect x="150" y="35" width="120" height="100" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
-<text x="210" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">DINO-X</text>
+<text x="210" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">instance</text>
 <text x="210" y="66" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">instance seg</text>
 <g transform="translate(166,75)" font-family="JetBrains Mono" font-size="8">
 <rect x="0" y="0" width="68" height="44" fill="#F4EEE3"/>
@@ -225,7 +225,7 @@ Each of these baselines is a recent, dedicated, well-understood specialist in it
 <text x="210" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">id-tagged boxes</text>
 
 <rect x="280" y="35" width="120" height="100" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
-<text x="340" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">HybridGL</text>
+<text x="340" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">refexpr</text>
 <text x="340" y="66" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">referring-expr seg</text>
 <g transform="translate(296,75)">
 <rect x="0" y="0" width="68" height="44" fill="#F4EEE3"/>
@@ -540,7 +540,7 @@ The "depth map" in modern computer vision papers is usually presented as a grays
 
 ### 7. Surface normals as direct xyz→RGB
 
-Normals are the simplest of the three reframings. A surface normal at a pixel is a unit vector in 3D, which is to say three numbers (x, y, z) with x² + y² + z² = 1. RGB is also three numbers. The map between them is no transform at all: take the unit vector's components, shift them from the [-1, +1] range to [0, 255], and call those the R, G, B channels.
+Normals are the simplest of the three reframings. A surface normal at a pixel is a unit vector in 3D, which is to say three numbers (x, y, z) with x² + y² + z² = 1. RGB is also three numbers. The paper specifies a fixed camera-space convention that maps the direction triple onto an RGB triple. The post doesn't need to derive the exact channel and sign convention; the load-bearing point is that the encoding is a deterministic, lossless function the model can learn to predict.
 
 Or more directly, in the paper's own example: "the directional vector components map directly to RGB channels: Facing Left (−1, 0, 0): Encoded as Pinkish Red…" The exact mapping convention (sign, normalization, channel order) is fixed in the Methods section; we don't reproduce it pixel-by-pixel here. The point is that the encoding is deterministic, lossless, and reversible. There is no learned colormap. The model paints a normal field as if it were an RGB image, and the decode is a fixed transform per pixel.
 
@@ -611,7 +611,7 @@ Or more directly, in the paper's own example: "the directional vector components
 <rect x="597" y="269" width="14" height="12" fill="#2563EB"/>
 <text x="617" y="278">"Blue"</text>
 </g>
-<text x="340" y="295" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">no learned colormap; the encoding is a fixed affine shift per pixel</text>
+<text x="340" y="295" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">no learned colormap; the encoding is a fixed convention specified in the paper's Methods</text>
 </svg>
 <figcaption><strong>Fig 6.</strong> Surface normals as direct xyz-to-RGB. A unit-vector direction in 3D is three numbers; an RGB pixel is three numbers; the paper's Methods specifies a fixed convention that maps the former to the latter. Three reference cases from the paper's Methods are listed at the bottom. The model paints a normal field as if it were an RGB image, and the decode is a fixed transform per pixel.</figcaption>
 </figure>
@@ -620,7 +620,7 @@ If you want a one-line intuition for why this works: a unit-vector field is the 
 
 The throughline number on the surface-normal column is 15.549° mean angular error, against Lotus-2 at 16.558°, DSINE at 17.017°, StableNormal at 17.168°, and Marigold at 19.606° on the project-page three-benchmark average. (Vision Banana's paper Table 1 reports a separate four-dataset normals average where VB scores 18.928° against Lotus-2's 19.642°. That's a different eval slice with different numbers; the post cites each in its own context.) A 1.0° improvement over the previous best, which doesn't sound like much until you remember that the unit is "average angular error in 3D direction across millions of pixels" and a 1° improvement is real.
 
-The pattern across §§5–7 is now visible. Each task family gets a different parameterization, but the parameterizations share a structure: pick a way to encode the task's output as an RGB image; train the generator on input/output pairs in that encoding; at inference, run the input through the model and decode the painted output. Segmentation uses class-to-color JSON. Depth uses a power-transformed walk along the RGB cube's edges. Normals use the trivial xyz-to-RGB shift. Three task families, three different colormaps, one model.
+The pattern across §§5–7 is now visible. Each task family gets a different parameterization, but the parameterizations share a structure: pick a way to encode the task's output as an RGB image; train the generator on input/output pairs in that encoding; at inference, run the input through the model and decode the painted output. Segmentation uses class-to-color JSON. Depth uses a power-transformed walk along the RGB cube's edges. Normals use the paper's fixed direction-to-RGB convention. Three task families, three different colormaps, one model.
 
 The next section assembles the numbers.
 
