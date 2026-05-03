@@ -282,3 +282,50 @@ What the paper *does* establish, on the evidence, is the existence proof. There 
 The honesty matters because it shapes what the post should leave the reader believing. The paradigm flip is real: read perception out of a generator's painted output, instead of off the back of an encoder's head. The mechanism is reproducible (the recipe is in §§5–7, the lineage is in §§9–12). The competitive performance is documented. What's *not* yet documented, and what the post must not pretend is documented, is that pretraining-as-a-generator is *the* right pretraining choice in some absolute sense. That's tomorrow's experiment.
 
 {/* Reader can now: list what the paper does NOT prove and why the deltas, while real, are modest. Understand that the existence proof is the load-bearing claim; the strong pretraining-causal claim is the paper's hypothesis. */}
+
+### 15. What the trilogy collectively argues
+
+Step back from Vision Banana for a moment. What this site has been arguing across three posts is that the answer to "what is the spinal cord of a vision foundation model" keeps changing.
+
+Post 1 ended at C-RADIOv4: a single encoder, agglomeratively distilled from three teachers (DINOv3, SigLIP2, SAM3), producing dense features that downstream heads could read off. The encoder was the spinal cord; the heads were the lookup. That was where the field stood at the start of 2026.
+
+Post 2 took that encoder and bolted the rest of an omni-modal stack onto it. Modality-specific encoders for audio and video. A text decoder at the center of the system, the only organ in the architecture that could run a softmax over a vocabulary and produce sentences. A pile of token-budget machinery (tubelet fusion, EVS, hybrid Mamba+MoE, NVFP4 quantization) to keep the inference cost from collapsing under its own weight. The encoder was still the spinal cord; the decoder was the new center of gravity.
+
+Post 3 inverts the topology. The generator is the spinal cord. There is no per-task head. There is, optionally, a text decoder for the user's prompt and a per-pixel decode lookup for whichever colormap the prompt names, but the actual perception lives in the painted RGB output. The decoder reads the model; the model reads the world.
+
+{/* TODO: Fig 12 (TrilogyMeta) - three horizontal rows, top to bottom. Row 1 (Post 1): the same image enters an encoder; multiple small heads on the right; each head outputs a different downstream object (class label / dense mask / depth scalar). Row 2 (Post 2): the same image enters an encoder; encoder feeds into a text decoder at center; speech / video encoders feed in alongside; output is text tokens (and a speech head for audio out). Row 3 (Post 3): the same image enters a generator; a JSON prompt steers it; output is an RGB image; a decode lookup at the back reads the colors back into integers. */}
+
+The pattern across the three rows is "fewer, larger, more general models doing more dense-prediction work from one model invocation, with whatever decode lookup at the back is needed to read the answer out." Post 1's heads were a kind of decode lookup. Post 2's text decoder is a kind of decode lookup. Post 3's color-distance lookup against a JSON prompt is a kind of decode lookup. The shape keeps changing; the shape of the question doesn't.
+
+Each post in the trilogy is internally coherent. None of them invalidates the others. C-RADIOv4 is still a strong vision encoder; Nemotron 3 Nano Omni is still a state-of-the-art four-modality agent in May 2026; Vision Banana is now in the conversation about what the substrate of the next generation of vision foundation models should be. The question of which architecture wins in 2027, or which approach gets folded into the others, is the kind of question this site will keep returning to. The trilogy is not a final answer. It's a snapshot of three coherent answers that all happened to land within roughly twelve months of each other.
+
+{/* Reader can now: state the trilogy's collective thesis (encoder spinal cord → encoder + text decoder → generator spinal cord) and the read-off mechanic (whatever decode lookup at the back) that connects them. */}
+
+## Coda
+
+We used to ask the encoder for a label and it gave us integers from a head. Now we ask the generator for a picture and we read the integers back out of the colors. The model emits a different shape; the lookup at the back of the system is what makes the picture mean a class.
+
+## References
+
+- [Image Generators are Generalist Vision Learners (Vision Banana)](https://arxiv.org/abs/2604.20329). Gabeur et al., Google DeepMind, April 2026. The focus of this post.
+- [Vision Banana project page](https://vision-banana.github.io/). Google DeepMind, April 2026. Benchmark charts and live demos.
+- [Nano Banana Pro (Gemini 3 Pro Image)](https://blog.google/innovation-and-ai/products/nano-banana-pro/). Google, November 2025. The substrate Vision Banana instruction-tunes.
+- [Masked Autoencoders Are Scalable Vision Learners (MAE)](https://arxiv.org/abs/2111.06377). He, Chen, Xie, Li, Dollár, Girshick (Meta AI), November 2021. The starting rung of the lineage.
+- [Images Speak in Images: A Generalist Painter for In-Context Visual Learning (Painter)](https://arxiv.org/abs/2212.02499). Wang et al. (BAAI), December 2022. Output space as image; stitched-I/O training contract.
+- [SegGPT: Segmenting Everything In Context](https://arxiv.org/abs/2304.03284). Wang et al. (BAAI), April 2023. Random color mapping per sample.
+- [Emergent Correspondence from Image Diffusion (DIFT)](https://arxiv.org/abs/2306.03881). Tang et al. (Cornell), June 2023. Intermediate diffusion features carry dense correspondence.
+- [SAM 3: Segment Anything with Concepts](https://arxiv.org/abs/2511.16719). Meta AI, November 2025. Concept-prompted segmentation foundation model; the Cityscapes specialist baseline.
+- [Depth Anything V2](https://arxiv.org/abs/2406.09414). Yang, Kang, Huang et al., June 2024 (NeurIPS 2024). Historical depth-foundation lineage; not on Vision Banana's project-page chart.
+- [Depth Anything 3](https://arxiv.org/abs/2511.10647). November 2025. The depth specialist Vision Banana directly compares against in paper Table 3.
+- [Depth Pro: Sharp Monocular Metric Depth in Less Than a Second](https://arxiv.org/abs/2410.02073). Bochkovskii et al. (Apple), October 2024. Depth specialist on the project-page chart.
+- [MoGe-2: Accurate Monocular Geometry with Metric Scale and Sharp Details](https://arxiv.org/abs/2507.02546). Wang et al. (Microsoft), July 2025. Depth specialist on the project-page chart.
+- [UniK3D: Universal Camera Monocular 3D Estimation](https://arxiv.org/abs/2503.16591). Piccinelli et al. (ETH / Politecnico di Milano), March 2025. Depth specialist on the project-page chart.
+- [Lotus-2](https://arxiv.org/abs/2512.01030). November 2025. Surface-normal specialist on the project-page chart.
+- [Marigold: Affordable Adaptation of Diffusion-Based Image Generators for Image Analysis](https://arxiv.org/abs/2505.09358). Ke et al., May 2025. Surface-normal specialist on the project-page chart.
+- [StableNormal](https://arxiv.org/abs/2406.16864). Ye et al., June 2024. Surface-normal specialist on the project-page chart.
+- [DSINE: Rethinking Inductive Biases for Surface Normal Estimation](https://arxiv.org/abs/2403.00712). Bae & Davison, March 2024. Surface-normal specialist on the project-page chart.
+- [The Cityscapes Dataset for Semantic Urban Scene Understanding](https://arxiv.org/abs/1604.01685). Cordts et al., 2016. The benchmark protocol used in §8.
+- [The Unified Vision Stack](/blog/unified-vision-stack). Augusteo, April 2026. The first post in this trilogy.
+- [The Unified Multimodal Stack](/blog/omni-modal-stack). Augusteo, May 2026. The second post in this trilogy.
+
+*Third in the trilogy with [The Unified Vision Stack](/blog/unified-vision-stack) and [The Unified Multimodal Stack](/blog/omni-modal-stack), written May 2026.*
