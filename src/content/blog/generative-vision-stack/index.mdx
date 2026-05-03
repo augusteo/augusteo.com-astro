@@ -72,3 +72,43 @@ That's the failure mode of the lineup. It is not that any single specialist is b
 The implicit promise of any "generalist vision model" is to collapse all of those down into one model with one output format and one training pipeline. Vision Banana's claim is that the format that does the collapsing is RGB.
 
 {/* Reader can now: name the five task families and the representative specialist baselines VB compares against; identify the failure mode of the lineup (multiple output formats across the families) vs Vision Banana's one output format. */}
+
+## Act 2 — The flip
+
+*How Vision Banana parameterizes each task as RGB and what falls out on the benchmark tables.*
+
+### 4. Meet Vision Banana
+
+The substrate is Nano Banana Pro, which is the same model Google launched on November 20, 2025 as [Gemini 3 Pro Image](https://blog.google/innovation-and-ai/products/nano-banana-pro/). It runs in the Gemini app, the Gemini API, Google AI Studio, and Vertex AI. It is a deployed product, not a research artifact, and it has been generating user-prompted images at production scale for half a year by the time the Vision Banana paper goes up on arxiv.
+
+Vision Banana is built by *instruction-tuning* Nano Banana Pro on a mixture: keep most of the original training-data mix (so the model continues to be a good image generator); add a small amount of vision-task data on top. The paper's exact phrasing for the mixture ratio is "We mix vision task data into Nano Banana Pro's own training mixture at a very low ratio." The vision-task data is whatever the paper's authors decided was a useful instruction-tuning corpus for the five task families: street scenes paired with prompted segmentation outputs, indoor photos paired with depth-as-false-color outputs, object photos paired with normals-as-RGB outputs, and so on.
+
+The paper reports that, after this instruction tune, the base model's image-generation capabilities are preserved. You can still ask the post-tune Vision Banana to generate a picture of a banana on a beach, and you get a picture of a banana on a beach. The training mix protects the substrate from forgetting; the new vision-task data is light enough that it doesn't displace the original behavior.
+
+{/* TODO: Fig 3 (VisionBananaArch) - Nano Banana Pro at the center as a deep stack with annotation "production generator, deployed via Gemini app / API / Vertex AI". A small instruction-tune layer wrapped around it. The vision-task data shown as a thin sliver of the training mix. Output is an RGB image. */}
+
+The interesting question is what makes this work. The paper's hypothesis is the hard part: image-generation pretraining at internet scale gives a substrate already-suitable for downstream perception, and a tiny instruction-tune mix is therefore enough to read perception out of it. If that's right, then the bulk of Vision Banana's perception ability lives in the parts of the model that were trained on plain image generation, not in the small vision-task slice on top.
+
+This is the paper's argument, not a settled causal claim. Vision Banana publishes no random-initialization ablation: there is no comparison run in which the same instruction-tuning recipe is applied to a non-pretrained generator and produces inferior numbers. The evidence the paper offers is the benchmark spread of §8: a model with a very light task tune holds up across five task families. That's circumstantial. It is consistent with "the substrate already had what perception needs," but it doesn't prove it. We'll stay honest about the difference whenever the prose touches that claim.
+
+What the paper *can* point to, and what we'll spend the next three sections on, is the recipe: how each of the five task families gets parameterized as an RGB image. The recipe is mechanical, reproducible, and contains all the cleverness the paper is willing to publish in detail.
+
+{/* Reader can now: see Vision Banana's architecture: NBP substrate + thin instruction-tune layer + very-low vision-task mix ratio; understand "most of the way there" as the paper's hypothesis, not a sourced causal claim. */}
+
+### 5. Segmentation as in-context coloring
+
+Start with the simplest of the three reframings. Vision Banana does semantic segmentation by being told, per inference, what color to use for each class. The user supplies a JSON prompt that maps class names to color names: `{"cat": "red", "lock": "pink"}`. The model paints an RGB image where each pixel adopts the color of whichever class the model thinks that pixel belongs to. A short post-processing pass walks the painted output and assigns each pixel to a class by matching the painted color against the prompt's keys.
+
+The paper's exact phrasing on the inference contract is: "we assign pixels to classes by matching its color according to the prompt." On the prompt itself: "instruct Vision Banana to produce segmentation masks for only one class, allowing the model to dynamically assign colors to different instances." The first phrasing covers the per-class-color setup; the second covers an instance-segmentation extension where the model picks the colors per instance.
+
+The decode step is, mechanically, a hash-table lookup. The prompt's `{"car": "red", "sidewalk": "blue", "sky": "yellow", ...}` gives you a `{(255, 0, 0): "car", (0, 0, 255): "sidewalk", (255, 255, 0): "sky", ...}` lookup table. Walk the painted RGB image pixel by pixel; for each pixel, find the closest entry in the table by RGB distance; that entry's value is the class label. Output is a per-pixel grid of class labels, the same kind of object SAM 3 returns.
+
+{/* TODO: Fig 4 (SegmentationAsColoring) - Input image of a street scene; JSON prompt to the right (`{"car": "red", "sidewalk": "blue", "sky": "yellow"}`); output: RGB-painted image with car/sidewalk/sky as those distinct colors; decode arrow with the lookup table; final mask of class labels. Figcaption disclaimer: drawn schematically; the matrix backs aggregate Cityscapes mIoU, not this specific image. */}
+
+This is the recipe behind the throughline number. Vision Banana's 0.699 zero-shot Cityscapes mIoU on paper Table 2(a) is what happens when you take a Cityscapes test image, build a JSON prompt covering all 19 Cityscapes classes (each mapped to a distinct RGB color), feed both to Vision Banana, run the painted output through the color-distance decode, and score the resulting per-pixel labels against the Cityscapes ground truth. The model never saw the Cityscapes 19-class palette during instruction tuning; the prompt is what told it which 19 categories to discriminate this time.
+
+A discriminative segmenter cannot do that. SAM 3's class set is decided at training time. To run SAM 3 on Cityscapes you have to either retrain its head on Cityscapes labels (no longer zero-shot) or accept SAM 3's native class behavior and translate the output. Vision Banana's class set lives in the prompt the user types at inference. Swap the prompt, get a different class set. The reason this works at all is a 2023 trick from the Painter team that we'll get to in §11.
+
+For now, the takeaway is mechanical. Segmentation, in Vision Banana's world, is image generation with a colored-class prompt and a per-pixel color-distance decode at the end. The mask is just a picture; the labels are the colors.
+
+{/* Reader can now: predict what segmentation output looks like (RGB image where pixel colors encode class) and connect it to the 0.699 Cityscapes mIoU. */}
