@@ -290,7 +290,52 @@ Vision Banana is built by *instruction-tuning* Nano Banana Pro on a mixture: kee
 
 The paper reports that, after this instruction tune, the base model's image-generation capabilities are preserved. You can still ask the post-tune Vision Banana to generate a picture of a banana on a beach, and you get a picture of a banana on a beach. The training mix protects the substrate from forgetting; the new vision-task data is light enough that it doesn't displace the original behavior.
 
-{/* TODO: Fig 3 (VisionBananaArch) - Nano Banana Pro at the center as a deep stack with annotation "production generator, deployed via Gemini app / API / Vertex AI". A small instruction-tune layer wrapped around it. The vision-task data shown as a thin sliver of the training mix. Output is an RGB image. */}
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="va-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="20" y="18" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">TRAINING MIX</text>
+
+<rect x="20" y="35" width="120" height="240" fill="#F9F5EB" stroke="#C9BEAA"/>
+<rect x="20" y="35" width="120" height="220" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.6"/>
+<text x="80" y="155" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#2563EB">NBP own</text>
+<text x="80" y="172" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#2563EB">training data</text>
+<text x="80" y="188" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">(internet-scale)</text>
+<rect x="20" y="255" width="120" height="20" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6"/>
+<text x="80" y="269" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#B8651A">vision tasks (very low ratio)</text>
+<text x="80" y="295" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">"a very low ratio"</text>
+<text x="80" y="307" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">paper Methods</text>
+
+<line x1="145" y1="155" x2="180" y2="155" stroke="#6B6258" marker-end="url(#va-arrow)"/>
+
+<rect x="200" y="40" width="240" height="240" fill="#F4EEE3" stroke="#B8651A" stroke-width="2" stroke-dasharray="4,3"/>
+<text x="320" y="60" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#B8651A">VISION BANANA = NBP + INSTRUCTION-TUNE</text>
+
+<rect x="220" y="80" width="200" height="180" fill="#1A1A1A" stroke="#2563EB" stroke-width="1.5"/>
+<text x="320" y="100" text-anchor="middle" font-family="serif" font-size="14" font-weight="700" fill="#F4EEE3">Nano Banana Pro</text>
+<text x="320" y="115" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#93C5FD">Gemini 3 Pro Image, 2025-11-20</text>
+<g font-family="JetBrains Mono" font-size="9" fill="#F4EEE3" text-anchor="middle">
+<rect x="240" y="125" width="160" height="14" fill="#2563EB" opacity=".6"/><text x="320" y="135">transformer block</text>
+<rect x="240" y="142" width="160" height="14" fill="#2563EB" opacity=".55"/><text x="320" y="152">transformer block</text>
+<rect x="240" y="159" width="160" height="14" fill="#2563EB" opacity=".5"/><text x="320" y="169">transformer block</text>
+<rect x="240" y="176" width="160" height="14" fill="#2563EB" opacity=".45"/><text x="320" y="186">transformer block</text>
+<rect x="240" y="193" width="160" height="14" fill="#2563EB" opacity=".4"/><text x="320" y="203">…</text>
+<rect x="240" y="210" width="160" height="14" fill="#2563EB" opacity=".55"/><text x="320" y="220">transformer block</text>
+<rect x="240" y="227" width="160" height="14" fill="#2563EB" opacity=".6"/><text x="320" y="237">image decoder</text>
+</g>
+<text x="320" y="252" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#93C5FD">deployed: Gemini app / API / Vertex AI</text>
+
+<line x1="445" y1="155" x2="480" y2="155" stroke="#6B6258" marker-end="url(#va-arrow)"/>
+
+<rect x="490" y="80" width="160" height="160" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="490" y="80" width="160" height="60" fill="#FEF3C7" opacity=".85"/>
+<rect x="490" y="140" width="160" height="50" fill="#B91C1C" opacity=".55"/>
+<rect x="490" y="190" width="160" height="50" fill="#2563EB" opacity=".5"/>
+<text x="570" y="262" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">RGB image</text>
+<text x="570" y="276" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">whatever the prompt asked for</text>
+</svg>
+<figcaption><strong>Fig 3.</strong> Vision Banana's architecture is a thin instruction-tune layer (the dashed orange box) wrapped around Nano Banana Pro, the same production image generator Google deployed in November 2025 across the Gemini app, the Gemini API, Google AI Studio, and Vertex AI. The training mix on the left shows the recipe's central claim about magnitude: most of the data is NBP's own pretraining corpus; the vision-task instruction data is the thin sliver at the bottom (paper Methods: "a very low ratio"). Output is an RGB image.</figcaption>
+</figure>
 
 The interesting question is what makes this work. The paper's hypothesis is the hard part: image-generation pretraining at internet scale gives a substrate already-suitable for downstream perception, and a tiny instruction-tune mix is therefore enough to read perception out of it. If that's right, then the bulk of Vision Banana's perception ability lives in the parts of the model that were trained on plain image generation, not in the small vision-task slice on top.
 
