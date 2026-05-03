@@ -112,3 +112,39 @@ A discriminative segmenter cannot do that. SAM 3's class set is decided at train
 For now, the takeaway is mechanical. Segmentation, in Vision Banana's world, is image generation with a colored-class prompt and a per-pixel color-distance decode at the end. The mask is just a picture; the labels are the colors.
 
 {/* Reader can now: predict what segmentation output looks like (RGB image where pixel colors encode class) and connect it to the 0.699 Cityscapes mIoU. */}
+
+### 6. Depth as power-transformed false-color
+
+Depth is harder than segmentation. A class label is a small finite set of options: car, sidewalk, sky. A depth value is a real number in some unbounded range, typically meters from camera. A flat color map breaks down as soon as the scene has both close objects (a hand at the edge of the frame) and distant ones (a building on the horizon).
+
+Vision Banana's depth parameterization is the cleverest of the three. The paper's words: "we instruct the model to output a carefully constructed false-color visualization of depth values…using those curved distances to produce a false-color visualization." The mechanism, decoded from the methods section: take the raw depth value at each pixel, apply a power transform with exponent λ=−3 (so that close depths get stretched out and far depths get compressed; the inverse-cube emphasis is what makes the colormap legible across a wide dynamic range), and then map the transformed value onto a piecewise-linear path that walks the edges of the RGB cube.
+
+The "edges of the RGB cube" idea is worth a paragraph. The RGB color space is a 3D cube whose corners are the eight pure colors: black, red, green, blue, yellow, magenta, cyan, white. The cube has twelve edges. If you walk a path along those edges, you get a 1D parametrization of color that visits a wide range of hues without doubling back. (You can imagine walking from black along the red edge to red, then red→yellow→green→cyan→blue→magenta→white, or any other Hamilton-path-like route.) Vision Banana's depth colormap uses such a path: the transformed depth value, normalized to the unit interval, is the path parameter; the color at the corresponding point on the path is what gets painted at that pixel.
+
+{/* TODO: Fig 5 (DepthAsFalseColor) - three panels: (a) input photo of a room or street; (b) the power-transform curve plotted as input depth (meters) -> output color-position-along-cube-edge (0..1), with the inverse-cube curvature visible; (c) the resulting false-color depth image, showing the cube-edge palette in action. */}
+
+The decode step is the colormap lookup in reverse. Walk the painted output pixel by pixel; for each pixel, find the closest point on the RGB-cube path; back out the path parameter; invert the power transform; you get back a depth value in meters.
+
+The throughline numbers fall out of this recipe. On the project-page six-benchmark depth chart, Vision Banana scores 0.882 δ₁ (the fraction of pixels whose predicted depth is within 25% of the ground truth), against UniK3D at 0.823, MoGe-2 at 0.802, and Depth Pro at 0.715. (The chart does not include either Depth Anything V2 or [Depth Anything V3](https://arxiv.org/abs/2511.10647).) On the paper's Table 3, which reports an average over four specific datasets where Depth Anything 3 was also evaluated (NYU, ETH3D, DIODE, KITTI), Vision Banana scores 0.929 against DA3's 0.918. A 1.1-point edge over the strongest specialist VB compares against on the four-dataset overlap; a 5.9-point edge over the strongest specialist on the broader six-benchmark chart; and a number every reader can trace back to the depth false-color recipe in this section.
+
+The "depth map" in modern computer vision papers is usually presented as a grayscale image (darker = closer; lighter = farther) or as a colormap visualization for human readers. In Vision Banana, the false-color visualization *is* the model's output. The model doesn't compute depth and then visualize it; the colormap is the parameterization the model is trained to predict.
+
+{/* Reader can now: predict what depth output looks like (power-transformed false-color along RGB cube edges) and connect it to the 0.882 / 0.929 numbers. */}
+
+### 7. Surface normals as direct xyz→RGB
+
+Normals are the simplest of the three reframings. A surface normal at a pixel is a unit vector in 3D, which is to say three numbers (x, y, z) with x² + y² + z² = 1. RGB is also three numbers. The map between them is no transform at all: take the unit vector's components, shift them from the [-1, +1] range to [0, 255], and call those the R, G, B channels.
+
+Or more directly, in the paper's own example: "the directional vector components map directly to RGB channels: Facing Left (−1, 0, 0): Encoded as Pinkish Red…" Facing left means x = −1, which after the shift is R = 0; the "Pinkish Red" name is a convention. The point is that the encoding is deterministic, lossless, and reversible. There is no learned colormap. The model paints a normal field as if it were an RGB image, and the decode is a fixed affine transform per pixel.
+
+{/* TODO: Fig 6 (NormalsAsXYZ) - left panel: a 3D unit sphere with axis labels (X right, Y up, Z out of screen). Right panel: the RGB cube with the same orientation. Arrows from sphere positions to cube positions: (-1, 0, 0) -> pinkish red; (0, 1, 0) -> green; (0, 0, 1) -> blue; etc. Below, the same color encoding applied to a normal map of a small object so the reader sees the mapping live. */}
+
+If you want a one-line intuition for why this works: a unit-vector field is the geometry of the world's surfaces, expressed as direction. RGB is also a 3D space whose "natural" interpretation is whatever the model decides to make of it. The Vision Banana training data tells the model "this surface direction in 3D corresponds to this RGB triple in the output picture." The model treats the picture as the surface direction, end to end, no intermediate representation needed.
+
+The throughline number on the surface-normal column is 15.549° mean angular error, against Lotus-2 at 16.558°, DSINE at 17.017°, StableNormal at 17.168°, and Marigold at 19.606° on the project-page three-benchmark average. (Vision Banana's paper Table 1 reports a separate four-dataset normals average where VB scores 18.928° against Lotus-2's 19.642°. That's a different eval slice with different numbers; the post cites each in its own context.) A 1.0° improvement over the previous best, which doesn't sound like much until you remember that the unit is "average angular error in 3D direction across millions of pixels" and a 1° improvement is real.
+
+The pattern across §§5–7 is now visible. Each task family gets a different parameterization, but the parameterizations share a structure: pick a way to encode the task's output as an RGB image; train the generator on input/output pairs in that encoding; at inference, run the input through the model and decode the painted output. Segmentation uses class-to-color JSON. Depth uses a power-transformed walk along the RGB cube's edges. Normals use the trivial xyz-to-RGB shift. Three task families, three different colormaps, one model.
+
+The next section assembles the numbers.
+
+{/* Reader can now: predict what surface-normal output looks like (xyz mapped directly to RGB) and connect it to the 15.549° MAE. */}
