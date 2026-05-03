@@ -964,7 +964,79 @@ The paper's own number: "DIFT from Stable Diffusion is able to outperform DINO a
 
 That is a striking margin. DINO and OpenCLIP are, at the time of DIFT, the canonical pretrained encoders for tasks of this kind. Beating them by double-digit points using features that fall out of an unrelated training objective is the kind of result that reframes a research community's expectations about where useful representations live.
 
-{/* TODO: Fig 10 (DIFTCorrespondence) - two photos of the same animal in different poses; matched correspondence pairs (e.g. left ear, right paw, eye) marked with the same color across the pair. An arrow back into a cartoon UNet showing the intermediate layer where features were extracted. The figure makes visible: a model trained only to denoise pictures also knows what's the same across pictures. */}
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="dft-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<rect x="20" y="35" width="160" height="120" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="20" y="35" width="160" height="40" fill="#93C5FD" opacity=".6"/>
+<rect x="20" y="75" width="160" height="20" fill="#D1AE7A" opacity=".7"/>
+<rect x="20" y="95" width="160" height="60" fill="#059669" opacity=".4"/>
+<g fill="#92400E" opacity=".75">
+<ellipse cx="80" cy="115" rx="32" ry="22"/>
+<circle cx="60" cy="95" r="8"/>
+<rect x="55" y="120" width="6" height="20"/>
+<rect x="105" y="120" width="6" height="20"/>
+<circle cx="65" cy="92" r="2.5" fill="#1A1A1A"/>
+<circle cx="55" cy="93" r="3"/>
+<circle cx="73" cy="93" r="3"/>
+</g>
+<circle cx="65" cy="92" r="3.5" fill="none" stroke="#B91C1C" stroke-width="1.5"/>
+<circle cx="55" cy="85" r="3.5" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<circle cx="58" cy="138" r="3.5" fill="none" stroke="#059669" stroke-width="1.5"/>
+<text x="100" y="170" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">image A (sitting)</text>
+
+<rect x="500" y="35" width="160" height="120" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="500" y="35" width="160" height="40" fill="#93C5FD" opacity=".6"/>
+<rect x="500" y="75" width="160" height="20" fill="#D1AE7A" opacity=".7"/>
+<rect x="500" y="95" width="160" height="60" fill="#059669" opacity=".4"/>
+<g fill="#92400E" opacity=".75">
+<ellipse cx="595" cy="105" rx="35" ry="20"/>
+<ellipse cx="630" cy="100" rx="14" ry="11"/>
+<rect x="565" y="115" width="6" height="20"/>
+<rect x="605" y="115" width="6" height="20"/>
+<rect x="630" y="125" width="14" height="6"/>
+<circle cx="635" cy="98" r="2.5" fill="#1A1A1A"/>
+<circle cx="623" cy="93" r="2.5"/>
+<circle cx="640" cy="92" r="2.5"/>
+</g>
+<circle cx="635" cy="98" r="3.5" fill="none" stroke="#B91C1C" stroke-width="1.5"/>
+<circle cx="623" cy="89" r="3.5" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<circle cx="568" cy="133" r="3.5" fill="none" stroke="#059669" stroke-width="1.5"/>
+<text x="580" y="170" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">image B (standing)</text>
+
+<path d="M67,90 Q340,30 633,96" fill="none" stroke="#B91C1C" stroke-width="1" stroke-dasharray="2,2" opacity=".7"/>
+<path d="M55,85 Q340,40 621,87" fill="none" stroke="#2563EB" stroke-width="1" stroke-dasharray="2,2" opacity=".7"/>
+<path d="M58,138 Q340,200 568,131" fill="none" stroke="#059669" stroke-width="1" stroke-dasharray="2,2" opacity=".7"/>
+
+<text x="340" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="1.2" fill="#6B6258">FEATURES MATCH ACROSS POSES</text>
+
+<line x1="180" y1="100" x2="200" y2="100" stroke="#6B6258" marker-end="url(#dft-arrow)"/>
+<line x1="475" y1="100" x2="500" y2="100" stroke="#6B6258" marker-end="url(#dft-arrow)"/>
+
+<g transform="translate(210,75)">
+<polygon points="0,0 60,0 70,15 70,35 60,50 0,50 -10,35 -10,15" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
+<polygon points="80,0 140,0 150,15 150,35 140,50 80,50 70,35 70,15" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2"/>
+<polygon points="160,0 220,0 230,15 230,35 220,50 160,50 150,35 150,15" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
+<rect x="-10" y="0" width="240" height="50" fill="none"/>
+<text x="35" y="30" text-anchor="middle" font-family="serif" font-size="10" font-weight="600" fill="#B8651A">UNet</text>
+<text x="115" y="20" text-anchor="middle" font-family="serif" font-size="10" font-weight="700" fill="#1A1A1A">middle</text>
+<text x="115" y="35" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">features</text>
+<text x="195" y="30" text-anchor="middle" font-family="serif" font-size="10" font-weight="600" fill="#B8651A">UNet</text>
+</g>
+<text x="320" y="170" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">pretrained for image generation</text>
+<text x="320" y="183" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">never told what "correspondence" is</text>
+
+<rect x="20" y="220" width="640" height="80" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="30" y="240" font-family="JetBrains Mono" font-size="10" letter-spacing="1.2" fill="#6B6258">DIFT vs DINO / OpenCLIP ON SPair-71k (PCK)</text>
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+<text x="30" y="260">DIFT (Stable Diffusion intermediate features)  outperforms DINO  by  +19.0 accuracy points</text>
+<text x="30" y="278">DIFT (Stable Diffusion intermediate features)  outperforms OpenCLIP  by  +14.0 accuracy points</text>
+<text x="30" y="294" font-style="italic" fill="#6B6258">…and Stable Diffusion was never trained on a correspondence task. The features come for free.</text>
+</g>
+</svg>
+<figcaption><strong>Fig 10.</strong> DIFT shows that the intermediate features of a pretrained diffusion UNet (Stable Diffusion, in the original paper) already match the same parts of an object across different images, with no supervision aimed at correspondence. The colored circles (eye, ear, paw) in the two cat images are at corresponding 3D locations on the animal, and DIFT's features at those locations are nearest-neighbors of each other. The numerical claim, in PCK on the SPair-71k benchmark, is in the box at the bottom: +19 over DINO, +14 over OpenCLIP.</figcaption>
+</figure>
 
 What DIFT *did* establish is conservative. It shows that a diffusion model's intermediate features carry dense per-pixel structure useful for at least one downstream task (correspondence). It does not directly show that the same features are sufficient for metric depth, surface normals, or any other dense-prediction task. Whether the structure-of-correspondence translates to the structure-of-depth-or-geometry was still an open question after DIFT.
 
