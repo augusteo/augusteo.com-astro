@@ -1,3 +1,33 @@
+Prompt size:
+  148659 /tmp/codex-prompt-3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f80.txt
+Running codex...
+OpenAI Codex v0.125.0 (research preview)
+--------
+workdir: /Users/vic/dev/augusteo.com-astro
+model: gpt-5.5
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 019deba2-8b19-7392-a238-e1ea7bbe2d11
+--------
+user
+IMPORTANT: Do NOT read or execute any files under `~/.claude/`, `~/.agents/`, or `.claude/skills/`. Those are skill definitions for a different AI system. Stay focused on repository code only.
+
+You are RE-REVIEWING the FINAL DRAFT of a long-form blog post on augusteo.com (slug: generative-vision-stack), Gate 2 invocation 3 of 3 (final allowed run before halt rule fires). The post's goal:
+
+> Take a topic and produce a published-ready MDX post on augusteo.com whose every load-bearing claim is traceable to a primary source, and whose every section connects to the previous so the reader builds **one** mental model that survives end-to-end. **Truthful and current at date of publication is the first bar; intuitive understanding is the second; visual polish is the third.**
+
+Gate 2 run 1 found 9 STRUCTURAL + 2 COSMETIC; all 9 STRUCTURAL accepted and applied.
+Gate 2 run 2 found 1 STRUCTURAL (leftover [-1,+1]->[0,255] shift derivation in §7 + Fig 6 caption + §8 summary line) + 1 COSMETIC (Fig 2 still named DINO-X / HybridGL); both accepted and applied.
+
+Run the same audit. If only cosmetic findings remain, say "no structural issues found."
+
+==================================================================
+INLINE EMBEDDED FULL MDX FILE:
+==================================================================
+
 ---
 title: "The Generative Vision Stack"
 description: "How the April 2026 Vision Banana paper inverts the discriminative pipeline by putting an image generator at the center and reading perception out as RGB images. Third in a series with Unified Vision Stack and Omni-Modal Stack."
@@ -441,7 +471,7 @@ The decode step is, mechanically, a hash-table lookup. The prompt's `{"car": "re
 </g>
 <text x="330" y="312" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">prompt → table → integers</text>
 </svg>
-<figcaption><strong>Fig 4.</strong> Segmentation as in-context coloring. Top-left: input street scene. Bottom-left: the user's JSON prompt that maps each class to a color. Center: Vision Banana paints an RGB image obeying the prompt's colors. Right: the decode pass walks each pixel against the prompt's lookup table and assigns it to the matching class. The mask is just an image; the class labels are colors. Drawn schematically; the published benchmark numbers refer to aggregate Cityscapes mIoU, not this specific image.</figcaption>
+<figcaption><strong>Fig 4.</strong> Segmentation as in-context coloring. Top-left: input street scene. Bottom-left: the user's JSON prompt that maps each class to a color. Center: Vision Banana paints an RGB image obeying the prompt's colors. Right: the decode pass walks each pixel against the prompt's lookup table and assigns it to the matching class. The mask is just an image; the class labels are colors. Drawn schematically; the matrix backs aggregate Cityscapes mIoU, not this specific image.</figcaption>
 </figure>
 
 This is the recipe behind the throughline number. Vision Banana's 0.699 zero-shot Cityscapes mIoU on paper Table 2(a) is what happens when you take a Cityscapes test image, build a JSON prompt covering all 19 Cityscapes classes (each mapped to a distinct RGB color), feed both to Vision Banana, run the painted output through the color-distance decode, and score the resulting per-pixel labels against the Cityscapes ground truth. The model never saw the Cityscapes 19-class palette during instruction tuning; the prompt is what told it which 19 categories to discriminate this time.
@@ -527,7 +557,7 @@ The "edges of the RGB cube" idea is worth a paragraph. The RGB color space is a 
 <text x="20" y="335">3. The model's RGB output IS the depth map. Decode runs the lookup in reverse: pixel color → path position → depth.</text>
 </g>
 </svg>
-<figcaption><strong>Fig 5.</strong> Depth as power-transformed false-color. The orange curve in the middle shows how the inverse-cube power transform stretches close depths and compresses far ones; the transformed value is then mapped onto the rainbow path that walks the edges of the RGB cube. The right-hand image shows what Vision Banana paints when prompted for depth: a false-color visualization where every hue means a specific distance from the camera. Drawn schematically; the published benchmark numbers refer to aggregate δ₁ on the project-page chart and the four-dataset Table 3, not this specific image.</figcaption>
+<figcaption><strong>Fig 5.</strong> Depth as power-transformed false-color. The orange curve in the middle shows how the inverse-cube power transform stretches close depths and compresses far ones; the transformed value is then mapped onto the rainbow path that walks the edges of the RGB cube. The right-hand image shows what Vision Banana paints when prompted for depth: a false-color visualization where every hue means a specific distance from the camera. Drawn schematically; the matrix backs aggregate δ₁ on the project-page chart and the four-dataset Table 3, not this specific image.</figcaption>
 </figure>
 
 The decode step is the colormap lookup in reverse. Walk the painted output pixel by pixel; for each pixel, find the closest point on the RGB-cube path; back out the path parameter; invert the power transform; you get back a depth value in meters.
@@ -1303,3 +1333,102 @@ We used to ask the encoder for a label and it gave us integers from a head. Now 
 - [The Unified Multimodal Stack](/blog/omni-modal-stack). Augusteo, May 2026. The second post in this trilogy.
 
 *Third in the trilogy with [The Unified Vision Stack](/blog/unified-vision-stack) and [The Unified Multimodal Stack](/blog/omni-modal-stack), written May 2026.*
+
+==================================================================
+INLINE EMBEDDED CLAIM-SOURCE MATRIX:
+==================================================================
+
+## Claim-source matrix
+
+| # | Claim (load-bearing assertion in plain English) | Quoted source (excerpt) | Source ID + date | Recency status |
+|---|---|---|---|---|
+| 1 | The Vision Banana paper *argues* that image-generation pretraining plays a role for vision analogous to next-token pretraining for language. (Hedge per Gate 0 finding #6: this is the paper's own claim, not an externally-validated result; the paper has no random-init ablation. The post must say "the paper argues / suggests".) | "image generation serves as a unified and universal interface for vision tasks, similar to text generation's role in language understanding and reasoning." | arxiv:2604.20329 abstract (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 2 | Vision Banana is built by instruction-tuning Nano Banana Pro on a mixture of its own training data + vision-task data. | "instruction-tuning Nano Banana Pro on a mixture of its original training data alongside a small amount of vision task data." | arxiv:2604.20329 abstract (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 3 | The mixture ratio is "very low" — vision-task data is a small fraction of the instruction-tuning mix. | "We mix vision task data into Nano Banana Pro's own training mixture at a very low ratio." | arxiv:2604.20329 PDF, Methods (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 4 | Vision Banana reframes perception as image generation by parameterizing each task's output space as RGB. | "parameterizing the output space of vision tasks as RGB images." | arxiv:2604.20329 abstract (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 5 | Segmentation is parameterized via JSON class-to-color prompts; pixels are assigned to classes by matching color. | "instruct Vision Banana to produce segmentation masks for only one class, allowing the model to dynamically assign colors to different instances." / "we assign pixels to classes by matching its color according to the prompt" using `{"cat": "red", "lock": "pink"}`. | arxiv:2604.20329 PDF, Methods (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 6 | Depth is parameterized as a power-transformed (λ=−3) false-color visualization, interpolated along RGB-cube edges. | "we instruct the model to output a carefully constructed false-color visualization of depth values…using those curved distances to produce a false-color visualization." | arxiv:2604.20329 PDF, Methods (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 7 | Surface normals are parameterized as direct xyz-to-RGB mapping. | "the directional vector components map directly to RGB channels: Facing Left (−1,0,0): Encoded as Pinkish Red…" | arxiv:2604.20329 PDF, Methods (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 8 | Zero-shot Cityscapes mIoU (paper Table 2(a)): Vision Banana 0.699; SAM 3 0.652. The paper states VB surpasses SAM 3 by 4.7 points. The lone non-zero-shot baseline in the same table is SegMan-L at 0.842 (the in-domain ceiling). **Retraction note:** the run-1 framing "VB 0.842 vs SAM 3 0.699" was based on a misread of the project-page chart bars and was rejected as the override; on run-2 codex re-anchored on the paper's table text. The paper's text is the authoritative source. | "Vision Banana surpasses SAM 3 by 4.7 points in mIoU." (paper Table 2(a) "Cityscapes val": SegMan-L Non Zero-Shot 0.842; SAM 3 0.652; Vision Banana 0.699.) | [arxiv:2604.20329 Table 2(a)](https://arxiv.org/html/2604.20329v1) (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 9a | Project-page six-benchmark metric-depth δ₁ average: Vision Banana 0.882; UniK3D 0.823; MoGe-2 0.802; Depth Pro 0.715. The project-page chart does **not** include Depth Anything V2 or V3. | Project-page chart values. | https://vision-banana.github.io/ (accessed 2026-05-02) | actively-evolving / 12-month bar / passes |
+| 9b | Paper Section 3.2 / Table 3 four-dataset metric-depth comparison vs Depth Anything 3: Vision Banana 0.929 vs DA3 0.918 (1.1-point edge) on NYU / ETH3D / DIODE / KITTI. | "Vision Banana achieves an average δ₁ accuracy of 0.882, outperforming…Depth Anything V3 on average across the four datasets (NYU, ETH3D, DIODE, KITTI) on which it was evaluated (0.929 v.s. 0.918)." | [arxiv:2604.20329 §3.2 / Table 3](https://arxiv.org/html/2604.20329v1) (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 10 | Surface-normal mean angular error: project-page three-benchmark average lists Vision Banana 15.549°; Lotus-2 16.558°; DSINE 17.017°; StableNormal 17.168°; Marigold 19.606°. (Paper Table 1 also reports a four-dataset normals comparison: Vision Banana 18.928° vs Lotus-2 19.642° — the post should distinguish these two averages when citing.) | Project-page chart values + paper Table 1 (per codex run-2 verification). | https://vision-banana.github.io/ + [arxiv:2604.20329 Table 1](https://arxiv.org/html/2604.20329v1) (accessed 2026-05-02) | actively-evolving / 12-month bar / passes |
+| 11 | Comparisons in Vision Banana are zero-shot transfer; baselines that were fine-tuned in-domain are excluded or marked. | "We mainly compare with other methods that have not been trained on in-domain data…denote them as 'Zero-Shot Transfer'…Non zero-shot transfer methods are marked in gray." | arxiv:2604.20329 PDF, Table 2 caption (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 12 | Vision Banana's vision-task suite: 2D = referring-expression / semantic / instance segmentation; 3D = monocular metric depth + surface normals. | "we evaluate our framework on two fundamental categories of visual understanding: 2D scene understanding and 3D structure inference. The 2D suite consists of referring expression, semantic, and instance segmentation…For 3D understanding, we focus on monocular metric depth and surface normal estimation." | arxiv:2604.20329 PDF, §Experiments (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 13 | The paper *reports* that the instruction-tuning preserves the base model's image-generation capabilities ("lightweight"). (Hedged per Gate 0 finding #6.) | "without sacrificing the base model's image generation capabilities." | arxiv:2604.20329 abstract (2026-04-22); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 14 | Nano Banana Pro (= Gemini 3 Pro Image) is Google's production image-generation model, released 2025-11-20. Rolled out via the Gemini app, the Gemini API / Google AI Studio, and Vertex AI. | Article body of [blog.google/innovation-and-ai/products/nano-banana-pro/](https://blog.google/innovation-and-ai/products/nano-banana-pro/), confirmed by codex run-2 direct fetch (rollout channels: Gemini app, Gemini API / Google AI Studio, Vertex AI). | blog.google/innovation-and-ai/products/nano-banana-pro/ (2025-11-20); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 15 | MAE: masked patches reconstructed by an asymmetric encoder–decoder; 3× training speedup. | "We mask random patches of the input image and reconstruct the missing pixels… an asymmetric encoder-decoder design… accelerate training (by 3x or more) and improve accuracy." | arxiv:2111.06377 abstract (2021-11-11); accessed 2026-05-02 | actively-evolving / 12-month bar / foundational reference (lineage; pre-bar by design) |
+| 16 | Kaiming He and Saining Xie are co-authors on both MAE (2021) and Vision Banana (2026). | MAE author list: "Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, Ross Girshick." Vision Banana includes both names in the 25-author list. | arxiv:2111.06377 + arxiv:2604.20329 (accessed 2026-05-02) | actively-evolving / 12-month bar / foundational reference (lineage continuity) |
+| 17 | Painter introduced the "task output as image" formulation, trained via masked image modeling on stitched input/output pairs. | "We propose Painter, a generalist vision model by redefining the output of core vision tasks as images… Our training process is extremely simple, which performs standard masked image modeling on the stitch of input and output image pairs." | arxiv:2212.02499 abstract (2022-12-05); accessed 2026-05-02 | actively-evolving / 12-month bar / foundational reference (lineage; pre-bar by design) |
+| 18 | SegGPT trained segmentation as in-context coloring with random color mapping per sample. | "the training uses an in-context coloring problem with random color mapping for each data sample." | arxiv:2304.03284 abstract (2023-04-06); accessed 2026-05-02 | actively-evolving / 12-month bar / foundational reference (lineage; pre-bar by design) |
+| 19 | DIFT showed correspondence emerges in diffusion features; outperforms DINO by 19 pts and OpenCLIP by 14 pts on SPair-71k. | "DIFT from Stable Diffusion is able to outperform DINO and OpenCLIP by 19 and 14 accuracy points respectively on the challenging SPair-71k benchmark." | arxiv:2306.03881 abstract (2023-06-06); accessed 2026-05-02 | actively-evolving / 12-month bar / foundational reference (lineage; pre-bar by design) |
+| 20 | SAM3 is a concept-prompted unified segmentation/tracking model; doubles accuracy of prior systems on prompt-based concept segmentation. | "SAM 3 is a unified model for detecting, segmenting, and tracking objects." / "SAM 3 doubles the accuracy of existing systems in both image and video promptable concept segmentation." | arxiv:2511.16719 (2025-11-20); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 21 | SAM3 introduces a "presence head" decoupling recognition from localization. | "presence head, which boosts detection accuracy." | arxiv:2511.16719 (2025-11-20); accessed 2026-05-02 | actively-evolving / 12-month bar / passes |
+| 22 | Depth Anything V2 training recipe (synthetic-only labels, scaled teacher, pseudo-labeled real bridge). *Lineage / context only — DAv2 is NOT one of the depth competitors on the Vision Banana project page chart per Gate 0 finding #2.* The post can mention DAv2 as historical context for monocular depth but cannot claim Vision Banana beats it from the project-page chart alone. | "Replaced all labeled real images with synthetic ones; (2) Scaled Teacher Model… (3) Trained student models using large-scale pseudo-labeled real images." | arxiv:2406.09414 (2024-06-13); accessed 2026-05-02 | foundational reference (lineage / historical context; not a load-bearing comparison) |
+| 23 | Depth Anything V3 was released 2025-11-13. The Vision Banana paper Section 3.2 / Table 3 *does* compare against DA3 directly on a 4-dataset average (NYU / ETH3D / DIODE / KITTI), reporting VB 0.929 vs DA3 0.918 (see row 9b). The project-page six-benchmark chart (row 9a) does not list DA3, but the paper itself does. | "outperforming…Depth Anything V3 on average across the four datasets (NYU, ETH3D, DIODE, KITTI) on which it was evaluated (0.929 v.s. 0.918)." (paper); "Depth Anything 3… outperforming its predecessor (DA2) in monocular depth estimation." (DA3 paper) | [arxiv:2604.20329 §3.2](https://arxiv.org/html/2604.20329v1) + [arxiv:2511.10647](https://arxiv.org/abs/2511.10647) (DA3 v1 2025-11-13); accessed 2026-05-02 | actively-evolving / 12-month bar / passes (per Gate 0 run-2 finding #3) |
+| 24 | Lotus-2 is one of the surface-normals baselines on the Vision Banana project page (16.558° MAE; the next-best after VB's 15.549°). Trained on ~59k samples. | "Lotus-2 is a two-stage framework… achieves state-of-the-art performance in monocular depth estimation while being 'highly competitive' in surface normal prediction using only 59,000 training samples." | arxiv:2512.01030 (v1 submitted 2025-11-30, v2 2025-12-04); accessed 2026-05-02 | actively-evolving / 12-month bar / passes (date corrected per Gate 0 finding #9) |
+| 25 | Cityscapes benchmark uses ~5000 high-quality pixel-annotated images for evaluation. | "5000 of these images have high quality pixel-level annotations; 20000 additional images have coarse annotations." | arxiv:1604.01685 + https://www.cityscapes-dataset.com/benchmarks/ (accessed 2026-05-02) | foundational reference (dataset spec; locked by the field) |
+| 26 | Depth competitors named on the project-page six-benchmark chart: Depth Pro, MoGe-2, UniK3D. Per-paper primaries verified per codex run-2 finding #4. | Project-page chart values (see row 9a). Per-paper primaries: Depth Pro (Bochkovskii et al., Apple, [arxiv:2410.02073](https://arxiv.org/abs/2410.02073), 2024-10-02); **MoGe-2** (Wang et al., Microsoft, [arxiv:2507.02546](https://arxiv.org/abs/2507.02546), v1 2025-07-03); UniK3D (Piccinelli et al., ETH / Politecnico di Milano, [arxiv:2503.16591](https://arxiv.org/abs/2503.16591), 2025-03-20). | three arxiv IDs above (accessed 2026-05-02) | mixed: UniK3D in-bar (14 months — at the bar boundary, marginal but acceptable as competitor-context citation); MoGe-2 in-bar (10 months); Depth Pro is 19 months at pubDate, **foundational competitor reference (chart-context only; not a load-bearing comparison)**. |
+| 27 | Surface-normal competitors named on the project-page chart: Marigold, StableNormal, DSINE, Lotus-2. The chart citation is the project page (row 10); per-paper primaries below for context. | Project-page chart values (see row 10). Per-paper primaries: **Marigold** (Ke et al., [arxiv:2505.09358](https://arxiv.org/abs/2505.09358), v1 2025-05-14); StableNormal (Ye et al., [arxiv:2406.16864](https://arxiv.org/abs/2406.16864), 2024-06-24); DSINE (Bae & Davison, [arxiv:2403.00712](https://arxiv.org/abs/2403.00712), 2024-03-01). | three arxiv IDs above (accessed 2026-05-02) | mixed: Marigold ~12 months at pubDate (in-bar / borderline); **StableNormal is 22 months at pubDate, foundational competitor reference (chart-context only)**; **DSINE is 26 months at pubDate, foundational competitor reference (chart-context only)** (date math corrected per codex Gate-2 run-1 finding #7). |
+| 28 | Vision Banana's *zero-shot transfer* claim is the paper's own evaluation framing. The matrix backs the per-benchmark aggregate numbers; it does **not** back any specific same-image side-by-side ("the Cityscapes-style city-street photo run through SAM3 and Vision Banana"). Per Gate 0 finding #4, any concrete same-image figure in the post must either (a) cite a reproducible source for the exact image + prompts + outputs, or (b) be drawn explicitly as illustrative-not-evaluative with a figcaption disclaimer. | (Negative claim — flagged for Phase 4 prose discipline.) | (No source needed; this is a constraint on the post itself.) | constraint, not a claim |
+
+
+codex
+I’ll do this as a source-grounded final-pass review: structural issues only if a load-bearing claim is unsupported, misleading, or breaks the mental-model chain; otherwise I’ll separate cosmetic/editorial notes.
+exec
+/bin/zsh -lc 'rg -n "generative-vision-stack|Vision Banana|Gate 2|multi-gpu|augusteo" /Users/vic/.codex/memories/MEMORY.md' in /Users/vic/dev/augusteo.com-astro
+ succeeded in 0ms:
+88:# Task Group: /Users/vic/dev/augusteo.com-astro multi-gpu-training factual review and figure UX fixes
+89:scope: reviewing and then correcting the Astro blog's `multi-gpu-training` post plus its interactive figures when the user wants factual grounding, source-backed fixes, and intuitive looping figure behavior
+90:applies_to: cwd=/Users/vic/dev/augusteo.com-astro; reuse_rule=safe for this checkout's blog/figure paths and similar Astro content-plus-figure tasks, but re-verify ML/hardware claims against current primary sources
+92:## Task 1: Review multi-gpu-training post and figures for factual grounding, issues found
+96:- rollout_summaries/2026-04-25T23-31-06-iNyx-multi_gpu_training_factual_review_and_figure_fixes.md (cwd=/Users/vic/dev/augusteo.com-astro, rollout_path=/Users/vic/.codex/sessions/2026/04/25/rollout-2026-04-25T16-31-06-019dc6fb-8980-7271-a9e2-d3ffd1e1fc71.jsonl, updated_at=2026-04-26T20:06:05+00:00, thread_id=019dc6fb-8980-7271-a9e2-d3ffd1e1fc71, review found stale and overstated claims before the fix pass)
+100:- Astro, MDX, Svelte, multi-gpu-training, factual audit, deep research, DeepSeek-V3, Llama 3 405B, FSDP2, DTensor, NCCL, FP8, GB300, H200, decision-calculator.ts, memory-bar.ts, moe-routing.ts
+106:- rollout_summaries/2026-04-25T23-31-06-iNyx-multi_gpu_training_factual_review_and_figure_fixes.md (cwd=/Users/vic/dev/augusteo.com-astro, rollout_path=/Users/vic/.codex/sessions/2026/04/25/rollout-2026-04-25T16-31-06-019dc6fb-8980-7271-a9e2-d3ffd1e1fc71.jsonl, updated_at=2026-04-26T20:06:05+00:00, thread_id=019dc6fb-8980-7271-a9e2-d3ffd1e1fc71, content corrections plus looping scrubber and figure UX fixes)
+122:- the truth-sensitive edit surfaces for this post family are `src/content/blog/multi-gpu-training/index.mdx`, interactive logic under `src/figures/multi-gpu-training/`, and visual components under `src/components/figures/multi-gpu-training/` [Task 1][Task 2]
+124:- local verification path is `bun run astro -- dev --host 127.0.0.1 --port 4321`, then inspect `/blog/multi-gpu-training`; a plain localhost `curl` can fail until the server is actually running and listening [Task 1]
+138:# Task Group: /Users/vic/dev/augusteo.com-astro Codex instruction symlink
+140:applies_to: cwd=/Users/vic/dev/augusteo.com-astro; reuse_rule=safe for this checkout and similar repos that already have a root `CLAUDE.md`; prefer re-checking repo instruction layout before reusing
+146:- rollout_summaries/2026-04-25T23-17-05-SHdj-codex_config_symlink_agents_to_claude.md (cwd=/Users/vic/dev/augusteo.com-astro, rollout_path=/Users/vic/.codex/sessions/2026/04/25/rollout-2026-04-25T16-17-05-019dc6ee-b179-7612-9a15-da18473c6e35.jsonl, updated_at=2026-04-25T23:20:20+00:00, thread_id=019dc6ee-b179-7612-9a15-da18473c6e35, committed on `main`)
+167:- symptom: `git add` or `git commit` fails with `fatal: Unable to create '/Users/vic/dev/augusteo.com-astro/.git/index.lock': Operation not permitted` -> cause: git lockfile creation was blocked in that environment -> fix: retry in an environment with sufficient filesystem permissions instead of assuming the repo state is broken [Task 1]
+
+web search: 
+web search: Vision Banana Image Generators are Generalist Vision Learners arxiv 2604.20329
+web search: 
+web search: https://arxiv.org/html/2604.20329v1
+web search: 
+web search: https://arxiv.org/html/2604.20329v1
+web search: 
+web search: https://arxiv.org/html/2604.20329v1
+web search: 
+web search: https://blog.google/innovation-and-ai/products/nano-banana-pro/
+web search: 
+web search: https://blog.google/innovation-and-ai/products/nano-banana-pro/
+web search: 
+web search: arxiv 2512.01030 Lotus-2 v1 submitted 2025-11-30
+web search: 
+web search: Masked Autoencoders Are Scalable Vision Learners 3x or more asymmetric encoder decoder reconstruct missing pixels
+web search: 
+web search: Emergent Correspondence from Image Diffusion DIFT Stable Diffusion DINO OpenCLIP 19 14 SPair-71k arxiv
+codex
+No structural issues found.
+
+I re-checked the final draft against the embedded matrix and primary/current sources. The major Gate 2 run 2 fixes landed correctly: Cityscapes is anchored to VB 0.699 vs SAM 3 0.652, the depth averages are separated cleanly, and the surface-normal section no longer asserts the old `[-1,+1] -> [0,255]` derivation.
+
+Only cosmetic/editorial note: a few figure captions say “the matrix backs...” (Fig 4 / Fig 5). That reads like internal audit scaffolding rather than published prose. I’d change it to “The benchmark numbers refer to aggregate...” or similar.
+
+Sources spot-checked: Vision Banana arXiv HTML, Google Nano Banana Pro launch post, Meta SAM 3 page, MAE/Painter/SegGPT/DIFT primary pages.
+
+
+2026-05-03T02:21:23.782775Z ERROR codex_core::session: failed to record rollout items: thread 019deba2-8b19-7392-a238-e1ea7bbe2d11 not found
+tokens used
+125,972
+No structural issues found.
+
+I re-checked the final draft against the embedded matrix and primary/current sources. The major Gate 2 run 2 fixes landed correctly: Cityscapes is anchored to VB 0.699 vs SAM 3 0.652, the depth averages are separated cleanly, and the surface-normal section no longer asserts the old `[-1,+1] -> [0,255]` derivation.
+
+Only cosmetic/editorial note: a few figure captions say “the matrix backs...” (Fig 4 / Fig 5). That reads like internal audit scaffolding rather than published prose. I’d change it to “The benchmark numbers refer to aggregate...” or similar.
+
+Sources spot-checked: Vision Banana arXiv HTML, Google Nano Banana Pro launch post, Meta SAM 3 page, MAE/Painter/SegGPT/DIFT primary pages.
+
+
