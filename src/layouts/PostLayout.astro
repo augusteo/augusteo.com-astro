@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ImageLightbox from "../components/ImageLightbox.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
+import ReadingProgress from "../components/ReadingProgress.astro";
 import { Image } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import type { ImageMetadata } from "astro";
@@ -57,6 +58,7 @@ const formattedDate = pubDate.toLocaleDateString("en-US", {
         </filter>
       </defs>
     </svg>
+    <ReadingProgress />
     <Header />
 
     <article>
