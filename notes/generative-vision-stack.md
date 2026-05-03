@@ -271,6 +271,92 @@ The SAM3 paper does not report a Cityscapes mIoU directly. Vision Banana's repor
 | 27 | Surface-normal competitors named on the project-page chart: Marigold, StableNormal, DSINE, Lotus-2. The chart citation is the project page (row 10); per-paper primaries below for context. | Project-page chart values (see row 10). Per-paper primaries: **Marigold** (Ke et al., [arxiv:2505.09358](https://arxiv.org/abs/2505.09358), v1 2025-05-14; "Marigold: Affordable Adaptation of Diffusion-Based Image Generators for Image Analysis" — explicitly covers surface-normals prediction); StableNormal (Ye et al., [arxiv:2406.16864](https://arxiv.org/abs/2406.16864), 2024-06-24); DSINE (Bae & Davison, [arxiv:2403.00712](https://arxiv.org/abs/2403.00712), 2024-03-01). | three arxiv IDs above (accessed 2026-05-02) | mixed: Marigold + StableNormal in-bar; DSINE is 14 months (marginal — annotated as 14-month-near-bar competitor reference). (Marigold ID corrected from prior 2312.02145 which is depth-only; codex run-2 caught the misattribution.) |
 | 28 | Vision Banana's *zero-shot transfer* claim is the paper's own evaluation framing. The matrix backs the per-benchmark aggregate numbers; it does **not** back any specific same-image side-by-side ("the Cityscapes-style city-street photo run through SAM3 and Vision Banana"). Per Gate 0 finding #4, any concrete same-image figure in the post must either (a) cite a reproducible source for the exact image + prompts + outputs, or (b) be drawn explicitly as illustrative-not-evaluative with a figcaption disclaimer. | (Negative claim — flagged for Phase 4 prose discipline.) | (No source needed; this is a constraint on the post itself.) | constraint, not a claim |
 
+## Outline
+
+Three acts, ~16 numbered sections + a coda, ~40-min read. Throughline = "the paper's zero-shot benchmark tables (Cityscapes mIoU column, four-dataset depth column, three-benchmark normals column)." Each act opens by returning to one column and asks the next question.
+
+### Act 1 — the puzzle (where the discriminative line ends)
+
+1. **Where the trilogy left off.** Recap: post 1 ended at C-RADIOv4 (encoder-as-spinal-cord with three teachers); post 2 ended at Nemotron 3 Nano Omni (encoder + text decoder). The state of the art at the end of post 2 was: encoder front, text decoder back. *Throughline anchor: SAM 3's 0.652 mIoU column is one specific instance of "the encoder front."* **Fig 1 (TrilogyState):** static-svg. Two horizontal lanes — top lane = encoder-with-heads (post 1); middle lane = encoder + text decoder (post 2); bottom lane = ?? (post 3, blank, awaiting answer). Reader notices: the question is "what goes in the bottom lane?"
+2. **Two ways to read what's in an image.** The paradigm contrast: discriminative read-off (image → encoder → head → integers) vs generative paint (image + prompt → generator → RGB output → decode-as-mask). The crucial move is *what the model emits*. Discriminator: a small grid of integers. Generator: another image. **Fig 2 (ParadigmFlip):** static-svg. Top half: image → encoder block → head → mask (integers). Bottom half: image + prompt JSON → generator block → RGB output → decode lookup → mask (still integers, but generated as colors first). Same input, same output, different middle. Reader notices: the model's output stops being a label grid and starts being a picture.
+3. **The dedicated specialists.** Naming the lineup VB will be compared against on the paper's benchmark tables: SAM 3 (concept-prompted segmentation, 2025-11-20); Depth Pro / MoGe-2 / UniK3D (monocular metric depth, on the project-page chart); Marigold / StableNormal / DSINE / Lotus-2 (surface normals, on the project-page chart); Depth Anything 3 (the specialist VB compares against in Table 3, 2025-11-13). Each one is a strong, dedicated, published-this-year specialist. Each one wins (or rivals) its specific benchmark. **Fig 3 (SpecialistLineup):** static-svg. Top row: six specialist boxes (SAM 3 / Depth Pro / MoGe-2 / UniK3D / Lotus-2 / Marigold), each with its task icon and best published benchmark. Bottom row: a single Vision Banana box covering the same span. Reader notices: "One box, six tasks. The question is whether one model can hold up across all six columns."
+
+### Act 2 — the flip (how Vision Banana works)
+
+4. **Meet Vision Banana.** The architecture overview: Nano Banana Pro (Google's production image generator, released 2025-11-20, = Gemini 3 Pro Image) is the substrate. Vision Banana is built by *instruction-tuning* NBP on a mix that adds vision-task data at "a very low ratio" — the paper's exact phrasing. The base model's image-generation capabilities are reportedly preserved. **Fig 4 (VisionBananaArch):** static-svg. NBP at the center as a deep stack; a small instruction-tune layer wrapped around it; the vision-task data shown as a thin sliver of the training mix; output is an RGB image. Reader notices: the base generator is most of the way there before vision-task training; the tune is light.
+5. **Segmentation as in-context coloring.** The specific recipe: a JSON class-to-color prompt (`{"cat": "red", "lock": "pink"}`); the model paints an RGB image where each class's pixels carry that color; decode = pixel-color-to-class lookup. The technique is the SegGPT (2023) lineage made production. *Throughline thread:* this is how VB scores 0.699 zero-shot mIoU on Cityscapes Table 2(a). **Fig 5 (SegmentationAsColoring):** static-svg. Input image of a street scene; JSON prompt to the right; output: RGB-painted image with car/sidewalk/sky/etc. as distinct colors; decode arrow → mask of class labels. Figcaption disclaimer: drawn schematically; backed by aggregate Cityscapes mIoU, not this specific image. Reader notices: the mask is just an image; the class labels are colors; decode is a hash-table lookup.
+6. **Depth as power-transformed false-color.** A more elaborate parameterization: depth values are re-scaled with a power transform (λ=−3), then mapped onto a piecewise-linear path along edges of the RGB cube — the paper's "carefully constructed false-color visualization." The result is an image whose hue at each pixel encodes that pixel's metric distance from the camera. *Throughline thread:* this is how VB scores 0.882 (six-benchmark avg) and 0.929 (four-dataset DA3 overlap, vs 0.918). **Fig 6 (DepthAsFalseColor):** static-svg. Three panels: (a) input image; (b) the power-transform curve plotted as input depth → output color-position-along-cube-edge; (c) the resulting false-color depth image. Reader notices: the "depth map" is just a carefully chosen colormap baked into the model's image output.
+7. **Surface normals as direct xyz→RGB.** The simplest of the three reframings: a unit-vector direction in 3D maps directly to an RGB triple. The paper's example: "Facing Left (−1, 0, 0) is encoded as Pinkish Red." No transform; the geometry IS the color. *Throughline thread:* 15.549° MAE on the project-page three-benchmark average, beating Lotus-2 by 1.0°. **Fig 7 (NormalsAsXYZ):** static-svg. Left: a 3D unit sphere with axis labels (X right, Y up, Z out). Right: the RGB cube. Arrows mapping (−1, 0, 0) → pinkish red; (0, 1, 0) → green; etc. The same arrow set drawn on a normal map of a small object so the reader sees the encoding live. Reader notices: direction in space and color are literally the same thing here.
+8. **The benchmark spread, honestly.** The full picture: zero-shot Cityscapes mIoU (Table 2(a)) — VB 0.699 vs SAM 3 0.652 (4.7-pt edge), with the non-zero-shot SegMan-L ceiling at 0.842 still well above; six-benchmark depth (project page) — VB 0.882 vs UniK3D 0.823 (5.9-pt edge); four-dataset depth vs DA3 (Table 3) — VB 0.929 vs DA3 0.918 (1.1-pt edge); three-benchmark normals (project page) — VB 15.549° vs Lotus-2 16.558° (1.0° edge). The story is "wins or rivals across the spread," not "crushes any one." **Fig 8 (BenchmarkSpread):** static-svg. Four side-by-side bar groups, one per benchmark. Vision Banana bars highlighted; specialists shown alongside; the SegMan-L NZS ceiling drawn as a dashed line on the Cityscapes group. Reader notices: every column has VB at or near the top; the deltas are real but modest; this is a generalist-across-a-spread argument, not a specialist-replacement argument.
+
+### Act 3 — why it works (the lineage and the paradigm shift)
+
+9. **MAE (2021): reconstruction as pretraining.** The starting point of the arc. He, Chen, Xie, Li, Dollár, Girshick: mask random patches of a ViT input, train an asymmetric encoder–decoder to reconstruct the missing pixels. The pretraining task is *generation*, even though everyone called it "self-supervised learning." The 3× training speedup made the recipe practical at scale. **Fig 9 (MAEDiagram):** static-svg. Standard MAE schematic: image with masked patches → encoder over visible only → decoder reconstructs full image. Mirrors the DINOv3 figure shape from post 1 for visual continuity. Reader notices: reconstruction was always pretraining; we just didn't know yet that the *output* it learned was useful for *perception*.
+10. **Painter (2022): output space as image.** Wang et al.'s contribution: redefine the output of every vision task as an image. Train via masked image modeling on the *stitch* of input and output image pairs. The model learns to paint the answer, not predict it. **Fig 10 (PainterStitched):** static-svg. An input image stitched horizontally to its output (e.g., RGB photo + segmentation map drawn as colors); a mask diagonally crossing both halves; the model trained to fill in the masked pixels. Reader notices: the output stopped being a different *kind* of thing than the input. Both are images.
+11. **SegGPT (2023): in-context coloring with random color mapping.** Same group's follow-up: drop the fixed task vocabulary; let the colors be arbitrary per sample. The model learns "match-this-color-pattern" not "label-as-class-N." This is the exact mechanism Vision Banana lifts into production — every Vision Banana segmentation prompt rebrands the colors. (No new figure; lean on Fig 5 callback.) Reader notices: the JSON prompt in Fig 5 is just SegGPT's idea wrapped in a JSON.
+12. **DIFT (2023): correspondence emerges in diffusion.** Tang et al.: pretrained diffusion models contain features that match the same object across images, with no explicit supervision. DIFT outperformed DINO and OpenCLIP on SPair-71k by 19 and 14 points respectively. The implication: the generator already knows. The information was in the gradients all along. **Fig 11 (DIFTCorrespondence):** static-svg. Two images of the same animal in different poses; matched correspondence pairs marked with the same color across the pair; an arrow back into the diffusion model showing where these matches come from (some intermediate UNet layer's features). Reader notices: a model trained only to denoise pictures *also* knows what's the same across pictures.
+13. **Nano Banana Pro (2025): production generator at scale.** Released 2025-11-20 by Google as Gemini 3 Pro Image. Trained on web-scale image-text data. Available via the Gemini app, Gemini API / Google AI Studio, Vertex AI. Vision Banana's substrate is not a research artifact; it's a deployed product. (No separate figure; one paragraph contextualizing.) Reader notices: this is the "internet-scale generator" rung the lineage was waiting for.
+14. **Vision Banana (2026): the synthesis.** Glue: lift SegGPT's coloring trick + Painter's output-as-image + DIFT's "the generator already knows" + MAE's "reconstruction is pretraining" + Nano Banana Pro's web-scale capacity. Add a "very low ratio" of vision-task instruction data on top. Read perception off the generator's RGB output. The paper's own argument: image-generation pretraining serves a role analogous to LLM next-token pretraining. **Fig 12 (VisionBananaSynthesis):** static-svg. A horizontal timeline with five icons (MAE / Painter / SegGPT / DIFT / Nano Banana Pro) and arrows converging on the Vision Banana node at 2026. Each arrow labeled with what that paper contributed (reconstruct / output-as-image / coloring / generators-have-features / production-scale). Reader notices: nothing here is a leap. Every step is a small decision someone has been pushing toward for five years.
+15. **What the paper does NOT prove.** Honesty section: Vision Banana publishes no random-init ablation. The "image-generation pretraining is the right pretraining" claim is *argued from results*, not isolated. The benchmark deltas are real but modest (4.7pt zero-shot Cityscapes, 1.1pt over DA3, 5.9pt over UniK3D, 1° over Lotus-2). The non-zero-shot SegMan-L ceiling at 0.842 still sits well above zero-shot VB at 0.699. Specialists fine-tuned in-domain still win their column. What VB shows is that *one model* gets close-to-or-above zero-shot specialists across the whole spread, which is a different (and possibly more useful) thing than crushing any one. (No separate figure; this section is prose discipline.) Reader notices: the paradigm flip is real; the magnitude of the win is small; the post should not overstate the latter.
+16. **What the trilogy collectively argues.** Step back: post 1 said the encoder is the spinal cord; post 2 said feed it into a text decoder; post 3 says the generator might be the spinal cord. All three are coherent; each one widens the scope of what one foundation model has to do. The arc is "fewer, larger, more general models doing more dense-prediction work from a single forward pass." **Fig 13 (TrilogyMeta):** static-svg. Three rows, top to bottom — Post 1: encoder + many heads; Post 2: encoder + text decoder + speech head; Post 3: generator + RGB-output → decode. The same image flows through each row. Reader notices: the same input has three different valid spinal cords, depending on what year you ask.
+
+### Coda
+
+A two-or-three-sentence ending. No "in summary." Borrowed shape from posts 1 and 2: end on a small, concrete point. Candidate close: *We used to ask the encoder for a label, and it gave us numbers. Now we ask the generator for a picture, and it gives us numbers. Either way, somebody else's softmax is what makes the picture mean something — and the question of where the softmax sits is what the trilogy has been about.*
+
+### Figure summary table
+
+| # | Figure | Type | Section(s) | Mechanism | Reader notices |
+|---|---|---|---|---|---|
+| 1 | TrilogyState | static-svg | §1 | Post 1 / Post 2 / Post 3 lanes; bottom lane unfilled. | The post is going to fill the bottom lane. |
+| 2 | ParadigmFlip | static-svg | §2 | Discriminative top half vs generative bottom half; same input → same output via different middle. | The model's *output* stops being integers and starts being pixels. |
+| 3 | SpecialistLineup | static-svg | §3 | Six specialist boxes top row; one VB box bottom row covering the same span. | One box vs six. |
+| 4 | VisionBananaArch | static-svg | §4 | NBP substrate + thin instruction-tune layer + tiny vision-task slice in the training mix. | Most of VB is already-trained NBP; tuning is light. |
+| 5 | SegmentationAsColoring | static-svg | §5, §11 (callback) | JSON prompt → input image → RGB-painted output → decode lookup → mask. | Mask = image; class labels = colors; decode = lookup. |
+| 6 | DepthAsFalseColor | static-svg | §6 | Power-transform curve λ=−3 → RGB cube edge path → false-color depth image. | A "depth map" is a carefully chosen colormap baked into image output. |
+| 7 | NormalsAsXYZ | static-svg | §7 | Unit sphere ↔ RGB cube; example axis-aligned mappings; sphere overlaid on a normal-map. | Direction in 3D space and color are the same thing here. |
+| 8 | BenchmarkSpread | static-svg | §8, §15 (callback) | Four side-by-side bar groups (Cityscapes / 6-bench depth / 4-bench depth vs DA3 / 3-bench normals); SegMan-L NZS ceiling shown as dashed line. | VB at or near the top everywhere; modest deltas; generalist-across-spread argument. |
+| 9 | MAEDiagram | static-svg | §9 | Image → masked patches → encoder over visible → decoder reconstructs missing. | Reconstruction has always been pretraining. |
+| 10 | PainterStitched | static-svg | §10 | Stitched I/O image; diagonal mask; masked-image-modeling fills it in. | Output stopped being a different *kind* of thing than input. |
+| 11 | DIFTCorrespondence | static-svg | §12 | Two images of same object in different poses; matched correspondence pairs colored; arrow back into diffusion features. | A denoising model learns what's the same across images, no labels. |
+| 12 | VisionBananaSynthesis | static-svg | §14 | Horizontal lineage timeline (MAE → Painter → SegGPT → DIFT → NBP → Vision Banana) with arrows converging. | Nothing here is a leap. Five years of small steps. |
+| 13 | TrilogyMeta | static-svg | §16 | Three rows — Post 1 / Post 2 / Post 3 — with the same input flowing through three different spinal cords. | The same image has three valid spinal cords, depending on the year. |
+
+13 figures total. **All static-svg.** None of the four interactive override clauses fires (no continuous parameter sweep that aids intuition; no animated time evolution; no drag-based spatial reasoning; no toggle that needs more than a 3-panel side-by-side). The post can ship as 100% static SVG.
+
+### Throughline-thread audit
+
+Per `narrative-template.md` rhythm — each act opens with a throughline reference, runs the mechanism, closes with what the throughline now looks like differently:
+
+- **Act 1 opens** with "the trilogy state at end of post 2" (§1) and lands at "here are the columns SAM 3 and the depth/normals specialists each occupy" (§3 names the columns). **Closes** with the question: "what does the column look like if we replace the encoder with a generator?"
+- **Act 2 opens** by answering the column-by-column question: VB scores 0.699 / 0.929 / 0.882 / 15.549 across the four columns (§§4–7 explain *how*; §8 lays out *the chart*). **Closes** with the honest framing: VB wins or rivals across the spread; deltas are modest.
+- **Act 3 opens** with "why a generator was the candidate" — backing into the lineage (§§9–14). **Closes** with what the paper does *not* prove (§15) and what the trilogy collectively argues (§16). Final coda returns to "where the softmax sits" — the question that has been threading the whole trilogy.
+
+Throughline references appear in §1, §3, §5, §6, §7, §8, §15. Every act carries it. Gate 1 should not flag throughline-thread holes.
+
+### Section-connection audit (one-line "Reader can now" per section)
+
+```
+§1  → Reader can now: see the trilogy's state and the question post 3 is answering.
+§2  → Reader can now: distinguish discriminative read-off from generative paint as the paradigm choice.
+§3  → Reader can now: name the dedicated specialists VB will be compared against and locate them on the benchmark tables.
+§4  → Reader can now: see Vision Banana's architecture: NBP substrate + thin instruction-tune layer + very-low mix ratio.
+§5  → Reader can now: predict what segmentation output looks like (RGB image where pixel colors encode class).
+§6  → Reader can now: predict what depth output looks like (power-transformed false-color along RGB cube edges).
+§7  → Reader can now: predict what surface-normal output looks like (xyz mapped directly to RGB).
+§8  → Reader can now: read the four benchmark tables and see where VB wins, rivals, or trails.
+§9  → Reader can now: place MAE in the lineage (reconstruction = pretraining, 2021).
+§10 → Reader can now: see Painter's contribution (output space as image).
+§11 → Reader can now: see SegGPT's contribution (in-context coloring as the specific reframe for segmentation).
+§12 → Reader can now: see DIFT's contribution (generators contain features, no supervision needed).
+§13 → Reader can now: see Nano Banana Pro's role as the production substrate (2025).
+§14 → Reader can now: trace the full arc from MAE to Vision Banana.
+§15 → Reader can now: list what the paper does NOT prove and why the deltas, while real, are modest.
+§16 → Reader can now: state the trilogy's collective thesis about where the softmax sits.
+```
+
+Every "Reader can now" chains forward without a gap. Gate 1 should not flag missing rungs.
+
 ## Codex research review
 
 **Run 1 — 2026-05-02.** Findings: 7 STRUCTURAL, 2 COSMETIC. Full transcript: [notes/generative-vision-stack-codex-research-20260502.md](generative-vision-stack-codex-research-20260502.md).
@@ -322,7 +408,7 @@ Last touched: 2026-05-02.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` (this file) + project memory |
 | 2. Research / fact-check | done (Gate 0 passed cosmetic-only on run 3 of 3) | `## Research notes`, `## Claim-source matrix`, `## Codex research review` |
-| 3. Outline + figure list | pending | `## Outline` |
+| 3. Outline + figure list | done (Gate 1 next) | `## Outline` (above), figure summary table, throughline-thread audit, section-connection audit |
 | 4. Draft prose | pending | `src/content/blog/generative-vision-stack/index.mdx` |
 | 5. Implement figures | pending | per-figure table below (populated end of Phase 3) |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -338,7 +424,21 @@ Last touched: 2026-05-02.
 
 ### Phase 5 figure progress
 
-*(populated at end of Phase 3 once figure list is locked)*
+| # | Figure | Type | Status | Commit |
+|---|---|---|---|---|
+| 1 | TrilogyState | static-svg | TODO | — |
+| 2 | ParadigmFlip | static-svg | TODO | — |
+| 3 | SpecialistLineup | static-svg | TODO | — |
+| 4 | VisionBananaArch | static-svg | TODO | — |
+| 5 | SegmentationAsColoring | static-svg | TODO | — |
+| 6 | DepthAsFalseColor | static-svg | TODO | — |
+| 7 | NormalsAsXYZ | static-svg | TODO | — |
+| 8 | BenchmarkSpread | static-svg | TODO | — |
+| 9 | MAEDiagram | static-svg | TODO | — |
+| 10 | PainterStitched | static-svg | TODO | — |
+| 11 | DIFTCorrespondence | static-svg | TODO | — |
+| 12 | VisionBananaSynthesis | static-svg | TODO | — |
+| 13 | TrilogyMeta | static-svg | TODO | — |
 
 ### Suggested next batch
 
