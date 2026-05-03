@@ -194,7 +194,83 @@ For surface normals, [Marigold](https://arxiv.org/abs/2505.09358), [StableNormal
 
 Each of these baselines is a recent, dedicated, well-understood specialist in its column. Each was trained on a per-task pipeline. And each one emits a different output format: SAM 3 returns binary mask grids; Depth Pro returns float depth maps; DSINE returns float normal vectors. None of them returns the same kind of object as any of the others.
 
-{/* TODO: Fig 2 (SpecialistLineup) - five task-family columns across top with one or two representative specialists each, each with its output-format icon (mask grid for SAM 3, float depth for Depth Pro, float vector field for DSINE, etc.). Below them, a downward arrow to a single Vision Banana box that emits one output format (RGB image) for all five families. */}
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="sl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="20" y="18" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">FIVE TASK FAMILIES, FIVE OUTPUT SHAPES</text>
+
+<rect x="20" y="35" width="120" height="100" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="80" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">SAM 3</text>
+<text x="80" y="66" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">semantic seg</text>
+<g transform="translate(36,75)">
+<rect x="0" y="0" width="68" height="44" fill="#F4EEE3"/>
+<rect x="0" y="0" width="34" height="22" fill="#1A1A1A"/>
+<rect x="34" y="0" width="34" height="22" fill="#F4EEE3"/>
+<rect x="0" y="22" width="34" height="22" fill="#F4EEE3"/>
+<rect x="34" y="22" width="34" height="22" fill="#1A1A1A"/>
+</g>
+<text x="80" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">binary masks</text>
+
+<rect x="150" y="35" width="120" height="100" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="210" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">DINO-X</text>
+<text x="210" y="66" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">instance seg</text>
+<g transform="translate(166,75)" font-family="JetBrains Mono" font-size="8">
+<rect x="0" y="0" width="68" height="44" fill="#F4EEE3"/>
+<rect x="6" y="6" width="20" height="14" fill="none" stroke="#2563EB" stroke-width="1"/><text x="16" y="16" text-anchor="middle" fill="#2563EB">1</text>
+<rect x="32" y="6" width="20" height="14" fill="none" stroke="#B8651A" stroke-width="1"/><text x="42" y="16" text-anchor="middle" fill="#B8651A">2</text>
+<rect x="14" y="24" width="22" height="14" fill="none" stroke="#059669" stroke-width="1"/><text x="25" y="34" text-anchor="middle" fill="#059669">3</text>
+<rect x="40" y="22" width="22" height="14" fill="none" stroke="#9333EA" stroke-width="1"/><text x="51" y="32" text-anchor="middle" fill="#9333EA">4</text>
+</g>
+<text x="210" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">id-tagged boxes</text>
+
+<rect x="280" y="35" width="120" height="100" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="340" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">HybridGL</text>
+<text x="340" y="66" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">referring-expr seg</text>
+<g transform="translate(296,75)">
+<rect x="0" y="0" width="68" height="44" fill="#F4EEE3"/>
+<text x="34" y="13" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#6B6258">"the red car"</text>
+<rect x="20" y="20" width="30" height="18" fill="#B91C1C" opacity=".5" stroke="#B91C1C" stroke-width="1"/>
+</g>
+<text x="340" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">prompt + mask</text>
+
+<rect x="410" y="35" width="120" height="100" fill="#D1FAE5" stroke="#15803D" stroke-width="1.2"/>
+<text x="470" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#15803D">UniK3D</text>
+<text x="470" y="66" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">monocular depth</text>
+<g transform="translate(426,75)" font-family="JetBrains Mono" font-size="7">
+<rect x="0" y="0" width="68" height="44" fill="#F4EEE3"/>
+<text x="6" y="11" fill="#1A1A1A">3.4</text><text x="24" y="11" fill="#1A1A1A">2.1</text><text x="42" y="11" fill="#1A1A1A">1.8</text><text x="58" y="11" fill="#1A1A1A">9.2</text>
+<text x="6" y="22" fill="#1A1A1A">2.7</text><text x="24" y="22" fill="#1A1A1A">2.4</text><text x="42" y="22" fill="#1A1A1A">3.1</text><text x="58" y="22" fill="#1A1A1A">7.5</text>
+<text x="6" y="33" fill="#1A1A1A">1.5</text><text x="24" y="33" fill="#1A1A1A">1.6</text><text x="42" y="33" fill="#1A1A1A">2.0</text><text x="58" y="33" fill="#1A1A1A">8.1</text>
+</g>
+<text x="470" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">float depth grid</text>
+
+<rect x="540" y="35" width="120" height="100" fill="#EDE0FC" stroke="#9333EA" stroke-width="1.2"/>
+<text x="600" y="52" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#9333EA">Lotus-2</text>
+<text x="600" y="66" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">surface normals</text>
+<g transform="translate(556,75)" font-family="JetBrains Mono" font-size="6.5">
+<rect x="0" y="0" width="68" height="44" fill="#F4EEE3"/>
+<text x="2" y="9" fill="#1A1A1A">x:.7 y:.1 z:.7</text>
+<text x="2" y="20" fill="#1A1A1A">x:.5 y:.0 z:.9</text>
+<text x="2" y="31" fill="#1A1A1A">x:.0 y:1. z:.0</text>
+<text x="2" y="42" fill="#1A1A1A">x:-.5 y:.5 z:.7</text>
+</g>
+<text x="600" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">xyz vector grid</text>
+
+<line x1="80" y1="155" x2="340" y2="220" stroke="#8F8578" marker-end="url(#sl-arrow)"/>
+<line x1="210" y1="155" x2="340" y2="220" stroke="#8F8578" marker-end="url(#sl-arrow)"/>
+<line x1="340" y1="155" x2="340" y2="215" stroke="#8F8578" marker-end="url(#sl-arrow)"/>
+<line x1="470" y1="155" x2="340" y2="220" stroke="#8F8578" marker-end="url(#sl-arrow)"/>
+<line x1="600" y1="155" x2="340" y2="220" stroke="#8F8578" marker-end="url(#sl-arrow)"/>
+
+<rect x="220" y="225" width="240" height="80" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="340" y="252" text-anchor="middle" font-family="serif" font-size="15" font-weight="700" fill="#F4EEE3">Vision Banana</text>
+<text x="340" y="270" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#B8651A">one model, one output format</text>
+<rect x="270" y="278" width="140" height="20" fill="#FBE9CE" opacity=".4" stroke="#B8651A" stroke-width="0.5"/>
+<text x="340" y="292" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#FBE9CE">RGB image (always)</text>
+</svg>
+<figcaption><strong>Fig 2.</strong> The five task families Vision Banana evaluates on, each with one representative recent specialist and the output format that specialist emits. Five different output shapes across the row. Vision Banana's claim is that one shape, an RGB image, can replace the row by being whatever the prompt declares it to be.</figcaption>
+</figure>
 
 That's the failure mode of the lineup. It is not that any single specialist is bad at its job; each is, by today's standards, very good. It's that wiring them together, or maintaining six of them in parallel, costs more than wiring or maintaining one. A modern computer-vision pipeline that wants depth and segmentation and normals is integrating three different model families with three different output contracts. Every per-model integration is a piece of glue code, a piece of inference infrastructure, and a piece of training-pipeline maintenance the team has to keep alive.
 
