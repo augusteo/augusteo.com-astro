@@ -308,7 +308,7 @@ A two-or-three-sentence ending. No "in summary." Borrowed shape from posts 1 and
 | # | Figure | Type | Section(s) | Mechanism | Reader notices |
 |---|---|---|---|---|---|
 | 1 | ParadigmFlip | static-svg | §2 | Discriminative top half vs generative bottom half; same input → same output via different middle. | The model's *output* stops being integers from a head and becomes pixels read by a lookup. |
-| 2 | SpecialistLineup | static-svg | §3 | Six specialist boxes (different output formats: mask grid, float grid, etc.); arrow down to one VB box that emits a single output format (RGB image) for all six tasks. | Today's specialists each have a different output shape; VB's claim is "one shape (RGB image) for all six columns." |
+| 2 | SpecialistLineup | static-svg | §3 | Five task-family columns (referring/semantic/instance segmentation + depth + normals); each column shows one or two representative specialist baselines with their output-format icons; arrow down to a single Vision Banana box that emits one output format (RGB image) for all five families. | Today's specialists each have a different output-format shape; VB's claim is "one shape (RGB image) for all five families' columns." |
 | 3 | VisionBananaArch | static-svg | §4 | NBP substrate (deployed via Gemini app / API / Vertex AI) + thin instruction-tune layer + tiny vision-task slice in the training mix. | The tune is light; if §8's spread holds, the substrate is pulling most of the weight. |
 | 4 | SegmentationAsColoring | static-svg | §5, §11 (callback) | JSON prompt → input image → RGB-painted output → decode lookup → mask. | Mask = image; class labels = colors; decode = lookup. |
 | 5 | DepthAsFalseColor | static-svg | §6 | Power-transform curve λ=−3 → RGB cube edge path → false-color depth image. | A "depth map" is a carefully chosen colormap baked into image output. |
@@ -317,7 +317,7 @@ A two-or-three-sentence ending. No "in summary." Borrowed shape from posts 1 and
 | 8 | MAEDiagram | static-svg | §9 | Image → masked patches → encoder over visible → decoder reconstructs missing. | Reconstruction is the pretraining objective. The output is an image. |
 | 9 | PainterStitched | static-svg | §10 | Stitched I/O image; diagonal mask; masked-image-modeling fills it in. | Output stopped being a different *kind* of thing than input. |
 | 10 | DIFTCorrespondence | static-svg | §12 | Two images of same object in different poses; matched correspondence pairs colored; arrow back into diffusion intermediate features. | A denoising model learns what's the same across images, no labels. |
-| 11 | VisionBananaSynthesis | static-svg | §13 | Five contribution arrows from lineage papers, each terminating at a *specific* VB component (substrate / segmentation prompt / depth colormap / normals xyz mapping / etc.). | Each predecessor ships a specific mechanism; VB is the reuse. |
+| 11 | VisionBananaSynthesis | static-svg | §13 | Five contribution arrows from lineage papers, labeled with the *mechanism each predecessor contributes* (MAE: reconstruction objective; Painter: outputs can be images; SegGPT: random color mapping per sample; DIFT: dense-feature intuition; NBP: production-scale substrate). The arrows converge into a Vision Banana "methods layer" box; the box itself owns the per-task encodings (depth false-color, normals xyz→RGB) — those are VB's choices, not predecessor outputs. | Each predecessor contributes a mechanism; the cumulative stack plus VB's own methods choices is the recipe. |
 | 12 | TrilogyMeta | static-svg | §15 | Three rows — Post 1 / Post 2 / Post 3 — with the same input flowing through three different spinal cords. | The same image has three valid spinal cords, depending on the year. |
 
 12 figures total (down from 13 — Gate 1 finding #16 cut the original Fig 1 TrilogyState as cosmetic; finding #12 merged §13 NBP into §13 synthesis). **All static-svg.** None of the four interactive override clauses fires (no continuous parameter sweep that aids intuition; no animated time evolution; no drag-based spatial reasoning; no toggle that needs more than a 3-panel side-by-side). The post can ship as 100% static SVG.
@@ -326,7 +326,7 @@ A two-or-three-sentence ending. No "in summary." Borrowed shape from posts 1 and
 
 Per `narrative-template.md` rhythm — each act opens with a throughline reference, runs the mechanism, closes with what the throughline now looks like differently:
 
-- **Act 1 opens** with "the trilogy state at end of post 2" (§1, with explicit links back to posts 1 and 2) and lands at "here are the columns SAM 3 and the depth/normals specialists each occupy, and here is the failure mode of that lineup — six APIs, six output formats" (§3). **Closes** with: "the implicit promise of any generalist is to collapse all six into one output format. What if RGB image is that format?"
+- **Act 1 opens** with "the trilogy state at end of post 2" (§1, with explicit links back to posts 1 and 2) and lands at "here are the five task-family columns the specialists each occupy, and here is the failure mode of that lineup — multiple APIs, multiple output formats, multiple training pipelines" (§3). **Closes** with: "the implicit promise of any generalist is to collapse all of those down into one output format. What if RGB image is that format?"
 - **Act 2 opens** by answering the column-by-column question: VB scores 0.699 / 0.929 / 0.882 / 15.549 across the four columns (§§4–7 explain *how*; §8 lays out *the chart*). **Closes** with the honest framing AND the hinge to Act 3: VB wins or rivals across the spread, deltas are modest, and the paper publishes no random-init ablation — so what's loaded into the substrate that makes this possible? (§8 last paragraph hands off explicitly to Act 3.)
 - **Act 3 opens** by answering: trace the substrate's load through the lineage (§§9–13), with each rung tied back to a specific column of §8's spread — MAE establishes "reconstruction is the pretraining objective"; Painter establishes "output is RGB" (Cityscapes column); SegGPT adds the random-color mechanism (Cityscapes prompt-coloring); DIFT adds dense-correspondence-from-features (depth + normals columns); NBP adds production-scale substrate (the deployed generator VB instruction-tunes from). §13's synthesis figure (Fig 11) ties each predecessor to the *specific Vision Banana component* it lands in. **Closes** with what the paper does *not* prove (§14) and what the trilogy collectively argues (§15). Final coda returns to the read-off mechanic — the integers come from a lookup at the end now, not from a softmax in the middle.
 
@@ -337,7 +337,7 @@ Throughline references appear in §1, §3, §5, §6, §7, §8, §9 (closing), §
 ```
 §1  → Reader can now: see the trilogy's state at end of post 2 (encoder front, decoder back) and the question post 3 is answering.
 §2  → Reader can now: distinguish discriminative read-off (head softmax) from generative paint + decode-lookup as the paradigm choice.
-§3  → Reader can now: name the recent specialists VB compares against and identify the failure mode of the lineup (six output formats; one VB output format).
+§3  → Reader can now: name the five task families and the representative specialist baselines VB compares against; identify the failure mode of the lineup (multiple output formats across the families) vs Vision Banana's one output format.
 §4  → Reader can now: see Vision Banana's architecture: NBP substrate + thin instruction-tune layer + very-low vision-task mix ratio; understand "most of the way there" as inference, not sourced.
 §5  → Reader can now: predict what segmentation output looks like (RGB image where pixel colors encode class) and connect it to the 0.699 mIoU.
 §6  → Reader can now: predict what depth output looks like (power-transformed false-color along RGB cube edges) and connect it to the 0.882 / 0.929 numbers.
@@ -407,7 +407,7 @@ Last touched: 2026-05-02.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` (this file) + project memory |
 | 2. Research / fact-check | done (Gate 0 passed cosmetic-only on run 3 of 3) | `## Research notes`, `## Claim-source matrix`, `## Codex research review` |
-| 3. Outline + figure list | done (Gate 1 next) | `## Outline` (above), figure summary table, throughline-thread audit, section-connection audit |
+| 3. Outline + figure list | done (Gate 1 passed cosmetic-only on run 3 of 3) | `## Outline` (above), figure summary table, throughline-thread audit, section-connection audit |
 | 4. Draft prose | pending | `src/content/blog/generative-vision-stack/index.mdx` |
 | 5. Implement figures | pending | per-figure table below (populated end of Phase 3) |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -421,7 +421,8 @@ Last touched: 2026-05-02.
 | 2026-05-02 | 0 (research) — run 2 | structural-fixes-applied (5 of 5 STRUCTURAL accepted, including retraction of run-1 finding #1 override; 1 COSMETIC accepted). | `## Codex research review` Run 2 section in this file |
 | 2026-05-02 | 0 (research) — run 3 | **GATE 0 PASSES (cosmetic-only)**. Codex explicitly confirmed the matrix is sound; 2 STRUCTURAL findings on stale non-matrix text (Sub-topic C implication paragraph + Source-primacy correction overcorrection) + 2 COSMETIC (stale Phase-2 flag + DAv2 starter-source label). All four applied as editorial cleanup. | `## Codex research review` Run 3 section in this file |
 | 2026-05-02 | 1 (outline) — run 1 | structural-fixes-applied (16 of 16 STRUCTURAL accepted; 0 TYPE-CHANGE; 0 COSMETIC). | [notes/generative-vision-stack-codex-outline-20260502.md](generative-vision-stack-codex-outline-20260502.md) |
-| 2026-05-02 | 1 (outline) — run 2 | structural-fixes-applied (5 of 5 STRUCTURAL accepted; 1 COSMETIC accepted). Findings: §4 substrate-inference overclaim hedged to "the paper's hypothesis"; §3 / Fig 2 unit-count fixed (5 task families with named representative specialists per family); §11 RefCOCOg-specific claim removed; §12 DIFT framed as intuition-not-evidence; §13 lineage→component map made cumulative-not-mechanical; "Normals MAE" disambiguated. Gate-runner re-run pending (invocation 3 of 3). | `## Codex research review` Run 4 / Gate 1 run 2 section in this file (transcript at `/Users/vic/.claude/projects/-Users-vic-dev-augusteo-com-astro/2afdff51-5714-43ca-9eee-9080739a2dae/tool-results/bjlz8gz0c.txt`) |
+| 2026-05-02 | 1 (outline) — run 2 | structural-fixes-applied (5 of 5 STRUCTURAL accepted; 1 COSMETIC accepted). | (transcript at `/Users/vic/.claude/projects/-Users-vic-dev-augusteo-com-astro/2afdff51-5714-43ca-9eee-9080739a2dae/tool-results/bjlz8gz0c.txt`) |
+| 2026-05-02 | 1 (outline) — run 3 | **GATE 1 PASSES (cosmetic-only on the gate-runner cap)**. Codex returned 2 findings labeled STRUCTURAL but they were residual editorial inconsistencies from prior runs (a few "six tasks" / "six columns" mentions in figure-summary + audit-line text that hadn't been propagated when §3 was rewritten to "five task families"; Fig 11 caption still mapped specific VB encodings to predecessors). Codex also explicitly source-checked and confirmed: the embedded benchmark numbers still match the primary Vision Banana paper / project page; the five-family framing is consistent with the paper. Both findings applied as text-consistency cleanup. Same pattern as Gate 0 run 3: codex catches stale text after a structural rewrite, the cleanup is text-only (not claim-changing), gate closes. | (transcript at `/Users/vic/.claude/projects/-Users-vic-dev-augusteo-com-astro/2afdff51-5714-43ca-9eee-9080739a2dae/tool-results/bzqzq0o15.txt`) |
 
 ### Phase 5 figure progress
 
@@ -442,10 +443,11 @@ Last touched: 2026-05-02.
 
 ### Suggested next batch
 
-1. Phase 3: draft `## Outline` — three-act section structure, numbered figures, throughline-thread check (per `narrative-template.md` and `figure-recipes.md`).
-2. Per-figure type lock: default 100% static-svg; only override on the four-clause rule.
-3. Run Gate 1 (outline + figure list structural pass via codex consult).
-4. Resolve any STRUCTURAL findings; advance to Phase 4 drafting.
+1. Phase 4: draft prose section by section. Create `src/content/blog/generative-vision-stack/index.mdx` with frontmatter (`title`, `description`, `pubDate`, `tags`, `featured: false`, `draft: false`, `essay: true`, `heroAlt: "TODO: hero image not yet selected"` placeholder). Omit `heroImage`; Phase 7 adds it.
+2. Draft each numbered section per the outline: state the claim → figure placeholder → tell reader what to notice → mechanism → handoff. Apply voice rules during drafting; run `scripts/voice-check.sh` after each section.
+3. After each section, write the `{/* Reader can now: ... */}` HTML comment.
+4. Hyperlink inline named-source mentions (per Phase 4 rule); end the post with a `## References` section transcribing every primary source from the matrix.
+5. Commit per section.
 
 ### How to resume from a fresh context
 
