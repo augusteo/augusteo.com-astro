@@ -1,0 +1,74 @@
+---
+title: "The Generative Vision Stack"
+description: "How the April 2026 Vision Banana paper inverts the discriminative pipeline by putting an image generator at the center and reading perception out as RGB images. Third in a series with Unified Vision Stack and Omni-Modal Stack."
+pubDate: 2026-05-02
+heroAlt: "TODO: hero image not yet selected"
+tags: ["AI", "ML"]
+featured: false
+draft: false
+essay: true
+---
+
+*A sequel to [The Unified Vision Stack](/blog/unified-vision-stack) and [The Unified Multimodal Stack](/blog/omni-modal-stack). Picks up where the previous two posts left off and asks one question: what if the pretraining objective that gives you the best vision representations is not discriminative at all, but generation? Worked example throughout: Google DeepMind's [Vision Banana paper](https://arxiv.org/abs/2604.20329) (April 2026), which instruction-tunes Nano Banana Pro into a generalist that rivals or beats dedicated specialists on five vision-task families. About a 40-minute read.*
+
+### 1. Where the trilogy left off
+
+The first two posts in this series each closed on a piece of the same picture. [Post 1](/blog/unified-vision-stack) ended at C-RADIOv4: a single vision backbone trained from three teachers, producing dense features that could be read off by classification, segmentation, depth, or text-alignment heads. The encoder was the spinal cord; the heads were the lookup. [Post 2](/blog/omni-modal-stack) plugged that backbone into a four-modality agent: text decoder at the center, modality-specific encoders feeding it, token-budget tricks at the back to keep inference affordable. The decoder turned everything into language.
+
+Both posts assumed the same shape. Image enters the front. Some encoder reads it. Some head, or some decoder, reads the encoder. The integers come out at the back of a softmax.
+
+Vision Banana, the paper this post is about, asks what happens if you do the opposite. Put an image generator at the center. Train it on the usual generator's job (paint pictures from prompts). Then, at inference time, ask the same generator to paint perception. "Show me a segmentation mask for this street scene, where cars are red, sidewalks are blue, and sky is yellow." The model paints an RGB image. A short hash-table lookup at the very end converts each pixel's color back to a class label. The integers still come out at the back of the system. They just stop being the output of a softmax and start being the output of a `dict[(r, g, b)] -> class` lookup over the model's painted pixels.
+
+The numerical evidence is on Vision Banana's own zero-shot benchmark tables. On the Cityscapes mIoU column of paper Table 2(a), [SAM 3](https://arxiv.org/abs/2511.16719) (Meta's most recent prompt-based segmentation foundation model, released November 2025) scores **0.652**. Vision Banana scores **0.699**, edging SAM 3 by 4.7 points. The non-zero-shot ceiling SegMan-L (in-domain training, included in the same chart for context) sits at **0.842**, well above either.
+
+That column, and the depth and surface-normal columns next to it, are the throughline. We'll come back to them in every act.
+
+{/* Reader can now: see the trilogy's state at end of post 2 (encoder front, decoder back) and the question post 3 is answering. */}
+
+## Act 1 — The puzzle
+
+*Where the discriminative line ends and what a generator might do instead.*
+
+### 2. Two ways to read what's in an image
+
+The standard recipe for "read what's in this image and tell me at the pixel level" has been the same since the rise of the Vision Transformer. Hand the image to an encoder. The encoder produces a feature map, one feature vector per spatial patch. Hand the feature map to a small head: a linear layer for classification, a transposed-convolution stack for segmentation, a tiny MLP for depth. The head's output is a grid of integers (or floats), one per pixel. The integers come from the head's softmax (or the head's regression target).
+
+What changes when you swap the encoder for a generator is the shape of the model's *output*. Instead of "image in, integers out," it's "image plus prompt in, image out." The decode step at the very end is what turns the painted pixels back into the integers the downstream task wanted. A class label is a hash-table lookup against the prompt's color spec; a depth value is a sample from a known false-color colormap; a normal vector is the (R, G, B) triple at that pixel, scaled to a unit sphere.
+
+{/* TODO: Fig 1 (ParadigmFlip) - top half: discriminative pipeline (image -> encoder -> head -> mask integers via head softmax). Bottom half: generative pipeline (image + prompt JSON -> generator -> RGB output -> per-pixel decode lookup -> mask integers). Same input, same output, different middle. */}
+
+The decisive move is which side of the system the lookup sits on. In a discriminator, the model emits the labels and the downstream code accepts them as is. In Vision Banana, the model emits a picture and the downstream code, which the user controls via the prompt, decides what each color means. The prompt is the lookup table.
+
+This sounds like a small change. Three downstream consequences make it not.
+
+The first is interface uniformity. Specialists, today, each emit a different shape: SAM 3's output is a grid of binary masks; [Depth Pro](https://arxiv.org/abs/2410.02073) emits a grid of floats; [DSINE](https://arxiv.org/abs/2403.00712) emits a grid of three-vectors. A pipeline that wants to use all three has to integrate three formats and three serving stacks. A pipeline built on Vision Banana integrates one: one model, one input contract, one output format (an RGB image). Whatever the downstream code is doing with the colors lives outside the model.
+
+The second is class-set flexibility. A discriminator's head is fixed at training time. A SAM 3 mask doesn't natively carry "car / sidewalk / sky / pedestrian"; it carries whatever its training labels said. Vision Banana's class set is a JSON prompt at inference time: `{"car": "red", "sidewalk": "blue", ...}`. The same checkpoint, swap the prompt, get a different class set. We'll see in §11 the specific 2023 trick that made this work (random color mapping per training sample); for now, treat it as a property of the system.
+
+The third is the question this post is really about. If the model can paint segmentation masks, depth maps, and surface-normal fields all as RGB images, and if the same model can hold up against the dedicated specialists on each of those benchmarks, then the encoder-plus-head template is not the only way to build a generalist vision backbone. Maybe the generator was the generalist all along.
+
+That's the question. The next sections name the specialists.
+
+{/* Reader can now: distinguish discriminative read-off (head softmax) from generative paint + decode-lookup as the paradigm choice. */}
+
+### 3. The dedicated specialists
+
+Vision Banana evaluates on five task families per the paper's experiments section: 2D understanding, broken into referring-expression segmentation, semantic segmentation, and instance segmentation; 3D understanding, broken into monocular metric depth and surface-normal estimation. Each task family has one or two recent specialist baselines that Vision Banana compares against on the corresponding benchmark.
+
+For semantic segmentation, the canonical baseline is SAM 3 (released November 2025). SAM 3 is concept-prompted: the user supplies a short noun phrase (or an image exemplar) and the model returns a binary mask for everything in the image matching the prompt. The paper's stated headline is that SAM 3 doubles the accuracy of prior systems on prompt-based concept segmentation.
+
+For instance segmentation, the comparison list includes DINO-X, OWLv2, and Gemini 2.5 (all recent open-vocabulary detectors). For referring-expression segmentation, HybridGL and SAM 3 paired with Gemini 2.5 Pro.
+
+For monocular metric depth, the list runs Depth Pro (Apple, October 2024), [MoGe-2](https://arxiv.org/abs/2507.02546) (Microsoft, July 2025), and [UniK3D](https://arxiv.org/abs/2503.16591) (ETH and Politecnico di Milano, March 2025). [Depth Anything 3](https://arxiv.org/abs/2511.10647) (also November 2025) gets a separate comparison in paper Table 3.
+
+For surface normals, [Marigold](https://arxiv.org/abs/2505.09358), [StableNormal](https://arxiv.org/abs/2406.16864), DSINE, and Lotus-2.
+
+Each of these baselines is a recent, dedicated, well-understood specialist in its column. Each was trained on a per-task pipeline. And each one emits a different output format: SAM 3 returns binary mask grids; Depth Pro returns float depth maps; DSINE returns float normal vectors. None of them returns the same kind of object as any of the others.
+
+{/* TODO: Fig 2 (SpecialistLineup) - five task-family columns across top with one or two representative specialists each, each with its output-format icon (mask grid for SAM 3, float depth for Depth Pro, float vector field for DSINE, etc.). Below them, a downward arrow to a single Vision Banana box that emits one output format (RGB image) for all five families. */}
+
+That's the failure mode of the lineup. It is not that any single specialist is bad at its job; each is, by today's standards, very good. It's that wiring them together, or maintaining six of them in parallel, costs more than wiring or maintaining one. A modern computer-vision pipeline that wants depth and segmentation and normals is integrating three different model families with three different output contracts. Every per-model integration is a piece of glue code, a piece of inference infrastructure, and a piece of training-pipeline maintenance the team has to keep alive.
+
+The implicit promise of any "generalist vision model" is to collapse all of those down into one model with one output format and one training pipeline. Vision Banana's claim is that the format that does the collapsing is RGB.
+
+{/* Reader can now: name the five task families and the representative specialist baselines VB compares against; identify the failure mode of the lineup (multiple output formats across the families) vs Vision Banana's one output format. */}
