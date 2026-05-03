@@ -172,3 +172,45 @@ The honest framing is "rivals or beats specialists," not "crushes them." Posts t
 The spread holds up. But the paper publishes no random-initialization ablation. There is no controlled experiment showing that the same instruction-tuning recipe applied to a non-pretrained generator produces inferior numbers. So the question Act 3 has to answer is the obvious one: why would a model trained only to paint pictures already have the representations needed for dense prediction, before any vision-task tuning kicks in? The paper's hypothesis is that image-generation pretraining gives a substrate already-suitable for perception. Act 3 traces the five-year arc that made that hypothesis plausible enough to test.
 
 {/* Reader can now: read the four benchmark tables, see where VB wins / rivals / trails, AND see the hinge question: why would a generator already have these representations? */}
+
+## Act 3 — Why it works
+
+*The five-year arc that made image-generation pretraining a candidate for the substrate of perception.*
+
+### 9. MAE (2021): reconstruction as pretraining
+
+The starting rung of the arc is [Masked Autoencoders Are Scalable Vision Learners](https://arxiv.org/abs/2111.06377), the November 2021 paper from Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and Ross Girshick. The recipe: take a Vision Transformer, mask a high fraction of its input patches (75% in the original), train an asymmetric encoder–decoder to reconstruct the missing pixels. The asymmetry is part of the trick. The encoder sees only the visible 25%; the decoder, much smaller than the encoder, sees the visible patch tokens plus learnable mask tokens for the gaps and predicts pixel values for the masked positions.
+
+The paper's own framing: "We mask random patches of the input image and reconstruct the missing pixels…an asymmetric encoder-decoder design that is key to the method…accelerate training (by 3x or more) and improve accuracy."
+
+Two things make this rung load-bearing for the rest of the story.
+
+The first is the objective. MAE's pretraining loss is, mechanically, image reconstruction. The model is rewarded for producing pixel values that match the held-out patches. This was sometimes presented as "self-supervised learning" (a label that emphasizes the absence of human-supplied class labels) and sometimes as "masked image modeling" (a label that emphasizes the borrowed BERT-style masking). The honest description is that MAE is trained to *generate* the missing parts of an image, conditioned on the visible parts. Whether you call that self-supervised or generative is a matter of which side of the room you're standing on.
+
+The second is the result. MAE pretraining produced encoders whose features were strong enough to fine-tune on classification, segmentation, and detection benchmarks at the time, often outperforming contrastive-pretrained encoders of the same size. Pretraining on reconstruction, in other words, was not in tension with downstream perception; it might even have been better for it.
+
+{/* TODO: Fig 8 (MAEDiagram) - standard MAE schematic: image with random patches masked (gray rectangles); encoder sees visible patches only; decoder sees visible-patch tokens plus learnable mask tokens; decoder reconstructs full image (RGB pixels at the masked positions). Mirrors the DINOv3 figure shape from post 1 for visual continuity. */}
+
+What MAE did not tell us, as of 2021, was what happens at the *output side*. The pretraining objective was reconstruction, and the downstream evaluation was on encoder features (with task-specific heads attached after pretraining was done). The path from "reconstruction is the pretraining" to "the reconstructed image itself is useful for perception" is what the next two papers, Painter and SegGPT, build over the next eighteen months.
+
+What's worth pointing out before moving on: Kaiming He and Saining Xie are co-authors on MAE in 2021, and they are co-authors on Vision Banana in 2026. Two of the twenty-five names on the Vision Banana author list are the same names that put MAE on arxiv five years earlier. The arc this section traces is not a coincidence. It's a research program that has been pushing on the same set of ideas for half a decade.
+
+{/* Reader can now: place MAE in the lineage (reconstruction objective + asymmetric encoder–decoder + 3× speedup); see that the same authors who did MAE are on Vision Banana. */}
+
+### 10. Painter (2022): output space as image
+
+A year later, Xinlong Wang and colleagues at Beijing Academy of Artificial Intelligence published [Painter](https://arxiv.org/abs/2212.02499). Painter is the rung where the *output* of every vision task becomes an image, full stop, with no per-task head retrofitted on the back.
+
+The paper's own description: "We propose Painter, a generalist vision model by redefining the output of core vision tasks as images…Our training process is extremely simple, which performs standard masked image modeling on the stitch of input and output image pairs."
+
+The "stitch" idea is what makes the recipe work. Take an input image and its output for some task (a segmentation mask drawn as colors, a depth map drawn as a colormap, an edge map drawn as black lines on white). Stitch the two side by side into a single wider image. Apply the MAE-style masked-image-modeling objective to the stitch: mask random patches of the stitched image, train the encoder–decoder to reconstruct them. At training time, the masked patches are sometimes in the input half and sometimes in the output half; the model learns to fill in either. At inference time, you supply the input half plus a *blank* output half; the model fills the blank.
+
+The downstream consequence is enormous, but it took until Painter to spell out. Once the output of every task is an image, the architecture is identical across tasks: same encoder, same decoder, same loss, same training pipeline. The only thing that changes per task is the input/output stitch convention. Segmentation: input photo stitched to colored-mask. Depth: input photo stitched to depth colormap. The model doesn't need to know which task it's doing; the stitch convention encodes that for it.
+
+{/* TODO: Fig 9 (PainterStitched) - input photo (left half) stitched horizontally to its output (right half) - segmentation map drawn as colors, or depth map drawn as colormap. A diagonal mask crossing both halves shows random patches dropped. The model trained to fill in the masked pixels. */}
+
+The throughline thread runs through Painter directly. Vision Banana's segmentation column inherits Painter's contract: the output of segmentation is an image, which means a generative model can paint it, which means the same model that paints rest-of-the-world images can be repurposed for the segmentation column without changing what the model emits. The 0.699 mIoU of §5 sits downstream of "the output is an image" as a paradigm choice, and that paradigm choice is Painter's.
+
+What Painter did not, by itself, do is solve the class-flexibility problem. A Painter trained on one segmentation dataset's class palette could not, at inference, switch to a different dataset's class palette without retraining. The output-as-image contract was there; the in-context, prompt-based class-set flexibility was not. That's the next paper's contribution.
+
+{/* Reader can now: see Painter's contribution (output is an image; same architecture across tasks; the segmentation column inherits this contract). */}
