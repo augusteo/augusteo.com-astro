@@ -411,7 +411,7 @@ Last touched: 2026-05-02.
 | 4. Draft prose | pending | `src/content/blog/generative-vision-stack/index.mdx` |
 | 5. Implement figures | pending | per-figure table below (populated end of Phase 3) |
 | 6. Playwright review | pending | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + ship | **done — SHIPPED 2026-05-03** | hero image (`src/assets/blog/generative-vision-stack/hero.png`), Gate 2 closed clean, dev server verified, final commit |
 
 ### Codex history
 
@@ -431,26 +431,22 @@ Last touched: 2026-05-02.
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | ParadigmFlip | static-svg | TODO | — |
-| 2 | SpecialistLineup | static-svg | TODO | — |
-| 3 | VisionBananaArch | static-svg | TODO | — |
-| 4 | SegmentationAsColoring | static-svg | TODO | — |
-| 5 | DepthAsFalseColor | static-svg | TODO | — |
-| 6 | NormalsAsXYZ | static-svg | TODO | — |
-| 7 | BenchmarkSpread | static-svg | TODO | — |
-| 8 | MAEDiagram | static-svg | TODO | — |
-| 9 | PainterStitched | static-svg | TODO | — |
-| 10 | DIFTCorrespondence | static-svg | TODO | — |
-| 11 | VisionBananaSynthesis | static-svg | TODO | — |
-| 12 | TrilogyMeta | static-svg | TODO | — |
+| 1 | ParadigmFlip | static-svg | done | (single Phase-5 sweep) |
+| 2 | SpecialistLineup | static-svg | done | (single Phase-5 sweep) |
+| 3 | VisionBananaArch | static-svg | done | (single Phase-5 sweep) |
+| 4 | SegmentationAsColoring | static-svg | done | (single Phase-5 sweep) |
+| 5 | DepthAsFalseColor | static-svg | done | (single Phase-5 sweep) |
+| 6 | NormalsAsXYZ | static-svg | done | (single Phase-5 sweep) |
+| 7 | BenchmarkSpread | static-svg | done | (single Phase-5 sweep) |
+| 8 | MAEDiagram | static-svg | done | (single Phase-5 sweep) |
+| 9 | PainterStitched | static-svg | done | (single Phase-5 sweep) |
+| 10 | DIFTCorrespondence | static-svg | done | (single Phase-5 sweep) |
+| 11 | VisionBananaSynthesis | static-svg | done | (single Phase-5 sweep) |
+| 12 | TrilogyMeta | static-svg | done | (single Phase-5 sweep) |
 
 ### Suggested next batch
 
-1. Phase 4: draft prose section by section. Create `src/content/blog/generative-vision-stack/index.mdx` with frontmatter (`title`, `description`, `pubDate`, `tags`, `featured: false`, `draft: false`, `essay: true`, `heroAlt: "TODO: hero image not yet selected"` placeholder). Omit `heroImage`; Phase 7 adds it.
-2. Draft each numbered section per the outline: state the claim → figure placeholder → tell reader what to notice → mechanism → handoff. Apply voice rules during drafting; run `scripts/voice-check.sh` after each section.
-3. After each section, write the `{/* Reader can now: ... */}` HTML comment.
-4. Hyperlink inline named-source mentions (per Phase 4 rule); end the post with a `## References` section transcribing every primary source from the matrix.
-5. Commit per section.
+**Post is SHIPPED.** Live at `/blog/generative-vision-stack`. No next batch — the resume tracker is retained as a build record. If a future bugfix or update is needed, start by reading this file end-to-end to recover context, then make the fix and add a single-purpose commit.
 
 ### How to resume from a fresh context
 
