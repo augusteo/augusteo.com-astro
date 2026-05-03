@@ -1056,7 +1056,77 @@ Vision Banana, in 2026, glues the contributions together. Take the Nano Banana P
 
 The paper's thesis sentence: "image generation serves as a unified and universal interface for vision tasks, similar to text generation's role in language understanding and reasoning." The paper *argues* that image-generation pretraining serves a role for vision analogous to next-token pretraining for language: a substrate trained on a generative objective at sufficient scale acquires representations that downstream tasks can read off via light task-specific tuning, the same way GPT-4 reads off summarization or translation by light task tuning of a next-token-pretrained model.
 
-{/* TODO: Fig 11 (VisionBananaSynthesis) - five contribution arrows, each labeled with the *mechanism the predecessor contributes*: MAE = "reconstruction objective"; Painter = "outputs can be images / stitched-I/O training contract"; SegGPT = "random color mapping per sample"; DIFT = "intermediate features carry dense structure (intuition)"; Nano Banana Pro = "production-scale substrate." The arrows converge into a Vision Banana methods box; the methods box itself owns the per-task encodings (depth false-color, normals xyz-to-RGB), and those are VB's choices, not predecessor outputs. */}
+<figure>
+<svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="vbs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<text x="20" y="20" font-family="JetBrains Mono" font-size="10" letter-spacing="1.2" fill="#6B6258">FIVE PREDECESSORS, FIVE MECHANISMS</text>
+
+<g font-family="serif" font-size="11">
+<rect x="20" y="40" width="120" height="56" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="80" y="58" text-anchor="middle" font-weight="600" fill="#2563EB">MAE</text>
+<text x="80" y="73" text-anchor="middle" font-size="9" font-style="italic" fill="#6B6258">2021</text>
+<text x="80" y="88" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">reconstruction</text>
+
+<rect x="20" y="106" width="120" height="56" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="80" y="124" text-anchor="middle" font-weight="600" fill="#2563EB">Painter</text>
+<text x="80" y="139" text-anchor="middle" font-size="9" font-style="italic" fill="#6B6258">2022</text>
+<text x="80" y="154" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">stitched I/O</text>
+
+<rect x="20" y="172" width="120" height="56" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="80" y="190" text-anchor="middle" font-weight="600" fill="#2563EB">SegGPT</text>
+<text x="80" y="205" text-anchor="middle" font-size="9" font-style="italic" fill="#6B6258">2023</text>
+<text x="80" y="220" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">random recoloring</text>
+
+<rect x="20" y="238" width="120" height="56" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="80" y="256" text-anchor="middle" font-weight="600" fill="#2563EB">DIFT</text>
+<text x="80" y="271" text-anchor="middle" font-size="9" font-style="italic" fill="#6B6258">2023</text>
+<text x="80" y="286" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">dense-feature</text>
+<text x="80" y="296" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">intuition</text>
+
+<rect x="20" y="304" width="120" height="56" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="80" y="322" text-anchor="middle" font-weight="600" fill="#2563EB">Nano Banana Pro</text>
+<text x="80" y="337" text-anchor="middle" font-size="9" font-style="italic" fill="#6B6258">2025-11-20</text>
+<text x="80" y="352" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">production scale</text>
+</g>
+
+<line x1="145" y1="68" x2="345" y2="155" stroke="#8F8578" stroke-width="0.8" marker-end="url(#vbs-arrow)"/>
+<line x1="145" y1="134" x2="345" y2="170" stroke="#8F8578" stroke-width="0.8" marker-end="url(#vbs-arrow)"/>
+<line x1="145" y1="200" x2="345" y2="190" stroke="#8F8578" stroke-width="0.8" marker-end="url(#vbs-arrow)"/>
+<line x1="145" y1="266" x2="345" y2="210" stroke="#8F8578" stroke-width="0.8" marker-end="url(#vbs-arrow)"/>
+<line x1="145" y1="332" x2="345" y2="225" stroke="#8F8578" stroke-width="0.8" marker-end="url(#vbs-arrow)"/>
+
+<rect x="350" y="100" width="200" height="160" fill="#F4EEE3" stroke="#B8651A" stroke-width="2"/>
+<text x="450" y="120" text-anchor="middle" font-family="JetBrains Mono" font-size="10" letter-spacing="1.2" fill="#B8651A">VISION BANANA METHODS</text>
+
+<rect x="360" y="130" width="180" height="22" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.5"/>
+<text x="450" y="146" text-anchor="middle" font-family="serif" font-size="10" fill="#1A1A1A">substrate = NBP, lightly tuned</text>
+
+<rect x="360" y="156" width="180" height="22" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.5"/>
+<text x="450" y="172" text-anchor="middle" font-family="serif" font-size="10" fill="#1A1A1A">training mix = NBP data + tasks</text>
+
+<rect x="360" y="182" width="180" height="22" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.5"/>
+<text x="450" y="198" text-anchor="middle" font-family="serif" font-size="10" fill="#1A1A1A">prompts = JSON color spec</text>
+
+<rect x="360" y="208" width="180" height="22" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.5"/>
+<text x="450" y="224" text-anchor="middle" font-family="serif" font-size="10" fill="#1A1A1A">depth: power λ=−3, RGB-cube path</text>
+
+<rect x="360" y="234" width="180" height="22" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.5"/>
+<text x="450" y="250" text-anchor="middle" font-family="serif" font-size="10" fill="#1A1A1A">normals: direct xyz-to-RGB</text>
+
+<line x1="555" y1="180" x2="580" y2="180" stroke="#6B6258" stroke-width="1.5" marker-end="url(#vbs-arrow)"/>
+
+<rect x="585" y="120" width="80" height="120" fill="#1A1A1A" stroke="#B8651A" stroke-width="2"/>
+<text x="625" y="170" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">Vision</text>
+<text x="625" y="186" text-anchor="middle" font-family="serif" font-size="13" font-weight="700" fill="#F4EEE3">Banana</text>
+<text x="625" y="206" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#B8651A">2026</text>
+
+<text x="450" y="290" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Each predecessor contributes a mechanism;</text>
+<text x="450" y="305" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">the per-task encodings (depth, normals) are</text>
+<text x="450" y="320" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Vision Banana's own choices, not predecessor outputs.</text>
+</svg>
+<figcaption><strong>Fig 11.</strong> Each lineage paper contributes a discrete mechanism on the left side. Arrows converge into a Vision Banana methods box that lists the recipe in five lines: NBP substrate plus light tune; the training mix; the JSON color-spec prompts; the depth false-color encoding; the normals xyz-to-RGB encoding. The depth and normals encodings live in the methods box because they are Vision Banana's own choices, not direct outputs of any predecessor. The cumulative stack is what makes the recipe minimal.</figcaption>
+</figure>
 
 Whether the paper's hypothesis (the analogy to LLM pretraining) is correct in the strong sense is what the next section qualifies. The cumulative recipe and the resulting numbers are real. Whether the right description of what's happening is "pretraining gave us the perception representations" or something subtler is an empirical question the paper does not fully resolve.
 
