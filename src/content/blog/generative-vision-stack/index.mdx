@@ -214,3 +214,41 @@ The throughline thread runs through Painter directly. Vision Banana's segmentati
 What Painter did not, by itself, do is solve the class-flexibility problem. A Painter trained on one segmentation dataset's class palette could not, at inference, switch to a different dataset's class palette without retraining. The output-as-image contract was there; the in-context, prompt-based class-set flexibility was not. That's the next paper's contribution.
 
 {/* Reader can now: see Painter's contribution (output is an image; same architecture across tasks; the segmentation column inherits this contract). */}
+
+### 11. SegGPT (2023): random color mapping per sample
+
+Painter's class-flexibility problem was real. If you trained Painter on Cityscapes labels (where the segmentation map paints "car" red and "sky" blue with a fixed color-to-class palette), the model learned that "red means car." At inference, switching to a different dataset with a different palette meant retraining the segmentation behavior.
+
+The Wang et al. team's follow-up the next year, [SegGPT](https://arxiv.org/abs/2304.03284), fixed this with a small training-time intervention. Instead of using a fixed color-to-class palette across the training corpus, SegGPT *randomly recolors* the segmentation masks. Every training example gets its own arbitrary mapping from class names to colors. The model never sees a stable "red means car" pairing; the same image can have its cars painted red one batch and green the next.
+
+The paper's own description: "the training uses an in-context coloring problem with random color mapping for each data sample."
+
+What this does to the model's representations is what makes the rung load-bearing. Forced to operate without a stable color-to-class convention, the model cannot memorize "red means car." Instead, it learns the abstraction that's actually useful: each sample carries an example pair (an input image plus a partial output painted with this sample's specific colors), and the model's job is to extend the partial output to cover the full image, *matching the colors the sample is using*. The problem is no longer "what class does this pixel belong to"; it's "which of the colors in the example pair does this pixel match."
+
+That reformulation is what makes Vision Banana's prompt-based class-set flexibility work. When a Vision Banana user types `{"car": "red", "sidewalk": "blue", ...}` at inference, what they're doing is telling the model "for this prediction, here is the color-to-meaning mapping." The model is fluent in arbitrary color-to-meaning mappings because of SegGPT's training-time random-recoloring trick. The same checkpoint can serve different class sets at inference time without retraining the segmentation head, because the model never had a "segmentation head" with a fixed class set in the first place. It always had a more general capability: paint the output to match whatever color convention the example pair (or, in Vision Banana's case, the prompt) supplied.
+
+The JSON prompt of §5 is SegGPT's contract, made explicit. The prompt declares this inference's color-to-meaning convention; the model paints; the decode reads the colors back out. That's the whole flow. Without SegGPT's training-time random color mapping, the prompt would be decorative. With it, the prompt is the lookup table.
+
+(No new figure here; the segmentation lookup mechanic is already in Fig 4.)
+
+{/* Reader can now: see SegGPT's contribution (random color mapping per sample → JSON prompt works for any class set). */}
+
+### 12. DIFT (2023): correspondence emerges in diffusion features
+
+The other 2023 rung is on the 3D side. Luming Tang and colleagues at Cornell published [DIFT (Diffusion Features)](https://arxiv.org/abs/2306.03881): a paper showing that the *intermediate* feature maps of a pretrained diffusion model (Stable Diffusion's UNet, in their experiments) carry dense correspondence information across images, with no explicit supervision for it.
+
+The setup is the standard correspondence task. Take two images of the same object in different poses; pick a point on the first image; find the corresponding point on the second. Classical methods used hand-engineered features (SIFT, ORB) or learned ones (DINO, OpenCLIP). DIFT just runs both images through Stable Diffusion's UNet partway, extracts the intermediate features at some chosen layer, and finds nearest neighbors in feature space. No retraining; the diffusion model was trained for image generation and never told to do correspondence.
+
+The paper's own number: "DIFT from Stable Diffusion is able to outperform DINO and OpenCLIP by 19 and 14 accuracy points respectively on the challenging SPair-71k benchmark."
+
+That is a striking margin. DINO and OpenCLIP are, at the time of DIFT, the canonical pretrained encoders for tasks of this kind. Beating them by double-digit points using features that fall out of an unrelated training objective is the kind of result that reframes a research community's expectations about where useful representations live.
+
+{/* TODO: Fig 10 (DIFTCorrespondence) - two photos of the same animal in different poses; matched correspondence pairs (e.g. left ear, right paw, eye) marked with the same color across the pair. An arrow back into a cartoon UNet showing the intermediate layer where features were extracted. The figure makes visible: a model trained only to denoise pictures also knows what's the same across pictures. */}
+
+What DIFT *did* establish is conservative. It shows that a diffusion model's intermediate features carry dense per-pixel structure useful for at least one downstream task (correspondence). It does not directly show that the same features are sufficient for metric depth, surface normals, or any other dense-prediction task. Whether the structure-of-correspondence translates to the structure-of-depth-or-geometry was still an open question after DIFT.
+
+But it's the rung where the *intuition* arrives. If a generator's substrate has features informative enough to find correspondences across images without any supervision aimed at that task, then maybe the substrate also has features informative enough for other dense per-pixel tasks if the right thin tuning layer is added on top. The "if" in that sentence is what Vision Banana puts to the empirical test in 2026. DIFT supplies the prior that makes the test worth running; it does not, by itself, validate the claim that depth and normals will fall out of the same substrate.
+
+The throughline runs through DIFT in a hedged way. The depth column of §8 (VB 0.882 / 0.929 against the strongest specialists) is plausible, in retrospect, partly because DIFT showed that the same kind of substrate already contained dense correspondence. The normals column (15.549° vs 16.558°) is plausible for the same reason. DIFT didn't *prove* either column would land where it did; it raised the prior probability that the column would land at all.
+
+{/* Reader can now: see DIFT's contribution (intermediate diffusion features carry dense correspondence; depth/normals columns become plausible to attempt without per-task pretraining, though DIFT itself does not validate them). */}
