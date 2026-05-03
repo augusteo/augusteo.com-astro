@@ -759,7 +759,88 @@ The first is the objective. MAE's pretraining loss is, mechanically, image recon
 
 The second is the result. MAE pretraining produced encoders whose features were strong enough to fine-tune on classification, segmentation, and detection benchmarks at the time, often outperforming contrastive-pretrained encoders of the same size. Pretraining on reconstruction, in other words, was not in tension with downstream perception; it might even have been better for it.
 
-{/* TODO: Fig 8 (MAEDiagram) - standard MAE schematic: image with random patches masked (gray rectangles); encoder sees visible patches only; decoder sees visible-patch tokens plus learnable mask tokens; decoder reconstructs full image (RGB pixels at the masked positions). Mirrors the DINOv3 figure shape from post 1 for visual continuity. */}
+<figure>
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs><marker id="mae-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+
+<rect x="20" y="50" width="120" height="120" fill="#EDE5D4" stroke="#8F8578"/>
+<g>
+<rect x="20" y="50" width="120" height="40" fill="#93C5FD" opacity=".7"/>
+<rect x="20" y="90" width="120" height="40" fill="#D1AE7A" opacity=".7"/>
+<rect x="20" y="130" width="120" height="40" fill="#059669" opacity=".55"/>
+<circle cx="115" cy="65" r="7" fill="#FEF3C7"/>
+</g>
+<g fill="#8F8578" opacity=".95">
+<rect x="20" y="50" width="20" height="20"/>
+<rect x="40" y="50" width="20" height="20"/>
+<rect x="80" y="50" width="20" height="20"/>
+<rect x="100" y="50" width="20" height="20"/>
+<rect x="40" y="70" width="20" height="20"/>
+<rect x="60" y="70" width="20" height="20"/>
+<rect x="80" y="70" width="20" height="20"/>
+<rect x="120" y="70" width="20" height="20"/>
+<rect x="20" y="90" width="20" height="20"/>
+<rect x="40" y="90" width="20" height="20"/>
+<rect x="80" y="90" width="20" height="20"/>
+<rect x="100" y="90" width="20" height="20"/>
+<rect x="120" y="90" width="20" height="20"/>
+<rect x="20" y="110" width="20" height="20"/>
+<rect x="60" y="110" width="20" height="20"/>
+<rect x="80" y="110" width="20" height="20"/>
+<rect x="100" y="110" width="20" height="20"/>
+<rect x="20" y="130" width="20" height="20"/>
+<rect x="60" y="130" width="20" height="20"/>
+<rect x="80" y="130" width="20" height="20"/>
+<rect x="120" y="130" width="20" height="20"/>
+<rect x="40" y="150" width="20" height="20"/>
+<rect x="80" y="150" width="20" height="20"/>
+<rect x="100" y="150" width="20" height="20"/>
+<rect x="120" y="150" width="20" height="20"/>
+</g>
+<g stroke="#F4EEE3" stroke-width="0.5" fill="none">
+<path d="M40,50 v120 M60,50 v120 M80,50 v120 M100,50 v120 M120,50 v120"/>
+<path d="M20,70 h120 M20,90 h120 M20,110 h120 M20,130 h120 M20,150 h120"/>
+</g>
+<text x="80" y="190" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">input image</text>
+<text x="80" y="203" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">75% of patches masked</text>
+
+<line x1="145" y1="110" x2="170" y2="110" stroke="#6B6258" marker-end="url(#mae-arrow)"/>
+<text x="158" y="100" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6B6258">visible 25%</text>
+
+<rect x="170" y="60" width="150" height="100" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="245" y="95" text-anchor="middle" font-family="serif" font-size="14" font-weight="600" fill="#2563EB">encoder</text>
+<text x="245" y="115" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">deep ViT</text>
+<text x="245" y="130" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">visible-patch tokens</text>
+<text x="245" y="148" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">(does the heavy lifting)</text>
+
+<line x1="325" y1="110" x2="345" y2="110" stroke="#6B6258" marker-end="url(#mae-arrow)"/>
+<line x1="335" y1="160" x2="345" y2="125" stroke="#6B6258" stroke-dasharray="3,2"/>
+<g transform="translate(310,160)">
+<rect x="0" y="0" width="50" height="14" fill="none" stroke="#B8651A" stroke-dasharray="2,2"/>
+<text x="25" y="11" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#B8651A">mask tokens</text>
+</g>
+
+<rect x="345" y="80" width="100" height="60" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2"/>
+<text x="395" y="105" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#B8651A">decoder</text>
+<text x="395" y="120" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">small + shallow</text>
+<text x="395" y="133" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6B6258">predicts pixels</text>
+
+<line x1="450" y1="110" x2="475" y2="110" stroke="#6B6258" marker-end="url(#mae-arrow)"/>
+
+<rect x="480" y="50" width="120" height="120" fill="#EDE5D4" stroke="#8F8578"/>
+<rect x="480" y="50" width="120" height="40" fill="#93C5FD" opacity=".7"/>
+<rect x="480" y="90" width="120" height="40" fill="#D1AE7A" opacity=".7"/>
+<rect x="480" y="130" width="120" height="40" fill="#059669" opacity=".55"/>
+<circle cx="575" cy="65" r="7" fill="#FEF3C7"/>
+<text x="540" y="190" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">reconstructed image</text>
+
+<text x="20" y="240" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">The asymmetry is the trick</text>
+<text x="20" y="258" font-family="serif" font-size="11" fill="#1A1A1A">The encoder sees only the 25% of patches that aren't masked. It is large and does the heavy lifting.</text>
+<text x="20" y="272" font-family="serif" font-size="11" fill="#1A1A1A">The decoder sees those visible-patch tokens plus a learnable "mask token" placeholder for each gap, and</text>
+<text x="20" y="286" font-family="serif" font-size="11" fill="#1A1A1A">predicts the missing pixel values. The decoder is small. The 3× speedup comes from this asymmetry.</text>
+</svg>
+<figcaption><strong>Fig 8.</strong> Masked autoencoders. The input image is patchified and 75% of patches are masked (the gray squares). The encoder runs over only the 25% of visible patches; the decoder takes the encoder's tokens plus learnable mask tokens and reconstructs the missing pixels. The pretraining objective is image reconstruction. The output that the model learned is, mechanically, an image.</figcaption>
+</figure>
 
 What MAE did not tell us, as of 2021, was what happens at the *output side*. The pretraining objective was reconstruction, and the downstream evaluation was on encoder features (with task-specific heads attached after pretraining was done). The path from "reconstruction is the pretraining" to "the reconstructed image itself is useful for perception" is what the next two papers, Painter and SegGPT, build over the next eighteen months.
 
