@@ -33,13 +33,15 @@ Same as the trilogy: ML engineers and vision researchers with 45-min reading tol
 
 100% static SVG (default; no override clauses apply). Target ~10-12 figures.
 
-### Flagged-for-Phase-2 items
+### Resolved-during-Phase-2 (kept as audit trail)
 
-- Verify "Depth Anything V3" reference seen in marktechpost coverage; agent did not find an arxiv ID. May be hype or pre-release.
-- Confirm Vision Banana's zero-shot vs fine-tuned framing on each benchmark — paper abstract is not explicit; need PDF.
-- Pull the actual instruction-tuning recipe from the paper PDF (data mix ratio, loss function, training hyperparameters).
-- Identify Nano Banana Pro's release date, scale, and architecture (autoregressive image tokenizer? diffusion? Google blog should clarify).
-- Confirm SAM3 zero-shot setup the paper compares against; the SAM3 paper itself dates 2025-11-20, only 5 months before Vision Banana. Is the comparison apples-to-apples?
+All Phase-1 flagged items are now closed:
+
+- ~~Verify "Depth Anything V3"~~ → Resolved: arxiv:2511.10647 (v1 2025-11-13). Vision Banana's paper Table 3 directly compares VB 0.929 vs DA3 0.918 on a four-dataset average; the project-page six-benchmark chart uses different competitors. Both rows in matrix.
+- ~~Confirm zero-shot vs fine-tuned framing~~ → Resolved via paper PDF Methods + Table 2 caption: explicitly zero-shot transfer; non-zero-shot baselines marked.
+- ~~Instruction-tuning recipe~~ → Closed at the granularity the paper publishes ("very low ratio"); specific hyperparameters absent and the post will hedge.
+- ~~Nano Banana Pro release date / scale~~ → Resolved: 2025-11-20, Gemini 3 Pro Image, deployed across Gemini app / Gemini API / Google AI Studio / Vertex AI.
+- ~~SAM3 comparison apples-to-apples~~ → Resolved: paper Table 2(a) is the canonical per-table primary; both VB and SAM3 are zero-shot on Cityscapes mIoU; SegMan-L is the lone non-zero-shot baseline at 0.842.
 
 ### Top starter sources
 
@@ -48,7 +50,7 @@ Same as the trilogy: ML engineers and vision researchers with 45-min reading tol
 | 1 | [Vision Banana paper](https://arxiv.org/abs/2604.20329) | 2026-04-22 | the focus |
 | 2 | [vision-banana.github.io](https://vision-banana.github.io/) | 2026-04-22 | project site, benchmarks |
 | 3 | [SAM3](https://arxiv.org/abs/2511.16719) | 2025-11-20 | competitor baseline (5 mo) |
-| 4 | [Depth Anything V2](https://arxiv.org/abs/2406.09414) | 2024-06-13 | competitor baseline (22 mo, foundational) |
+| 4 | [Depth Anything V2](https://arxiv.org/abs/2406.09414) | 2024-06-13 | historical depth baseline / lineage context (NOT a competitor on the project-page chart; paper compares against DA3, see row 9b/23) |
 | 5 | [SegGPT](https://arxiv.org/abs/2304.03284) | 2023-04-16 | foundational for the lineage |
 | 6 | [Painter](https://arxiv.org/abs/2212.02499) | 2022-12-05 | foundational for the lineage |
 | 7 | [MAE](https://arxiv.org/abs/2111.06377) | 2021-11-11 | foundational; He/Xie predecessor |
@@ -149,7 +151,7 @@ Project page chart values: Marigold 19.606° / StableNormal 17.168° / DSINE 17.
 
 > Source: [vision-banana.github.io](https://vision-banana.github.io/) chart; accessed 2026-05-02. (Note: paper Table 1 reports a separate four-dataset normals comparison: Vision Banana 18.928° vs Lotus-2 19.642°; the post should distinguish these two averages if it cites both.)
 
-**Source-primacy correction (logged in `## Codex research review` run-2):** the earlier "Semantic Segmentation (Cityscapes): 0.842 mIoU, significantly outperforming comparable models" prose quote and the "0.882 δ₁ average" / "Depth Anything V2 at 0.823" project-page-chart attributions were drawn from a WebFetch summarizer that misread bar-chart positions and synthesized prose that does not exist on the project page. Codex Gate 0 caught this. Re-anchored on the paper's tables. The project page is no longer cited as the load-bearing source for any specific number; it is referenced only as the announcement page that hosts the published benchmark chart.
+**Source-primacy correction (logged in `## Codex research review` run-2):** the earlier "Semantic Segmentation (Cityscapes): 0.842 mIoU, significantly outperforming comparable models" prose quote and the "Depth Anything V2 at 0.823" attribution were drawn from a WebFetch summarizer that misread bar-chart positions and synthesized prose that does not exist on the project page. Codex Gate 0 caught this. The narrower correct rule (refined per Gate 0 run-3 finding): **for paper-table values (Cityscapes mIoU, four-dataset DA3 depth comparison, four-dataset normals comparison), cite the paper's tables directly; do not cite the project-page chart for those values.** The project page itself remains a first-party primary source for **its own chart values** — specifically the six-benchmark depth average (row 9a) and the three-benchmark surface-normal average (row 10). What's been excised is reliance on WebFetch-synthesized prose that the project page does not actually contain.
 
 **Lightweight tuning preserves generation.**
 
@@ -221,7 +223,7 @@ The SAM3 paper does not report a Cityscapes mIoU directly. Vision Banana's repor
 >
 > Source: [Depth Anything 3](https://arxiv.org/abs/2511.10647) (v1, 2025-11-13); accessed 2026-05-02.
 
-**Implication for the post.** The Vision Banana paper compares against "Depth Anything series" generically; the project page lists 0.823 δ₁ for the V2 row. V3 was current at Vision Banana's submission. The post must explicitly frame: "Vision Banana's depth comparison is published against V2; V3 had landed five months earlier and the paper does not include it." This is a hedge, not a refutation — the load-bearing claim "Vision Banana wins on metric depth as Vision Banana ran the comparison" is still backed; the load-bearing claim "Vision Banana is the SOTA on metric depth at pubDate" cannot be made.
+**Implication for the post.** The Vision Banana paper compares directly against Depth Anything 3 in Table 3 / §3.2: VB 0.929 vs DA3 0.918 on the four-dataset overlap (NYU / ETH3D / DIODE / KITTI). The project-page six-benchmark chart is a *separate* aggregation that uses Depth Pro, MoGe-2, and UniK3D as competitors and does not include either DAv2 or DA3. The post can claim two distinct things, both backed: (1) on the project-page six-benchmark depth chart, VB 0.882 leads UniK3D 0.823 by 5.9 points; (2) on the paper's four-dataset overlap with DA3, VB 0.929 edges DA3 0.918 by 1.1 points. The post must distinguish these two averages explicitly, not merge them into a "VB wins depth" headline.
 
 **Lotus-2 (2025-12-01).** Surface-normals competitor.
 
@@ -308,6 +310,8 @@ Run-2 also confirmed: rows 1 and 13 (causality hedging) are now acceptable; row 
 
 **Lessons recorded for the resume agent.** When the matrix relies on a bar-chart presentation, do NOT trust a WebFetch summarizer's reading of which bar maps to which label. Either (a) cite the paper's table text directly (always preferable when available), (b) verify with two independent reading sources that produce the same model→value mapping, or (c) cite the chart in a way that doesn't load-bear on which bar corresponds to which label.
 
+**Run 3 — 2026-05-02.** Final invocation in the Gate-runner cap of 3. Codex confirmed the matrix is sound: *"row 8 is now correct; 9a and 9b are distinct in the matrix; row 23 plus row 9b no longer overclaim the DA3 comparison; the Spec / Throughline headline numbers match the matrix; and the run-1 override retraction is explicit enough to prevent a silent re-flip."* It surfaced 2 STRUCTURAL findings that were stale text in non-matrix sections (Sub-topic C "Implication for the post" still claimed "the paper does not include DA3"; Research-notes "Source-primacy correction" overcorrected by saying the project page is no longer cited at all when in fact rows 9a + 10 cite it for chart-only values) plus 2 COSMETIC. All four were applied: stale paragraphs rewritten or narrowed; "Flagged-for-Phase-2" section converted to a "Resolved" audit trail; starter-source #4 re-labeled as historical lineage context. **Gate 0 closes cosmetic-only** — the matrix passes; remaining run-3 findings were editorial cleanup of inconsistent text rather than load-bearing claim errors.
+
 ## Resume here
 
 Last touched: 2026-05-02.
@@ -317,7 +321,7 @@ Last touched: 2026-05-02.
 | Phase | Status | Output |
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` (this file) + project memory |
-| 2. Research / fact-check | in progress | `## Research notes`, `## Claim-source matrix` |
+| 2. Research / fact-check | done (Gate 0 passed cosmetic-only on run 3 of 3) | `## Research notes`, `## Claim-source matrix`, `## Codex research review` |
 | 3. Outline + figure list | pending | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/generative-vision-stack/index.mdx` |
 | 5. Implement figures | pending | per-figure table below (populated end of Phase 3) |
@@ -329,7 +333,8 @@ Last touched: 2026-05-02.
 | Date | Gate | Outcome | Findings file |
 |---|---|---|---|
 | 2026-05-02 | 0 (research) — run 1 | structural-fixes-applied (6 of 7 STRUCTURAL accepted; 1 initially rejected on re-fetch — that override was later RETRACTED in run 2 below); 2 COSMETIC accepted. | [notes/generative-vision-stack-codex-research-20260502.md](generative-vision-stack-codex-research-20260502.md) + `## Codex research review` summary in this file |
-| 2026-05-02 | 0 (research) — run 2 | structural-fixes-applied (5 of 5 STRUCTURAL accepted, including retraction of run-1 finding #1 override; 1 COSMETIC accepted). Gate-runner re-run is the third invocation — last allowed before halt rule. | `## Codex research review` Run 2 section in this file (codex output preview embedded inline; full transcript in `/Users/vic/.claude/projects/-Users-vic-dev-augusteo-com-astro/2afdff51-5714-43ca-9eee-9080739a2dae/tool-results/b1rts1jv7.txt` — local persisted output, not committed) |
+| 2026-05-02 | 0 (research) — run 2 | structural-fixes-applied (5 of 5 STRUCTURAL accepted, including retraction of run-1 finding #1 override; 1 COSMETIC accepted). | `## Codex research review` Run 2 section in this file |
+| 2026-05-02 | 0 (research) — run 3 | **GATE 0 PASSES (cosmetic-only)**. Codex explicitly confirmed the matrix is sound; 2 STRUCTURAL findings on stale non-matrix text (Sub-topic C implication paragraph + Source-primacy correction overcorrection) + 2 COSMETIC (stale Phase-2 flag + DAv2 starter-source label). All four applied as editorial cleanup. | `## Codex research review` Run 3 section in this file |
 
 ### Phase 5 figure progress
 
@@ -337,10 +342,10 @@ Last touched: 2026-05-02.
 
 ### Suggested next batch
 
-1. Phase 2: dispatch parallel subagents to build research notes for sub-topics (Vision Banana methods + Nano Banana Pro substrate + lineage papers + competitor baselines).
-2. Build the `## Claim-source matrix` mapping every load-bearing claim to a quoted primary source.
-3. Run Gate 0 (research-truthfulness pass via codex consult).
-4. Resolve any STRUCTURAL findings; advance to Phase 3 outline.
+1. Phase 3: draft `## Outline` — three-act section structure, numbered figures, throughline-thread check (per `narrative-template.md` and `figure-recipes.md`).
+2. Per-figure type lock: default 100% static-svg; only override on the four-clause rule.
+3. Run Gate 1 (outline + figure list structural pass via codex consult).
+4. Resolve any STRUCTURAL findings; advance to Phase 4 drafting.
 
 ### How to resume from a fresh context
 
