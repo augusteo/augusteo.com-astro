@@ -148,3 +148,27 @@ The pattern across §§5–7 is now visible. Each task family gets a different p
 The next section assembles the numbers.
 
 {/* Reader can now: predict what surface-normal output looks like (xyz mapped directly to RGB) and connect it to the 15.549° MAE. */}
+
+### 8. The benchmark spread, honestly
+
+Now we can lay out the full benchmark picture in one place. Vision Banana evaluates on five task families, each with its own tables. The paper highlights four of those tables as load-bearing comparisons against named recent specialists; we'll work through each.
+
+**Zero-shot Cityscapes mIoU** (paper Table 2(a), semantic segmentation). Vision Banana 0.699; SAM 3 0.652; X-Decoder 0.520; OpenSeeD 0.478; APE-D 0.442. The non-zero-shot ceiling, included in the same chart for context, is SegMan-L at 0.842. Vision Banana's own paper sentence: "Vision Banana surpasses SAM 3 by 4.7 points in mIoU." That's the headline zero-shot number. The non-zero-shot ceiling sits 14.3 points above zero-shot Vision Banana, and 19 points above SAM 3, so a specialist that gets to fine-tune on Cityscapes labels still wins its own benchmark by a wide margin. Vision Banana wins the *zero-shot* contest, by a clear but modest 4.7-point edge.
+
+**Project-page six-benchmark metric depth δ₁** (the average of δ₁ accuracy across NYU, ETH3D, DIODE, KITTI, plus two more datasets the paper aggregates; see [the project page](https://vision-banana.github.io/) for the full list). Vision Banana 0.882; UniK3D 0.823; MoGe-2 0.802; Depth Pro 0.715. A 5.9-point edge over the strongest specialist on the chart. Notable: the chart includes neither Depth Anything V2 nor Depth Anything 3, which is why the post can't claim "Vision Banana beats the Depth Anything line" from this chart alone.
+
+**Paper Table 3 four-dataset metric depth δ₁** (NYU, ETH3D, DIODE, KITTI, the same four where Depth Anything 3 was evaluated). Vision Banana 0.929; Depth Anything 3 0.918. The 1.1-point edge here is the only direct VB-vs-DA3 comparison the paper offers. The paper's exact phrasing: "Vision Banana achieves an average δ₁ accuracy of 0.882, outperforming…Depth Anything V3 on average across the four datasets (NYU, ETH3D, DIODE, KITTI) on which it was evaluated (0.929 v.s. 0.918)." Note that 0.882 is the broader six-dataset average from the project-page chart; 0.929 is the narrower four-dataset average where DA3 also reported. Two different averages, two different stories, both in the same paper.
+
+**Project-page three-benchmark surface-normal mean angular error**. Vision Banana 15.549°; Lotus-2 16.558°; DSINE 17.017°; StableNormal 17.168°; Marigold 19.606°. A 1.0° edge over Lotus-2 on this aggregate. Paper Table 1 reports a separate four-dataset normals average where VB scores 18.928° against Lotus-2's 19.642°. Different slice, different absolute numbers, the same direction of result.
+
+**Instance and referring-expression segmentation** round out the five families with similar shapes: VB scores 0.661 pmF1 on the SA-Co/Gold instance-segmentation benchmark against Gemini 2.5's 0.540 and DINO-X's 0.552; 0.794 cIoU on RefCOCOg-val against the strongest paired-baseline 0.738 (SAM 3 + Gemini 2.5 Pro). The numbers are competitive and consistent with the rest of the table; we'll mostly leave these in the references for readers who want to chase them.
+
+{/* TODO: Fig 7 (BenchmarkSpread) - four side-by-side bar groups, one per benchmark column (Cityscapes mIoU, six-benchmark depth, four-benchmark depth vs DA3, three-benchmark normals MAE). Vision Banana bars highlighted. Specialists shown alongside. The SegMan-L NZS ceiling drawn as a dashed line on the Cityscapes group, labeled "non-zero-shot ceiling." */}
+
+What does this spread say? It says that one model, lightly tuned on top of an off-the-shelf production image generator, holds up against the most recent dedicated specialists across five disparate task families. It does not say that Vision Banana destroys those specialists. The deltas are real but modest: 4.7 points on Cityscapes, 1.1 points over Depth Anything 3, 5.9 points over UniK3D, 1.0° over Lotus-2. Specialists trained in-domain (the SegMan-L ceiling) still win their column when they're allowed to. Vision Banana's claim is the existence of one single model whose zero-shot numbers cluster near the top across all five families at once. That's a different kind of win.
+
+The honest framing is "rivals or beats specialists," not "crushes them." Posts that overstate this risk losing the actual interesting claim, which is the existence proof: a generative-pretraining substrate, plus a light task-data tune, gets you a generalist that's competitive across a wide spread of dense-prediction work.
+
+The spread holds up. But the paper publishes no random-initialization ablation. There is no controlled experiment showing that the same instruction-tuning recipe applied to a non-pretrained generator produces inferior numbers. So the question Act 3 has to answer is the obvious one: why would a model trained only to paint pictures already have the representations needed for dense prediction, before any vision-task tuning kicks in? The paper's hypothesis is that image-generation pretraining gives a substrate already-suitable for perception. Act 3 traces the five-year arc that made that hypothesis plausible enough to test.
+
+{/* Reader can now: read the four benchmark tables, see where VB wins / rivals / trails, AND see the hinge question: why would a generator already have these representations? */}
