@@ -100,7 +100,7 @@ So it is not "10 MB per connection" exactly. It is more like "a few MB per conne
 
 Memory is not even the whole story. Each backend process is also a thing the OS scheduler has to consider. Each backend has a slot in Postgres' shared procarray, which is scanned during snapshot acquisition: a process that does nothing all day still gets walked over every time another transaction takes a snapshot. There's a known cliff somewhere in the low thousands of connections where Postgres spends measurably more CPU just managing the procarray than running queries. The exact number depends on hardware and version, but as a rule of thumb, past a few hundred connections per CPU core, you are buying overhead and not throughput.
 
-Then there is connection setup cost. Opening a fresh Postgres connection involves a TCP handshake, a TLS handshake (in any sane production setup), a fork on the server, a SCRAM exchange, sending startup parameters, loading the role's config, and setting the search path. On a healthy LAN this takes a few milliseconds. On a TLS connection across regions, it can be 30 to 100 ms. PHP-style "connect on every request" patterns make this a per-request tax. Hans Schoenig benchmarked the difference between connection-per-query and pooled-connection at 98.7% throughput loss, going from a couple hundred thousand simple queries per second down to 3,770. The fork is most of it.
+Then there is connection setup cost. Opening a fresh Postgres connection involves a TCP handshake, a TLS handshake (in any sane production setup), a fork on the server, a SCRAM exchange, sending startup parameters, loading the role's config, and setting the search path. On a healthy LAN this takes a few milliseconds. On a TLS connection across regions, it can be 30 to 100 ms. PHP-style "connect on every request" patterns make this a per-request tax. Hans-Jürgen Schönig benchmarked the difference between connection-per-query and pooled-connection at 98.7% throughput loss, going from a couple hundred thousand transactions per second down to 3,770. The fork is most of it.
 
 So a Postgres connection costs you four things: memory, scheduler overhead, snapshot-acquisition overhead, and the multi-millisecond setup tax that fires every time a new one is opened. Any one of these gets bad at scale. All four together are why you cannot solve "scale to a thousand app workers" by just raising `max_connections`.
 
@@ -281,7 +281,7 @@ I'm going to mostly ignore statement pooling for the rest of this piece. Its exi
 
 ### 9. The compatibility table
 
-Here is the chart that PgBouncer's docs publish, condensed. It's worth memorizing if you're going to run transaction pooling.
+Here is a condensed compatibility chart, drawn from PgBouncer's docs and a few extra rows that bite people in practice. It's worth memorizing if you're going to run transaction pooling.
 
 | Feature | session | transaction | statement |
 |---|---|---|---|
@@ -542,7 +542,7 @@ SECURITY DEFINER
 SET search_path = pg_catalog, pg_temp
 AS $$
     SELECT rolname::TEXT, rolpassword::TEXT
-    FROM pg_authid
+    FROM pg_catalog.pg_authid
     WHERE rolname = p_username
       AND rolcanlogin
       AND NOT rolsuper
@@ -563,11 +563,11 @@ auth_query = SELECT username, password FROM pgbouncer.get_auth($1)
 "pgbouncer" "SCRAM-SHA-256$4096:..."
 ```
 
-Now any user that exists in Postgres can authenticate through PgBouncer without ever appearing in PgBouncer's own files. Adding a user is a single Postgres `CREATE ROLE`; rotating a password is a single `ALTER ROLE`.
+Now any non-superuser role with login privilege can authenticate through PgBouncer without ever appearing in PgBouncer's own files. Adding a user is a single Postgres `CREATE ROLE`; rotating a password is a single `ALTER ROLE`.
 
-Two things worth flagging, both of which have shown up as real CVEs in 2025. First, the `SET search_path = pg_catalog, pg_temp` line in the function definition is not optional. Without it, an attacker can hijack the function's name resolution by getting the right object to live earlier in the search path. CVE-2025-12819 in PgBouncer 1.25.1 (December 2025) was a real-world example. When `track_extra_parameters` includes `search_path` and `auth_user` is configured, a malicious `search_path` in the client's StartupMessage propagates into the auth-time `auth_query`. PgBouncer's shipped default query contained an unqualified operator (`<`), which the attacker's schema could redefine, executing arbitrary SQL during authentication. The hardened example above pins the search path inside the function and fully qualifies catalog references, which neutralizes the attack. Always schema-qualify your catalog references in `SECURITY DEFINER` functions, and always pin the search path.
+Two things worth flagging, both of which have shown up as real CVEs in 2025. First, the `SET search_path = pg_catalog, pg_temp` line in the function definition is not optional. Without it, an attacker can hijack the function's name resolution by getting the right object to live earlier in the search path. CVE-2025-12819, fixed in PgBouncer 1.25.1 (December 2025), was a real-world example. When `track_extra_parameters` includes `search_path` and `auth_user` is configured, a malicious `search_path` in the client's StartupMessage propagates into the auth-time `auth_query`. PgBouncer's shipped default query contained an unqualified operator (`<`), which the attacker's schema could redefine, executing arbitrary SQL during authentication. The hardened example above pins the search path inside the function and schema-qualifies `pg_authid`, which neutralizes the attack. Always schema-qualify your catalog references in `SECURITY DEFINER` functions, and always pin the search path.
 
-Second, notice the `(rolvaliduntil IS NULL OR rolvaliduntil > CURRENT_TIMESTAMP)` clause. This is also not optional. CVE-2025-2291 in PgBouncer 1.24.1 (April 2025) was the embarrassing case where the *shipped default* `auth_query` didn't check `VALID UNTIL`, so an expired password would still authenticate through the pooler even though it wouldn't authenticate against Postgres directly. The default was fixed; if you wrote a custom `auth_query` before April 2025, double-check that you're filtering on `rolvaliduntil`. The example above does. Many older blog post examples don't.
+Second, notice the `(rolvaliduntil IS NULL OR rolvaliduntil > CURRENT_TIMESTAMP)` clause. This is also not optional. CVE-2025-2291, fixed in PgBouncer 1.24.1 (April 2025), was the embarrassing case where the *shipped default* `auth_query` didn't check `VALID UNTIL`, so an expired password would still authenticate through the pooler even though it wouldn't authenticate against Postgres directly. The default was fixed; if you wrote a custom `auth_query` before April 2025, double-check that you're filtering on `rolvaliduntil`. The example above does. Many older blog post examples don't.
 
 Third, end-to-end SCRAM authentication is delicate. PgBouncer can pass SCRAM through to Postgres, but only when the SCRAM secrets in PgBouncer's userlist exactly match Postgres' (same salt, same iterations, not just the same password). Otherwise PgBouncer has to re-authenticate to Postgres on a separate channel, which introduces its own subtleties around credentials. For most setups, `auth_query` with a single privileged `pgbouncer` role is simpler and safer than trying to mirror SCRAM secrets exactly.
 
@@ -604,7 +604,7 @@ None of these are exotic. They're the kind of features that an SRE spending time
 
 The Mattermost team published a postmortem in 2022 that's worth reading because it shows how pool-size choices interact with multi-database/multi-tenant deployments in non-obvious ways.
 
-Mattermost runs thousands of customer workspaces, each with its own logical database in a shared Postgres cluster. They put PgBouncer in front. Their initial config looked reasonable: `pool_mode = transaction`, `min_pool_size = 20`, `default_pool_size = 20`, `reserve_pool_size = 5`, `max_client_conn = 10000`, `max_db_connections = 20`.
+Mattermost runs thousands of customer workspaces grouped 10 to 15 to a logical database in a shared Postgres cluster, with each workspace getting its own PgBouncer pool. They put PgBouncer in front. Their initial config looked reasonable: `pool_mode = transaction`, `min_pool_size = 20`, `default_pool_size = 20`, `reserve_pool_size = 5`, `max_client_conn = 10000`, `max_db_connections = 20`.
 
 Spot the problem? Each workspace gets its own pool of size 20. `max_db_connections = 20` is the cap on real Postgres connections from *all* workspaces combined. With 10 to 15 workspaces per database, every workspace was effectively competing for those 20 backend slots, and any time more than one workspace had a burst of activity, they were starving each other. The visible symptom was high CPU on the RDS cluster from connection churn: PgBouncer was constantly opening and closing real connections trying to satisfy workspaces that were each demanding more than the global cap allowed.
 
