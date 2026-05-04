@@ -9,9 +9,10 @@ interface Props {
   heroAlt: string;
   category: string;
   slug: string;
+  isDraft?: boolean;
 }
 
-const { title, description, heroImage, heroAlt, category, slug } = Astro.props;
+const { title, description, heroImage, heroAlt, category, slug, isDraft = false } = Astro.props;
 ---
 
 <a
@@ -29,6 +30,7 @@ const { title, description, heroImage, heroAlt, category, slug } = Astro.props;
   </div>
 
   <div class="featured-card-content">
+    {isDraft && <div class="draft-chip">Draft</div>}
     {category && <div class="category">{category}</div>}
     <h3>{title}</h3>
     <p class="excerpt">{description}</p>
@@ -108,6 +110,27 @@ const { title, description, heroImage, heroAlt, category, slug } = Astro.props;
     flex: 1;
     display: flex;
     flex-direction: column;
+  }
+
+  .draft-chip {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #7a4a00;
+    margin-bottom: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    align-self: flex-start;
+    position: relative;
+  }
+
+  .draft-chip::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cdefs%3E%3Cfilter id='draftFc'%3E%3CfeTurbulence baseFrequency='0.05'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='3'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='30' cy='12' rx='28' ry='10' fill='%23fbbf24' opacity='0.55' filter='url(%23draftFc)'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    z-index: -1;
   }
 
   .category {

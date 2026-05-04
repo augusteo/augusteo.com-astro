@@ -1,9 +1,10 @@
 ---
 import { getCollection, render } from "astro:content";
 import PostLayout from "../../layouts/PostLayout.astro";
+import { isPostVisible } from "../../utils/posts";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  const posts = await getCollection("blog", isPostVisible);
   return posts.map((post) => {
     // For folder-based content (slug/index.mdx), extract just the folder name
     const slug = post.id.includes('/') ? post.id.split('/')[0] : post.id;
@@ -38,5 +39,30 @@ if (!post.data.heroImage && post.body) {
   firstContentImage={firstContentImage}
   essay={post.data.essay}
 >
+  {post.data.draft && (
+    <div class="draft-banner" role="note">
+      <strong>DRAFT</strong> — not published. Visible only in dev.
+    </div>
+  )}
   <Content />
 </PostLayout>
+
+<style>
+  .draft-banner {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #7a4a00;
+    background: #fde68a;
+    border: 1px dashed #b45309;
+    padding: 0.6rem 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .draft-banner strong {
+    font-weight: 700;
+    margin-right: 0.4rem;
+  }
+</style>

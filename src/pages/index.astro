@@ -6,9 +6,10 @@ import FeaturedCard from "../components/FeaturedCard.astro";
 import Button from "../components/Button.astro";
 import NewsletterSignup from "../components/NewsletterSignup.astro";
 import profileImage from "../assets/img/avatar.jpeg";
+import { isPostVisible } from "../utils/posts";
 
-// Get all published posts
-const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+// Get all published posts (plus drafts in dev)
+const allPosts = await getCollection("blog", isPostVisible);
 
 // Get featured posts (posts with featured: true and hero images)
 const featuredPosts = allPosts
@@ -71,6 +72,7 @@ const recentPosts = allPosts
               heroAlt={post.data.heroAlt}
               category={post.data.category}
               slug={slug}
+              isDraft={post.data.draft}
             />
           );
         })}
@@ -93,6 +95,7 @@ const recentPosts = allPosts
             heroAlt={post.data.heroAlt}
             category={post.data.category}
             slug={slug}
+            isDraft={post.data.draft}
           />
         );
       })}
