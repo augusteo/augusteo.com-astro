@@ -206,5 +206,49 @@ For the construction-document practitioner, the JEPA family is a recipe shape wi
 
 {/* Reader can now: state the JEPA recipe (context encoder + predictor + EMA target encoder; MSE loss in feature space at target-block positions); see I-JEPA's pixel-vs-latent ablation as the published case for the latent-space bet; recognize that I-JEPA / V-JEPA / V-JEPA 2 publish no image dense-prediction transfer; understand picking JEPA for construction-document segmentation means running the experiment yourself; anticipate §10 (multi-teacher distillation as a categorically different supervision shape). */}
 
-{/* TODO: §10: Multi-teacher distillation (RADIO line) */}
+### 10. Multi-teacher distillation: the RADIO line
+
+Every recipe in §4 through §9 answers the same question: what pretext task generates the supervision signal? Pixel reconstruction, feature reconstruction, token reconstruction, augmentation invariance, latent-space prediction. The student in each case has to invent its own supervision from the unlabeled corpus.
+
+Multi-teacher distillation answers a different question. Suppose somebody else has already trained good foundation models on the data shape you care about. Can you compress an ensemble of those models into one student that has all of their abilities at the price of one inference?
+
+[AM-RADIO](https://arxiv.org/abs/2312.06709), the first paper in the RADIO line, said yes. The student is a ViT. The teachers are an ensemble of pretrained foundation models (the original paper used DFN CLIP ViT-H/14, OpenAI CLIP ViT-L/14, and DINOv2 ViT-g/14; SAM ViTDet-H entered later). For each input image, the student has to match the teachers' summary outputs (CLS-token-shaped) and their spatial outputs (per-patch features). The losses:
+
+> Summary: L_summary(x) = Σᵢ λᵢ L_cos(yᵢ^(s), zᵢ^(s))
+> Spatial: L_features(x) = Σᵢ γᵢ L_match(hᵢ^(v)(x' | Θᵢ^(v)), tᵢ^(v)(x | Φᵢ^(v)))
+> with L_match = α·L_cos + β·L_smooth_L1, α=0.9, β=0.1
+
+There is no SSL auxiliary loss on the student. The entire training signal is "match these teachers' outputs." Whatever representational structure the teachers have, the student is being trained to inherit it directly.
+
+[RADIOv2.5](https://arxiv.org/abs/2412.07679) added two pieces. First, a diagnosis: the original RADIO has a "mode-switching" pathology where the features behave like DINOv2 at resolutions ≤512² and like SAM at higher resolutions. Per the paper: "at resolutions lower than or equal to 512², the features most closely resemble those of DINOv2... At higher resolutions, the model starts to behave more like SAM." The cause: at high resolutions, the student in earlier RADIO training only saw SAM features. Second, a remedy: balanced multi-teacher loss schedules and PHI-S loss balancing (more in a moment). RADIOv2.5 lands ADE20K mIoU 54.56 at the g-scale student.
+
+[C-RADIOv4](https://arxiv.org/abs/2601.17237) is the most recent step in the line. The teachers shifted to the current SOTA: SigLIP2, DINOv3, SAM3. The loss formulations changed too. Spatial loss is now squared error against PHI-S-normalized teacher outputs (per the paper's Equation 1, §2.3.1):
+
+> L_spatial(x, ŷ) = (1/|Ω|) Σ_{u∈Ω} (𝓕_{S→T}[x]_u − ŷ_u)²
+
+Cosine distance is explicitly dropped from the summary loss in favor of an angular-cone-normalized formulation:
+
+> L_angle(x, y) = Θ(x, y)² / Disp(Θ_y)
+
+C-RADIOv4 also adds MESA, a shift-equivariant regularizer where the student matches its own EMA on a shifted crop of the same image:
+
+> L_mesa(x, x̃) = (1/|Ω|) Σ (𝓕_{S→S̃}[LN(x)]_u − LN(x̃)_u)²
+
+MESA is genuinely self-supervised (student's EMA, not a teacher), but it's a *regularizer* that enforces shift equivariance, not a primary pretext task. Without MESA, C-RADIOv4 is still trained primarily by teacher imitation. C-RADIOv4-H lands ADE20K mIoU 55.20 at 512px.
+
+A piece of the recipe worth knowing about across the line: [PHI-S](https://arxiv.org/abs/2410.01680). When you distill from teachers whose activation statistics differ wildly (CLIP's cosine-distance-shaped features vs DINOv2's distributional features vs SAM's segmentation-shaped features), the per-teacher losses can dominate each other in ways that don't reflect the teachers' relative importance. PHI-S applies a Hadamard isotropic standardization to balance the activation distributions before the loss runs, "where each dimension of a multivariate distribution is standardized using the same scale" via Hadamard matrices. The PHI-S paper reports it "produces the best student model across the suite of methods studied."
+
+{/* TODO: Fig 9: RADIOArchitecture, AM-RADIO architecture (student + N teachers; summary + spatial losses), C-RADIOv4 deltas annotated (PHI-S spatial, angular-cone summary, MESA EMA-matching). Architecture only; central thesis is in §10 prose. */}
+
+The categorical observation across the line is this: multi-teacher distillation occupies a different position in the SSL recipe taxonomy than the prior recipes. Supervision shape is external: the labels are another model's activations, not a pretext task on corrupted or multi-view inputs of the unlabeled corpus. This isn't "RADIO is not SSL"; it's a different *kind* of self-supervision, where the label-source is a foundation-model checkpoint rather than a transformation of the input. The student needs no labeled data, but it needs working teachers.
+
+That's where the recipe meets the construction-document practitioner's reality. RADIO's pretraining starting point is the teacher set: CLIP, DINOv2, SAM, and their successors. None of these teachers has been published with construction-document weights. If the practitioner has access to teacher checkpoints that produce useful features on construction documents (perhaps a CLIP-style model fine-tuned on construction-document image-caption pairs, or a DINOv2-style model continued-pretrained on construction sheets), RADIO can compress that ensemble into a fast student. If they don't, RADIO has nothing to compress.
+
+Whether suitable teacher checkpoints exist is a question the practitioner answers from outside this post's matrix. The post does not assert "no teacher set ships with construction-document weights" as an absence claim, since that's a statement about all possible teachers in the world, which the matrix cannot cover. What the post does say: §14's decision tree treats teacher availability as a hard practitioner-facing gate, not a confounder. If you have teachers that work on your domain, RADIO is a recipe; if you don't, the section's recipe doesn't apply, and you fall back to one of §11's options.
+
+§11 turns to those options. With multi-teacher distillation off the table for practitioners without a working teacher set, the remaining recipe shapes are from-scratch SSL on the practitioner's own corpus, or continual SSL on top of a natural-image checkpoint.
+
+{/* Reader can now: state the multi-teacher distillation recipe (student matches teachers' summary + spatial outputs; no SSL aux loss on the student; loss formulations from cosine + smooth-L1 to PHI-S-normalized squared error; MESA as shift-equivariant regularizer); see C-RADIOv4-H ADE20K 55.20 + RADIOv2.5-g 54.56; understand the categorical observation (supervision shape is external, not pretext-derived); recognize teacher availability as a hard practitioner-facing gate, not a confounder; anticipate §11 (from-scratch + continual-from-natural). */}
+
+{/* TODO: §11: Domain-adaptive recipes (from-scratch + continual-from-natural) */}
 {/* TODO: §12–§15: Act 3 + coda */}
