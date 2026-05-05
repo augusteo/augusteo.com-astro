@@ -280,5 +280,40 @@ Neither recipe shape has a published bake-off on construction-document line-art.
 
 {/* Reader can now: state the two runnable-without-external-teachers recipe shapes (from-scratch domain SSL; continual-from-natural); see DiT + Medical 3D MAE as from-scratch evidence at 42M and 39k respectively (DiT scoped to document-layout, NOT line-art); see GLARE + Lahrichi 2025 as continual-from-natural evidence (modest gains in adjacent domains); understand that neither recipe shape has a published bake-off on construction-document line-art; anticipate act 3's structure (numbers → OOD evidence → routing tree). */}
 
-{/* TODO: §12–§15: Act 3 + coda */}
-{/* TODO: §12–§15: Act 3 + coda */}
+## Act 3 — The verdict
+
+### 12. Where each recipe lands on dense prediction (with caveats)
+
+Act 2 walked seven recipe families across the construction sheet. Two of them, JEPA and autoregressive image pretraining (iGPT, AIM, AIMv2), do not report image dense-prediction transfer in their published evaluation sets. The remaining five report ADE20K mIoU somewhere in their papers. The natural temptation is to put all those numbers on a single chart and read off the ranking. The chart is real, and it's coming, but the ranking it implies is not a clean cross-recipe verdict.
+
+The reason is protocol drift. Different recipes report different combinations of (model size, pretraining dataset, segmentation head, training regimen). Some report fine-tuned UperNet at IN1K-pretrained ViT-L. Some report frozen-backbone linear probes at ViT-g. Some report frozen-backbone at ViT-7B with a paper-specific segmentation head. Comparing 53.6 (MAE ViT-L UperNet, fine-tuned) to 63.0 (DINOv3 ViT-7B frozen, segmentation head) requires holding constant variables that aren't actually held constant.
+
+Fig 11 stratifies the published numbers into five loose groupings:
+
+(a) ViT-L IN1K UperNet, head explicitly matched: MAE 53.6, D2V2-Refined 54.4, BEiT v2 56.7. These three sit in the same protocol bin and the within-bin ranking is meaningful. BEiT v2 leads.
+
+(a') BEiT v1 at ViT-L (53.3) sits adjacent to bin (a) at the same model scale, but reports under SETR-PUP rather than UperNet. The number is real, and it's roughly in the same ballpark, but it doesn't slot directly into bin (a)'s head-matched comparison.
+
+(b) ViT-B IN1K UperNet, head explicitly matched: MAE 48.1, iBOT 50.0, BEiT v2 53.1. Same protocol as (a) but at smaller scale. iBOT leads MAE; BEiT v2 leads iBOT.
+
+(c) DINO-line frozen-backbone, mixed heads: DINOv2-g 53.0 (multi-scale linear probe), DINOv3-7B 63.0 (DINOv3's segmentation head). These two are not protocol-matched to (a) or (b), or to each other. The numbers tell you the DINO line scales, not that DINOv3 outperforms BEiT v2 at matched protocol.
+
+(d) RADIO line under each paper's own protocol: RADIOv2.5-g 54.56, C-RADIOv4-H 55.20 at 512px. RADIO papers have their own evaluation regimens (model-size axis varies; the resolution at which C-RADIOv4-H reports matters). These numbers are best read as RADIO-line-internal comparisons.
+
+{/* TODO: Fig 11: ADE20KCrossRecipe, five published-ADE20K groupings stratified by protocol. (a) ViT-L UperNet IN1K matched: MAE 53.6, D2V2-Refined 54.4, BEiT v2 56.7. (a') BEiT v1 ViT-L SETR-PUP 53.3 (adjacent ViT-L scale, different head). (b) ViT-B UperNet IN1K matched: MAE 48.1, iBOT 50.0, BEiT v2 53.1. (c) DINO-line frozen-backbone mixed heads: DINOv2-g 53.0 multi-scale linear, DINOv3-7B 63.0. (d) RADIO-line under each paper's own protocol: RADIOv2.5-g 54.56, C-RADIOv4-H 55.20 at 512px. AR / JEPA / iGPT labeled "no published number." Construction-sheet annotation: no bar in this chart; proxy evidence only. */}
+
+The construction sheet has no bar in this chart, because no canonical bake-off exists for it. Treat these bars as proxy evidence for what to start from, not as direct construction-document scores. The reader who walks away with "DINOv3 wins outright" has read more into Fig 11 than the matrix supports.
+
+A note on the recipe families that don't appear here. Autoregressive image pretraining (iGPT, AIM, AIMv2) reports ImageNet classification only. AIM specifically frames itself as a scaling-laws result for classification ("performance of the visual features scale with both the model capacity and the quantity of data"); it does not report ADE20K, COCO segmentation, or depth transfer. The JEPA family (I-JEPA, V-JEPA, V-JEPA 2) reports image classification and video classification; none of the three reports image dense-prediction transfer. For the practitioner with a dense downstream task, these two families don't currently have a published number to compare against MAE 53.6 or DINOv3 63.0. They might, eventually. They don't yet.
+
+What Fig 11 does support, when you read it carefully:
+
+Within the MIM family at ViT-L UperNet IN1K (bin a), BEiT v2 leads MAE by 3.1 points and D2V2-Refined by 2.3 points. This is the cleanest within-recipe comparison the post has. The DINO line scales from 53.0 (frozen ViT-g multi-scale) to 63.0 (frozen ViT-7B with segmentation head); the 10-point spread reflects mostly model size and protocol differences, not a 10-point recipe gap. The RADIO line at C-RADIOv4-H lands at 55.20 at 512px under its own protocol, competitive with BEiT v2 56.7 within MIM, but the comparison isn't head-to-head. Five recipes have published dense numbers; two don't.
+
+§13 turns from natural-image dense numbers to out-of-domain transfer. Different question, different evidence, different chart.
+
+{/* Reader can now: read Fig 11 as five loose groupings rather than a single ranking; identify which bins are protocol-matched (a, b) and which aren't (c, d); recognize the BEiT v2 lead inside bin (a) as the cleanest within-recipe finding; understand AR and JEPA's absence as a "no published number" rather than a low number; resist the "DINOv3 wins outright" reading that cross-bin comparison would suggest. */}
+
+{/* TODO: §13: The published OOD evidence */}
+{/* TODO: §14: The decision tree */}
+{/* TODO: §15: Coda */}
