@@ -361,7 +361,81 @@ Continual-from-natural is the second recipe shape. [GLARE 2026](https://arxiv.or
 
 [Lahrichi 2025](https://arxiv.org/abs/2502.10669) ran the more demanding head-to-head: pretrain MAE and SwAV on GeoNet (a satellite corpus) versus ImageNet, then evaluate across six segmentation benchmarks. Conclusion: "no consistent advantage to pre-training with GeoNet as compared to ImageNet, regardless of whether SwAV or MAE was used." Two-stage MAE-IN→GN beats from-scratch MAE-GN on five of six benchmarks, with a modest 1–2% advantage. The two-stage result is the relevant data point for continual-from-natural: pretraining first on natural images, then continuing on the domain corpus, beats pretraining only on the domain corpus, modestly, in this satellite setting.
 
-{/* TODO: Fig 10: DomainAdaptiveResults, two-panel chart. Panel A: from-scratch domain-SSL deltas (DiT PubLayNet 91.0→94.9, ICDAR cTDaR 94.23→96.55, RVL-CDIP 91.11→92.69, Medical 3D MAE Δ +1.97 DSC). Panel B: continual-from-natural deltas (GLARE ADE20K 41.2→41.6, Pascal Context 49.1→49.3, Cityscapes 74.7→75.3, LoveDA 50.9→51.5; Lahrichi 2025 MAE-IN→GN modest gains over MAE-GN). Caption disclaims cross-panel comparison and DiT-as-document-layout scope. */}
+<figure>
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs>
+<pattern id="hatch10" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+<line x1="0" y1="0" x2="0" y2="6" stroke="#9333EA" stroke-width="1"/>
+</pattern>
+</defs>
+<text x="340" y="28" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">PANEL A · FROM-SCRATCH SSL ON THE DOMAIN CORPUS</text>
+<text x="340" y="48" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">delta over a no-pretraining baseline; metric varies by benchmark</text>
+<g font-family="serif" font-size="10" fill="#1A1A1A">
+<text x="200" y="86" text-anchor="end">DiT · PubLayNet</text>
+<text x="200" y="98" text-anchor="end" font-style="italic" fill="#6B6258">layout, mAP</text>
+<text x="200" y="116" text-anchor="end">DiT · ICDAR cTDaR</text>
+<text x="200" y="128" text-anchor="end" font-style="italic" fill="#6B6258">table, F1</text>
+<text x="200" y="146" text-anchor="end">DiT · RVL-CDIP</text>
+<text x="200" y="158" text-anchor="end" font-style="italic" fill="#6B6258">classification, %</text>
+<text x="200" y="176" text-anchor="end">Medical 3D MAE</text>
+<text x="200" y="188" text-anchor="end" font-style="italic" fill="#6B6258">brain seg, DSC</text>
+</g>
+<rect x="210" y="78" width="341" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="210" y="108" width="203" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="210" y="138" width="138" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="210" y="168" width="172" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
+<text x="557" y="92">+3.9</text>
+<text x="419" y="122">+2.32</text>
+<text x="354" y="152">+1.58</text>
+<text x="388" y="182">+1.97</text>
+</g>
+<line x1="210" y1="200" x2="560" y2="200" stroke="#8F8578"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+<text x="210" y="214">0</text>
+<text x="298" y="214">+1</text>
+<text x="385" y="214">+2</text>
+<text x="473" y="214">+3</text>
+<text x="560" y="214">+4</text>
+<text x="385" y="232" font-size="11">delta from no-pretrain baseline</text>
+</g>
+<text x="20" y="252" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">DiT scope is document-LAYOUT (text, tables, classification); Medical 3D MAE is brain-MRI segmentation. Neither benchmarks vision-only segmentation on line-art. Bars cannot be compared across rows: different metrics.</text>
+<line x1="40" y1="280" x2="640" y2="280" stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3"/>
+<text x="340" y="300" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">PANEL B · CONTINUAL SSL ON A NATURAL-IMAGE CHECKPOINT</text>
+<text x="340" y="320" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">delta over natural-image-init baseline; mIoU on segmentation benchmarks</text>
+<g font-family="serif" font-size="10" fill="#1A1A1A">
+<text x="200" y="358" text-anchor="end">GLARE · ADE20K</text>
+<text x="200" y="386" text-anchor="end">GLARE · Pascal Context</text>
+<text x="200" y="414" text-anchor="end">GLARE · Cityscapes</text>
+<text x="200" y="442" text-anchor="end">GLARE · LoveDA</text>
+<text x="200" y="472" text-anchor="end">Lahrichi 2025 MAE-IN→GN</text>
+<text x="200" y="484" text-anchor="end" font-style="italic" fill="#6B6258">vs MAE-GN, range 5/6</text>
+</g>
+<rect x="210" y="350" width="70" height="16" fill="#2563EB" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="210" y="378" width="35" height="16" fill="#2563EB" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="210" y="406" width="105" height="16" fill="#2563EB" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="210" y="434" width="105" height="16" fill="#2563EB" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="385" y="466" width="175" height="16" fill="url(#hatch10)"/>
+<rect x="385" y="466" width="175" height="16" fill="none" stroke="#9333EA" stroke-width="1"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
+<text x="285" y="362">+0.4</text>
+<text x="250" y="390">+0.2</text>
+<text x="320" y="418">+0.6</text>
+<text x="320" y="446">+0.6</text>
+<text x="565" y="478">+1 to +2</text>
+</g>
+<line x1="210" y1="498" x2="560" y2="498" stroke="#8F8578"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+<text x="210" y="512">0</text>
+<text x="298" y="512">+0.5</text>
+<text x="385" y="512">+1.0</text>
+<text x="473" y="512">+1.5</text>
+<text x="560" y="512">+2.0</text>
+</g>
+<text x="385" y="528" font-family="JetBrains Mono" font-size="11" fill="#6B6258" text-anchor="middle">delta mIoU vs natural-image-init baseline</text>
+</svg>
+<figcaption><strong>Fig 10.</strong> Domain-adaptive recipe deltas, by recipe shape. Panel A is from-scratch SSL on a domain corpus, with absolute deltas in each benchmark's native metric (mAP / F1 / % / DSC). Panel B is continual SSL on top of a natural-image checkpoint, in mIoU. Cross-panel comparison is invalid: panel A uses metrics that are not mIoU and a from-scratch (no-pretrain) baseline; panel B is mIoU vs a natural-image-init baseline. The Lahrichi bar is hatched because it's a 5/6-benchmark range, not a single number. Sources: [DiT](https://arxiv.org/abs/2203.02378), [Medical 3D MAE](https://arxiv.org/abs/2410.23132), [GLARE 2026](https://arxiv.org/abs/2509.17816), [Lahrichi 2025](https://arxiv.org/abs/2502.10669).</figcaption>
+</figure>
 
 For the construction-document practitioner, §11 is the most directly applicable section in act 2. Both recipe shapes are runnable on a construction-document corpus without external teachers; both have published evidence in adjacent domains showing the recipe shape can produce useful representations. The trade-offs.
 
