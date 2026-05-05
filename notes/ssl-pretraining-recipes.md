@@ -832,7 +832,7 @@ Findings: **0 STRUCTURAL + 0 TYPE-CHANGE + 0 COSMETIC.** Trajectory: 16 → 6 �
 
 ## Resume here
 
-Last touched: 2026-05-04 (Phase 4 prose COMPLETE: §1–§15 + Act dividers + References all drafted, committed, voice-check clean on body prose).
+Last touched: 2026-05-04 (Phase 4 prose COMPLETE + post-Phase-4 codex review pass: 1 P1 finding caught and fixed — MDX curly-brace JSX-parse blocker on the C-RADIOv4 + MESA loss equations. `bun run build` now completes 100 pages in 7.27s).
 
 ### Phase status
 
@@ -841,7 +841,7 @@ Last touched: 2026-05-04 (Phase 4 prose COMPLETE: §1–§15 + Act dividers + Re
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | **done** (Gate 1 closed at run 5; trajectory 16 → 6 → 5 → 5 → 0; 5 codex runs total, 1 Vic-authorized cap extension at run 4) | `## Outline` |
-| 4. Draft prose | **done** — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions (act-divider em-dashes, I-JEPA primary-source quote, DINOv2 paper title) retained per voice-rules | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
+| 4. Draft prose | **done** — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions (act-divider em-dashes, I-JEPA primary-source quote, DINOv2 paper title) retained per voice-rules. Post-Phase-4 codex review (`/codex review` against session-start ref): 1 P1 finding (MDX build blocker on `{u∈Ω}` and `{S→T}` / `{S→S̃}` curly-brace expressions in the §10 RADIO equations); fixed by replacing curly braces with parens. `bun run build` now completes 100 pages in 7.27s | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
 | 5. Implement figures | pending (table populated below; Fig 1 + 5 figures using the construction-sheet anchor blocked on Vic's input; 6 non-anchor figures unblocked) | per-figure table |
 | 6. Playwright review | pending | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
@@ -882,7 +882,9 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 ### Suggested next batch
 
-**Phase 4 prose done.** All 15 sections drafted, Act dividers in place, References section emitted, one commit per section, voice-check clean on body prose. Standing exemptions (act-divider em-dashes, the I-JEPA "hand-crafted" primary-source quote, the DINOv2 paper title's "Robust") are documented in the relevant commit messages.
+**Phase 4 prose done + post-Phase-4 codex review pass complete.** All 15 sections drafted, Act dividers in place, References section emitted, one commit per section, voice-check clean on body prose. Standing exemptions (act-divider em-dashes, the I-JEPA "hand-crafted" primary-source quote, the DINOv2 paper title's "Robust") are documented in the relevant commit messages.
+
+Codex `/codex review` against session-start ref `8e1765b` returned **1 P1 finding** (`commit aac113b`): the §10 C-RADIOv4 + MESA loss equations contained `{u∈Ω}` / `{S→T}` / `{S→S̃}`, which MDX parses as JSX expressions. `∈` and `→` are not valid JS, so `bun run build` failed with `Could not parse expression with acorn`. Fix: replaced the curly braces with parens; build now completes 100 pages in 7.27s. No other findings from codex; the 25 prior commits are clean per its review. **Going forward**: when writing math in MDX, avoid `{...}` even inside blockquoted equations — use parens, or wrap the whole equation in a fenced code block (\`\`\`).
 
 Phase 5 (implement figures) is next. 13 static-SVG figures total. The construction-sheet-anchor figures need Vic's input first; the 6 non-anchor figures can start immediately.
 
@@ -926,3 +928,4 @@ Phase 6 (playwright) and Phase 7 (Gate 2 + freshness pass + hero handoff + ship)
 8. **Sentence-case headings.** Numbered sections (`### 1. ...`). Em-dashes (U+2014) forbidden in prose; permitted in act-divider headings (`## Act 1 — The problem`). En-dashes (U+2013) allowed everywhere — use for numeric/date ranges.
 9. **`draft: false` from Phase 1 onward** (this is topic mode, not HTML-import).
 10. **Project-memory pointer + MEMORY.md entry verified at end of Phase 1.** See project memory at `~/.claude/projects/-Users-vic-dev-augusteo-com-astro/memory/project_ssl_pretraining_recipes_post.md` and the MEMORY.md index entry.
+11. **`bun run build` must pass before any prose commit lands.** Codex caught a P1 MDX build blocker post-Phase-4 (`{u∈Ω}` JSX-parse failure on the §10 RADIO equations). Going forward: when writing math in MDX, **never use bare `{...}` inside body prose** — MDX parses them as JSX expressions and any non-JS character (∈, →, Ω, ŷ, …) breaks the build. Use parens for math grouping, or wrap the whole equation in a fenced code block. Voice-check alone does not catch this; only `bun run build` does.
