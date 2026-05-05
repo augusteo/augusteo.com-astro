@@ -138,5 +138,27 @@ For the construction-document practitioner this section narrows the MIM target c
 
 {/* Reader can now: name the three target swaps (HOG, EMA latents, discrete tokens) and what each tries to fix; see the within-MIM ViT-L UperNet ranking (BEiT v2 > D2V2-Refined > MAE; BEiT v1 adjacent under SETR-PUP); flag BEiT v2's CLIP-distillation caveat (the empirical pairing is matrix-backed, the causal reading is not); see why §7's framing swap is the natural next move. */}
 
-{/* TODO: §7: Self-distillation (DINO → iBOT → DINOv2) */}
+### 7. Self-distillation: DINO, iBOT, DINOv2
+
+§6 showed that MIM's dense-feature signal varies with the prediction target, and that BEiT v2's lead carries a CLIP-distillation caveat. Self-distillation skips the target-choice question entirely. There is no reconstruction target, no tokenizer, no pretext task involving "predict X at masked positions." The signal comes from somewhere else.
+
+Take the construction sheet. Apply two augmentations to it (two random crops, color jitter, blur). Run both through a student ViT. Run one of them through a teacher ViT, which is just an exponentially-moving average of the student's own weights. Train the student so that its output distribution on the augmented view matches the teacher's output distribution on the other view, under a sharp temperature on the teacher and a softer one on the student. That's [DINO](https://arxiv.org/abs/2104.14294). The supervision signal is "two augmented views of the same image should produce similar embeddings"; the model isn't told what those embeddings should look like, only that they should be invariant to the augmentations.
+
+The first surprising result from this recipe: when you visualize the student's self-attention at the last block, the attention maps light up segmentation-shaped regions that nobody explicitly trained the model to find. The DINO paper put it directly: "self-supervised ViT features contain explicit information about the semantic segmentation of an image, which does not emerge as clearly with supervised ViTs, nor with convnets." That observation is the seed for treating the DINO line as the dense-feature SSL family. Invariance-to-augmentation, applied at scale to ViTs, produces patch-level structure as a side effect.
+
+[iBOT](https://arxiv.org/abs/2111.07832) extends DINO with masked-patch self-distillation. The student sees a masked image; the teacher (still an EMA of the student) sees the unmasked version. The student's masked-patch features have to match the teacher's corresponding patch features. iBOT keeps DINO's class-token loss but adds the patch-token loss; it also dispenses with a separate tokenizer because the teacher itself plays that role online. Per the paper: "the online tokenizer is jointly learnable with the MIM objective and dispenses with a multi-stage training pipeline where the tokenizer needs to be pre-trained beforehand." iBOT lands ADE20K mIoU 50.0 at ViT-B/16 under UperNet, beating MAE's 48.1 at the same scale.
+
+{/* TODO: Fig 6: DINOiBOTLossFlow, student multi-crop, EMA teacher, KL on class probs; iBOT adds masked-patch self-distillation */}
+
+[DINOv2](https://arxiv.org/abs/2304.07193) is DINO plus iBOT plus two pieces of glue. The first is a KoLeo regularizer that uses the Kozachenko-Leonenko entropy estimator to push the feature distribution toward uniform spread; the second is Sinkhorn-Knopp centering that replaces DINO/iBOT's softmax centering with a doubly-stochastic batch normalization. Heads for the DINO and iBOT objectives are kept untied. The loss is unchanged in spirit; the regularization makes it more stable at scale.
+
+The other thing DINOv2 changes is the data. The recipe is trained on LVD-142M, a 142M-image curated set built by retrieving inverted-file-index neighbors of a 1.2B-image pile against a small seed corpus. A ViT-g (1.1B params) is trained on LVD-142M and distilled into smaller students. ADE20K mIoU under a frozen-backbone linear probe lands at 49.0 single-scale and 53.0 multi-scale at ViT-g, comparable to MAE's full fine-tune at ViT-L but starting from frozen features rather than fine-tuning.
+
+For the construction-document practitioner, self-distillation has two specific properties. There's no reconstruction target to pick, so the section's worry about pixel reconstruction on whitespace-heavy data (§4) doesn't apply. The supervision signal is "two augmentations of this construction sheet should embed similarly," which is well-defined regardless of how much of the sheet is empty paper. There's also no pretrained tokenizer involved (DINO and iBOT use the model itself as the tokenizer), so the "the tokenizer is doing the work" caveat from §6 doesn't apply either. The trade-off is that self-distillation needs scale to produce strong dense features. DINO at small ViT scales is fine; DINOv2 at ViT-g on 142M curated images is what produces the 53.0 multi-scale frozen-linear ADE20K number that the rest of this post compares against.
+
+§8 turns to what happens when you push self-distillation further than DINOv2. Two failure modes show up at scale, and the post's most recent recipe (DINOv3) is engineered specifically against them.
+
+{/* Reader can now: state the self-distillation recipe (multi-crop, EMA teacher, output-distribution match, no reconstruction target); name DINO's emergent-segmentation observation as the seed of the dense-feature SSL family; name iBOT's contribution (online tokenizer + masked-patch loss; ADE20K 50.0 at ViT-B); name DINOv2's contribution (KoLeo + Sinkhorn-Knopp + LVD-142M curation; ADE20K 53.0 frozen-linear at ViT-g); see why §8's "what fails at scale" is the next rung. */}
+
+{/* TODO: §8: Dense-feature collapse */}
 {/* TODO: §12–§15: Act 3 + coda */}
