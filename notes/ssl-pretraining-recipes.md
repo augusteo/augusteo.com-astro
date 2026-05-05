@@ -13,7 +13,7 @@
 
 - The seven SSL recipe families and how each generates its training signal.
 - Why dense-feature quality is the load-bearing axis for segmentation downstreams (the "dense-feature collapse" failure mode generalized to recipe selection).
-- When continual-pretrain-from-DINOv3 beats from-scratch SSL, and when the inverse holds.
+- The published evidence on continual-SSL-on-natural-image-checkpoint vs from-scratch-SSL-on-domain (satellite via Lahrichi 2025; cross-domain segmentation via GLARE 2026) and what it does and doesn't tell us about construction documents.
 - Where multi-teacher distillation (C-RADIOv4) fits and why it isn't a recipe you can use without teachers.
 - Where JEPA-style "predict in latent space" sits relative to MIM-style "predict in pixel/feature space."
 - A decision tree mapping (corpus scale, domain distance, task density) → recipe pick.
@@ -256,11 +256,11 @@ Teachers: SigLIP2, DINOv3, SAM3 (paper-confirmed; specific variants like "SigLIP
 
 Loss formulation:
 
-> Spatial distillation: L_spatial(x,ŷ) = (1/|Ω|) Σ_{u∈Ω} (F_{S→T}[x]_u − ŷ_u)²
-> MESA shift-equivariant EMA matching: L_mesa(x,x̃) = (1/|Ω|) Σ (F_{S→S̃}[LN(x)]_u − LN(x̃)_u)²
-> Angular loss with cone-radius normalization: L_angle(x,y) = Θ(x,y)² / Disp(Θ_y)
+> Spatial loss: L_spatial(x, ŷ) = (1/|Ω|) Σ_{u∈Ω} (𝓕_{S→T}[x]_u − ŷ_u)² with ŷ_u = PHI-S-normalized teacher output (Eq. 1, §2.3.1)
+> Summary loss (cosine explicitly dropped): L_angle(x, y) = Θ(x, y)² / Disp(Θ_y) (Eq. 7, §2.5)
+> MESA: L_mesa(x, x̃) = (1/|Ω|) Σ (𝓕_{S→S̃}[LN(x)]_u − LN(x̃)_u)² — student matches its own EMA on shifted crops (Eq. 2, §2.3.2)
 
-**No SSL auxiliary loss on student.** MESA is shift-equivariant EMA-of-itself regularization, not SSL pretext. C-RADIOv4-H ADE20K mIoU 55.20 at 512px.
+**No MAE/DINO/JEPA-style pretext task on the student.** MESA is a self-supervised regularizer (shift-equivariant matching against the student's own EMA, not a teacher), but it is not a masked-prediction or contrastive pretext — its role is stability + equivariance. C-RADIOv4-H ADE20K mIoU 55.20 at 512px.
 
 **PHI-S** (arxiv:2410.01680, 2024-10). Loss-balancing for multi-teacher distillation via Hadamard isotropic standardization.
 
@@ -313,7 +313,7 @@ OOD-domain transfer reporting in the covered set is uneven and partly favors nat
 
 **Medical 3D MAE (arxiv:2410.23132)** reports MRI-volume DSC +1.97 on average over a non-pretrained nnU-Net. *The medical paper does not compare to continual SSL on a natural-image checkpoint.*
 
-The other canonical SSL papers in the covered set (MAE, BEiT v1/v2/v3, MaskFeat, data2vec/2.0, MIM-Refiner, DINO/iBOT/DINOv2/v2-with-registers, I-JEPA/V-JEPA/V-JEPA 2, AIM/AIMv2, AM-RADIO/RADIOv2.5/C-RADIOv4) confine their reported transfer to IN1K → {ADE20K, COCO, iNat, Places, VTAB-natural} or video-domain. **No paper in the set reports transfer to construction-document or engineering-drawing domains.** That answer comes from domain-specific follow-ups (DiT for documents) or from running the experiment yourself. The published satellite evidence (DINOv3 Web, Lahrichi, GLARE) is *adjacent* evidence; whether it generalizes to line-art-heavy construction documents is not established.
+The other canonical SSL papers in the covered set (MAE, BEiT v1/v2/v3, MaskFeat, data2vec/2.0, MIM-Refiner, DINO/iBOT/DINOv2/v2-with-registers, I-JEPA/V-JEPA/V-JEPA 2, AIM/AIMv2, AM-RADIO/RADIOv2.5/C-RADIOv4) confine their reported transfer to IN1K → {ADE20K, COCO, iNat, Places, VTAB-natural} or video-domain. **No published all-three-corners bake-off (from-scratch SSL on domain vs continual SSL from natural-image SSL vs zero-shot fine-tune from natural-image SSL) exists for construction documents or engineering drawings specifically.** Satellite/medical answers come from DINOv3 Web's frozen-backbone results, Lahrichi 2025, GLARE 2026, Medical 3D MAE, and DiT for documents; whether their conclusions generalize to line-art-heavy construction documents is not established and is the post's open question.
 
 ### Cross-method ADE20K mIoU summary (where reported)
 
@@ -377,11 +377,11 @@ Every load-bearing claim the post will make has a row here with a quoted primary
 | 29 | DiT applies BEiT-style MIM to document images and reports PubLayNet 91.0→94.9, ICDAR2019 cTDaR 94.23→96.55, RVL-CDIP 91.11→92.69 | Reported headline numbers from arxiv:2203.02378 abstract. *Recipe specifics (DALL-E tokens, IIT-CDIP 42M corpus) flagged for Phase 3 re-fetch if quoted in prose.* | arxiv:2203.02378 (2022-03) | stable / 18-month bar fails (4 years old); foundational for the document-domain framing — flag as marginal-stable. |
 | 30 | A 3D-medical MAE on 39k MRI volumes outperforms a non-pretrained nnU-Net by ~+2 DSC, demonstrating SSL beats from-scratch supervised in a 3D medical domain. The paper does NOT compare to continual SSL on a natural-image checkpoint. | "S3D average DSC 72.37... no-pretraining baseline 70.40 (Δ ≈ +1.97 DSC)"; "the first work to demonstrate that SSL pretraining... can consistently outperform a state-of-the-art, dynamically optimized nnU-Net baseline" | arxiv:2410.23132 (2024-10) | actively-evolving / 12-month bar / marginal — Oct 2024, 19 months. Hedge in prose: "as of late 2024 the medical-MAE result was published; newer dense-medical comparisons may exist by pubDate." Phase 7 to re-check. |
 | 31 | OOD-domain transfer reporting in canonical SSL papers is uneven and partly *favors natural-image SSL*: DINOv3 Web ViT-7B (frozen, no satellite-specific fine-tune) reports state-of-the-art on LoveDA (56.2 mIoU) and DIOR (80.5 mAP), beating both DINOv3 Sat-493M (the satellite specialization) and prior satellite-specialized models. iSAID is a notable hedge: DINOv3 Web 71.4 < SkySense V2 71.9. Medical 3D MAE reports MRI-volume DSC for the medical case. **No canonical SSL paper reports transfer to construction-document or engineering-drawing domains.** | "We compare the performance of different methods for Earth observation tasks ... The frozen DINOv3 satellite and web models set new state-of-the-art results on 12 out of 15 classification, segmentation, and horizontal object detection tasks ... the frozen DINOv3 web model establishes new leading results [on] Geo-Bench tasks as well as for segmentation and detection tasks on the LoveDA and DIOR datasets" — DINOv3 §8.3, Tables 18 & 19; Table 19 numbers: DINOv3 Web ViT-7B LoveDA 56.2 / iSAID 71.4 / DIOR 80.5 vs Prev. SotA 54.4 / 71.9 / 79.5. | DINOv3 arxiv:2508.10104 (2025-08); Medical 3D MAE arxiv:2410.23132 (2024-10) | actively-evolving / 12-month bar / DINOv3 passes; Medical 3D MAE foundational-stable for the medical-MAE comparison |
-| 32 | Published from-scratch-SSL vs from-natural-image-SSL bake-offs with dense-prediction numbers do exist for satellite (Lahrichi 2025) and for continual-SSL semantic segmentation across natural + satellite domains (GLARE 2026). The published verdict is **NOT** "domain-adaptive SSL clearly wins": Lahrichi found "no consistent advantage to pre-training with GeoNet as compared to ImageNet" across six benchmarks; GLARE's gains on top of UDI initialization are modest (+0.2 to +0.6 mIoU). **No analogous bake-off exists for construction documents or engineering drawings specifically.** | Lahrichi: "we pre-train models on ImageNet and GeoNet, respectively, using two different SSL pre-training strategies: SwAV and MAE" — §5; "the results showed no consistent advantage to pre-training with GeoNet as compared to ImageNet, regardless of whether SwAV or MAE was used" — §8 Conclusions; "MAE-IN-GN outperforms the MAE-GN on five of the six downstream benchmarks, however, the performance advantage in each of these cases is modest (usually 1-2%)" — §6. GLARE: "Given an encoder trained via SSL ... we are interested in improving the output feature embedding by training only the adapter parameters θA via SSL" — §4; "GLARE continual pre-training from UDI consistently shows improvements over the other pre-training strategies" — Table 1 caption; UDI→GLARE deltas (ViT-S/16): ADE20K 41.2→41.6, Pascal Context 49.1→49.3, Cityscapes 74.7→75.3, LoveDA 50.9→51.5. | Lahrichi arxiv:2502.10669v1 (2025-02); GLARE arxiv:2509.17816v2 (2026-01-29) | actively-evolving / 12-month bar / Lahrichi just inside bar (~14 months — foundational-stable for the comparison-recipe claim); GLARE passes |
+| 32 | Published from-scratch-SSL vs from-natural-image-SSL bake-offs with dense-prediction numbers do exist for satellite (Lahrichi 2025) and for continual-SSL semantic segmentation across natural + satellite domains (GLARE 2026). The published verdict is **NOT** "domain-adaptive SSL clearly wins": Lahrichi found "no consistent advantage to pre-training with GeoNet as compared to ImageNet" across six benchmarks; GLARE's gains on top of UDI initialization are modest (+0.2 to +0.6 mIoU). **No analogous bake-off exists for construction documents or engineering drawings specifically.** | Lahrichi: "we pre-train models on ImageNet and GeoNet, respectively, using two different SSL pre-training strategies: SwAV and MAE" — §5; "the results showed no consistent advantage to pre-training with GeoNet as compared to ImageNet, regardless of whether SwAV or MAE was used" — §8 Conclusions; "MAE-IN-GN outperforms the MAE-GN on five of the six downstream benchmarks, however, the performance advantage in each of these cases is modest (usually 1-2%)" — §6. GLARE: "Given an encoder trained via SSL ... we are interested in improving the output feature embedding by training only the adapter parameters θA via SSL" — §4; "GLARE continual pre-training from UDI consistently shows improvements over the other pre-training strategies" — Table 1 caption; UDI→GLARE deltas (ViT-S/16): ADE20K 41.2→41.6, Pascal Context 49.1→49.3, Cityscapes 74.7→75.3, LoveDA 50.9→51.5. | Lahrichi arxiv:2502.10669v1 (2025-02-15); GLARE arxiv:2509.17816v2 (2026-01-29) | actively-evolving / 12-month bar / Lahrichi 2025-02-15 is OUTSIDE the strict 12-month bar (14 months at pubDate 2026-05-04) — foundational-stable for the historical "Lahrichi found X" claim, since "no consistent advantage" is a recipe-comparison verdict that doesn't drift with paper revisions; GLARE 2026-01-29 passes the bar |
 | 33 | BEiT v3 trains via masked data modeling on images, text, AND image-text pairs in a unified objective (Multiway Transformer with shared self-attention) — multimodal SSL, not vision-only. | "we perform masked 'language' modeling on images (Imglish), texts (English), and image-text pairs ('parallel sentences') in a unified manner" — Abstract | arxiv:2208.10442v2 (2022-08-31) | stable foundational / passes |
 | 34 | AIMv2 trains via causal multimodal autoregression: image patches first, then text tokens — image-text supervision, not vision-only SSL. | "a causal multimodal decoder that first regresses image patches and then decodes text tokens in an autoregressive manner" — Abstract | arxiv:2411.14402v1 (2024-11-21) | foundational-stable — AIMv2's recipe definition is the load-bearing claim; ~18 months puts it past the strict 12-month bar but the recipe-classification claim doesn't drift |
 | 35 | Across the published RADIO line (AM-RADIO 2023 → RADIOv2.5 2024 → C-RADIOv4 2026), the student's primary supervision is teacher feature imitation, not a MAE/DINO-style self-supervised pretext. The only "self-supervised" component is C-RADIOv4's MESA (shift-equivariant EMA matching) which functions as a self-equivariance regularizer, not as a primary pretext task. | Cross-paper synthesis grounded in row 23 (AM-RADIO loss formulation), row 24 (RADIOv2.5 loss formulation), row 25 (C-RADIOv4 + MESA). | Synthesis row pointing to arxiv:2312.06709 + arxiv:2412.07679 + arxiv:2601.17237. | actively-evolving / 12-month bar / passes via row 25 (C-RADIOv4, 2026-01) |
-| 36 | The post's central thesis "multi-teacher distillation occupies a different position in the SSL recipe taxonomy than MAE/DINO/JEPA-style pretext-derived SSL" is supported by row 35 (cross-RADIO loss-formulation observation) — the supervision shape is categorically external (teacher activations) rather than pretext-derived (corrupted view + reconstruction objective). The post should not claim "multi-teacher distillation is not SSL"; rather, it is a different *kind* of self-supervision whose label-source is another model's outputs. | Synthesis claim grounded in row 35 + every primary SSL row. | Synthesis claim. | actively-evolving / passes via row 35 |
+| 36 | The post's central thesis "multi-teacher distillation occupies a different position in the SSL recipe taxonomy than MAE/DINO/JEPA-style pretext-derived SSL" is supported by row 35 (cross-RADIO loss-formulation observation) — the supervision shape is categorically external (teacher activations) rather than pretext-derived (reconstruction, invariance, or latent-prediction objectives over corrupted/multi-view inputs). The post should not claim "multi-teacher distillation is not SSL"; rather, it is a different *kind* of self-supervision whose label-source is another model's outputs. | Synthesis claim grounded in row 35 + every primary SSL row. | Synthesis claim. | actively-evolving / passes via row 35 |
 
 **Marginal-row debt closure (post-Gate-0-fix-v2).** Row-32 deferral lifted with quoted excerpts from Lahrichi 2025 and GLARE 2026. Remaining marginal:
 
@@ -445,6 +445,28 @@ Findings: 4 STRUCTURAL, 1 COSMETIC. Full output: [notes/ssl-pretraining-recipes-
 
 **Closure status:** structural fixes applied (run 2); ready to re-run Gate 0 (run 3) to confirm cosmetic-only.
 
+### Gate 0 run 3, 2026-05-04
+
+Findings: 3 STRUCTURAL + 2 COSMETIC. Down from 8 → 4 → 3 STRUCTURAL across runs 1, 2, 3. Full output: [notes/ssl-pretraining-recipes-codex-research-20260504-run3.md](./ssl-pretraining-recipes-codex-research-20260504-run3.md).
+
+**Findings (verbatim summary):**
+
+1. STRUCTURAL: Spec line 16 still promised "When continual-pretrain-from-DINOv3 beats from-scratch SSL, and when the inverse holds" but the matrix doesn't support that specific comparison (DINOv3 reports Web-vs-Sat frozen-backbone transfer; GLARE Table 1 is UDI-init not DINOv3-init).
+2. STRUCTURAL: Research-notes line 304-area "no canonical bake-off" sentence stale and contradicted row 32. Narrow to "no all-three-corners bake-off for construction documents specifically."
+3. STRUCTURAL: Research-notes line 263-area "No SSL auxiliary loss on student" prose still stale, contradicting the corrected row 25 + revised Headline finding.
+4. COSMETIC: Row 36 parenthetical too narrow ("corrupted view + reconstruction objective") — should be "reconstruction, invariance, or latent-prediction."
+5. COSMETIC: Row 32 recency bookkeeping incorrect — Lahrichi 2025-02-15 is OUTSIDE the 12-month bar at pubDate 2026-05-04; should be foundational-stable for the historical claim.
+
+**Fixes applied (this commit):**
+
+- Spec "Reader walks away knowing" bullet rewritten: "The published evidence on continual-SSL-on-natural-image-checkpoint vs from-scratch-SSL-on-domain (Lahrichi 2025; GLARE 2026) and what it does and doesn't tell us about construction documents."
+- Research-notes "no all-three-corners bake-off" sentence narrowed to construction documents / engineering drawings specifically; satellite/medical answers explicitly named (DINOv3 Web, Lahrichi, GLARE, Medical 3D MAE, DiT).
+- C-RADIOv4 prose section: stale "No SSL auxiliary loss on student" line removed; replaced with "No MAE/DINO/JEPA-style pretext task on the student. MESA is a self-supervised regularizer (shift-equivariant matching against the student's own EMA, not a teacher), but it is not a masked-prediction or contrastive pretext." Loss equations updated to PHI-S spatial / angular-cone summary / MESA wording.
+- Row 36 parenthetical broadened to "reconstruction, invariance, or latent-prediction objectives over corrupted/multi-view inputs."
+- Row 32 recency: relabeled to foundational-stable for the Lahrichi historical-claim (the "no consistent advantage" verdict is a fixed recipe-comparison result that doesn't drift), with the 14-month-outside-bar fact stated explicitly.
+
+**Closure status:** structural fixes applied (run 3); ready to re-run Gate 0 (run 4 — the gate-runner cap).
+
 ## Outline
 
 *(populated in Phase 3)*
@@ -470,7 +492,8 @@ Last touched: 2026-05-04.
 | Date | Gate | Outcome | Findings file |
 |---|---|---|---|
 | 2026-05-04 | 0 (research) | structural-fixes-applied (run 1, 8 STRUCTURAL → fixes committed) | `notes/ssl-pretraining-recipes-codex-research-20260504.md` |
-| 2026-05-04 | 0 (research, run 2) | structural-fixes-applied (4 STRUCTURAL + 1 COSMETIC → fixes committed; re-run pending) | `notes/ssl-pretraining-recipes-codex-research-20260504-run2.md` |
+| 2026-05-04 | 0 (research, run 2) | structural-fixes-applied (4 STRUCTURAL + 1 COSMETIC → fixes committed) | `notes/ssl-pretraining-recipes-codex-research-20260504-run2.md` |
+| 2026-05-04 | 0 (research, run 3) | structural-fixes-applied (3 STRUCTURAL + 2 COSMETIC; stale-prose cleanup → fixes committed; run 4 pending — gate-runner cap) | `notes/ssl-pretraining-recipes-codex-research-20260504-run3.md` |
 
 ### Suggested next batch
 
