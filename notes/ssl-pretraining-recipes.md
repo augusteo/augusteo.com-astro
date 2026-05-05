@@ -606,7 +606,41 @@ Codex's verbatim closing: **"No dead-weight section issue found: §3 earns its p
 
 **Closure status:** structural fixes applied (run 3 — last allowed before Step-6 cap). Trajectory 16 → 6 → 5; the run-3 findings are increasingly factual / phrasing rather than structural, suggesting convergence is close. Run 4 will be the Step-6-cap invocation; if it returns ≤ 2 STRUCTURAL of the stale-prose-correction shape, Step-6 acceptance is in play (per Gate-0 precedent).
 
-## Outline
+### Gate 1 run 4 (Step-6 cap), 2026-05-04
+
+Findings: 4 STRUCTURAL + 1 TYPE-CHANGE-labeled-but-static-preserving STRUCTURAL + 0 COSMETIC. Trajectory: 16 → 6 → 5 → 5 (runs 1 → 2 → 3 → 4) — flat from run 3 to run 4 with substantively different findings. Codex 0.125.0, gpt-5.5, reasoning-effort medium. **This is the gate-runner Step-6 cap invocation.** Per `codex-prompts.md` Step 6, the 4th invocation halts and surfaces an AskUserQuestion to Vic (accept / halt / override).
+
+**Findings (verbatim from codex):**
+
+> **STRUCTURAL — §8 / Fig 7 implies a measured construction-sheet DINOv2 artifact result without a matrix row.**
+>
+> "By DINOv2 the dense features on the construction sheet had artifact tokens" and "high-norm spikes concentrated in whitespace patches" is not backed. Row 15 backs artifacts in low-information regions generally, not on this construction sheet or construction documents. Fig 7 would visually imply an experiment the post does not have. Reframe as a generic DINOv2 failure mode and show a schematic or clearly labeled "reported background-region artifact," not a construction-sheet heatmap.
+>
+> **STRUCTURAL — §10 → §11 rung skips the practical middle option after teacher failure.**
+>
+> §10 says RADIO closes if no domain-tested teachers exist. §11 then jumps to from-scratch domain SSL. But §14's construction-document leaf says the starting point is DINOv3 frozen probe plus a continual-pretraining A/B. That continual-from-natural rung is central to the final recommendation, yet Act 2 does not actually teach it as a recipe shape after RADIO fails. The reader is asked to leap from "no teachers" to "from-scratch domain SSL," then later accept "start from DINOv3 and maybe continue-pretrain" as the construction-doc path. Add a short continual/adaptation bridge or make §11 explicitly cover from-scratch vs continual-from-natural rather than only domain-adaptive specialization.
+>
+> **STRUCTURAL — §11 claim overreaches DiT as evidence for the construction-document use case.**
+>
+> §11 says "domain-adaptive SSL works for documents at scale" and routes a "document-corpus" leaf from DiT, but the target post is vision-only dense prediction over construction sheets. Row 29's DiT evidence mixes PubLayNet layout detection, ICDAR table detection, and RVL-CDIP classification on text-rich document images. That is adjacent, not evidence that vision-only SSL works for line-art construction documents or segmentation. The section needs sharper scope language: DiT supports document-layout pretraining, not the core construction-sheet dense-feature claim.
+>
+> **STRUCTURAL — §14 decision tree is under-backed as a tree.**
+>
+> Rows support the leaves, but not the branching logic. "Corpus scale → domain distance → task density" is presented as the deliverable, yet the matrix has no row backing why those are the right split order, why they route to those leaves, or why teacher availability sits as a gate outside the same hierarchy. If the tree remains central, add a synthesis row that explicitly backs the routing logic from the covered evidence, or downgrade the figure from a decision tree to a "starting-point map with evidence caveats."
+>
+> **TYPE-CHANGE STRUCTURAL — Fig 7 should not be a construction-sheet heatmap unless you have data.**
+>
+> Static is fine, but the mechanism is wrong structurally. "Artifact tokens before/after registers" on the sheet reads as empirical output. Convert to a static schematic using reported natural-image/background artifacts, or label it as conceptual. Do not render before/after construction-sheet heatmaps without running the model.
+>
+> No cosmetic findings.
+
+**Note on the TYPE-CHANGE label.** Codex labeled finding 5 "TYPE-CHANGE STRUCTURAL" but the proposed fix preserves `static-svg` ("Static is fine, but the mechanism is wrong"). The unlock protocol is therefore NOT triggered — Fig 7's type stays `static-svg`. The finding is functionally a STRUCTURAL on Fig 7's *mechanism* (heatmap-on-sheet → schematic / conceptual labeling), not a re-type demand. Treating as STRUCTURAL #5 below.
+
+**Trajectory analysis.** Run 3 → Run 4: 5 → 5 STRUCTURAL, but the *findings themselves are different*. Run 3 was about Fig 11 protocol labels, teacher-availability framing, per-leaf baselines, §5 rung framing, §12 throughline. Run 4 is about §8 construction-sheet artifact overreach, missing continual-from-natural rung, DiT scope overreach, decision-tree routing-logic backing, Fig 7 heatmap framing. **Codex is not re-flagging fixed issues; it is finding new substantive structural problems each pass.** This is NOT the convergent stale-prose pattern from Gate 0 run 4 (which was small contradictions of already-fixed rows); these are real new structural findings at a different layer of the post.
+
+**Therefore Step-6 acceptance is NOT cleanly in play** — at least findings 1, 2, 3 are substantive new structural problems that warrant fixes before Phase 4. Finding 4 (decision-tree routing logic) is a more debatable "this is a synthesis claim, not a matrix-row claim" critique. Finding 5 (Fig 7 reframe) is a small phrasing/framing fix.
+
+**Per the Step-6 protocol, halting and surfacing AskUserQuestion to Vic.**
 
 **15 sections across three acts. 13 figures, all static-svg.** Post-Gate-1-run-2: §10 (AR — was the negative-control rung) dropped entirely per finding 6; AR/iGPT absence now lives as a paragraph in §12's prose (was §13). Section count 16 → 15; figure count unchanged at 13 (§10 had no figure). §11-§16 renumbered down to §10-§15. Run-1 baseline carried forward: Fig 5 (was Fig 5 / `plot`) re-typed to `static-svg` per finding 13; old Fig 3 (OOD-coverage, duplicate of Fig 14) and old Fig 10 (AIM-prefix-LM) dropped. Construction-sheet throughline explicit in every act-2 recipe section. Recipe ramp framed rung-by-rung.
 
@@ -762,7 +796,7 @@ Codex's verbatim closing: **"No dead-weight section issue found: §3 earns its p
 
 ## Resume here
 
-Last touched: 2026-05-04.
+Last touched: 2026-05-04 (Gate 1 run 4 fired; halted at Step-6 cap pending Vic decision).
 
 ### Phase status
 
@@ -770,7 +804,7 @@ Last touched: 2026-05-04.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | in progress (Gate 1 run 3: 5 STRUCTURAL — trajectory 16 → 6 → 5; fixes applied this commit; Fig 11 bin labels downgraded; teacher-availability gate reframed as practitioner-facing; per-leaf baseline disclaimers in §14; §5 ramp tightened; construction-sheet annotation in §12. Run 4 next is the Step-6 cap — Vic-decision invocation) | `## Outline` |
+| 3. Outline + figure list | in progress — Step-6 cap fired (Gate 1 run 4: 5 STRUCTURAL; trajectory 16 → 6 → 5 → 5 flat. Run 4 surfaced substantively new findings, NOT the convergent stale-prose shape Gate 0 saw. Halted and pending Vic AskUserQuestion: accept-and-proceed / fix-and-rerun / halt / per-finding override.) | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
 | 5. Implement figures | pending (table populated below) | per-figure table |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -787,6 +821,7 @@ Last touched: 2026-05-04.
 | 2026-05-04 | 1 (outline) | structural-fixes-applied (14 STRUCTURAL + 1 TYPE-CHANGE + 1 COSMETIC; Fig 5 re-typed `plot`→`static-svg` via auto-mode override of unlock AskUserQuestion; figures 3 + 10 dropped; central thesis moved to §11 prose; matrix extended to 41 rows; §15 reframed from prescriptive tree to routing-questions tree) | `notes/ssl-pretraining-recipes-codex-outline-20260504.md` |
 | 2026-05-04 | 1 (outline, run 2) | structural-fixes-applied (6 STRUCTURAL; trajectory 16 → 6; §10 dropped + 16 → 15 sections, AR/JEPA negative control merged into §12 prose; §14 four leaves enumerated, X/Y/Z thresholds dropped, teacher availability as gate; Fig 11 restructured into 4 protocol bins; matrix extended to 42 rows with iGPT) | `notes/ssl-pretraining-recipes-codex-outline-20260504-run2.md` |
 | 2026-05-04 | 1 (outline, run 3) | structural-fixes-applied (5 STRUCTURAL; trajectory 16 → 6 → 5; Fig 11 5-grouping downgrade + BEiT v1 SETR-PUP caveat; teacher-availability reframed as practitioner-facing; per-leaf §14 baseline disclaimers; §5 ramp tightened to upstream-of-construction-documents; §12 construction-sheet annotation) | `notes/ssl-pretraining-recipes-codex-outline-20260504-run3.md` |
+| 2026-05-04 | 1 (outline, run 4 — Step-6 cap) | halted-pending-Vic-decision (5 STRUCTURAL; trajectory 16 → 6 → 5 → 5 flat with substantively new findings: §8 construction-sheet artifact overreach, §10→§11 missing continual-from-natural bridge, §11 DiT scope overreach, §14 decision-tree routing-logic backing, Fig 7 heatmap framing. Not the convergent stale-prose shape — new structural at different layer.) | notes section `### Gate 1 run 4 (Step-6 cap)` |
 
 ### Phase 5 figure progress
 
@@ -810,11 +845,15 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 ### Suggested next batch
 
-1. **Run 4 of Gate 1 is the Step-6-cap invocation.** Per the gate-runner Step-6 protocol, the 4th invocation surfaces to Vic with AskUserQuestion (accept / halt / override). The Gate-0 precedent is to fire run 4 anyway and Step-6-accept if findings are stale-prose-of-already-fixed-rows.
-2. Run 4 trajectory expectation: 16 → 6 → 5 → ≤ 3, with findings increasingly drifting toward stale-prose contradictions of already-fixed rows. If that pattern holds, Vic Step-6-accepts (matrix is sound; trajectory is converging; remaining findings are minor).
-3. If run 4 surfaces deep new STRUCTURAL (substantive matrix-row mismatches, not stale-prose), halt and surface to Vic with the explicit Step-6 AskUserQuestion. The decision is Vic's: accept / halt / override-on-specific-finding.
-4. Vic to surface a representative construction sheet for Phase 5 figure work. Not a Gate 1 blocker.
-5. Phase 4 first batch when Gate 1 closes: §1 + §2 + §3 (Act 1) — three commits, voice-check between each.
+**Run 4 fired (Step-6 cap). Trajectory flat at 5 STRUCTURAL, but with substantively NEW findings — not the convergent stale-prose shape Gate 0 run 4 had.** Awaiting Vic's Step-6 AskUserQuestion answer. Options being surfaced:
+
+1. **Accept-and-proceed (Step-6 override).** Findings 1, 2, 3, 5 are real but small-scope; finding 4 is more of a synthesis-claim critique. Vic accepts as sufficient and moves to Phase 4. Recorded as `Step-6 override` in this notes file.
+2. **Fix-and-rerun (extend the cap by one).** Vic authorizes one more run after fixes. Run 5 would invocation #5, beyond the 3-rerun cap; an explicit cap extension. Findings 1 (§8 reframe), 2 (continual-from-natural bridge in §11), 3 (§11 DiT scope tightening), 5 (Fig 7 mechanism reframe) are tractable; finding 4 might need a synthesis matrix row.
+3. **Halt the post.** Codex's findings reveal a deeper scope issue (e.g. routing-logic backing) that requires re-spec, not just outline-tweak.
+4. **Per-finding override.** Vic accepts some findings, fixes others. e.g. fix 1, 3, 5; override 2 (continual-from-natural is implicit in §14, doesn't need an Act-2 rung) and 4 (routing logic is synthesis, not a matrix-row claim).
+
+Vic to surface a representative construction sheet for Phase 5 figure work. Not a Gate 1 blocker.
+Phase 4 first batch when Gate 1 closes: §1 + §2 + §3 (Act 1) — three commits, voice-check between each.
 
 ### How to resume from a fresh context
 
