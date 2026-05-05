@@ -388,3 +388,34 @@ What this post does not do: prescribe a specific continual-pretraining recipe fo
 The next twelve months will probably move some of these questions. C-RADIOv4 is a few months old at the time of writing; its successors will explore different teacher sets, possibly including domain-specific teachers. DINOv3 has six months of provenance; its specialization on satellite (SAT-493M) suggests more domain-tuned variants are likely. JEPA recipes still don't have published image dense-prediction transfer, but if a future V-JEPA or I-JEPA paper reports ADE20K numbers, the JEPA-vs-self-distillation question becomes more tractable. None of that timeline is on construction-document line-art specifically.
 
 If you're a practitioner picking an SSL recipe for a domain that isn't natural images, the practical advice is: start with the highest-published-frozen-backbone recipe that fits your scale (DINOv3 frozen probe at the high end, MAE or BEiT-style MIM if you can only afford to run a smaller recipe), measure your downstream task density honestly (is it really segmentation, or could a strong CLS token work?), and budget for a continual-pretraining A/B on top of the natural-image checkpoint. The question of whether construction-document SSL deserves its own published checkpoint is one a future paper would have to answer; this post couldn't.
+
+## References
+
+- [AIM: Scalable Pre-training of Large Autoregressive Image Models](https://arxiv.org/abs/2401.08541), El-Nouby et al., Apple (2024).
+- [AIMv2: Multimodal Autoregressive Pre-training of Large Vision Encoders](https://arxiv.org/abs/2411.14402), El-Nouby et al., Apple (2024).
+- [AM-RADIO: Agglomerative Vision Foundation Model](https://arxiv.org/abs/2312.06709), Ranzinger et al., NVIDIA (2023; CVPR 2024).
+- [BEiT: BERT Pre-Training of Image Transformers](https://arxiv.org/abs/2106.08254), Bao, Dong, Wei, MSRA (2021).
+- [BEiT v2: Masked Image Modeling with Vector-Quantized Visual Tokenizers](https://arxiv.org/abs/2208.06366), Peng et al. (2022).
+- [BEiT v3: Image as a Foreign Language for Vision and Vision-Language Tasks](https://arxiv.org/abs/2208.10442), Wang et al. (2022).
+- [C-RADIOv4: NVIDIA Multi-teacher Distillation Foundation Model](https://arxiv.org/abs/2601.17237), NVIDIA (2026).
+- [data2vec: A General Framework for Self-supervised Learning in Speech, Vision and Language](https://arxiv.org/abs/2202.03555), Baevski et al., FAIR (2022).
+- [Efficient Self-supervised Learning with Contextualized Target Representations (data2vec 2.0)](https://arxiv.org/abs/2212.07525), Baevski et al., FAIR (2022).
+- [DINO: Emerging Properties in Self-Supervised Vision Transformers](https://arxiv.org/abs/2104.14294), Caron et al., FAIR (2021).
+- [DINOv2: Learning Robust Visual Features without Supervision](https://arxiv.org/abs/2304.07193), Oquab et al., Meta (2023).
+- [Vision Transformers Need Registers (DINOv2 with Registers)](https://arxiv.org/abs/2309.16588), Darcet et al., Meta (2023; ICLR 2024 Oral).
+- [DINOv3](https://arxiv.org/abs/2508.10104), Meta (2025).
+- [DiT: Self-supervised Pre-training for Document Image Transformer](https://arxiv.org/abs/2203.02378), Microsoft (2022).
+- [GLARE: Adapter-based continual SSL pretraining over UDI for natural and satellite segmentation](https://arxiv.org/abs/2509.17816), TMLR-formatted submission (2025; v2 2026).
+- [iBOT: Image BERT Pre-Training with Online Tokenizer](https://arxiv.org/abs/2111.07832), Zhou et al. (2021).
+- [Generative Pretraining from Pixels (iGPT)](https://proceedings.mlr.press/v119/chen20s), Chen et al., OpenAI (ICML 2020).
+- [I-JEPA: Self-Supervised Learning from Images with a Joint Embedding Predictive Architecture](https://arxiv.org/abs/2301.08243), Assran et al., Meta (2023).
+- [Lahrichi 2025: ImageNet vs GeoNet pretraining for satellite segmentation](https://arxiv.org/abs/2502.10669), Lahrichi et al. (2025).
+- [Masked Autoencoders Are Scalable Vision Learners (MAE)](https://arxiv.org/abs/2111.06377), He et al., FAIR (2021).
+- [MaskFeat: Masked Feature Prediction for Self-Supervised Visual Pre-Training](https://arxiv.org/abs/2112.09133), Wei et al., FAIR (2021).
+- [Self-supervised pretraining at scale for 3D medical image segmentation (Medical 3D MAE)](https://arxiv.org/abs/2410.23132), (2024).
+- [MIM-Refiner: A Contrastive Learning Boost from Intermediate Pre-Trained Representations](https://arxiv.org/abs/2402.10093), Alkin et al. (2024; ICLR 2025).
+- [PHI-S: Distribution Balancing for Label-Free Multi-Teacher Distillation](https://arxiv.org/abs/2410.01680), NVIDIA (2024).
+- [RADIOv2.5: Improving Multi-Teacher Distillation with Better Loss Schedules](https://arxiv.org/abs/2412.07679), Heinrich, Ranzinger et al., NVIDIA (2024; CVPR 2025).
+- [SimMIM: A Simple Framework for Masked Image Modeling](https://arxiv.org/abs/2111.09886), Xie et al., MSRA (2021).
+- [V-JEPA: Revisiting Feature Prediction for Learning Visual Representations from Video](https://arxiv.org/abs/2404.08471), Bardes et al., Meta (2024).
+- [V-JEPA 2: Self-Supervised Video Models for Understanding, Prediction, and Planning](https://arxiv.org/abs/2506.09985), Meta (2025).
