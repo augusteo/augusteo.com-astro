@@ -338,6 +338,46 @@ For the construction-document practitioner, §13's takeaway is that the publishe
 
 {/* Reader can now: see the satellite result (DINOv3 Web > DINOv3 Sat-493M in DINOv3's eval set; natural-image SSL transfers without specialization); see Lahrichi 2025's two-stage result (continual-from-natural > from-scratch-on-domain, modestly); see GLARE 2026's continual-pretraining gains (modest, consistent across 4 benchmarks); see Medical 3D MAE's evidence (vs no-pretraining only, not vs continual-from-natural); see DiT's evidence (document-layout specifically, not line-art); understand that "domain-adaptive SSL strictly wins" is not what the literature says; recognize that none of this is on construction-document line-art; anticipate §14's routing tree. */}
 
-{/* TODO: §14: The decision tree */}
-{/* TODO: §14: The decision tree */}
+### 14. The decision tree (what to do, hedged)
+
+The construction sheet that opened §1 has walked through seven recipe families. It has no published bake-off; it has no canonical SSL backbone trained on it; the practitioner picking a recipe for it is at the frontier of what's measured. §14 takes everything the post has covered and lays it out as a decision tree.
+
+A note on what kind of tree this is. The three axes (corpus scale, domain distance from natural images, downstream task density) and the teacher-availability gate that sits outside the hierarchy are a *post-hoc descriptive synthesis* of how the covered evidence factors. The post is not claiming these are the optimal axes, the only axes, or axes that have been head-to-head measured against alternative split orders. It claims they are the relevant practitioner factors implied by what the published evidence actually establishes:
+
+- Corpus scale gates whether SSL is feasible at all. Medical 3D MAE worked at 39k volumes; DiT at 42M document images; DINOv3 at 1.7B natural images. Different recipes have different scale floors.
+- Domain distance from natural images gates how much you can lean on a natural-image checkpoint. DINOv3 Web → satellite is documented transfer; construction documents have no measured transfer.
+- Downstream task density gates whether dense-feature quality dominates. AIM/iGPT's classification-only evaluation sits at one end; ADE20K-shaped segmentation sits at the other.
+- Teacher availability is binary practitioner access, not a domain-shape axis. RADIO needs working teachers; if you don't have them, that branch closes.
+
+Treat the tree as descriptive guidance, not prescriptive truth. It's a way to organize the published evidence into a routing map.
+
+{/* TODO: Fig 13: DecisionTree, static-SVG routing tree. Three top-level qualitative branches (corpus scale / domain distance / task density) plus the teacher-availability gate. Each leaf labeled with (i) starting point quoting the matrix row, (ii) experiment-vs-evidence flag, (iii) named matrix row that justifies the starting point under that domain's published protocol, (iv) per-leaf baseline disclaimer. All four labeled terminals explicit (construction-document, satellite, medical, document-corpus). */}
+
+The four leaves:
+
+**1. Construction-document leaf** (line-art, segmentation downstream, tens of thousands of unlabeled sheets). Starting point: DINOv3 frozen probe (matrix row 18: ADE20K mIoU 63.0 at frozen ViT-7B, the highest published frozen-backbone dense number). Continuation: continual self-distillation on top is an A/B the practitioner would run, not a recipe with a published number. Flag: **experiment, no measured bake-off.** Row 32 (Lahrichi + GLARE) backs the absence by establishing what published comparisons exist for adjacent domains; none for construction documents specifically.
+
+Per-leaf baseline disclaimer: this leaf's evidence is ViT-7B frozen-backbone with DINOv3's segmentation head (row 18). The practitioner's continual-pretraining A/B is what would produce the construction-document number. Cross-leaf comparison to the satellite, medical, or document-corpus leaves below is not supported; their baselines differ.
+
+**2. Satellite leaf**. Starting point: DINOv3 Web ViT-7B frozen (row 31: LoveDA 56.2 / DIOR 80.5 SOTA; iSAID 71.4 hedge). Continuation: optional adapter-based continual pretraining for marginal gains (row 32 / GLARE deltas of +0.2 to +0.6 mIoU). Flag: **published evidence backs the starting point.** From-scratch GeoNet pretraining shows no consistent advantage over ImageNet (Lahrichi 2025); two-stage MAE-IN→GN beats from-scratch MAE-GN modestly.
+
+Per-leaf baseline disclaimer: starting-point evidence is at ViT-7B frozen-backbone (row 31, DINOv3 Web on LoveDA / DIOR / iSAID); continuation evidence (GLARE) is adapter-based at ViT-S/16 on UDI initialization (row 32). The starting-point and continuation evidence run on different protocols within the same leaf; neither is a unified ViT-frozen baseline against the other leaves.
+
+**3. Medical (3D MRI volumes) leaf**. Starting point: from-scratch 3D MAE on the domain (row 30: +1.97 DSC over no-pretraining nnU-Net). Continuation: no published comparison against continual SSL on a natural-image checkpoint (a head-to-head doesn't exist for volumetric medical data). Flag: **published evidence vs no-pretraining; experiment vs continual-from-natural.** This leaf does NOT claim "domain-SSL beats continual-from-natural"; the comparison hasn't been published.
+
+Per-leaf baseline disclaimer: 3D Residual Encoder U-Net within nnU-Net; DSC against no-pretraining (row 30). Not a ViT frozen / linear dense-feature probe. Cross-leaf comparison to the satellite or construction-document leaf is not supported; the model architecture and the metric are both different.
+
+**4. Document-corpus (text-heavy, layout-heavy) leaf**. *Applies to scanned reports, forms, invoices, contracts where the dense-prediction task is layout / table detection or document classification, NOT to line-art construction documents.* Starting point: DiT BEiT-style on IIT-CDIP-style corpus (row 29: PubLayNet 91.0 → 94.9 mAP, ICDAR cTDaR 94.23 → 96.55 F1, RVL-CDIP 91.11 → 92.69%). Continuation: no published continual-from-natural comparison. Flag: **published evidence (from-scratch domain-SSL vs supervised, at 42M corpus scale, on document-layout tasks specifically).** Construction-sheet line-art routes to leaf 1, not this leaf.
+
+Per-leaf baseline disclaimer: BEiT-style MIM on a 42M document corpus; downstream evaluation mixes layout (PubLayNet), table detection (ICDAR cTDaR), and document classification (RVL-CDIP) deltas. Not a unified dense-feature probe. The leaf reports DiT's result on its own protocol.
+
+The multi-teacher gate sits outside the three-axis hierarchy. If the practitioner has access to teacher checkpoints that work on their domain (perhaps a CLIP fine-tuned on construction-document image-caption pairs, or a DINOv2-style model continued-pretrained on construction sheets), RADIO-style multi-teacher distillation is the recipe (rows 23-28, 35, 36 establish the loss formulations and the central thesis). If they don't, fall back to whichever leaf the practitioner's data shape routes to. The post does not claim "no teacher set ships with construction-document weights" as an absence claim; teacher availability is a question the practitioner answers from their own context.
+
+The post-level claim is narrower than "follow the tree to the right recipe." Each leaf names a defensible STARTING POINT under that domain's published protocol, with an explicit flag for what the practitioner would have to run themselves. The four leaves are NOT four comparable points on a single decision surface; they are four routing destinations whose evidence is intra-domain. A practitioner whose corpus is construction-document line-art is being routed to leaf 1, with the experiment flag, not given a measured comparison against leaves 2, 3, or 4.
+
+§15 is the coda.
+
+{/* Reader can now: see the four leaves with their starting points (DINOv3 frozen for construction docs; DINOv3 Web frozen for satellite; from-scratch 3D MAE for medical; DiT for document-layout); see each leaf's experiment-vs-evidence flag; understand the per-leaf baseline disclaimers (the four leaves are NOT directly comparable); recognize the teacher-availability gate as a hard practitioner-facing question outside the matrix; understand the routing-axis provenance is descriptive-synthesis, not measured-ablation. */}
+
+{/* TODO: §15: Coda */}
 {/* TODO: §15: Coda */}
