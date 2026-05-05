@@ -905,7 +905,151 @@ The first surprising result from this recipe: when you visualize the student's s
 
 [iBOT](https://arxiv.org/abs/2111.07832) extends DINO with masked-patch self-distillation. The student sees a masked image; the teacher (still an EMA of the student) sees the unmasked version. The student's masked-patch features have to match the teacher's corresponding patch features. iBOT keeps DINO's class-token loss but adds the patch-token loss; it also dispenses with a separate tokenizer because the teacher itself plays that role online. Per the paper: "the online tokenizer is jointly learnable with the MIM objective and dispenses with a multi-stage training pipeline where the tokenizer needs to be pre-trained beforehand." iBOT lands ADE20K mIoU 50.0 at ViT-B/16 under UperNet, beating MAE's 48.1 at the same scale.
 
-{/* TODO: Fig 6: DINOiBOTLossFlow, student multi-crop, EMA teacher, KL on class probs; iBOT adds masked-patch self-distillation */}
+<figure>
+<svg viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs>
+<marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+<path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+</marker>
+</defs>
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.4" font-weight="700">DINO · global self-distillation</text>
+<rect x="20" y="50" width="80" height="80" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="0.8"/>
+<g stroke="#1A1A1A" fill="none" stroke-width="0.4">
+<rect x="28" y="58" width="64" height="64" stroke-width="0.6"/>
+<line x1="40" y1="58" x2="40" y2="122"/>
+<line x1="40" y1="80" x2="92" y2="80"/>
+<line x1="40" y1="100" x2="92" y2="100"/>
+<line x1="60" y1="58" x2="60" y2="80"/>
+<line x1="76" y1="58" x2="76" y2="80"/>
+<line x1="60" y1="100" x2="60" y2="122"/>
+<line x1="76" y1="100" x2="76" y2="122"/>
+</g>
+<text x="60" y="142" font-family="JetBrains Mono" font-size="8" fill="#6B6258" text-anchor="middle">source sheet</text>
+<rect x="120" y="40" width="60" height="44" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="0.6"/>
+<g stroke="#1A1A1A" fill="none" stroke-width="0.4">
+<rect x="124" y="44" width="52" height="36"/>
+<line x1="138" y1="44" x2="138" y2="80"/>
+<line x1="124" y1="62" x2="176" y2="62"/>
+</g>
+<text x="150" y="92" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">view A · global crop</text>
+<rect x="120" y="146" width="60" height="44" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="0.6"/>
+<g stroke="#1A1A1A" fill="none" stroke-width="0.4">
+<rect x="124" y="150" width="52" height="36"/>
+<line x1="138" y1="150" x2="138" y2="186"/>
+<line x1="124" y1="168" x2="176" y2="168"/>
+</g>
+<text x="150" y="200" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">view B · global crop</text>
+<line x1="92" y1="80" x2="120" y2="62" stroke="#8F8578" stroke-width="0.5"/>
+<line x1="92" y1="100" x2="120" y2="168" stroke="#8F8578" stroke-width="0.5"/>
+<rect x="220" y="50" width="100" height="55" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<text x="270" y="74" font-family="serif" font-size="13" font-weight="600" fill="#2563EB" text-anchor="middle">student</text>
+<text x="270" y="92" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">being trained</text>
+<rect x="220" y="135" width="100" height="55" fill="none" stroke="#B8651A" stroke-width="1.5"/>
+<text x="270" y="159" font-family="serif" font-size="13" font-weight="600" fill="#B8651A" text-anchor="middle">teacher</text>
+<text x="270" y="177" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">EMA of student</text>
+<line x1="180" y1="62" x2="218" y2="78" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<line x1="180" y1="168" x2="218" y2="162" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<rect x="350" y="65" width="120" height="22" fill="none" stroke="#2563EB"/>
+<text x="410" y="80" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">[0.71, -0.13, 0.45, ...]</text>
+<text x="410" y="98" font-family="serif" font-size="8" font-style="italic" fill="#2563EB" text-anchor="middle">student CLS · soft</text>
+<rect x="350" y="148" width="120" height="22" fill="none" stroke="#B8651A"/>
+<text x="410" y="163" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">[0.79, -0.21, 0.38, ...]</text>
+<text x="410" y="180" font-family="serif" font-size="8" font-style="italic" fill="#B8651A" text-anchor="middle">teacher CLS · sharp</text>
+<line x1="320" y1="78" x2="348" y2="78" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<line x1="320" y1="162" x2="348" y2="162" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<line x1="410" y1="87" x2="410" y2="120" stroke="#6B6258" stroke-width="0.5" stroke-dasharray="3,3"/>
+<line x1="410" y1="148" x2="410" y2="135" stroke="#6B6258" stroke-width="0.5" stroke-dasharray="3,3"/>
+<rect x="500" y="106" width="140" height="42" fill="#1A1A1A" stroke="#B8651A"/>
+<text x="570" y="124" font-family="JetBrains Mono" font-size="10" fill="#B8651A" text-anchor="middle" letter-spacing="1.2">DINO LOSS</text>
+<text x="570" y="140" font-family="JetBrains Mono" font-size="11" fill="#F4EEE3" text-anchor="middle">KL ( p_s ‖ p_t )</text>
+<line x1="470" y1="124" x2="498" y2="124" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<text x="270" y="225" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">no labels · supervision is "two views of one sheet should embed similarly"</text>
+<line x1="40" y1="245" x2="640" y2="245" stroke="#8F8578" stroke-width="0.5" stroke-dasharray="3,3"/>
+<text x="340" y="268" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.4" font-weight="700">iBOT extension · + masked-patch self-distillation</text>
+<text x="340" y="284" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">student sees masked sheet · teacher sees unmasked · match patch features at masked positions</text>
+<text x="80" y="310" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">student INPUT</text>
+<g stroke="#FFFFFF" stroke-width="0.5">
+<rect x="20" y="320" width="22" height="22" fill="#F4EEE3"/>
+<rect x="42" y="320" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="64" y="320" width="22" height="22" fill="#FBE9CE"/>
+<rect x="86" y="320" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="108" y="320" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="130" y="320" width="22" height="22" fill="#F4EEE3"/>
+<rect x="20" y="342" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="42" y="342" width="22" height="22" fill="#93C5FD" opacity="0.7"/>
+<rect x="64" y="342" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="86" y="342" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="108" y="342" width="22" height="22" fill="#FBE9CE"/>
+<rect x="130" y="342" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="20" y="364" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="42" y="364" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="64" y="364" width="22" height="22" fill="#F4EEE3"/>
+<rect x="86" y="364" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="108" y="364" width="22" height="22" fill="#1A1A1A" opacity="0.55"/>
+<rect x="130" y="364" width="22" height="22" fill="#F4EEE3"/>
+</g>
+<line x1="160" y1="350" x2="218" y2="350" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<rect x="220" y="320" width="100" height="65" fill="none" stroke="#2563EB" stroke-width="1.4"/>
+<text x="270" y="346" font-family="serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">student</text>
+<text x="270" y="362" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">predicts at masked</text>
+<text x="270" y="376" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">positions</text>
+<line x1="320" y1="350" x2="348" y2="350" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<g font-family="JetBrains Mono" font-size="8" fill="#2563EB">
+<rect x="350" y="340" width="14" height="14" fill="none" stroke="#2563EB"/>
+<text x="357" y="350" text-anchor="middle">f₁</text>
+<rect x="365" y="340" width="14" height="14" fill="none" stroke="#2563EB"/>
+<text x="372" y="350" text-anchor="middle">f₂</text>
+<rect x="380" y="340" width="14" height="14" fill="none" stroke="#2563EB"/>
+<text x="387" y="350" text-anchor="middle">f₃</text>
+<rect x="395" y="340" width="14" height="14" fill="none" stroke="#2563EB"/>
+<text x="402" y="350" text-anchor="middle">f₄</text>
+<text x="380" y="370" font-style="italic" fill="#6B6258" text-anchor="middle">student masked-patch features</text>
+</g>
+<rect x="270" y="395" width="140" height="42" fill="#1A1A1A" stroke="#B8651A"/>
+<text x="340" y="413" font-family="JetBrains Mono" font-size="10" fill="#B8651A" text-anchor="middle" letter-spacing="1.2">iBOT LOSS</text>
+<text x="340" y="429" font-family="JetBrains Mono" font-size="11" fill="#F4EEE3" text-anchor="middle">match per-position</text>
+<line x1="380" y1="375" x2="380" y2="393" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<line x1="425" y1="350" x2="455" y2="350" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<g font-family="JetBrains Mono" font-size="8" fill="#B8651A">
+<rect x="455" y="340" width="14" height="14" fill="none" stroke="#B8651A"/>
+<text x="462" y="350" text-anchor="middle">t₁</text>
+<rect x="470" y="340" width="14" height="14" fill="none" stroke="#B8651A"/>
+<text x="477" y="350" text-anchor="middle">t₂</text>
+<rect x="485" y="340" width="14" height="14" fill="none" stroke="#B8651A"/>
+<text x="492" y="350" text-anchor="middle">t₃</text>
+<rect x="500" y="340" width="14" height="14" fill="none" stroke="#B8651A"/>
+<text x="507" y="350" text-anchor="middle">t₄</text>
+<text x="485" y="370" font-style="italic" fill="#6B6258" text-anchor="middle">teacher patch features (online tokenizer)</text>
+</g>
+<line x1="525" y1="350" x2="558" y2="350" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
+<rect x="560" y="320" width="100" height="65" fill="none" stroke="#B8651A" stroke-width="1.4"/>
+<text x="610" y="346" font-family="serif" font-size="12" font-weight="600" fill="#B8651A" text-anchor="middle">teacher</text>
+<text x="610" y="362" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">EMA of student</text>
+<text x="610" y="376" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">unmasked input</text>
+<line x1="510" y1="395" x2="540" y2="375" stroke="#6B6258" stroke-width="0.5" stroke-dasharray="3,3"/>
+<text x="610" y="310" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">teacher INPUT</text>
+<g stroke="#FFFFFF" stroke-width="0.5">
+<rect x="610" y="395" width="11" height="11" fill="#F4EEE3"/>
+<rect x="621" y="395" width="11" height="11" fill="#FBE9CE"/>
+<rect x="632" y="395" width="11" height="11" fill="#F4EEE3"/>
+<rect x="643" y="395" width="11" height="11" fill="#F4EEE3"/>
+<rect x="654" y="395" width="11" height="11" fill="#F4EEE3"/>
+<rect x="610" y="406" width="11" height="11" fill="#93C5FD" opacity="0.7"/>
+<rect x="621" y="406" width="11" height="11" fill="#FBE9CE"/>
+<rect x="632" y="406" width="11" height="11" fill="#F4EEE3"/>
+<rect x="643" y="406" width="11" height="11" fill="#F4EEE3"/>
+<rect x="654" y="406" width="11" height="11" fill="#F4EEE3"/>
+<rect x="610" y="417" width="11" height="11" fill="#F4EEE3"/>
+<rect x="621" y="417" width="11" height="11" fill="#F4EEE3"/>
+<rect x="632" y="417" width="11" height="11" fill="#F4EEE3"/>
+<rect x="643" y="417" width="11" height="11" fill="#F4EEE3"/>
+<rect x="654" y="417" width="11" height="11" fill="#F4EEE3"/>
+</g>
+<text x="340" y="468" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">DINOv2 = DINO loss + iBOT loss + KoLeo regularizer + Sinkhorn-Knopp centering</text>
+<text x="340" y="484" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">trained on LVD-142M curated images at ViT-g · ADE20K mIoU 53.0 (multi-scale linear probe)</text>
+</svg>
+<figcaption><strong>Fig 6.</strong> DINO + iBOT self-distillation, with the construction sheet as the source image. Top: DINO trains the student to match the teacher's CLS-token output distribution under different augmentations of the same sheet; the teacher is an EMA of the student. Bottom: iBOT adds a per-patch loss at the masked positions. Student sees a masked sheet, teacher sees the unmasked one, and the student's masked-patch features have to match the teacher's at the corresponding positions. The teacher itself plays the tokenizer role, dispensing with a separate pretraining stage.</figcaption>
+</figure>
 
 [DINOv2](https://arxiv.org/abs/2304.07193) is DINO plus iBOT plus two pieces of glue. The first is a KoLeo regularizer that uses the Kozachenko-Leonenko entropy estimator to push the feature distribution toward uniform spread; the second is Sinkhorn-Knopp centering that replaces DINO/iBOT's softmax centering with a doubly-stochastic batch normalization. Heads for the DINO and iBOT objectives are kept untied. The loss is unchanged in spirit; the regularization makes it more stable at scale.
 
