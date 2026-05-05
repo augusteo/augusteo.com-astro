@@ -832,7 +832,7 @@ Findings: **0 STRUCTURAL + 0 TYPE-CHANGE + 0 COSMETIC.** Trajectory: 16 → 6 �
 
 ## Resume here
 
-Last touched: 2026-05-04 (Phase 5 non-anchor batch COMPLETE — 7 of 13 figures landed: Fig 4, 7, 9, 10, 11, 12, 13. The 6 anchor figures (1, 2, 3, 5, 6, 8) remain blocked on Vic surfacing a representative construction sheet).
+Last touched: 2026-05-04 (Phase 5 COMPLETE — all 13 figures landed. Anchor batch unblocked when Vic surfaced the Schenkel Shultz Sanibel Fire and Rescue Station 172 floor plan, sheet A102, 1/4"=1'-0"; used as the construction-sheet anchor for Fig 1, 2, 3, 5, 6, 8. Phase 6 (playwright per-figure visual review) is next).
 
 ### Phase status
 
@@ -842,8 +842,8 @@ Last touched: 2026-05-04 (Phase 5 non-anchor batch COMPLETE — 7 of 13 figures 
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | done (Gate 1 closed at run 5; trajectory 16 → 6 → 5 → 5 → 0; 5 codex runs total, 1 Vic-authorized cap extension at run 4) | `## Outline` |
 | 4. Draft prose | done — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions retained per voice-rules. Post-Phase-4 codex review pass: 1 P1 MDX build blocker fixed | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
-| 5. Implement figures | **7 of 13 done** (non-anchor batch landed: Fig 4, 7, 9, 10, 11, 12, 13; voice-check + build clean on each commit). 6 anchor figures (Fig 1, 2, 3, 5, 6, 8) blocked on Vic providing a representative construction sheet | per-figure table below |
-| 6. Playwright review | pending | playwright snapshots reviewed |
+| 5. Implement figures | **done** — all 13 figures landed; voice-check + build clean on each commit. Anchor batch (Fig 1, 2, 3, 5, 6, 8) unblocked when Vic surfaced Sanibel FS-172 sheet A102; used as the source-image template across the anchor figures | per-figure table below |
+| 6. Playwright review | next | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
@@ -866,14 +866,14 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | ConstructionSheet | static-svg | TODO (anchor; needs Vic's construction sheet) | — |
-| 2 | DenseVsCLS | static-svg | TODO (anchor) | — |
-| 3 | MAEForwardPass | static-svg | TODO (anchor) | — |
+| 1 | ConstructionSheet | static-svg | done (Sanibel FS-172 stylized) | 98c5846 |
+| 2 | DenseVsCLS | static-svg | done | c98fc07 |
+| 3 | MAEForwardPass | static-svg | done | 2831948 |
 | 4 | MIMBlockRegime | static-svg | done | 7649b94 |
-| 5 | MIMTargetComparison | static-svg | TODO (anchor) | — |
-| 6 | DINOiBOTLossFlow | static-svg | TODO (anchor) | — |
+| 5 | MIMTargetComparison | static-svg | done | dd97f68 |
+| 6 | DINOiBOTLossFlow | static-svg | done | 9e0cb54 |
 | 7 | RegistersGramFix | static-svg | done | d7ae94f |
-| 8 | JEPAvsMAE | static-svg | TODO (anchor) | — |
+| 8 | JEPAvsMAE | static-svg | done | 4b11558 |
 | 9 | RADIOArchitecture | static-svg | done | e4c525e |
 | 10 | DomainAdaptiveResults | static-svg | done | d54a4de |
 | 11 | ADE20KCrossRecipe | static-svg | done | 758cf12 |
@@ -882,25 +882,25 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 ### Suggested next batch
 
-**Phase 5 non-anchor batch COMPLETE.** 7 of 13 figures landed (Fig 4, 7, 9, 10, 11, 12, 13). One commit per figure. Voice-check clean on each commit (5 pre-existing standing exemptions unchanged). `bun run build` clean on each commit (7.0–7.5s, 100 pages).
+**Phase 5 COMPLETE.** All 13 figures landed. One commit per figure. Voice-check clean on each commit (5 pre-existing standing exemptions unchanged). `bun run build` clean throughout.
 
-**Two SVG-author rules learned this batch (carry forward):**
+Anchor batch (6 figures) used a stylized rendering of Schenkel Shultz Sanibel Fire and Rescue Station 172, sheet A102 (second-floor architectural plan, 1/4"=1'-0"), as the source-image template. Same simplified building outline + room labels + stair detail + door swings + callout tags reused across Fig 1, 2, 3, 5, 6, 8 with each figure adding its own overlay (annotations / heatmap / patch grid / context-target blocks / etc.).
 
-1. **Em-dashes (U+2014) inside SVG `<text>` content trip voice-check** the same way they trip prose. `PANEL A — TITLE` and `MULTI-TEACHER GATE — parallel` were both flagged. Use mid-dot `·` (U+00B7) as the in-figure separator instead.
-2. **Inline `<g ...><text>` on a single line is parsed by MDX as a paragraph** that doesn't get closed before the next line, producing `Expected a closing tag for <g>`. Always put `<g ...>` on its own line, then `<text>...` on the next.
+**Three SVG-author rules learned across Phase 5 (now Hard rules #12 and #13, plus a third worth tracking):**
 
-**Phase 5 anchor batch — blocked on Vic.** 6 figures (Fig 1, 2, 3, 5, 6, 8) all use a representative construction sheet as their visual anchor. Vic's input needed: a single floor plan or section detail (one image is enough; the figures all reuse the same image with different overlays).
+1. Em-dashes inside SVG `<text>` content trip voice-check (use mid-dot `·`).
+2. Inline `<g ...><text>` on one line breaks MDX (`<g>` on its own line).
+3. Em-dashes inside MDX prose figcaptions also trip voice-check (rewrite with period / colon / parens).
 
-When Vic surfaces the sheet, anchor batch order (low → high complexity):
+**Phase 6 (playwright per-figure visual review) is next.** Per `playwright-checks.md`:
 
-- Fig 1 (ConstructionSheet) — annotated sheet, scene-setting overlay.
-- Fig 2 (DenseVsCLS) — same image, two heads (CLS class probability vs per-patch heatmap).
-- Fig 3 (MAEForwardPass) — visible patches → encoder → mask tokens → decoder → reconstruction, on the sheet.
-- Fig 5 (MIMTargetComparison) — three-panel target comparison on the masked sheet.
-- Fig 6 (DINOiBOTLossFlow) — DINO/iBOT loss flow on the sheet.
-- Fig 8 (JEPAvsMAE) — MAE pixel prediction vs I-JEPA latent prediction on the sheet.
+1. Start `bun run dev` in the background.
+2. Navigate to `http://localhost:4321/blog/ssl-pretraining-recipes` (or :4322 if 4321 is busy).
+3. For each figure (1 → 13), scroll into view, snapshot, read the screenshot back. Run universal checks (no clipping, labels legible, colors render correctly, no overlap) plus type-specific checks per `playwright-checks.md`.
+4. If any figure fails review three times in a row, halt and surface to Vic.
+5. Update this tracker as figures pass.
 
-Phase 6 (playwright per-figure visual review) starts immediately after the anchor batch lands. Phase 7 (freshness pass + Gate 2 + hero handoff + ship) follows.
+**After Phase 6:** Phase 7 — freshness re-check on every claim-source-matrix row, Gate 2 codex pass on the full draft, hero hand-off, then ship.
 
 ### How to resume from a fresh context
 
