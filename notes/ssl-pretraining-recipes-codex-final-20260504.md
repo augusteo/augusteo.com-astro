@@ -114,3 +114,26 @@ The fix softened “~70–80%” to “most patches,” but the post still claim
 No references-section completeness issue found. No new prose named-source hyperlink issue found outside the SVG-text override.
 2026-05-05T05:46:51.055534Z ERROR codex_core::session: failed to record rollout items: thread 019df6ab-107d-77f2-931d-20a526fd5d0b not found
 tokens used
+
+---
+
+## Gate 2 run 3 (2026-05-04)
+
+codex
+**Findings**
+
+1. STRUCTURAL: [index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:740) reintroduces the unsupported whitespace-loss claim inside Fig 5: “Whitespace dominates the loss” and “most masked patches are blank.” This is the same class as Gate 2 run 1 finding 1. §4 prose is now hedged, but the Fig 5 SVG text is not. The matrix does not contain a row measuring construction-sheet patch blankness or showing MAE loss is dominated by whitespace. Fix by changing it to the same hedged shape used elsewhere, e.g. “Whitespace can make the loss low-signal” / “many masked patches may carry little visual signal,” or by labeling the panel as conceptual.
+
+2. STRUCTURAL: [index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:1707) overstates Fig 11 protocol comparability. The caption says “Bars within a bin share architecture, head, and pretraining-data scale, so they’re comparable.” That is false for bin C (DINOv2-g vs DINOv3-7B, mixed heads) and bin D (RADIO-line paper-specific protocols), and it contradicts the surrounding prose at lines 1602–1604. Fix the caption to say only bins A and B are matched; A’/C/D are adjacent or paper-protocol groupings and not necessarily comparable within-bin.
+
+3. COSMETIC: [index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:162) names the Sanibel / Schenkel Shultz source in a prose caption without a hyperlink, and the source does not appear in References. Since this is the visual stand-in source rather than a load-bearing ML claim, I would not block structurally, but it does violate the named-source-link / references-completeness standard. Add a link in the caption and, if the reference list is meant to cover visual sources too, add it there.
+
+**Closure Check**
+
+Gate 2 run 1 finding 1 is still not fully closed because the hard “blank / dominates the loss” wording survives in Fig 5. Gate 2 run 1 findings 2–6 look closed. The SVG-text named-source override remains reasonable, but the Fig 1 caption is prose, so the override does not cover the Sanibel mention.
+
+Gate 2 run 2’s DINOv3 “zero-shot,” Lahrichi over-ranking, and C-RADIOv4/absence fixes look closed. I did not find a freshness regression: the marginal-row accounting for rows 29/30/32 is honest in [notes/ssl-pretraining-recipes.md](/Users/vic/dev/augusteo.com-astro/notes/ssl-pretraining-recipes.md:395). Spot-checks on arXiv still show the expected versions/dates for [DINOv3](https://arxiv.org/abs/2508.10104), [C-RADIOv4](https://arxiv.org/abs/2601.17237), [GLARE](https://arxiv.org/abs/2509.17816), [Medical 3D MAE](https://arxiv.org/abs/2410.23132), [Lahrichi 2025](https://arxiv.org/abs/2502.10669), and [DiT](https://arxiv.org/abs/2203.02378).
+
+
+2026-05-05T05:52:52.184484Z ERROR codex_core::session: failed to record rollout items: thread 019df6b0-bf73-7100-adb2-fa0a1e045db3 not found
+tokens used

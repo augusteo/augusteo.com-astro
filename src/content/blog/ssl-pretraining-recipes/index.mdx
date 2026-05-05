@@ -737,11 +737,11 @@ Three target swaps have been published, each with a different bet.
 </g>
 <text x="113" y="345" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">L = ‖ŷ − x‖²</text>
 <text x="113" y="360" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">on masked patches only</text>
-<text x="113" y="395" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">Whitespace dominates the loss:</text>
-<text x="113" y="410" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">most masked patches are blank.</text>
-<text x="113" y="425" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">Pixel detail (color, antialiasing)</text>
-<text x="113" y="440" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">consumes capacity downstream</text>
-<text x="113" y="453" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">tasks don't need.</text>
+<text x="113" y="395" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">Whitespace can make the loss</text>
+<text x="113" y="410" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">low-signal: many masked patches</text>
+<text x="113" y="425" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">may carry little visual signal,</text>
+<text x="113" y="440" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">while pixel detail consumes capacity</text>
+<text x="113" y="453" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">downstream tasks don't need.</text>
 <g stroke="#FFFFFF" stroke-width="0.5">
 <rect x="266" y="60" width="20" height="20" fill="#F4EEE3"/>
 <rect x="286" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
@@ -1701,10 +1701,10 @@ Fig 11 stratifies the published numbers into five loose groupings:
 <text x="630" y="236" font-size="10">no published</text>
 <text x="630" y="248" font-size="10">ADE20K mIoU</text>
 </g>
-<text x="340" y="395" font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle" letter-spacing="1.2">SAME-BIN BARS ARE COMPARABLE; ACROSS-BIN BARS ARE NOT.</text>
+<text x="340" y="395" font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle" letter-spacing="1.2">BINS (a) AND (b) ARE PROTOCOL-MATCHED; (a'), (c), (d) ARE NOT.</text>
 <text x="340" y="416" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">No recipe in any bin reports a construction-document protocol.</text>
 </svg>
-<figcaption><strong>Fig 11.</strong> Published ADE20K mIoU stratified by evaluation protocol. Bars within a bin share architecture, head, and pretraining-data scale, so they're comparable. Bars across bins are not. AR family, JEPA family, and iGPT have no published ADE20K mIoU under any of these protocols. Sources: [MAE](https://arxiv.org/abs/2111.06377), [BEiT v1](https://arxiv.org/abs/2106.08254), [BEiT v2](https://arxiv.org/abs/2208.06366), [iBOT](https://arxiv.org/abs/2111.07832), [data2vec 2.0 + MIM-Refiner](https://arxiv.org/abs/2402.10093), [DINOv2](https://arxiv.org/abs/2304.07193), [DINOv3](https://arxiv.org/abs/2508.10104), [RADIO](https://arxiv.org/abs/2312.06709), [C-RADIOv4](https://arxiv.org/abs/2601.17237).</figcaption>
+<figcaption><strong>Fig 11.</strong> Published ADE20K mIoU stratified by evaluation protocol. Only bins (a) and (b) are fully protocol-matched (UperNet head, ViT-L and ViT-B IN1K respectively); within those bins, bars are comparable. Bin (a') is an adjacent ViT-L IN1K result under SETR-PUP rather than UperNet (ballpark, but not slottable into bin (a)'s comparison). Bin (c) is DINO-line frozen-backbone with mixed heads (DINOv2 multi-scale linear probe vs DINOv3 segmentation head; the numbers tell you the DINO line scales, not that DINOv3 outperforms BEiT v2 at matched protocol). Bin (d) is RADIO-line under each paper's own protocol; bars are best read as RADIO-line-internal. Bars across bins are never comparable. AR family, JEPA family, and iGPT have no published ADE20K mIoU under any of these protocols. Sources: [MAE](https://arxiv.org/abs/2111.06377), [BEiT v1](https://arxiv.org/abs/2106.08254), [BEiT v2](https://arxiv.org/abs/2208.06366), [iBOT](https://arxiv.org/abs/2111.07832), [data2vec 2.0 + MIM-Refiner](https://arxiv.org/abs/2402.10093), [DINOv2](https://arxiv.org/abs/2304.07193), [DINOv3](https://arxiv.org/abs/2508.10104), [RADIO](https://arxiv.org/abs/2312.06709), [C-RADIOv4](https://arxiv.org/abs/2601.17237).</figcaption>
 </figure>
 
 The construction sheet has no bar in this chart, because no canonical bake-off exists for it. Treat these bars as proxy evidence for what to start from, not as direct construction-document scores. The reader who walks away with "DINOv3 wins outright" has read more into Fig 11 than the matrix supports.
