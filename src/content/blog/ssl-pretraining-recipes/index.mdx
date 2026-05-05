@@ -160,5 +160,31 @@ For the construction-document practitioner, self-distillation has two specific p
 
 {/* Reader can now: state the self-distillation recipe (multi-crop, EMA teacher, output-distribution match, no reconstruction target); name DINO's emergent-segmentation observation as the seed of the dense-feature SSL family; name iBOT's contribution (online tokenizer + masked-patch loss; ADE20K 50.0 at ViT-B); name DINOv2's contribution (KoLeo + Sinkhorn-Knopp + LVD-142M curation; ADE20K 53.0 frozen-linear at ViT-g); see why §8's "what fails at scale" is the next rung. */}
 
-{/* TODO: §8: Dense-feature collapse */}
+### 8. Dense-feature collapse and how the latest recipes fix it
+
+§7 ended on DINOv2 as the recipe that produces the strongest frozen-backbone dense features in the post's coverage. What §7 didn't say is that pushing self-distillation further than DINOv2 reveals two failure modes the recipe's authors didn't anticipate at first. Both are observed on natural-image pretraining; the construction-document version of either failure would be the figure this post can't include. But the failure modes themselves are generic enough that they're worth understanding before deciding whether to use a self-distillation recipe at all.
+
+The first failure mode is artifact tokens. [Darcet et al. 2024](https://arxiv.org/abs/2309.16588) noticed that large self-distilled ViTs (DINOv2 ViT-L and ViT-g, but also OpenCLIP and DeiT-III) produce a small fraction of output tokens with much higher norm than the rest. From the paper: "tokens with roughly 10x higher norm at the output and correspond to a small fraction of the total sequence (around 2%)." The artifacts emerge "after one third of training" and only on the three largest model sizes; smaller DINO ViTs don't show them. Spatially, the artifact tokens land in low-information background regions of the image: patches the model evidently doesn't need for the task at hand and has repurposed for internal computation.
+
+The fix is small. Add four extra tokens to the input sequence that the model can use as scratchpad space ("registers"), and discard them at the output. The artifact-token rate drops; ADE20K linear probe goes from 46.6 to 47.9 on DINOv2 with registers; object discovery (LOST corloc on VOC2007) jumps from 35.3 to 55.4. The FLOP overhead is under 2%. Registers don't change the loss or the data; they change the architecture by giving the model an output-side workspace it doesn't have to take from the patches.
+
+The second failure mode is patch-locality decay. [DINOv3](https://arxiv.org/abs/2508.10104) documented it directly: "cosine similarity between the CLS token and the patch outputs gradually increases during training... the locality of the patch features diminishes." Long-trained DINO/iBOT shows the patch features drifting toward the CLS token's geometry; the patches stop being patch-specific and start carrying CLS-like information. This is a different failure from artifact tokens (which only afflict ~2% of tokens) and more pernicious: it's a uniform drift in the patch-feature distribution.
+
+DINOv3's fix is a regularizer called Gram anchoring. The Gram matrix of a set of feature vectors is the matrix of all pairwise dot products: it captures the *geometry* of the feature distribution without caring about absolute values. Gram anchoring computes a target Gram matrix from an early-training snapshot of the model (the "Gram teacher") and adds a Frobenius-norm loss against the live student's Gram matrix:
+
+> ℒ_Gram = ‖X_S · X_S^⊤ − X_G · X_G^⊤‖_F²
+
+The patch-patch similarities are pinned to the early snapshot; individual patch features can drift, but only as long as the relative similarity structure stays close to the teacher's. Trained with this loss in the refinement phase, DINOv3 hits ADE20K mIoU 63.0 on a frozen ViT-7B backbone, the highest dense number in the post's matrix.
+
+{/* TODO: Fig 7: RegistersGramFix, conceptual schematic on a generic image showing artifact tokens (colored spikes in low-information background regions, labeled "reported in DINOv2 on natural images; emerges late in training"), registers fix as added tokens, plus Gram anchoring schematic (X·X⊤ vs X_G·X_G⊤). All elements labeled as conceptual / reported, not as a measured construction-sheet result. */}
+
+Both failure modes are described and fixed on natural images. Whether long DINOv3-style training on a construction-document corpus would produce the same failures is plausible (the artifact-token paper specifically blames "low-information background regions" for the artifact emergence, and a construction sheet has more low-information regions than most natural images) but unmeasured. The post raises the failure modes as a generic property of long-trained self-distillation, not as a measured construction-sheet result. The construction-document version of either analysis would require running the model on a construction-document corpus and looking at the patch-feature norms and Gram structure across training. Nobody has published that.
+
+For the construction-document practitioner deciding whether to use a self-distillation recipe at all, §8's takeaway is that DINOv3 is the most engineered-against-collapse self-distillation recipe currently published. The recipe is mature: registers, Gram anchoring, the LVD-1689M data curation pipeline, and a 7B-parameter teacher distilled into smaller students all serve the dense-feature signal. Whether that maturity carries to construction documents is the open question the post can't answer.
+
+§9 swaps frames again. JEPA-family recipes don't predict pixels, don't predict tokens, and don't match teacher distributions; they predict the model's own latent features at masked positions in a different way. The bet is that latent-space prediction sidesteps both the pixel-target waste and the self-distillation collapse modes. The published evidence is thinner.
+
+{/* Reader can now: name the two failure modes of long-trained self-distillation (artifact tokens, patch-locality decay) and what fixes them (registers, Gram anchoring); see DINOv3 ADE20K 63.0 as the highest published frozen-backbone dense number; understand that the failure modes are reported on natural images, with the construction-document version unmeasured but plausible; anticipate §9 (JEPA framing as a third bet). */}
+
+{/* TODO: §9: JEPA family */}
 {/* TODO: §12–§15: Act 3 + coda */}
