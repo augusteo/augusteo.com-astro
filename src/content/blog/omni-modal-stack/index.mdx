@@ -64,7 +64,7 @@ There's a clue in C-RADIOv4 itself. One of its teachers was SigLIP2, so the SigL
 
 So why does Nemotron 3 Nano Omni, the open omni model NVIDIA shipped in April 2026, still bolt a separate text tokenizer onto the front of a 30-billion-parameter autoregressive language model and feed C-RADIOv4-H's features into it as if they were just another input? If the SigLIP head was meant to be the text bridge, what does the LLM do that the head can't?
 
-Cracking that question is the spine of the post. The short answer is that SigLIP-style alignment scores; it doesn't generate. Once that's clear, the rest of the architecture falls into place. We end up needing three architectural moves: a text-centric autoregressive decoder at the center, modality-specific encoders for everything that isn't text, and a stack of token-budget mechanisms to keep the inference cost from collapsing under its own weight. The post takes them one at a time.
+The short answer is that SigLIP-style alignment scores; it doesn't generate. Once that's clear, the rest of the architecture falls into place. The post unfolds three architectural moves: a text-centric autoregressive decoder at the center, modality-specific encoders for everything that isn't text, and a stack of token-budget mechanisms to keep inference cost from collapsing under its own weight.
 
 ## Act 1: the puzzle
 
@@ -167,11 +167,9 @@ The text tower runs through the sentence once, takes one vector from one positio
 
 So the artifact you actually get is still a contrastive embedder. It scores. If you want to generate, you need a different organ.
 
-The "different organ" is what the next sections build up. Briefly: a tokenizer that splits text into sub-word pieces, a learned embedding table for those pieces, a transformer trained on next-token prediction over a vocabulary of around 100,000 entries, and the autoregressive sampling loop that makes actual sentences come out. This is what the L in LLM stands for, and none of it lives inside SigLIP.
-
 The architectural consequence is the central design choice of every modern omni-modal stack. The text decoder sits in the middle. Vision goes in as features. Audio goes in as features. Video goes in as features. The decoder is the only thing in the system that can run a softmax over the next word, and everything else feeds it.
 
-That's the reframe for the rest of the post. C-RADIOv4 is one of the best things you can put in front of a decoder. It is not, by itself, a decoder. The next section makes the contrast precise.
+C-RADIOv4 is one of the best things you can put in front of a decoder. It is not, by itself, a decoder.
 
 ### 3. Contrastive vs autoregressive
 
@@ -189,17 +187,15 @@ A language model is doing the opposite thing. Take a sentence. For each prefix o
 
 These are two different functions, and the difference doesn't shrink with scale. The contrastive function takes (image, sentence) and returns a number. The autoregressive function takes (partial sentence) and returns a probability distribution over the next token. You can't use one to do the other's job, no matter how large you make it. Scaling SigLIP doesn't get you generation. Scaling an LLM doesn't, by itself, get you a calibrated image-caption similarity score; you have to fit a head on top to extract one.
 
-This is why most production multimodal stacks ship both. SigLIP-class encoders for *understanding* what's in an image. An autoregressive LLM in the middle for *producing* language. (Some research designs go the other way, with an early-fusion model that tokenizes images straight into the LLM's vocabulary; [Chameleon](https://arxiv.org/abs/2405.09818) is the cleanest example of that branch. The pretraining cost story for that approach is much larger, and it isn't the path Nemotron 3 Nano Omni took.) How the encoder's output becomes input to the LLM is the design problem Act 2 walks through. But the LLM-in-the-middle role is the design choice the rest of this post will trace.
+This is why most production multimodal stacks ship both. SigLIP-class encoders for *understanding* what's in an image. An autoregressive LLM in the middle for *producing* language. (Some research designs go the other way, with an early-fusion model that tokenizes images straight into the LLM's vocabulary; [Chameleon](https://arxiv.org/abs/2405.09818) is the cleanest example of that branch. The pretraining cost story for that approach is much larger, and it isn't the path Nemotron 3 Nano Omni took.)
 
 ### 4. The text decoder is a different organ
 
 The five things an autoregressive LLM contains, in the order an input flows through them: a tokenizer that splits text into sub-word pieces from a fixed vocabulary; a learned embedding table that maps token IDs to continuous vectors; a stack of attention (and sometimes state-space) blocks that produce contextualized hidden states; a learned LM head that projects each hidden state back to the vocabulary as logits; and an autoregressive sampling loop that picks one token from the final logits, appends it to the input, and runs the whole thing again.
 
-Pieces 4 and 5 do not exist in SigLIP's text tower. SigLIP has the first two (tokenizer, embedding table) and *something like* the third (a small transformer over the tokens), but the output gets projected once into the shared image-text space and then the model stops. There is no head that produces a distribution over next tokens, and no sampling loop to consume one.
+Pieces 4 and 5 do not exist in SigLIP's text tower. SigLIP has the first two (tokenizer, embedding table) and *something like* the third (a small transformer over the tokens), but the output gets projected once into the shared image-text space and then the model stops. There is no head that produces a distribution over next tokens, and no sampling loop to consume one. The contrastive training objective specifically did not select for them.
 
-That's what we mean when we say SigLIP doesn't generate. Pieces 4 and 5, the parts that turn hidden states into actual text, are absent. They're what generation requires, and they're what the contrastive training objective specifically did not select for.
-
-So we need an LLM in the middle. The question for the rest of the post becomes how to get the vision encoder's output into the LLM's input, and the parallel question for audio and video. That's Act 2.
+So we need an LLM in the middle. The question becomes how to get the vision encoder's output into the LLM's input, and the parallel question for audio and video.
 
 ## Act 2: three ways to wire it up
 
@@ -315,9 +311,7 @@ The training process pushes α off zero only as the cross-attention starts contr
 
 The pattern across all three: the LLM was trained on text alone. Vision is a side-loaded computation, translated into something that looks like text tokens (or, in Flamingo's case, attended to as cross-attention values), and the LLM consumes that translation. The LLM never learns the joint distribution over multimodal sequences during its own pretraining. Whatever multimodal understanding shows up has to come through the projector and the late-stage fine-tune.
 
-A note on Qwen2.5-VL, which sometimes gets lumped in with this group. The Qwen team uses the LLaVA-style MLP projector pattern, but they train the LLM jointly with a from-scratch dynamic-resolution ViT. So Qwen2.5-VL inherits the *connector design* from LLaVA but the *training pattern* from the next section's native-multimodal approach. We'll handle it there.
-
-The thing about all three adapter approaches is that they work, well enough that they were the dominant multimodal-VLM pattern for two years. The interesting question is what they leave on the table compared to training the LLM jointly with the modalities from the start. That's §6.
+A note on Qwen2.5-VL, which sometimes gets lumped in with this group. The Qwen team uses the LLaVA-style MLP projector pattern, but they train the LLM jointly with a from-scratch dynamic-resolution ViT. So Qwen2.5-VL inherits the *connector design* from LLaVA but the *training pattern* from the next section's native-multimodal approach.
 
 ### 6. Native multimodal: one decoder, one sequence
 
@@ -434,11 +428,9 @@ Qwen2.5-Omni adds the most subtle detail. Its speech-generation head, called Tal
 
 > "Talker directly receives high-dimensional representations from Thinker and shares all of Thinker's historical context information. ... The high-dimensional representations provided by Thinker implicitly convey [content's tone and attitude before the entire text is fully generated]."
 
-This matters for the next act. When the speech-out side of an agent loop reads hidden states instead of transcribed text, things like prosody and intent never go through a text bottleneck. We'll come back to that in §10.
+This matters for the next act. When the speech-out side of an agent loop reads hidden states instead of transcribed text, things like prosody and intent never go through a text bottleneck.
 
 ### 7. The tradeoff
-
-The adapter approach (§5) and the unified-decoder approach (§6) are not really substitutes. They cost different things and they buy different things.
 
 Adapter style is the cheaper path. You inherit a pretrained text LLM, you inherit a pretrained vision encoder, and you train a small connector module against an instruction-tuning dataset. Total training compute is dominated by the connector training and the second-stage fine-tune; both are small compared to a from-scratch LLM pretraining run. You can swap LLMs without touching the vision side, and the work to add the modality is bounded.
 
@@ -448,15 +440,13 @@ Unified-decoder style is more expensive. You pretrain (or substantially continue
 
 What you buy is depth. The LLM weights learn to expect multimodal input during pretraining. Reasoning that has to mix modalities (answer this question by reading the chart on page 4 of the PDF, or by listening to the speaker's tone in the third minute of the video) gets to use the LLM's full capacity, not just the capacity of a thin connector. And every additional modality you add (audio, video, robotics action sequences) plugs into the same input stream rather than adding a parallel adapter side-channel.
 
-Where Nemotron 3 Nano Omni sits is at the unified end of this dial. The omni model is *not* pretrained from scratch on multimodal data; the technical report describes a multi-stage post-training pipeline that takes the existing Nemotron 3 Nano 30B-A3B base LLM and runs it through seven SFT stages plus an RL phase, several of which unfreeze all model parameters and train them jointly with the encoders and projectors over mixed-modality sequences. The technical report's per-stage SFT table sums to about 467 billion tokens across stages 0 through 6. The HF model card publishes a separate modality-inventory rollup of the training data:
+Where Nemotron 3 Nano Omni sits is at the unified end of this dial. It is *not* pretrained from scratch on multimodal data; the technical report describes a multi-stage post-training pipeline that takes the existing Nemotron 3 Nano 30B-A3B base LLM and runs it through seven SFT stages plus an RL phase, several of which unfreeze all parameters and train them jointly with the encoders and projectors over mixed-modality sequences. The HF model card's modality rollup gives a sense of scale:
 
 > "354,587,705 data points (~717.0B tokens) ... text+audio: 259,178,821 samples (~143,533.1M tokens); text+image: 70,143,901 samples (~180,347.1M tokens); text+video: 15,837,673 samples (~239,631.5M tokens); text+video+audio: 8,720,044 samples (~152,499.2M tokens); text: 707,187 samples (~958.4M tokens)."
 
-This is the model card's full modality breakdown across the training pipeline. The two figures (467B SFT-stage total, 717B model-card modality rollup) come from different aggregations and don't simply nest, so this post quotes both rather than picking one as canonical. What's load-bearing is the shape of the training mix, not any single token total: text+image, text+audio, and text+video sequences all show up with the LLM in the loss, across many billions of tokens. The 30B-A3B backbone itself was pretrained as a text-first model; the omni capabilities arrive through staged mixed-modality post-training rather than through a from-scratch native-multimodal pretraining run (Gemini's framing).
+The 30B-A3B backbone itself was pretrained as a text-first model; the omni capabilities arrive through staged mixed-modality post-training rather than through a from-scratch native-multimodal pretraining run (Gemini's framing). What's load-bearing is the shape of the mix: text+image, text+audio, and text+video sequences all show up with the LLM in the loss, across many billions of tokens.
 
 Compare to an adapter-style model where a small instruction-tuning dataset sits on top of a frozen text-pretrained LLM. The two regimes train on different distributions. Adapter models work well when the multimodal signal the LLM needs to use is something a thin projector can encode and the LLM's text-only weights can interpret as token-shaped input. They tend to struggle when the input drifts further out of distribution from anything the LLM saw during pretraining (long video, dense documents, audio whose information lives in prosody more than wording), because the projector becomes a bottleneck on what the LLM can possibly attend to. Unified-decoder models carry that distribution into the LLM's training (whether as native pretraining or as staged SFT), so the bottleneck moves.
-
-Now we have the central design choice in place. Text decoder in the middle. Modality encoders feeding it through projectors. Trained jointly on multimodal sequences (whether as native pretraining or as staged SFT). The next question is what specifically each modality encoder has to do, and that's Act 3.
 
 ## Act 3: the other senses
 
@@ -537,7 +527,7 @@ A spectrogram is also a 2D grid, but the two axes mean different things. The hor
 
 A vision ViT applied naively to a spectrogram would treat both axes the same and would miss the structure on both. You want temporal smoothing along the time axis (which is what attention plus convolutional downsampling buys) and you want every frequency bin to be visible to every step of the encoder, not split across patches. Audio encoders therefore use Conformer-style architectures, which interleave local convolutions with attention, instead of plain ViTs; they project the frequency axis into model channels at the stem rather than tokenizing it spatially, and they downsample aggressively along time.
 
-C-RADIOv4 cannot just be reused for audio. The inductive biases are wrong. You need a different encoder built for this representation. That's the next section.
+C-RADIOv4 cannot just be reused for audio. The inductive biases are wrong. You need a different encoder built for this representation.
 
 ### 9. Parakeet: a token-emitting audio encoder
 
@@ -620,8 +610,6 @@ In the omni-modal setting, the TDT decoder is thrown away. Nemotron uses only Pa
 This is the architectural counterpart of what happens on the vision side. C-RADIOv4-H is a vision encoder; its outputs flow through a projector into the LLM. Parakeet's encoder is an audio encoder; its outputs flow through a projector into the same LLM. Two MLPs, two encoders, one decoder.
 
 The choice to use Parakeet's encoder rather than Whisper's encoder is itself worth a moment. Whisper is the more famous open speech model, and either encoder produces a log-mel-conditioned feature sequence that an LLM can in principle consume. The technical report and model card don't justify the choice in detail, so this post won't either; the architectural pattern (encoder plus projector into LLM) is what matters, and Parakeet versus Whisper sits below that as an implementation detail.
-
-The interesting question is what *not* to do, and that's §10.
 
 ### 10. The cost of stitched chains
 
@@ -725,7 +713,7 @@ Second, the production deployment runs EVS in *embedding space*, not raw RGB. Th
 
 Reported results, kept separate because they measure different things. The EVS paper reports a general "up to 4× LLM TTFT speedup with minimal accuracy loss," varying by model and *q*. Their Video-MME table at *q*=0.75 with uptraining shows an absolute 0.80-point drop on the 32-frame setting (65.50 → 64.70, equivalent to about 1.2% relative). The two numbers measure different things; don't bundle them into "4× at *q*=0.75."
 
-EVS plus the tubelet encoding from §11 is what makes long video viable in a 262K-context LLM. The next section walks through how Nemotron actually composes the two.
+EVS plus the tubelet encoding from §11 is what makes long video viable in a 262K-context LLM. Nemotron composes them in a specific order.
 
 ### 13. How Nemotron stacks the two
 
@@ -802,15 +790,13 @@ Nemotron 3 Nano Omni's video path runs the reductions in a specific order. First
 <figcaption><strong>Fig 9.</strong> The three compressions Nemotron stacks for video. Conv3D tubelet fusion at the input layer halves the token count along time (Nemotron 3 Nano Omni report, §2). The vision encoder runs over the fused tubelets and emits patch features. The Nemotron pipeline then applies a 4× pixel-shuffle reduction prior to projection ("Prior to projection, we apply a pixel shuffle operation with 4× downsampling to reduce the token count presented to the language model," §2). EVS is an optional inference-time pass that sits between the vision adapter and the LLM, dropping post-projection tokens that didn't change much from the previous frame; the report's published inference-efficiency setup runs EVS at q=0.5. Cascade total is ×0.5 × ×0.25 × ×0.5 = ×0.0625: a 30-second clip whose naive token count is 737,280 lands at 46,080 by the time it hits the LLM, well inside the 262,144-token context window. The cascade reaches ~23K if you crank EVS to q=0.75, but that isn't the Nemotron-deployed setting.</figcaption>
 </figure>
 
-Three compressions compose multiplicatively in Nemotron's actual pipeline. Tubelet halves the token count along time. A 4× pixel-shuffle reduction sits between the vision encoder and the projector, dropping the per-frame post-encoder count by another factor of four. EVS, the optional inference-time pruner, sits between the vision adapter and the LLM and drops post-projection tokens that didn't change much from the previous frame; the report's published inference-efficiency setup runs EVS at *q*=0.5, so it removes about half of what's left. Together you're at roughly 1/16 of the naive frame-by-frame token total. For a 30-second clip at 24 FPS and 1024 patches per frame, the naive count is 30 × 24 × 1024 = 737,280 tokens. After tubelet fusion (×0.5), pixel-shuffle (×0.25), and EVS at *q*=0.5 (×0.5), you're at roughly 46,000 tokens. That fits comfortably in a 262K-context LLM. Crank EVS to *q*=0.75 (the EVS paper's headline setting) and the same 30-second clip lands at ~23K tokens; the report doesn't ship that as the default but the runtime knob is there.
+Three compressions compose multiplicatively in Nemotron's actual pipeline. Tubelet halves the token count along time. A 4× pixel-shuffle reduction sits between the vision encoder and the projector, dropping the per-frame post-encoder count by another factor of four. EVS, the optional inference-time pruner, sits between the vision adapter and the LLM and drops post-projection tokens that didn't change much from the previous frame; the report's published inference-efficiency setup runs EVS at *q*=0.5, so it removes about half of what's left. Together you're at roughly 1/16 of the naive frame-by-frame token total. For an illustrative 30-second clip at 24 FPS and 1024 patches per frame, the naive count is 30 × 24 × 1024 = 737,280 tokens. After tubelet fusion (×0.5), pixel-shuffle (×0.25), and EVS at *q*=0.5 (×0.5), you're at roughly 46,000 tokens. (Production deployments don't sample at 24 FPS in any case; the HF serving guidance recommends ~2 FPS / 256 frames as a default. The 24-FPS budget is a worst-case stress test for the compression chain, not the default ingestion path.) Crank EVS to *q*=0.75 (the EVS paper's headline setting) and the same 30-second clip lands at ~23K tokens; the report doesn't ship that as the default but the runtime knob is there.
 
 For images (single frames, no temporal axis), the pipeline simplifies. Tubelet fusion isn't applicable; only the spatial ViT runs. The patch count varies with resolution:
 
 > "Each image can be represented using a variable number of 16 x 16 patches, with a minimum of 1,024 to a maximum of 13,312 visual patches per image."
 
 A 13,312-patch image at 16-pixel patches is roughly 3.4 megapixels of input area (13,312 × 256 = 3,407,872 pixels), enough resolution for document understanding or fine-grained chart reading. The 1,024-patch lower bound (about 0.26 MP) is for thumbnail-sized images where dense detail isn't relevant.
-
-The model can now see, hear, and watch. The next question is what it costs to run.
 
 ## Act 4: the inference math
 
@@ -820,7 +806,7 @@ There's no controlled benchmark at the primary-source bar that proves "unified-d
 
 ### 14. The hybrid backbone
 
-Nemotron 3 Nano Omni's language model is 30 billion parameters total but only activates about 3.5 billion of them per input token. The model card spells out how:
+Nemotron 3 Nano Omni's language model is roughly 30 billion parameters total but only activates a few billion of them per input token. The omni model card rounds these as 31B / ~3B active; the underlying Nemotron 3 Nano backbone card the omni inherits from is more precise about the architecture, and that's where the layer counts and routing details below come from:
 
 > "The model employs a hybrid Mixture-of-Experts (MoE) architecture, consisting of 23 Mamba-2 and MoE layers, along with 6 Attention layers. Each MoE layer includes 128 experts plus 1 shared expert, with 6 experts activated per token. The model has 3.5B active parameters and 30B parameters in total."
 
@@ -940,13 +926,11 @@ The model card states the counts and the routing top-k. It does not state the ex
 
 A note worth pinning down: the routing is *per token*, not per modality. The same router sees text tokens, vision tokens, audio tokens (all of them, after projection, are vectors in the LLM's hidden space), and selects 6 experts for each one based on the token's content. Experts can and do specialize on patterns that show up disproportionately in one modality, but that specialization is learned, not architecturally enforced. There is no "vision gate" or "audio gate." The marketing material occasionally suggests there is. The published primary sources don't.
 
-The next three sections take the three architectural choices apart one at a time. Why Mamba? Why MoE? Why low-precision quantization on top? Each one is a separate efficiency story.
-
 ### 15. Why Mamba
 
-The reason a hybrid uses Mamba layers at all is that long-context inference is what kills attention.
+The reason a hybrid uses Mamba layers at all is that long-context prefill is what kills attention.
 
-Self-attention has cost proportional to sequence length squared. For a 1K-token context, this doesn't matter; for a 256K-token context, it dominates everything. Mamba is what you get when you keep the residual-stream architecture of a transformer but replace the attention layer with a *selective state-space model*, which has cost proportional to sequence length. Linear, not quadratic.
+Self-attention has prefill cost proportional to sequence length squared (every token attends to every other). For a 1K-token context, this doesn't matter; for a 256K-token context, it dominates time-to-first-token. Mamba is what you get when you keep the residual-stream architecture of a transformer but replace the attention layer with a *selective state-space model*, which processes the same context in cost proportional to sequence length. Linear, not quadratic. (Decode-step cost with a KV cache is a different story for both, scaling with the cached length per generated token; the prefill gap is what dominates 262K-context inference.)
 
 > "Letting the SSM parameters be functions of the input addresses their weakness with discrete modalities, allowing the model to selectively propagate or forget information."
 > "Mamba enjoys fast inference (5× higher throughput than Transformers) and linear scaling in sequence length."
@@ -1008,10 +992,10 @@ What "selective" means is that the state-update equations have parameters that d
 <text x="555" y="100" font-family="serif" font-size="13" font-style="italic" fill="#B91C1C">Transformer</text>
 <text x="555" y="113" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">O(N²)</text>
 </svg>
-<figcaption><strong>Fig 11.</strong> Compute scales linearly with context length for Mamba's selective state-space layer, and quadratically for self-attention. The two curves are indistinguishable at 1K tokens. At 16K (the bottom of Nemotron's training-context schedule) Transformer is already 16× more expensive than Mamba per forward pass; at 262K (the top of the schedule) the gap is 262×. The ratio is what makes long-context inference affordable.</figcaption>
+<figcaption><strong>Fig 11.</strong> Prefill cost (full-context processing) scales linearly with sequence length for Mamba's selective state-space layer, and quadratically for self-attention. The two curves are indistinguishable at 1K tokens. At 16K, attention's full-context pass is already 16× more expensive than Mamba's; at 262K the gap is 262×. This is the ratio that makes long-context prefill affordable. Decode-step cost with a KV cache scales differently and is not what this figure measures.</figcaption>
 </figure>
 
-Drag your eye along the context length. At 1K tokens the two curves are indistinguishable. At 16K (the bottom of the Nemotron context-scaling progression), Mamba is already a substantial win. At 262K (the top of Nemotron's training context), pure-attention is unaffordable. This is what Mamba buys.
+At 262K, pure-attention prefill is unaffordable; this is what Mamba buys.
 
 Why not pure Mamba? Because pure-Mamba models suffer on certain in-context retrieval tasks where attention's exact-position lookups matter. NVIDIA's [Nemotron-H](https://arxiv.org/abs/2504.03624) paper, which has a similar hybrid layout, says it directly:
 
@@ -1225,13 +1209,13 @@ Nemotron 3 Nano scales this up to 128 experts per MoE layer with top-6 routing, 
 <figcaption><strong>Fig 12.</strong> What one MoE layer does for one token. The router runs a 128-way softmax and picks the six experts with the highest scores; the rest contribute nothing for this token. A separate "shared" expert runs for every token regardless of routing. The layer's output is a weighted sum of those six routed experts' outputs (weighted by router score) plus the shared expert. Aggregated over a batch, almost every expert sees some token, but each individual token only touches the seven the router and the shared slot select.</figcaption>
 </figure>
 
-The arithmetic, in rough terms: 128 routed experts at some parameter count each, plus a shared expert. For each token, the router computes scores for all 128, picks the top 6, and the layer's output is a weighted combination of those 6 experts' outputs (weighted by router scores) plus the shared expert's contribution. The 122 unselected experts contribute nothing for this token. They cost FLOPs only when *some* token in the batch routes to them.
+The arithmetic, in rough terms: 128 routed experts at some parameter count each, plus a shared expert. For each token, the router computes scores for all 128, picks the top 6, and the layer's output is a weighted combination of those 6 experts' outputs (weighted by router scores) plus the shared expert's contribution. The 122 unselected experts contribute nothing to this token's output. Their expert MLPs cost substantial FLOPs only when *some* token in the batch routes to them; the router still scores all 128 every step, but that's a cheap projection compared to the expert matmuls.
 
 Aggregated over a batch of N tokens, the shared expert sees 100% of the tokens (it isn't routed) and each routed expert sees on average about 6N/128 ≈ 4.7% of the tokens under balanced routing. So 30B total parameters, only ~3.5B active per token, but during a forward pass on a batch of, say, 1024 tokens, the shared expert and most of the routed experts touch *some* token.
 
 Three things follow from this. Capacity scales with parameter count; you can keep adding experts. Compute scales with the active count, not the total. Memory bandwidth dominates inference, because all 30B parameters live in GPU memory and have to be addressable even if any one token only uses 3.5B of them.
 
-The third point is what NVFP4 attacks, which is the next section.
+The third point is what NVFP4 attacks.
 
 ### 17. NVFP4: 4-bit weights, BF16 accuracy
 
@@ -1431,7 +1415,7 @@ That framing is honest and worth taking seriously. Perception is not reasoning. 
 <figcaption><strong>Fig 14.</strong> What the post can claim and where each claim comes from. Two measured efficiency wins on Nemotron-family models against named baselines (long-context throughput from Nemotron-H, memory footprint from Nemotron 3 Nano Omni's NVFP4 recipe), one structural claim from the model card (3.5B active out of 30B total per token), and a fourth qualitative claim about prosody. The post does not promise a controlled benchmark of "unified-decoder beats stitched cascades" in the abstract; it reports these four rows and stops.</figcaption>
 </figure>
 
-So the post ends with a small concrete piece. Three architectural moves take you from a vision backbone to a four-modality perception model. A text-centric autoregressive decoder. Modality-specific encoders feeding it through MLP projectors. A stack of token-budget mechanisms (tubelet fusion, EVS, hybrid Mamba+attention+MoE, NVFP4) to keep inference affordable. The last one is what makes the first two shippable.
+Three architectural moves take you from a vision backbone to a four-modality perception model. A text-centric autoregressive decoder. Modality-specific encoders feeding it through MLP projectors. A stack of token-budget mechanisms (tubelet fusion, EVS, hybrid Mamba+attention+MoE, NVFP4) to keep inference affordable. The last one is what makes the first two shippable.
 
 > *None of them are agent reasoning. But you can't reason without seeing.*
 
