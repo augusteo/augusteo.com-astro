@@ -832,7 +832,7 @@ Findings: **0 STRUCTURAL + 0 TYPE-CHANGE + 0 COSMETIC.** Trajectory: 16 → 6 �
 
 ## Resume here
 
-Last touched: 2026-05-04 (Phase 5 COMPLETE — all 13 figures landed. Anchor batch unblocked when Vic surfaced the Schenkel Shultz Sanibel Fire and Rescue Station 172 floor plan, sheet A102, 1/4"=1'-0"; used as the construction-sheet anchor for Fig 1, 2, 3, 5, 6, 8. Phase 6 (playwright per-figure visual review) is next).
+Last touched: 2026-05-04 (Phase 6 playwright per-figure visual review COMPLETE; 13 of 13 figures pass. Five rendering issues caught and fixed in a single follow-up commit (Z-order overlap on Fig 9, text overflow on Fig 10, bin-header overlap on Fig 11, label cramping on Fig 6, cell text overflow on Fig 12). Phase 7 — freshness re-check + Gate 2 codex + hero handoff + ship — is next).
 
 ### Phase status
 
@@ -842,8 +842,8 @@ Last touched: 2026-05-04 (Phase 5 COMPLETE — all 13 figures landed. Anchor bat
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | done (Gate 1 closed at run 5; trajectory 16 → 6 → 5 → 5 → 0; 5 codex runs total, 1 Vic-authorized cap extension at run 4) | `## Outline` |
 | 4. Draft prose | done — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions retained per voice-rules. Post-Phase-4 codex review pass: 1 P1 MDX build blocker fixed | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
-| 5. Implement figures | **done** — all 13 figures landed; voice-check + build clean on each commit. Anchor batch (Fig 1, 2, 3, 5, 6, 8) unblocked when Vic surfaced Sanibel FS-172 sheet A102; used as the source-image template across the anchor figures | per-figure table below |
-| 6. Playwright review | next | playwright snapshots reviewed |
+| 5. Implement figures | done — all 13 figures landed; voice-check + build clean on each commit. Anchor batch (Fig 1, 2, 3, 5, 6, 8) unblocked when Vic surfaced Sanibel FS-172 sheet A102; used as the source-image template across the anchor figures | per-figure table below |
+| 6. Playwright review | **done** — all 13 figures passed visual review; 5 issues caught and fixed in commit `2f9467f` (Z-order Fig 9, overflow Fig 10, overlap Fig 11, cramping Fig 6, overflow Fig 12) | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
@@ -882,25 +882,24 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 ### Suggested next batch
 
-**Phase 5 COMPLETE.** All 13 figures landed. One commit per figure. Voice-check clean on each commit (5 pre-existing standing exemptions unchanged). `bun run build` clean throughout.
+**Phases 5 and 6 COMPLETE.** All 13 figures landed; all 13 passed playwright visual review (after one round of fixes for layout overlaps).
 
-Anchor batch (6 figures) used a stylized rendering of Schenkel Shultz Sanibel Fire and Rescue Station 172, sheet A102 (second-floor architectural plan, 1/4"=1'-0"), as the source-image template. Same simplified building outline + room labels + stair detail + door swings + callout tags reused across Fig 1, 2, 3, 5, 6, 8 with each figure adding its own overlay (annotations / heatmap / patch grid / context-target blocks / etc.).
+**Two new SVG-author lessons from Phase 6 (worth tracking for future posts):**
 
-**Three SVG-author rules learned across Phase 5 (now Hard rules #12 and #13, plus a third worth tracking):**
+4. **Z-order matters when figures stack panels.** A panel drawn AFTER a sub-element will cover it. Always check that no later `<rect>` overlaps an earlier element's bounding box. Fig 9 had this exact bug (deltas panel covered the bottom of the SAM3 teacher box).
+5. **Text labels in side-by-side panels need width budgeting.** If two italic labels are positioned at adjacent center-x's, compute their pixel widths against the available gap before committing. Font-size 10 italic serif is roughly 4–4.5 px/char. Fig 6 and Fig 11 both had label overlap from violating this.
 
-1. Em-dashes inside SVG `<text>` content trip voice-check (use mid-dot `·`).
-2. Inline `<g ...><text>` on one line breaks MDX (`<g>` on its own line).
-3. Em-dashes inside MDX prose figcaptions also trip voice-check (rewrite with period / colon / parens).
+**Phase 7 — pre-ship freshness pass + Gate 2 + hero handoff + ship — is next.**
 
-**Phase 6 (playwright per-figure visual review) is next.** Per `playwright-checks.md`:
+Phase 7 runner per the skill:
 
-1. Start `bun run dev` in the background.
-2. Navigate to `http://localhost:4321/blog/ssl-pretraining-recipes` (or :4322 if 4321 is busy).
-3. For each figure (1 → 13), scroll into view, snapshot, read the screenshot back. Run universal checks (no clipping, labels legible, colors render correctly, no overlap) plus type-specific checks per `playwright-checks.md`.
-4. If any figure fails review three times in a row, halt and surface to Vic.
-5. Update this tracker as figures pass.
-
-**After Phase 6:** Phase 7 — freshness re-check on every claim-source-matrix row, Gate 2 codex pass on the full draft, hero hand-off, then ship.
+1. **Freshness re-check** every row in `## Claim-source matrix`. For each arxiv entry, check for v-bumps newer than the cited version. For each blog/repo, check for substantive edits since the cited access date. Update access dates; halt and update if a newer source materially changes a claim.
+2. **Force `pubDate := today`** in the frontmatter to match publication reality.
+3. **Run Gate 2** (codex on the full draft + matrix + all prior gate reviews).
+4. **Final voice-check pass** on the full file.
+5. **Hero hand-off** — follow `../../explainer-shared/hero-handoff.md`. Compose prompt with all slots filled; wait for Vic to paste a path or "skip"; copy to `src/assets/blog/ssl-pretraining-recipes/hero.<ext>`; propose `heroAlt`; edit frontmatter.
+6. **Verify**: `draft: false`, `essay: true`, real `heroImage`, real `heroAlt`. Walk every figure end-to-end. Lighthouse LCP under 2.5s.
+7. **Final commit** naming the post.
 
 ### How to resume from a fresh context
 
