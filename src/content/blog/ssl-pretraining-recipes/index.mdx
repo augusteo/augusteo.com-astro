@@ -92,5 +92,27 @@ The recipe choices act 2 explores from here can be read as different answers to 
 
 {/* Reader can now: state MAE's recipe (75% mask, encoder-on-visible, small decoder, pixel-MSE on masked patches), articulate why pixel reconstruction on whitespace-heavy data is a plausible low-information-signal concern (without overclaiming a measured failure), and see the §5 framing question. */}
 
-{/* TODO: §5: The MIM block regime */}
+### 5. The MIM block regime
+
+The construction sheet helped frame §4's open question, but the next question is upstream of construction-document specifics. Even on natural images, where do MAE's useful features actually live inside the encoder?
+
+[MIM-Refiner](https://arxiv.org/abs/2402.10093) put k-NN accuracy and reconstruction loss on the same axis (block index) and showed three distinct regimes:
+
+> "1. In early ViT blocks, general purpose features are learned, which improve the reconstruction loss and the k-NN accuracy simultaneously. 2. In middle ViT blocks, abstractions are formed. The reconstruction loss improves only slightly, while the k-NN accuracy improves drastically. 3. In late ViT blocks, features are prepared for the reconstruction task. The reconstruction loss improves at a faster rate, while the k-NN accuracy decreases."
+
+Read the curves left to right. Early blocks are doing what every encoder does: learning low-level structure. Middle blocks are doing what segmentation downstream actually wants: forming patch-level abstractions that separate objects. Late blocks are doing what the loss function asks for: collapsing the patch features back into something the small decoder can reconstruct pixels from. The reconstruction objective rewards the model for *forgetting* high-level structure in the late layers, because a reconstruction-friendly representation is closer to a pixel-friendly one than a segmentation-friendly one.
+
+{/* TODO: Fig 4: MIMBlockRegime, k-NN accuracy + reconstruction loss vs layer index, line chart with two curves and three regimes shaded */}
+
+The MIM-Refiner authors put it more bluntly: "as models increase in size, the decoder eventually reaches a point where it cannot further improve the pre-training objective on its own. Consequently, it begins to delegate a portion of the reconstruction task back to the last encoder blocks. This transfer adversely affects the feature quality for downstream tasks associated with those blocks." The bigger the model, the more aggressively the loss specializes the late blocks against your downstream task.
+
+This explains a lot of MAE's reputation. "MAE underperforms DINO on dense tasks" reads as a recipe-level verdict but is partly a layer-selection artifact: if you take the last block of a frozen MAE and run a linear probe, you're reading from the regime that's been optimized against you. If you take a middle block, or run UperNet which sees multiple block depths, the verdict is much closer to even. MAE's ADE20K 53.6 at ViT-L (UperNet, fine-tuned) is one number; MAE's k-NN accuracy at the last block is another; they're not telling you the same thing.
+
+For the construction-document practitioner this matters in a specific way. The block regime is reported on natural-image pretraining; the construction-document version of the same analysis would be the published figure this post can't include. But the regime is a generic property of what reconstruction objectives do to encoder layers, not a property specific to the natural-image domain. If MAE pretrains usefully on a construction-document corpus at all, the same three regimes are very likely to emerge inside the encoder, and the practitioner's segmentation head is going to want to read from the middle blocks (or use a multi-scale head like UperNet that does it for them).
+
+§5 is also the point where this post stops treating MAE as a single recipe and starts treating it as a *family* with knobs. The next two sections turn the most consequential knobs: §6 changes the prediction target (HOG features, EMA latents, discrete tokens) while keeping the masking shape, and §7 swaps the entire framing from masked prediction to multi-crop self-distillation.
+
+{/* Reader can now: locate MIM features in the encoder (mid-block, not last-block); see why "MAE is bad at dense tasks" is partly a layer-selection artifact rather than a recipe-level verdict; anticipate §6 (target swap) and §7 (framing swap) as the next two recipe knobs. */}
+
+{/* TODO: §6: Changing the MIM target */}
 {/* TODO: §12–§15: Act 3 + coda */}
