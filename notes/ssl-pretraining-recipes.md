@@ -13,7 +13,7 @@
 
 - The seven SSL recipe families and how each generates its training signal.
 - Why dense-feature quality is the load-bearing axis for segmentation downstreams (the "dense-feature collapse" failure mode generalized to recipe selection).
-- The published evidence on continual-SSL-on-natural-image-checkpoint vs from-scratch-SSL-on-domain (satellite via Lahrichi 2025; cross-domain segmentation via GLARE 2026) and what it does and doesn't tell us about construction documents.
+- What the published satellite-domain bake-off (Lahrichi 2025: MAE/SwAV on GeoNet vs ImageNet) and the published continual-adapter SSL evidence (GLARE 2026: adapter-based continual SSL from UDI initialization across natural + satellite segmentation domains) do and don't tell us about construction documents. The two studies test different recipe shapes, not the same comparison.
 - Where multi-teacher distillation (C-RADIOv4) fits and why it isn't a recipe you can use without teachers.
 - Where JEPA-style "predict in latent space" sits relative to MIM-style "predict in pixel/feature space."
 - A decision tree mapping (corpus scale, domain distance, task density) → recipe pick.
@@ -58,7 +58,7 @@ Phase 2 research, dispatched as three parallel subagents covering (a) MIM family
 
 ### Headline finding for the post
 
-**The RADIO lineage's primary supervision signal is teacher feature imitation, not a MAE/DINO/contrastive pretext.** Across AM-RADIO (2312.06709), RADIOv2.5 (2412.07679), and C-RADIOv4 (2601.17237), the student is primarily trained to match teacher features. AM-RADIO uses cosine + smooth-L1 spatial losses with cosine summary; RADIOv2.5 introduces PHI-S loss balancing; C-RADIOv4 uses PHI-S-normalized squared-error spatial loss, drops cosine for an angular-cone-normalized summary loss, and adds MESA (shift-equivariant EMA matching). **MESA is a self-supervised regularizer** — student matches its own EMA on shifted crops — but it is not a MAE/DINO-style masked-prediction or contrastive pretext task. **The categorical observation:** multi-teacher distillation occupies a different position in the SSL recipe taxonomy than pretext-derived SSL — supervision shape is external (teacher activations) rather than pretext-derived (corrupted-view + reconstruction or invariance objective). This is load-bearing for the multi-teacher rung and is a different *kind* of self-supervision, not "not SSL".
+**The RADIO lineage's primary supervision signal is teacher feature imitation, not a MAE/DINO/contrastive pretext.** Across AM-RADIO (2312.06709), RADIOv2.5 (2412.07679), and C-RADIOv4 (2601.17237), the student is primarily trained to match teacher features. AM-RADIO uses cosine + smooth-L1 spatial losses with cosine summary; RADIOv2.5 introduces PHI-S loss balancing; C-RADIOv4 uses PHI-S-normalized squared-error spatial loss, drops cosine for an angular-cone-normalized summary loss, and adds MESA (shift-equivariant EMA matching). **MESA is a self-supervised regularizer** — student matches its own EMA on shifted crops — but it is not a MAE/DINO-style masked-prediction or contrastive pretext task. **The categorical observation:** multi-teacher distillation occupies a different position in the SSL recipe taxonomy than pretext-derived SSL — supervision shape is external (teacher activations) rather than pretext-derived (reconstruction, invariance, or latent-prediction objectives over corrupted/multi-view inputs). This is load-bearing for the multi-teacher rung and is a different *kind* of self-supervision, not "not SSL".
 
 ### Headline finding on domain transfer
 
@@ -301,7 +301,7 @@ Domain-adaptive SSL papers (DiT, SatMAE, Medical 3D MAE) tend to compare (a) vs 
 - arxiv:2410.18677 ("Enhancing pretraining efficiency for medical image segmentation via transferability metrics", 2024) — summary suggests an intermediate continual-pretraining sweet spot. *Pointer.*
 - arxiv:2502.18056 ("Escaping the big data paradigm in self-supervised representation learning", 2025) — for narrow target domains, in-domain SSL on tiny corpora can rival ImageNet-init at much smaller scale. Classification-only. *Pointer.*
 
-**This gap itself is a finding worth surfacing in the post**: there is no canonical "domain-adaptive SSL bake-off" with dense-prediction numbers. Practitioners are working in the absence of clean comparative benchmarks.
+**This gap is a finding worth surfacing in the post**: domain-adaptive SSL bake-offs with dense-prediction numbers DO exist for satellite (Lahrichi 2025) and continual-adapter SSL across natural + satellite segmentation domains (GLARE 2026); medical 3D MAE reports DSC vs no-pretraining baseline. **No analogous all-three-corners bake-off exists for construction documents or engineering drawings specifically** — practitioners working on those domains are doing so without clean comparative benchmarks for their data shape.
 
 ### Sub-topic: The OOD-domain transfer matrix
 
@@ -467,6 +467,28 @@ Findings: 3 STRUCTURAL + 2 COSMETIC. Down from 8 → 4 → 3 STRUCTURAL across r
 
 **Closure status:** structural fixes applied (run 3); ready to re-run Gate 0 (run 4 — the gate-runner cap).
 
+### Gate 0 run 4, 2026-05-04 — Vic-extended budget; Step-6 acceptance override
+
+Findings: 2 STRUCTURAL + 1 COSMETIC. Trajectory: 8 → 4 → 3 → 2 STRUCTURAL across runs 1–4. Full output: [notes/ssl-pretraining-recipes-codex-research-20260504-run4.md](./ssl-pretraining-recipes-codex-research-20260504-run4.md).
+
+**Findings (verbatim summary):**
+
+1. STRUCTURAL: Spec bullet "Reader walks away knowing" still over-attributed GLARE's comparison shape — GLARE is adapter-based continual SSL from UDI initialization, not a clean continual-natural-image-vs-from-scratch-on-target bake-off. Lahrichi is the satellite bake-off; GLARE is continual-adapter evidence — distinct shapes.
+2. STRUCTURAL: Second "no canonical bake-off" sentence at the Continual SSL sub-topic still stale (I'd narrowed line 316 in run 3 but missed the earlier sentence).
+3. COSMETIC: Headline finding parenthetical defined pretext-derived SSL as "corrupted-view + reconstruction or invariance objective"; row 36 (line 384) had broader phrasing that included latent prediction.
+
+Codex's verbatim closing: **"C-RADIOv4 closure is sound. The revised paragraph at line 263 is consistent with row 25, row 35, and the C-RADIOv4 primary source: MESA is self-supervised EMA matching on shifted crops, but the primary RADIO supervision remains teacher feature imitation. Row 36 and row 32 cosmetic fixes are closed."**
+
+**Step-6 acceptance override applied (Vic-approved 2026-05-04).** Per the codex-prompts.md per-gate runner Step 6: gate-runner cap is 3 invocations (initial + 2 re-runs). Vic extended the budget for invocation 4 with the explicit conditional "if STRUCTURAL → halt back to you." Codex run 4 surfaced 2 small stale-prose STRUCTURAL contradictions of already-fixed rows (not deep matrix issues). Vic chose option (a) — apply the 2 fixes, accept Gate 0 as cosmetic-converging without a 5th codex run, recording the acceptance as a Step-6 override. Reasoning recorded:
+
+- Trajectory cleanly converging (8 → 4 → 3 → 2 STRUCTURAL across runs 1–4).
+- Both run-4 STRUCTURAL findings were minor stale-prose contradictions of already-fixed matrix rows, not deep matrix issues.
+- Codex confirmed in the run-4 closing paragraph that the matrix itself is sound: "C-RADIOv4 closure is sound … row 36 and row 32 cosmetic fixes are closed."
+- The 2 STRUCTURAL fixes were applied surgically (Spec bullet rewritten to separate Lahrichi's bake-off from GLARE's continual-adapter evidence; second "no canonical bake-off" sentence narrowed to construction documents).
+- The 1 COSMETIC fix was also applied (Headline parenthetical broadened to match row 36).
+
+**Outcome:** Gate 0 closed via Step-6 override after 4 codex invocations. Phase 2 deliverable accepted; advancing to Phase 3 (outline + figure list).
+
 ## Outline
 
 *(populated in Phase 3)*
@@ -480,7 +502,7 @@ Last touched: 2026-05-04.
 | Phase | Status | Output |
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
-| 2. Research / fact-check | in progress (Gate 0 firing) | `## Research notes`, `## Claim-source matrix` |
+| 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | pending | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
 | 5. Implement figures | pending | per-figure table populated at end of Phase 3 |
@@ -493,7 +515,8 @@ Last touched: 2026-05-04.
 |---|---|---|---|
 | 2026-05-04 | 0 (research) | structural-fixes-applied (run 1, 8 STRUCTURAL → fixes committed) | `notes/ssl-pretraining-recipes-codex-research-20260504.md` |
 | 2026-05-04 | 0 (research, run 2) | structural-fixes-applied (4 STRUCTURAL + 1 COSMETIC → fixes committed) | `notes/ssl-pretraining-recipes-codex-research-20260504-run2.md` |
-| 2026-05-04 | 0 (research, run 3) | structural-fixes-applied (3 STRUCTURAL + 2 COSMETIC; stale-prose cleanup → fixes committed; run 4 pending — gate-runner cap) | `notes/ssl-pretraining-recipes-codex-research-20260504-run3.md` |
+| 2026-05-04 | 0 (research, run 3) | structural-fixes-applied (3 STRUCTURAL + 2 COSMETIC; stale-prose cleanup → fixes committed) | `notes/ssl-pretraining-recipes-codex-research-20260504-run3.md` |
+| 2026-05-04 | 0 (research, run 4) | Step-6-acceptance-override (2 STRUCTURAL + 1 COSMETIC; converging trajectory 8→4→3→2; small stale-prose contradictions of already-fixed rows, fixes applied; Vic-approved override per AskUserQuestion) | `notes/ssl-pretraining-recipes-codex-research-20260504-run4.md` |
 
 ### Suggested next batch
 
