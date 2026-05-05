@@ -9,7 +9,24 @@ draft: false
 essay: true
 ---
 
-{/* TODO: §1: The construction sheet that won't pretrain itself */}
+### 1. The construction sheet that won't pretrain itself
+
+A construction sheet looks nothing like ImageNet. Open one in a viewer and you see thin black lines on white space, a few standardized symbols (door swings, dimension witnesses, stair rises), the occasional block of dimension text, and a wide field of empty paper. There's no figure-ground in the natural-image sense: no sky, no foreground, no plausible boundary between an object and its surroundings. The information per square inch is sparse and structural.
+
+A general contractor's archive easily runs to tens of thousands of these sheets. Floor plans, sections, details, schedules. Often unlabeled, often in PDFs. If you want a model that can read them (pull out a wall type, count plumbing fixtures, segment slab regions), the labeled set you can afford is small. A few thousand sheets, maybe ten thousand if you spend on it. The unlabeled corpus is in a different order of magnitude.
+
+This is the practitioner's setup most SSL papers don't cover. [MAE](https://arxiv.org/abs/2111.06377) trained on ImageNet-1K. [DINOv3](https://arxiv.org/abs/2508.10104)'s largest run trained on LVD-1689M, a curated 1.7B-image scrape biased heavily toward natural photographs. [C-RADIOv4](https://arxiv.org/abs/2601.17237) distilled from SigLIP2, DINOv3, and SAM3, all trained on natural-image data. None of these papers ship a construction-document checkpoint, and none benchmark transfer to construction-document segmentation. Some natural-image SSL backbones do ship domain-specialized variants. DINOv3 has SAT-493M, a satellite specialization with Earth-observation benchmark numbers. No comparable construction-document variant exists, in any of the recipes this post covers.
+
+{/* TODO: Fig 1: ConstructionSheet, annotated construction sheet showing whitespace, line-art strokes, repetitive symbols, low color, mostly-empty patches */}
+
+The defensible framing is narrower than "SSL hasn't seen this kind of data." Web-scale pretraining sets very plausibly include some line drawings; the open question is what the *tested-and-reported* transfer surface actually covers, and that surface excludes construction documents specifically. As the practitioner with this corpus, you're being asked to pick a recipe (fine-tune a natural-image checkpoint zero-shot? continue self-supervised pretraining on top of one? train SSL from scratch on your own corpus?) without a published comparison that tells you which to bet on for *this* domain.
+
+This post walks through seven recipe families and grades each against that question. Each section asks: what does the recipe extract from a sheet like this; where does the signal break down; what do the published numbers say about its dense-feature quality. The closing section is a routing-questions tree. For your data shape (corpus scale, distance from natural images, downstream task density), it points at what the published evidence supports as a starting point, and it flags where you'd be running an experiment instead of following a recipe.
+
+The motivating use case throughout is construction documents. The tree generalizes to other domains the canonical SSL backbones haven't reported transfer to: scanned reports, low-color line-art, niche scientific imagery. If your corpus is satellite imagery or 3D medical volumes, you have published evidence to lean on; the tree's terminals point at it.
+
+{/* Reader can now: picture the construction-sheet corpus shape, articulate the practitioner's recipe-selection question, and locate the post's claim space (no published bake-off; routing-tree as the deliverable). */}
+
 {/* TODO: §2: Dense-feature quality is the load-bearing axis */}
 {/* TODO: §3: The question we can't answer head-on */}
 {/* TODO: §4–§11: Act 2 recipe rungs */}
