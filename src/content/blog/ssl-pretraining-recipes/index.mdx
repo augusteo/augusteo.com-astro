@@ -1737,7 +1737,7 @@ Medical imaging gives a different shape of evidence. [Medical 3D MAE](https://ar
 Documents have [DiT](https://arxiv.org/abs/2203.02378) for from-scratch domain SSL at 42M images. The downstream tasks are document-layout (PubLayNet), table detection (ICDAR cTDaR), and document classification (RVL-CDIP). DiT does not evaluate continual-from-natural either. The published evidence is "from-scratch BEiT-style on 42M document images beats supervised baselines on document-layout, table, and classification tasks."
 
 <figure>
-<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%">
+<svg viewBox="0 0 680 490" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <pattern id="hatch12" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
 <line x1="0" y1="0" x2="0" y2="6" stroke="#C9BEAA" stroke-width="1"/>
@@ -1745,84 +1745,84 @@ Documents have [DiT](https://arxiv.org/abs/2203.02378) for from-scratch domain S
 </defs>
 <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle" letter-spacing="1.2">
 <text x="225" y="40">FROZEN BACKBONE</text>
-<text x="395" y="40">CONTINUAL SSL</text>
-<text x="565" y="40">FROM-SCRATCH SSL</text>
+<text x="405" y="40">CONTINUAL SSL</text>
+<text x="585" y="40">FROM-SCRATCH SSL</text>
 </g>
 <g font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">
 <text x="225" y="56">natural-image init,</text>
 <text x="225" y="68">no domain SSL pretraining</text>
-<text x="395" y="56">on top of a</text>
-<text x="395" y="68">natural-image checkpoint</text>
-<text x="565" y="56">on a domain corpus,</text>
-<text x="565" y="68">no natural-image init</text>
+<text x="405" y="56">on top of a</text>
+<text x="405" y="68">natural-image checkpoint</text>
+<text x="585" y="56">on a domain corpus,</text>
+<text x="585" y="68">no natural-image init</text>
 </g>
 <g font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="0.6">
 <text x="20" y="118">satellite</text>
-<text x="20" y="208">medical 3D</text>
-<text x="20" y="298">document-layout</text>
-<text x="20" y="388">construction</text>
-<text x="20" y="402">drawings</text>
+<text x="20" y="218">medical 3D</text>
+<text x="20" y="318">document-layout</text>
+<text x="20" y="418">construction</text>
+<text x="20" y="432">drawings</text>
 </g>
 <g stroke="#C9BEAA" stroke-width="1">
 <rect x="140" y="80" width="170" height="80" fill="#F9F5EB"/>
-<rect x="140" y="170" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
-<rect x="140" y="170" width="170" height="80" fill="none"/>
-<rect x="140" y="260" width="170" height="80" fill="#F9F5EB"/>
-<rect x="140" y="350" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
-<rect x="140" y="350" width="170" height="80" fill="none"/>
+<rect x="140" y="180" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
+<rect x="140" y="180" width="170" height="80" fill="none"/>
+<rect x="140" y="280" width="170" height="80" fill="#F9F5EB"/>
+<rect x="140" y="380" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
+<rect x="140" y="380" width="170" height="80" fill="none"/>
 <rect x="320" y="80" width="170" height="80" fill="#F9F5EB"/>
-<rect x="320" y="170" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
-<rect x="320" y="170" width="170" height="80" fill="none"/>
-<rect x="320" y="260" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
-<rect x="320" y="260" width="170" height="80" fill="none"/>
-<rect x="320" y="350" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
-<rect x="320" y="350" width="170" height="80" fill="none"/>
+<rect x="320" y="180" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
+<rect x="320" y="180" width="170" height="80" fill="none"/>
+<rect x="320" y="280" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
+<rect x="320" y="280" width="170" height="80" fill="none"/>
+<rect x="320" y="380" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
+<rect x="320" y="380" width="170" height="80" fill="none"/>
 <rect x="500" y="80" width="170" height="80" fill="#F9F5EB"/>
-<rect x="500" y="170" width="170" height="80" fill="#F9F5EB"/>
-<rect x="500" y="260" width="170" height="80" fill="#F9F5EB"/>
-<rect x="500" y="350" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
-<rect x="500" y="350" width="170" height="80" fill="none"/>
+<rect x="500" y="180" width="170" height="80" fill="#F9F5EB"/>
+<rect x="500" y="280" width="170" height="80" fill="#F9F5EB"/>
+<rect x="500" y="380" width="170" height="80" fill="url(#hatch12)" opacity="0.5"/>
+<rect x="500" y="380" width="170" height="80" fill="none"/>
 </g>
 <g font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" font-weight="600">
 <text x="225" y="103" text-anchor="middle">DINOv3 Web ViT-7B</text>
-<text x="395" y="103" text-anchor="middle">GLARE adapter</text>
-<text x="565" y="103" text-anchor="middle">Lahrichi 2025</text>
-<text x="565" y="193" text-anchor="middle">Medical 3D MAE</text>
-<text x="225" y="283" text-anchor="middle">BEiT IN1K + ft</text>
-<text x="565" y="283" text-anchor="middle">DiT</text>
+<text x="405" y="103" text-anchor="middle">GLARE adapter</text>
+<text x="585" y="103" text-anchor="middle">Lahrichi 2025</text>
+<text x="585" y="203" text-anchor="middle">Medical 3D MAE</text>
+<text x="225" y="303" text-anchor="middle">BEiT IN1K + ft</text>
+<text x="585" y="303" text-anchor="middle">DiT</text>
 </g>
 <g font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">
 <text x="225" y="120">LoveDA 56.2 mIoU</text>
 <text x="225" y="134">DIOR 80.5 mAP</text>
-<text x="395" y="120">+0.5 LoveDA mIoU</text>
-<text x="395" y="134">+0.4 ADE20K mIoU</text>
-<text x="565" y="120">GeoNet ≈ ImageNet</text>
-<text x="565" y="134">no consistent winner (Lahrichi)</text>
-<text x="565" y="210">+2.97 DSC over</text>
-<text x="565" y="224">dynamic nnU-Net baseline</text>
-<text x="565" y="238">on 39k MRI volumes</text>
-<text x="225" y="300">PubLayNet 91.0 mAP</text>
-<text x="225" y="314">(this is the baseline</text>
-<text x="225" y="328">DiT compares against)</text>
-<text x="565" y="300">+3.9 PubLayNet mAP</text>
-<text x="565" y="314">+2.3 cTDaR F1</text>
-<text x="565" y="328">+1.6 RVL-CDIP %</text>
+<text x="405" y="120">+0.5 LoveDA mIoU</text>
+<text x="405" y="134">+0.4 ADE20K mIoU</text>
+<text x="585" y="120">GeoNet ≈ ImageNet</text>
+<text x="585" y="134">no consistent winner (Lahrichi)</text>
+<text x="585" y="220">+2.97 DSC over</text>
+<text x="585" y="234">dynamic nnU-Net baseline</text>
+<text x="585" y="248">on 39k MRI volumes</text>
+<text x="225" y="320">PubLayNet 91.0 mAP</text>
+<text x="225" y="334">(this is the baseline</text>
+<text x="225" y="348">DiT compares against)</text>
+<text x="585" y="320">+3.9 PubLayNet mAP</text>
+<text x="585" y="334">+2.3 cTDaR F1</text>
+<text x="585" y="348">+1.6 RVL-CDIP %</text>
 </g>
 <g font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">
-<text x="225" y="153">DINOv3 §8.3</text>
-<text x="395" y="148">GLARE 2026</text>
-<text x="565" y="155">Lahrichi 2025</text>
+<text x="225" y="170">DINOv3 §8.3</text>
+<text x="405" y="170">GLARE 2026</text>
+<text x="585" y="170">Lahrichi 2025</text>
 <text x="225" y="223">absent</text>
-<text x="395" y="213">absent</text>
-<text x="565" y="251">Medical 3D MAE</text>
-<text x="395" y="303">absent</text>
-<text x="225" y="343">DiT paper §3.2</text>
-<text x="565" y="341">DiT paper</text>
-<text x="225" y="393">absent</text>
-<text x="395" y="393">absent</text>
-<text x="565" y="393">absent</text>
+<text x="405" y="223">absent</text>
+<text x="585" y="270">Medical 3D MAE</text>
+<text x="405" y="323">absent</text>
+<text x="225" y="370">DiT paper §3.2</text>
+<text x="585" y="370">DiT paper</text>
+<text x="225" y="423">absent</text>
+<text x="405" y="423">absent</text>
+<text x="585" y="423">absent</text>
 </g>
-<text x="340" y="445" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">Cells use different benchmarks, heads, and architectures; comparison is within-row, not across rows.</text>
+<text x="340" y="475" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">Cells use different benchmarks, heads, and architectures; comparison is within-row, not across rows.</text>
 </svg>
 <figcaption><strong>Fig 12.</strong> Published evidence by domain × pretraining strategy. A filled cell means at least one paper measured that combination on that domain; an empty hatched cell means no published number was found. Cross-domain comparison is disqualified: the cells use different benchmarks (LoveDA vs PubLayNet vs DSC), different heads (UperNet vs SETR-PUP vs nnU-Net decoder), and different architectures. The construction-drawings row is the row this post exists to walk around. Sources: [DINOv3 §8.3](https://arxiv.org/abs/2508.10104), [GLARE 2026](https://arxiv.org/abs/2509.17816), [Lahrichi 2025](https://arxiv.org/abs/2502.10669), [Medical 3D MAE](https://arxiv.org/abs/2410.23132), [DiT](https://arxiv.org/abs/2203.02378).</figcaption>
 </figure>
@@ -1879,10 +1879,10 @@ Treat the tree as descriptive guidance, not prescriptive truth. It's a way to or
 <text x="22" y="328" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Cross-leaf comparison</text>
 <text x="22" y="340" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">to leaves 2–4 not</text>
 <text x="22" y="352" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">supported.</text>
-<text x="22" y="380" font-family="serif" font-size="10" fill="#1A1A1A">Row 32 (Lahrichi /</text>
-<text x="22" y="392" font-family="serif" font-size="10" fill="#1A1A1A">GLARE) backs the</text>
-<text x="22" y="404" font-family="serif" font-size="10" fill="#1A1A1A">absence; nothing for</text>
-<text x="22" y="416" font-family="serif" font-size="10" fill="#1A1A1A">construction docs.</text>
+<text x="22" y="368" font-family="serif" font-size="10" fill="#1A1A1A">Row 32 (Lahrichi /</text>
+<text x="22" y="380" font-family="serif" font-size="10" fill="#1A1A1A">GLARE) backs the</text>
+<text x="22" y="392" font-family="serif" font-size="10" fill="#1A1A1A">absence; nothing for</text>
+<text x="22" y="404" font-family="serif" font-size="10" fill="#1A1A1A">construction docs.</text>
 </g>
 <g>
 <rect x="178" y="74" width="158" height="338" fill="#F9F5EB" stroke="#C9BEAA"/>
@@ -1926,23 +1926,23 @@ Treat the tree as descriptive guidance, not prescriptive truth. It's a way to or
 <text x="350" y="166" font-family="serif" font-size="10" fill="#6B6258">+2.97 DSC vs dyn-config</text>
 <text x="350" y="178" font-family="serif" font-size="10" fill="#6B6258">nnU-Net (row 30)</text>
 <line x1="342" y1="186" x2="500" y2="186" stroke="#C9BEAA" stroke-width="0.5"/>
-<rect x="350" y="194" width="71" height="20" fill="#15803D" opacity="0.85"/>
-<rect x="421" y="194" width="71" height="20" fill="#B91C1C" opacity="0.85"/>
-<text x="385" y="208" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">EVIDENCE</text>
-<text x="457" y="208" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">EXPERIMENT</text>
-<text x="350" y="226" font-family="serif" font-size="10" fill="#1A1A1A">Evidence: vs no-</text>
-<text x="350" y="238" font-family="serif" font-size="10" fill="#1A1A1A">pretrain nnU-Net.</text>
-<text x="350" y="250" font-family="serif" font-size="10" fill="#1A1A1A">Experiment: vs</text>
-<text x="350" y="262" font-family="serif" font-size="10" fill="#1A1A1A">continual-from-natural</text>
-<text x="350" y="274" font-family="serif" font-size="10" fill="#1A1A1A">(unpublished).</text>
-<line x1="342" y1="280" x2="500" y2="280" stroke="#C9BEAA" stroke-width="0.5"/>
-<text x="350" y="296" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">PER-LEAF BASELINE</text>
-<text x="350" y="312" font-family="serif" font-size="10" fill="#1A1A1A">3D Residual Encoder</text>
-<text x="350" y="324" font-family="serif" font-size="10" fill="#1A1A1A">U-Net inside nnU-Net,</text>
-<text x="350" y="336" font-family="serif" font-size="10" fill="#1A1A1A">DSC vs no-pretrain.</text>
-<text x="350" y="354" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Not a ViT frozen probe.</text>
-<text x="350" y="366" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Cross-leaf comparison</text>
-<text x="350" y="378" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">not supported.</text>
+<rect x="350" y="194" width="142" height="20" fill="#15803D" opacity="0.85"/>
+<rect x="350" y="216" width="142" height="20" fill="#B91C1C" opacity="0.85"/>
+<text x="421" y="208" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.2">EVIDENCE</text>
+<text x="421" y="230" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.2">EXPERIMENT</text>
+<text x="350" y="248" font-family="serif" font-size="10" fill="#1A1A1A">Evidence: vs no-</text>
+<text x="350" y="260" font-family="serif" font-size="10" fill="#1A1A1A">pretrain nnU-Net.</text>
+<text x="350" y="272" font-family="serif" font-size="10" fill="#1A1A1A">Experiment: vs</text>
+<text x="350" y="284" font-family="serif" font-size="10" fill="#1A1A1A">continual-from-natural</text>
+<text x="350" y="296" font-family="serif" font-size="10" fill="#1A1A1A">(unpublished).</text>
+<line x1="342" y1="302" x2="500" y2="302" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="350" y="318" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">PER-LEAF BASELINE</text>
+<text x="350" y="334" font-family="serif" font-size="10" fill="#1A1A1A">3D Residual Encoder</text>
+<text x="350" y="346" font-family="serif" font-size="10" fill="#1A1A1A">U-Net inside nnU-Net,</text>
+<text x="350" y="358" font-family="serif" font-size="10" fill="#1A1A1A">DSC vs no-pretrain.</text>
+<text x="350" y="376" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Not a ViT frozen probe.</text>
+<text x="350" y="388" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Cross-leaf comparison</text>
+<text x="350" y="400" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">not supported.</text>
 </g>
 <g>
 <rect x="506" y="74" width="158" height="338" fill="#F9F5EB" stroke="#C9BEAA"/>
