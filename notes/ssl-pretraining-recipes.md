@@ -387,8 +387,9 @@ Every load-bearing claim the post will make has a row here with a quoted primary
 | 39 | DINOv2 ViT-g/14 achieves ADE20K mIoU 53.0 with multi-scale linear probe (frozen backbone) | "Linear-DINOv2 ViT-g/14: ADE20K mIoU 49.0 (single-scale) / 53.0 (multi-scale)" | arxiv:2304.07193v2 (2024-02-02) | stable foundational / passes — same source as row 14 |
 | 40 | RADIOv2.5-g achieves ADE20K mIoU 54.56 (g-scale student); B 48.94, L 52.95, H 53.97 | "RADIOv2.5: ADE20K B 48.94, L 52.95, H 53.97, g 54.56" — Table 8 | arxiv:2412.07679v2 (2025-02-09) | actively-evolving / 12-month bar / foundational-stable — same source as row 24 |
 | 41 | V-JEPA and V-JEPA 2 evaluation sets confine reported transfer to video classification (Kinetics, SSv2, AVA) and image classification (ImageNet attentive probe); no image dense-prediction (ADE20K / COCO seg / depth) transfer is reported in either paper | V-JEPA: "Kinetics-400 81.9, SSv2 72.2, ImageNet 77.9" — body of paper, no ADE20K. V-JEPA 2: "ImageNet attentive probe ViT-g384 85.1%" — Table 4, no dense-prediction in eval set | V-JEPA arxiv:2404.08471v1 (2024-02-15); V-JEPA 2 arxiv:2506.09985v1 (2025-06-11) | actively-evolving / 12-month bar / passes via V-JEPA 2 (2025-06) |
+| 42 | iGPT (Chen et al. 2020) is a Sequence Transformer trained autoregressively on pixels with no 2D inductive bias; trained at 32² / 48² / 64² resolutions due to sequence-length cost; reports ImageNet linear probe ~72% (best-layer) and CIFAR-10 linear 96.3%; reports no dense-prediction transfer | "iGPT-L 1.4B params, ImageNet linear ~72% (best-layer), CIFAR-10 linear 96.3%. **No dense-prediction transfer.**" — research-notes summary of paper body | proceedings.mlr.press/v119/chen20s (ICML 2020) | stable foundational / passes — iGPT is the foundational AR-on-pixels paper; recipe definition + classification-only evaluation set are the load-bearing claims and don't drift |
 
-**Marginal-row debt closure (post-Gate-0-fix-v2; post-Gate-1-fix-v1).** Row-32 deferral lifted with quoted excerpts from Lahrichi 2025 and GLARE 2026. Gate 1 added rows 37-41 (BEiT v1 ViT-L, D2V2-Refined ViT-L, DINOv2 frozen multi-scale, RADIOv2.5-g, V-JEPA family eval set) to support §13's Fig 13 quantitative claims. Remaining marginal:
+**Marginal-row debt closure (post-Gate-0-fix-v2; post-Gate-1-fix-v2).** Row-32 deferral lifted with quoted excerpts from Lahrichi 2025 and GLARE 2026. Gate 1 run 1 added rows 37-41 (BEiT v1 ViT-L, D2V2-Refined ViT-L, DINOv2 frozen multi-scale, RADIOv2.5-g, V-JEPA family eval set) to support §13's Fig 13 quantitative claims. Gate 1 run 2 added row 42 (iGPT classification-only eval set) to back the AR-as-negative-control note in the new §12 prose (after §10 was dropped per finding 6). Remaining marginal:
 
 - **Row 30** (Medical 3D MAE, 19 months old): hedged in prose. Phase 7 to re-check whether newer medical-MAE comparisons land before pubDate.
 
@@ -547,9 +548,40 @@ Codex's verbatim closing on §5: **"§5 earns its place against §4 and §6 beca
 
 **Closure status:** structural fixes applied (run 1); ready to re-run Gate 1 (run 2) to confirm cosmetic-only.
 
+### Gate 1 run 2, 2026-05-04
+
+Findings: 6 STRUCTURAL + 0 TYPE-CHANGE + 0 COSMETIC. Trajectory: 16 → 6 (run 1 → run 2). Full output: [notes/ssl-pretraining-recipes-codex-outline-20260504-run2.md](./ssl-pretraining-recipes-codex-outline-20260504-run2.md).
+
+**Findings (verbatim summary):**
+
+1. STRUCTURAL: §15 / Fig 13 not actually reviewable — outline only spells out the construction-document terminal; satellite / medical / document terminals promised but unenumerated; X/Y/Z thresholds have no matrix backing; teacher availability is a real gate for RADIO (§11) not a confounder.
+2. STRUCTURAL: §13 RADIO bin not closed — rows 26 + 40 back the mIoU but not the "matched protocol" label that the run-1-fix grouped DINOv2/v3 + RADIOv2.5 + C-RADIOv4 under.
+3. STRUCTURAL: §10 "AR scales like LLMs for image classification" not matrix-backed — rows 21, 22, 34 cover prefix-LM mechanism + AIM no dense + AIMv2 multimodal but not iGPT history or scaling claim.
+4. STRUCTURAL: §6 → §7 overstates BEiT v2 lesson — "only works because it borrows CLIP" is causal overclaim (row 9 supports correlation, not causation); row 37 (BEiT v1 ViT-L 53.3) makes "only BEiT v2 strong" no longer clean.
+5. STRUCTURAL: §4 hypothesis won't actually be tested — §5 tests generic MIM block regimes, §13 tests ADE20K-style numbers; neither tests construction-sheet whitespace.
+6. STRUCTURAL: §10 dead weight as standalone rung — should become a short negative-control paragraph in §11 or §13's "no published number" landing.
+
+No TYPE-CHANGE findings. Codex's verbatim closing: **"Fig 1 / Fig 5 / Fig 6 are doing different jobs; Fig 11 carries weight only if the protocol backing problem above is fixed."**
+
+**Fixes applied (this commit):**
+
+- **§10 dropped entirely** per finding 6. AR negative-control (§10's content) merged into §12 prose (was §13) as a paragraph between the cross-recipe ADE20K claim and the figure spec. Section count 16 → 15. §11–§16 renumbered down to §10–§15. Figures unchanged in count + numbering (§10 had no figure to drop after run 1).
+- **§14 (was §15) — all four leaves enumerated** (per finding 1): construction-document, satellite, medical, document-corpus. Each leaf cites the specific matrix row(s) that justify the starting point and carries an explicit experiment-vs-evidence flag. X/Y/Z thresholds dropped — internal nodes pose qualitative questions calibrated against matrix-row reference corpora.
+- **Teacher availability moved from confounder to gate** in §14 (per finding 1). The multi-teacher branch is now a hard gate; for the construction-document case, no domain-tested teachers ship, so the construction-document leaf doesn't route into RADIO.
+- **§12 (was §13) Fig 11 restructured into 4 protocol bins** (per finding 2): (a) ViT-L UperNet IN1K matched, (b) ViT-B UperNet IN1K matched, (c) DINO-line frozen-backbone with mixed heads (NOT strictly matched), (d) RADIO-line frozen-backbone at the paper's own protocol. Caption explicitly disclaims cross-bin comparisons. The matrix backs each bin's numbers but not a single cross-bin "matched protocol" label.
+- **§12 AR / JEPA / iGPT negative-control paragraph added** to §12's prose (per finding 6's "into §13's 'no published number' landing" suggestion). Matrix backing list updated to include rows 21, 22, 42 (AR family) + 19, 20, 41 (JEPA family).
+- **§4 hypothesis reframed** (per finding 5): "to be tested in §5 and §13" framing dropped. New phrasing: "this is a *plausible* low-information signal, but this post does not measure the failure; no canonical bake-off exists." Cross-reference to §3.
+- **§6 BEiT v2 framing fixed** (per finding 4): "only works because it borrows CLIP" → "owes some of its strength to CLIP via the VQ-KD tokenizer" (factual, not causal). "Only BEiT v2 reports strong dense-prediction numbers" → "BEiT v2 reports the strongest ADE20K numbers in the MIM family at ViT-L (56.7 vs BEiT v1 53.3, MAE 53.6, D2V2-Refined 54.4), with the CLIP-distillation caveat" (within-MIM-family ranking with caveat). Backing list extended to rows 37, 38.
+- **§7 motivation softened** (per finding 4 follow-on): "MIM's signal depends fragilely on target choice" → "MIM's signal varies with target choice (a 3.4-point spread at ViT-L UperNet, with BEiT v2's lead partly attributable to CLIP via VQ-KD)."
+- **Matrix row 42 added** for iGPT (per finding 3): backs §12's AR-as-negative-control paragraph. Citation: proceedings.mlr.press/v119/chen20s (ICML 2020).
+- **§10 (was §11) RADIO**: prose updated to call out teacher-availability as a hard gate not a confounder; cross-references to "§11 prose" updated to "§10 prose."
+- **Internal cross-references updated**: Fig 9 mechanism note now references §10 prose; §15 coda's reference to "§14" (the decision tree, formerly §15) updated.
+
+**Closure status:** structural fixes applied (run 2); ready to re-run Gate 1 (run 3 — last allowed before Step-6 cap). Trajectory 16 → 6 → expected ≤ 3 STRUCTURAL on run 3.
+
 ## Outline
 
-16 sections across three acts. **13 figures, all static-svg** (post-Gate-1: Fig 5 re-typed from `plot` per finding 13; old Fig 3 OOD-coverage and old Fig 10 AIM-prefix-LM dropped per findings 12 + 14). No interactive figures: none of the mechanisms meet the four override clauses, and the deliverable is a recipe taxonomy + hedged routing tree, which static SVG handles cleanly. Construction-sheet throughline now explicit in every act-2 recipe section (per finding 9). Recipe ramp now framed rung-by-rung (each Act-2 section names what failure of the prior rung motivates this one) per finding 7.
+**15 sections across three acts. 13 figures, all static-svg.** Post-Gate-1-run-2: §10 (AR — was the negative-control rung) dropped entirely per finding 6; AR/iGPT absence now lives as a paragraph in §12's prose (was §13). Section count 16 → 15; figure count unchanged at 13 (§10 had no figure). §11-§16 renumbered down to §10-§15. Run-1 baseline carried forward: Fig 5 (was Fig 5 / `plot`) re-typed to `static-svg` per finding 13; old Fig 3 (OOD-coverage, duplicate of Fig 14) and old Fig 10 (AIM-prefix-LM) dropped. Construction-sheet throughline explicit in every act-2 recipe section. Recipe ramp framed rung-by-rung.
 
 ### Act 1 — The problem
 
@@ -579,7 +611,7 @@ Codex's verbatim closing on §5: **"§5 earns its place against §4 and §6 beca
 - Throughline open: feed the construction sheet to MAE — 75% mask, asymmetric encoder, lightweight pixel decoder.
 - Claim: MAE generates supervision by reconstructing held-out pixel patches; the encoder operates only on the visible 25%; the decoder is small.
 - Figure 3 (was Fig 4): MAE forward pass on the construction sheet — visible patches → encoder → mask tokens injected → decoder → pixel reconstruction.
-- Reader walks away knowing what MAE actually optimizes, and predicting (as a hypothesis to be tested in §5 and §13, not a measured failure — per finding 5) that pixel reconstruction on whitespace-heavy data is a low-information signal: many prediction targets would themselves be near-trivial completions.
+- Reader walks away knowing what MAE actually optimizes, and seeing why pixel reconstruction on whitespace-heavy data is a *plausible* low-information signal — but this post does not measure the failure; no canonical bake-off exists for construction-document MAE pretraining (cross-reference §3's open-question framing). The post raises the concern; the practitioner who runs the A/B is the one who measures it.
 - Backed by: rows 1 (architecture), 2 (ADE20K ViT-B 48.1 / ViT-L 53.6).
 
 **§5. The MIM block regime**
@@ -593,14 +625,14 @@ Codex's verbatim closing on §5: **"§5 earns its place against §4 and §6 beca
 **§6. Changing the MIM target — features and tokens**
 - Throughline open: same masked construction sheet, different prediction target.
 - Rung motivation: §5 showed MAE's late blocks burn on pixel reconstruction; if the *target* is changed (predict HOG, predict latent features, predict discrete tokens) does the late-block degradation soften, and does dense-feature quality improve?
-- Claim: MaskFeat predicts HOG; data2vec predicts EMA-teacher latent features; BEiT predicts discrete tokens from a pretrained dVAE / VQ-KD codebook. None of MaskFeat / data2vec / data2vec 2.0 report image dense-prediction transfer. BEiT v2's strong ADE20K numbers come via a CLIP-distilled tokenizer (so v2's "MIM" inherits CLIP web-pretraining).
+- Claim: MaskFeat predicts HOG; data2vec predicts EMA-teacher latent features; BEiT predicts discrete tokens from a pretrained dVAE (BEiT v1) or a CLIP-distilled VQ-KD codebook (BEiT v2). None of MaskFeat / data2vec / data2vec 2.0 report image dense-prediction transfer. Within the MIM family at ViT-L UperNet, BEiT v1 lands at 53.3, MAE at 53.6, D2V2-Refined at 54.4, BEiT v2 at 56.7 — BEiT v2 is highest and uses a CLIP-distilled tokenizer; row 9 backs the empirical pairing (CLIP-distilled tokenizer + 56.7), not a causal "v2 only works because of CLIP" claim.
 - Figure 5 (was Fig 6; markdown pipes fixed per finding 16): three-panel target comparison on the same masked sheet — pixel target (MAE) / feature target (HOG cells, EMA latents) / token target (dVAE, VQ-KD codebook).
-- Reader walks away knowing target choice shifts what the encoder keeps; only BEiT v2 reports strong dense-prediction numbers, and that's a CLIP-distillation confound rather than a property of the MIM recipe.
-- Backed by: rows 4 (MaskFeat HOG), 5 (MaskFeat no image dense transfer), 6 (data2vec no image dense transfer), 7 (collapse failure modes), 8 (BEiT dVAE), 9 (BEiT v2 VQ-KD + ADE20K).
+- Reader walks away knowing the choice of prediction target shifts what the encoder keeps. The MIM family covers a 3.4-point spread at ViT-L UperNet; BEiT v2 leads, with the CLIP-distillation caveat that part of its signal flows through the tokenizer's web-pretrained features.
+- Backed by: rows 4 (MaskFeat HOG), 5 (MaskFeat no image dense transfer), 6 (data2vec no image dense transfer), 7 (collapse failure modes), 8 (BEiT dVAE), 9 (BEiT v2 VQ-KD + ADE20K), 37 (BEiT v1 ViT-L 53.3), 38 (D2V2-Refined ViT-L 54.4).
 
 **§7. Self-distillation (DINO → iBOT → DINOv2)**
 - Throughline open: switch from MIM to multi-crop self-distillation — what does DINO see when shown two crops of the same construction sheet? (Throughline-open added per finding 9.)
-- Rung motivation: §6 showed MIM's signal depends fragilely on target choice (BEiT v2 only works because it borrows CLIP). Is there a recipe that gets dense-feature quality without needing a discrete tokenizer or a feature teacher?
+- Rung motivation: §6 showed MIM's signal varies with target choice (a 3.4-point spread at ViT-L UperNet, with BEiT v2's lead partly attributable to CLIP via VQ-KD). Self-distillation skips the target-choice question — there's no reconstruction target to pick at all.
 - Claim: a student matches a teacher's output distribution under different augmentations; iBOT extends this to masked-patch self-distillation; DINOv2 = DINO + iBOT + KoLeo + Sinkhorn-Knopp centering, trained on 142M curated images. DINO's emergent-segmentation observation makes this lineage the dense-feature SSL family.
 - Figure 6 (was Fig 7): DINO/iBOT loss flow on the construction sheet — student sees global+local crops, teacher EMA sees a global crop, KL on class probs; iBOT adds masked-patch self-distillation.
 - Reader walks away knowing invariance-to-augmentation is the trick that produces patch-level structure without explicit reconstruction or a pretrained tokenizer.
@@ -622,63 +654,62 @@ Codex's verbatim closing on §5: **"§5 earns its place against §4 and §6 beca
 - Reader walks away knowing latent-space prediction is a different bet (skip pixel detail), but the JEPA family hasn't produced an image dense-prediction story to compare against the self-distillation lineage.
 - Backed by: rows 19 (I-JEPA representation-space prediction), 20 (no I-JEPA ADE20K), 41 (V-JEPA / V-JEPA 2 evaluation set — added per finding 10).
 
-**§10. Autoregressive image pretraining (AIM) — the negative control**
-- Throughline open (brief): the construction sheet, modeled as a sequence; what does AR pretraining do, and what's missing?
-- Rung motivation: §9 stops short of image dense prediction; AR is the further alternative — pretrain like an LLM, hope downstream picks up. Reported transfer is classification only.
-- Claim: AIM (prefix-LM with normalized-pixel L2 target) and iGPT (pure-AR pixel modeling) demonstrate AR scales like LLMs for image classification, but neither paper reports dense-prediction transfer. AIMv2 is multimodal causal AR (image + text), not vision-only SSL.
-- No figure (Fig 10 dropped per finding 14: §10 is a negative-control rung; it tells the reader what AR-on-images doesn't yet do for dense tasks; an architecture diagram would not earn its place; §13's Fig 11 marks AR / JEPA as "no published number" in the dense-prediction landing).
-- Reader walks away knowing AR is a classification scaling-laws story for now; the dense-prediction numbers don't yet exist for this family and the practitioner cannot make a defensible recipe choice from AR alone.
-- Backed by: rows 21 (AIM prefix-LM), 22 (AIM no dense transfer), 34 (AIMv2 multimodal — listed for completeness).
-
-**§11. Multi-teacher distillation (RADIO line)**
+**§10. Multi-teacher distillation (RADIO line)** *(was §11; §10 dropped per Gate 1 run-2 finding 6)*
 - Throughline open: feed the construction sheet to a student that imitates an ensemble of foundation models, not to a pretext task.
-- Rung motivation: every prior recipe answers "what pretext task generates the supervision signal?" RADIO answers a different question — "can you compress an ensemble of already-trained foundation models into one student?" — and that motivation is the whole rung.
-- Central thesis (moved from Fig 11 caption to prose per finding 11): supervision shape is categorically external — teacher activations rather than pretext-derived signal over corrupted/multi-view inputs. This rung doesn't compete with MAE/DINO on supervision shape; it occupies a different position in the SSL recipe taxonomy. The practitioner only has access to it if they have access to the teachers.
+- Rung motivation: every prior recipe (§4–§9) answers "what pretext task generates the supervision signal?" RADIO answers a different question — "can you compress an ensemble of already-trained foundation models into one student?" — and that motivation is the whole rung.
+- Central thesis (in prose per Gate 1 run-1 finding 11): supervision shape is categorically external — teacher activations rather than pretext-derived signal over corrupted/multi-view inputs. This rung doesn't compete with MAE/DINO on supervision shape; it occupies a different position in the SSL recipe taxonomy. The practitioner only has access to it if they have access to teacher checkpoints that work on their domain — for construction documents specifically, no canonical teacher set ships with domain-tested weights, so this rung is gated (per Gate 1 run-2 finding 1, teacher availability is treated as a hard gate in §14, not a confounder).
 - Claim: AM-RADIO → RADIOv2.5 → C-RADIOv4 train a student to match teacher activations (DFN/OpenAI CLIP, DINOv2 / DINOv3, SAM / SAM3, SigLIP2 across versions). Loss formulations evolved (cosine + smooth-L1 → PHI-S balancing → PHI-S-normalized squared error spatial + angular-cone summary). MESA is a self-supervised regularizer (shift-equivariant matching against the student's own EMA), not a primary pretext task.
-- Figure 9 (was Fig 11; thesis moved to prose, figure focuses on architecture + loss evolution per finding 11): AM-RADIO architecture — student + N teachers, summary + spatial losses; C-RADIOv4 deltas annotated (PHI-S spatial, angular-cone summary, MESA EMA-matching). No central-thesis caption — that's in §11's prose above.
-- Reader walks away knowing multi-teacher distillation is a *compression* of foundation models; without teachers, there's no recipe to use; for the practitioner the question is whether teacher checkpoints exist that already work on the practitioner's domain.
+- Figure 9 (architecture only): AM-RADIO architecture — student + N teachers, summary + spatial losses; C-RADIOv4 deltas annotated (PHI-S spatial, angular-cone summary, MESA EMA-matching). No central-thesis caption — that's in §10's prose above.
+- Reader walks away knowing multi-teacher distillation is a *compression* of foundation models; without teacher checkpoints that work on the practitioner's domain, there's no recipe to use; this is a hard gate, not a confounder.
 - Backed by: rows 23 (AM-RADIO loss), 24 (RADIOv2.5 mode-switching), 25 (C-RADIOv4 PHI-S/angular/MESA), 26 (C-RADIOv4-H ADE20K 55.20), 27 (teachers), 28 (PHI-S), 35 (cross-RADIO synthesis), 36 (central thesis).
 
-**§12. Domain-adaptive specialization**
-- Throughline open: from-scratch SSL on the construction sheet (or its vault) — what works in adjacent domains, and what's documented? (Throughline-open added per finding 9.)
-- Rung motivation: §11's "you need teachers" closes the door on multi-teacher distillation when the practitioner has no domain-specific teacher. The remaining option is from-scratch SSL on the practitioner's own corpus, with the documented adjacent-domain results as the comparison set.
-- Claim: domain-adaptive SSL works for documents at scale (DiT: BEiT-style on IIT-CDIP 42M, layout/table/classification gains) and for medical (3D MAE: 39k MRI volumes, +1.97 DSC over no-pretraining nnU-Net). Published comparisons usually pit domain-SSL against domain-supervised, not against continual SSL on a natural-image checkpoint, so the head-to-head against continual-from-natural is mostly absent. (Removed unsupported "corpus scale required isn't always reachable" sub-claim per finding 10 — no row backs it.)
-- Figure 10 (was Fig 12): domain-adaptive bar chart — DiT PubLayNet 91.0→94.9, ICDAR cTDaR 94.23→96.55, RVL-CDIP 91.11→92.69; Medical 3D MAE Δ +1.97 DSC.
+**§11. Domain-adaptive specialization** *(was §12)*
+- Throughline open: from-scratch SSL on the construction sheet (or its vault) — what works in adjacent domains, and what's documented?
+- Rung motivation: §10's "you need teachers" closes the door on multi-teacher distillation when no domain-tested teachers exist. The remaining option is from-scratch SSL on the practitioner's own corpus, with the documented adjacent-domain results as the comparison set.
+- Claim: domain-adaptive SSL works for documents at scale (DiT: BEiT-style on IIT-CDIP 42M, layout/table/classification gains) and for medical (3D MAE: 39k MRI volumes, +1.97 DSC over no-pretraining nnU-Net). Published comparisons usually pit domain-SSL against domain-supervised, not against continual SSL on a natural-image checkpoint, so the head-to-head against continual-from-natural is mostly absent.
+- Figure 10: domain-adaptive bar chart — DiT PubLayNet 91.0→94.9, ICDAR cTDaR 94.23→96.55, RVL-CDIP 91.11→92.69; Medical 3D MAE Δ +1.97 DSC.
 - Reader walks away knowing domain-adaptive recipes are documented to work in adjacent domains (documents, medical), but none of those papers compare against continual-from-natural-image, so the practitioner has limited published evidence to lean on for the construction-document case.
 - Backed by: rows 29 (DiT), 30 (Medical 3D MAE).
 
 ### Act 3 — The verdict
 
-**§13. Where each recipe lands on dense prediction (with caveats)**
-- Throughline open: pin all the published numbers on one chart, but be honest about what they're measuring.
-- Claim: the cross-recipe ADE20K mIoU numbers are NOT apples-to-apples (per finding 2). They mix evaluation protocols (UperNet full fine-tune / linear probe / DPT / multi-scale frozen), encoder scales (ViT-B / ViT-L / ViT-7B), and pretraining-data scales. Within a fixed protocol, the picture is: ViT-L IN1K UperNet — MAE 53.6 ≈ BEiT v1 53.3, D2V2-Refined 54.4, BEiT v2 56.7 (CLIP-distilled tokenizer). ViT-B IN1K UperNet — MAE 48.1, iBOT 50.0, BEiT v2 53.1. Frozen backbone — DINOv2-g 53.0, DINOv3-7B 63.0. Multi-teacher (frozen, matched protocol) — RADIOv2.5-g 54.56, C-RADIOv4-H 55.20.
-- Figure 11 (was Fig 13; protocol-stratified per finding 2): three sub-charts grouped by evaluation protocol — (a) ViT-L UperNet IN1K [MAE, BEiT v1, BEiT v2 1600ep, D2V2-Refined], (b) ViT-B UperNet IN1K [MAE, iBOT, BEiT v2 1600ep], (c) frozen-backbone multi-scale [DINOv2-g, DINOv3-7B, RADIOv2.5-g, C-RADIOv4-H]. AR / JEPA marked "no published number" in each sub-chart. Caption explicitly notes these are not apples-to-apples; cross-stratum comparison is a model-scale + protocol confound.
-- Reader walks away knowing: within matched protocol, BEiT v2 leads at ViT-L UperNet (with the CLIP-distillation caveat); among frozen-backbone results DINOv3-7B is the highest published; multi-teacher distillation lands competitively at smaller scale than DINOv3-7B; AR / JEPA do not yet report dense numbers. The reader does NOT walk away with "DINOv3 wins outright" — that's a model-scale + protocol comparison.
-- Backed by: rows 2 (MAE ViT-B 48.1 / ViT-L 53.6), 9 (BEiT v2 ViT-B 53.1 / ViT-L 56.7), 13 (iBOT ViT-B 50.0), 18 (DINOv3-7B 63.0), 26 (C-RADIOv4-H 55.20), 37 (BEiT v1 ViT-L 53.3), 38 (D2V2-Refined ViT-L 54.4), 39 (DINOv2-g 53.0 frozen multi-scale), 40 (RADIOv2.5-g 54.56). Findings 3 + 10 closed by adding rows 37-41.
+**§12. Where each recipe lands on dense prediction (with caveats)** *(was §13)*
+- Throughline open: pin the published numbers on one chart, but be honest about what each protocol is measuring.
+- Claim: the cross-recipe ADE20K mIoU numbers are NOT apples-to-apples. They mix evaluation protocols (UperNet full fine-tune at ViT-B and ViT-L, DINO-line frozen-backbone with mixed heads, RADIO-line frozen-backbone at the paper's own protocol), encoder scales (ViT-B / ViT-L / ViT-7B), and pretraining-data scales. Within bins where the protocol IS strictly matched, the picture is: ViT-L IN1K UperNet — MAE 53.6 ≈ BEiT v1 53.3, D2V2-Refined 54.4, BEiT v2 56.7 (CLIP-distilled tokenizer). ViT-B IN1K UperNet — MAE 48.1, iBOT 50.0, BEiT v2 53.1. The DINO-line frozen-backbone numbers (DINOv2-g 53.0 with multi-scale linear probe; DINOv3-7B 63.0 with a segmentation head) sit in adjacent-but-not-matched protocols. The RADIO-line frozen-backbone numbers (RADIOv2.5-g 54.56; C-RADIOv4-H 55.20 at 512px) are reported under the RADIO papers' own protocols and the matrix doesn't back a strict protocol-match across these bins (per Gate 1 run-2 finding 2).
+- AR / JEPA / iGPT negative control (replaces dropped §10 per finding 6): two of the seven recipe families produce no published image dense-prediction transfer in their evaluation sets — autoregressive image pretraining (iGPT, AIM, AIMv2) and JEPA (I-JEPA, V-JEPA, V-JEPA 2) — so they don't appear on Fig 11. AR's reported transfer is classification-only (rows 21 + 22 + 42); JEPA's is classification + video-only (rows 19 + 20 + 41). For the practitioner with a dense downstream task, neither family is currently a defensible starting point.
+- Figure 11: four protocol-stratified sub-charts. (a) ViT-L UperNet IN1K (matched protocol): MAE, BEiT v1, BEiT v2 1600ep, D2V2-Refined. (b) ViT-B UperNet IN1K (matched protocol): MAE, iBOT, BEiT v2 1600ep. (c) DINO-line frozen-backbone (mixed heads, NOT strictly matched): DINOv2-g linear multi-scale, DINOv3-7B segmentation head. (d) RADIO-line frozen-backbone (paper's own protocol): RADIOv2.5-g, C-RADIOv4-H. AR / JEPA / iGPT marked "no published number" in a header note. Caption explicitly disclaims cross-bin comparisons; the matrix backs each bin's numbers but not a single cross-bin "matched protocol" label.
+- Reader walks away knowing: within bin (a) BEiT v2 leads (with the CLIP-distillation caveat); within bin (c) DINOv3-7B is the highest published frozen-backbone number, but the head/protocol differs from DINOv2-g; bins (c) and (d) are NOT directly comparable; AR / JEPA do not yet report dense numbers. The reader does NOT walk away with "DINOv3 wins outright" — that's a cross-bin comparison the matrix doesn't support.
+- Backed by: rows 2 (MAE ViT-B 48.1 / ViT-L 53.6), 9 (BEiT v2 ViT-B 53.1 / ViT-L 56.7), 13 (iBOT ViT-B 50.0), 18 (DINOv3-7B 63.0 frozen-backbone), 26 (C-RADIOv4-H 55.20 at 512px), 37 (BEiT v1 ViT-L 53.3), 38 (D2V2-Refined ViT-L 54.4), 39 (DINOv2-g 53.0 multi-scale linear probe), 40 (RADIOv2.5-g 54.56). AR/JEPA negative control backed by rows 19, 20, 21, 22, 41, 42.
 
-**§14. The published OOD evidence**
+**§13. The published OOD evidence** *(was §14)*
 - Throughline open: what does the published evidence say about taking these natural-image recipes to a different domain?
 - Claim: DINOv3 Web ViT-7B (frozen, no satellite-specific fine-tune) sets SOTA on LoveDA (56.2 mIoU) and DIOR (80.5 mAP), beating DINOv3 Sat-493M and prior satellite-specialized models; iSAID is a hedge (DINOv3 Web 71.4 < SkySense V2 71.9). Lahrichi 2025: "no consistent advantage to GeoNet over ImageNet" across six satellite segmentation benchmarks; two-stage MAE-IN→GN beats from-scratch MAE-GN on 5 of 6 benchmarks but the advantage is modest (1-2%). GLARE 2026: modest +0.2 to +0.6 mIoU continual-pretraining (adapter-based) gains over UDI initialization across ADE20K / Pascal Context / Cityscapes / LoveDA. Medical 3D MAE: +1.97 DSC over no-pretraining nnU-Net; the medical paper does NOT compare to continual SSL on a natural-image checkpoint. **No published bake-off exists for construction documents or engineering drawings specifically.**
 - Figure 12 (was Fig 14): published OOD evidence summary — domains (satellite, medical, docs, construction-drawings) × strategies (zero-shot natural-init / continual SSL on natural / from-scratch SSL on domain); cells filled with the best published delta + paper, or "—" for absent. The construction-drawings row is mostly "—".
 - Reader walks away knowing the published evidence does not support a simple "domain-adaptive SSL strictly wins" thesis; for construction documents specifically there is no measured bake-off, and the recipe choice is an empirical question for the practitioner.
 - Backed by: rows 31, 32.
 
-**§15. The decision tree (what to do, hedged)**
-- Throughline close (act 3): the construction sheet lands at one specific terminal node; satellite, medical, and document terminals also labeled.
-- Claim (hedged per findings 1 + 8): the deliverable is a routing-questions tree gated on three axes — (a) corpus scale, (b) domain distance from natural images, (c) downstream task density. Internal nodes pose the question; leaves name a STARTING POINT (which paper to read first; which checkpoint to start from) plus an EXPERIMENT-vs-EVIDENCE flag. Every leaf cites a matrix row for the starting-point claim. The construction-document leaf is the only "no measured bake-off; this is an A/B you have to run" leaf among labeled terminals; satellite and medical leaves cite rows 31, 32, 30 directly.
-- Baseline annotation (per finding 4): the tree assumes "moderate compute, ViT backbone, frozen or linear-probe evaluation." Compute, encoder scale, teacher availability, and evaluation protocol shift the recommendation but are NOT decision axes — they are confounders, not gates. §15 prose names this baseline explicitly so the reader knows what the tree is and isn't.
-- Figure 13 (was Fig 15): static-SVG routing tree. Three top-level branches (corpus scale ≷ X / domain distance ≷ Y / task density ≷ Z); each leaf labeled with (i) starting point per matrix row, (ii) experiment-vs-evidence flag, (iii) named matrix row that justifies the starting point. Construction-sheet terminal: starting point = "DINOv3 frozen probe (matrix row 18, highest published frozen-backbone ADE20K mIoU); continual self-distillation on top is an A/B the practitioner has to run; flag = experiment, no measured bake-off."
-- Reader walks away with a routing-questions tree where every leaf cites a matrix row for its premises and every "no measured bake-off" leaf is explicitly flagged as such — not a prescription.
-- Backed by: every leaf cites a matrix row directly. The "construction-document leaf has no measured bake-off" framing is backed by row 32. The tree's NON-prescriptive structure is the substantive Gate 1 finding-1 fix.
+**§14. The decision tree (what to do, hedged)** *(was §15; all four leaves now enumerated per Gate 1 run-2 finding 1)*
+- Throughline close (act 3): the construction sheet lands at one specific terminal node; satellite, medical, and document-corpus terminals also labeled.
+- Claim: the deliverable is a routing-questions tree on three axes — (a) corpus scale, (b) domain distance from natural images, (c) downstream task density — plus one gate (teacher availability) for the multi-teacher branch (per finding 1, this is a real gate not a confounder; §10 already establishes that without domain-tested teachers RADIO has no recipe to apply). Internal nodes pose qualitative thresholds calibrated against the relevant matrix-row reference corpus (e.g., "is your corpus closer in size to ImageNet's 1.3M / LVD-1689M's 1.7B than to IIT-CDIP's 42M or Medical-3D-MAE's 39k?") rather than pre-pinned numeric thresholds — the matrix doesn't back specific cutoff values (per finding 1, X/Y/Z thresholds dropped).
+- The four leaves enumerated:
+   1. **Construction-document leaf**: starting point = DINOv3 frozen probe (row 18, highest published frozen-backbone ADE20K mIoU 63.0); continuation = continual self-distillation on top is an A/B; flag = **experiment, no measured bake-off** (row 32 backs the absence).
+   2. **Satellite leaf**: starting point = DINOv3 Web ViT-7B frozen (row 31, LoveDA 56.2 / DIOR 80.5 SOTA; iSAID 71.4 hedge); continuation = optional adapter-based continual pretraining for marginal gains (row 32 / GLARE deltas of +0.2–0.6 mIoU); flag = **published evidence backs starting point**; from-scratch GeoNet pretraining shows no consistent advantage over ImageNet (Lahrichi 2025).
+   3. **Medical (3D MRI volumes) leaf**: starting point = from-scratch 3D MAE on the domain (row 30, +1.97 DSC over no-pretraining nnU-Net); continuation = no published comparison against continual SSL on a natural-image checkpoint, so this leaf doesn't claim "domain-SSL beats continual-from-natural"; flag = **published evidence (vs no-pretraining); experiment vs continual-from-natural**.
+   4. **Document-corpus (text-rich, layout-heavy) leaf**: starting point = DiT BEiT-style on IIT-CDIP-style corpus (row 29, PubLayNet 91.0→94.9 / ICDAR cTDaR 94.23→96.55 / RVL-CDIP 91.11→92.69); continuation = no published continual-from-natural comparison; flag = **published evidence (from-scratch domain-SSL vs supervised, at 42M corpus scale)**.
+- Multi-teacher gate: if the practitioner has access to teacher checkpoints that work on their domain → RADIO-style multi-teacher distillation as starting point (rows 23-28, 35, 36); if not (which is the construction-document case as of pubDate, with no domain-tested teachers shipped) → fall back to whichever leaf above the practitioner's data shape routes to.
+- Baseline annotation: the tree assumes "moderate compute, ViT backbone, frozen or linear-probe evaluation as the dense-quality test." Compute, encoder scale, and evaluation protocol shift the recommendation but are NOT decision axes — they are confounders. Teacher availability IS a gate (moved out of the confounders bucket per finding 1).
+- Figure 13: static-SVG routing tree. Three top-level qualitative branches (corpus scale / domain distance / task density) plus the teacher-availability gate. Each leaf labeled with (i) starting point quoting the matrix row, (ii) experiment-vs-evidence flag, (iii) named matrix row that justifies the starting point. All four labeled terminals explicit (construction-document, satellite, medical, document-corpus).
+- Reader walks away with a routing-questions tree where every leaf cites a matrix row directly and every "no measured bake-off" leaf is flagged — not a prescription.
+- Backed by: every leaf cites matrix rows directly per the enumeration above. Construction-document = row 18 + row 32. Satellite = row 31 + row 32. Medical = row 30. Document-corpus = row 29. Multi-teacher gate = rows 23-28, 35, 36.
 
-**§16. Coda — what we don't know**
+**§15. Coda — what we don't know** *(was §16)*
 - The construction-document SSL bake-off is the figure this post couldn't include. The decision tree's construction-sheet leaf is a starting point + experiment flag, not a measured number. The next 12 months — more domain-adaptive RADIO-style training, JEPA on more domains, specialized DINOv3 variants — could change that.
-- What the post does NOT do (per finding 15): prescribe a specific continual-pretraining recipe for construction documents. That prescription is not in the matrix and should not appear in the post. Any practitioner running an A/B on top of DINOv3 with continual self-distillation is running an experiment, not following a published recipe — and what they report would be the figure this post can't include yet.
+- What the post does NOT do: prescribe a specific continual-pretraining recipe for construction documents. That prescription is not in the matrix and should not appear in the post. Any practitioner running an A/B on top of DINOv3 with continual self-distillation is running an experiment, not following a published recipe — and what they report would be the figure this post can't include yet. (Cross-reference §14's construction-document leaf.)
 - No figure (per narrative-template.md, codas typically close on a small concrete point without a final figure).
 
 ### Figure table
 
-13 figures total (down from 15 after Gate 1 dropped Fig 3 + Fig 10 and re-typed Fig 5). All `static-svg`. Mechanism column uses `/` between panel labels to avoid breaking the markdown table (per finding 16).
+13 figures total. All `static-svg`. Mechanism column uses `/` between panel labels to keep the markdown table valid.
 
 | # | Figure | Type | Mechanism | Reader notices |
 |---|---|---|---|---|
@@ -690,11 +721,11 @@ Codex's verbatim closing on §5: **"§5 earns its place against §4 and §6 beca
 | 6 | DINOiBOTLossFlow | static-svg | Student multi-crop, EMA teacher, KL on class probs; iBOT adds masked-patch self-distillation | Invariance-to-augmentation produces emergent segmentation |
 | 7 | RegistersGramFix | static-svg | Artifact tokens before/after registers + Gram anchoring schematic (X·X⊤ vs X_G·X_G⊤) | Latest SSL recipes engineer against dense-feature collapse |
 | 8 | JEPAvsMAE | static-svg | MAE pixel target vs I-JEPA latent target on the sheet | Latent prediction sidesteps pixel-detail cost |
-| 9 | RADIOArchitecture | static-svg | Student + N teachers; summary + spatial losses; PHI-S, MESA, angular-cone summary annotated. Architecture only — central thesis is in §11 prose | RADIO is foundation-model compression, not a pretext |
+| 9 | RADIOArchitecture | static-svg | Student + N teachers; summary + spatial losses; PHI-S, MESA, angular-cone summary annotated. Architecture only — central thesis is in §10 prose | RADIO is foundation-model compression, not a pretext |
 | 10 | DomainAdaptiveResults | static-svg | DiT PubLayNet/ICDAR/RVL-CDIP deltas + Medical 3D MAE Δ DSC | Domain-adaptive recipes work at scale in documents and medical |
-| 11 | ADE20KCrossRecipe | static-svg | Three protocol-stratified sub-charts: (a) ViT-L UperNet IN1K, (b) ViT-B UperNet IN1K, (c) frozen-backbone multi-scale. AR/JEPA marked "no published number" | Cross-protocol comparisons are confounded; within-protocol, BEiT v2 / DINOv3 / multi-teacher each lead in their respective bin |
+| 11 | ADE20KCrossRecipe | static-svg | Four protocol-stratified sub-charts: (a) ViT-L UperNet IN1K matched, (b) ViT-B UperNet IN1K matched, (c) DINO-line frozen-backbone mixed heads, (d) RADIO-line frozen-backbone paper protocol. AR / JEPA / iGPT marked "no published number" | Cross-bin comparisons are confounded; within-bin, BEiT v2 / DINOv3 / RADIO each lead in their respective bin |
 | 12 | OODEvidenceSummary | static-svg | Domains × strategies grid; cells = best published delta + paper, or "—" | No measured bake-off for construction documents |
-| 13 | DecisionTree | static-svg | Routing-questions tree: corpus scale → domain distance → task density. Each leaf cites a matrix row + flags experiment vs evidence | Practitioner deliverable: a hedged starting-point map, not a prescription |
+| 13 | DecisionTree | static-svg | Routing-questions tree: corpus scale → domain distance → task density, plus teacher-availability gate. Four labeled leaves (construction-document, satellite, medical, document-corpus); each cites a matrix row + flags experiment vs evidence | Practitioner deliverable: a hedged starting-point map, not a prescription |
 
 ## Resume here
 
@@ -706,7 +737,7 @@ Last touched: 2026-05-04.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | in progress (Gate 1 run 1: 14 STRUCTURAL + 1 TYPE-CHANGE + 1 COSMETIC; fixes applied this commit; matrix extended to 41 rows; Fig 3 + Fig 10 dropped, Fig 5 re-typed to static-svg, central thesis moved to §11 prose; ready for Gate 1 re-run) | `## Outline` |
+| 3. Outline + figure list | in progress (Gate 1 run 2: 6 STRUCTURAL — trajectory 16 → 6; fixes applied this commit; §10 dropped, sections renumbered 16 → 15; §14 four leaves enumerated; Fig 11 restructured into 4 protocol bins; matrix extended to 42 rows; ready for Gate 1 run 3 — last allowed before Step-6 cap) | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
 | 5. Implement figures | pending (table populated below) | per-figure table |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -721,6 +752,7 @@ Last touched: 2026-05-04.
 | 2026-05-04 | 0 (research, run 3) | structural-fixes-applied (3 STRUCTURAL + 2 COSMETIC; stale-prose cleanup → fixes committed) | `notes/ssl-pretraining-recipes-codex-research-20260504-run3.md` |
 | 2026-05-04 | 0 (research, run 4) | Step-6-acceptance-override (2 STRUCTURAL + 1 COSMETIC; converging trajectory 8→4→3→2; small stale-prose contradictions of already-fixed rows, fixes applied; Vic-approved override per AskUserQuestion) | `notes/ssl-pretraining-recipes-codex-research-20260504-run4.md` |
 | 2026-05-04 | 1 (outline) | structural-fixes-applied (14 STRUCTURAL + 1 TYPE-CHANGE + 1 COSMETIC; Fig 5 re-typed `plot`→`static-svg` via auto-mode override of unlock AskUserQuestion; figures 3 + 10 dropped; central thesis moved to §11 prose; matrix extended to 41 rows; §15 reframed from prescriptive tree to routing-questions tree) | `notes/ssl-pretraining-recipes-codex-outline-20260504.md` |
+| 2026-05-04 | 1 (outline, run 2) | structural-fixes-applied (6 STRUCTURAL; trajectory 16 → 6; §10 dropped + 16 → 15 sections, AR/JEPA negative control merged into §12 prose; §14 four leaves enumerated, X/Y/Z thresholds dropped, teacher availability as gate; Fig 11 restructured into 4 protocol bins; matrix extended to 42 rows with iGPT) | `notes/ssl-pretraining-recipes-codex-outline-20260504-run2.md` |
 
 ### Phase 5 figure progress
 
@@ -744,9 +776,9 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 ### Suggested next batch
 
-1. Re-run Gate 1 (run 2) with the post-fix outline + matrix. Codex prompt unchanged. Per the gate-runner cap (Step 6), 2 re-runs remain.
-2. If run 2 returns cosmetic-only: Gate 1 closes; advance to Phase 4 (draft prose, Act 1 §1+§2+§3).
-3. If run 2 returns STRUCTURAL: apply, re-run (run 3, last allowed). On 4th invocation, halt with AskUserQuestion (accept / halt / override per finding).
+1. Re-run Gate 1 (run 3 — last allowed before Step-6 cap) with the post-run-2-fix outline + matrix. Trajectory 16 → 6 → expected ≤ 3 STRUCTURAL.
+2. If run 3 returns cosmetic-only or only minor stale-prose contradictions of already-fixed rows: Gate 1 closes (mirroring the Gate-0 Step-6 acceptance pattern).
+3. If run 3 returns substantive new STRUCTURAL: halt with AskUserQuestion at the 4th invocation per the gate-runner Step-6 cap. Vic picks accept / halt / override.
 4. Vic to surface a representative construction sheet for Phase 5 figure work (floor plan or section detail; high enough resolution that Fig 1 / Fig 3 / Fig 5 / Fig 6 / Fig 8 can show patches at MAE-scale). Not a Gate 1 blocker.
 5. Phase 4 first batch when Gate 1 closes: §1 + §2 + §3 (Act 1) — three commits, voice-check between each.
 
