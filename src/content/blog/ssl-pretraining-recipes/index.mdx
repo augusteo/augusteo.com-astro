@@ -72,5 +72,25 @@ Act 2 walks each recipe family across the construction sheet. For each family it
 
 {/* Reader can now: see exactly which adjacent domains have published bake-offs (satellite, medical, document-layout) and which don't (construction-document line-art); understand why act 3 is a routing-questions tree rather than a measured ranking; anticipate the three-question framing for each act-2 recipe section. */}
 
-{/* TODO: §4–§11: Act 2 recipe rungs */}
+## Act 2 — The recipes
+
+### 4. Pixel-reconstruction MIM (MAE)
+
+Take the construction sheet. Cut it into a grid of 16×16 patches. Mask 75% of them at random; the remaining 25% are the visible set. [MAE](https://arxiv.org/abs/2111.06377) feeds only the visible 25% into a ViT encoder, then injects mask tokens at the held-out positions and runs the result through a small decoder. The decoder reconstructs the original pixel values at the masked positions. The training loss is mean squared error between predicted and ground-truth pixels, computed only on masked patches.
+
+Two design choices are doing most of the work. First, the encoder sees only the visible patches: for a 75% mask ratio, that's 4× fewer tokens, which is what makes MAE pretraining cheap enough to be practical at scale. Second, the decoder is asymmetric, much smaller than the encoder. Since the task is just pixel reconstruction (not a downstream task), the decoder gets discarded after pretraining. Only the encoder transfers downstream.
+
+{/* TODO: Fig 3: MAEForwardPass, MAE on the construction sheet, visible patches → encoder → mask tokens injected → decoder → pixel reconstruction */}
+
+Fed an ImageNet image, MAE produces an encoder that fine-tunes to ADE20K mIoU 48.1 (ViT-B) and 53.6 (ViT-L) under a UperNet head. These are decent dense numbers for a recipe whose loss never touches segmentation; reconstruction is enough of a pretext to land usable patch features.
+
+Now feed it the construction sheet. The 75% mask falls across a sheet that is already mostly empty paper. A typical visible patch is plain white. The masked patches that the decoder is asked to reconstruct are also mostly white, with a few that contain a dimension witness, a wall hatch, or a corner of a door swing. The reconstruction loss is dominated by trivially recovering whitespace; the rare patches that contain real structure contribute a small fraction of the total error.
+
+Whether this signal is *enough* to drive useful representation learning on construction documents specifically is a question no published paper answers. [MAE itself is honest about a related concern](https://arxiv.org/abs/2111.06377): "Images are merely recorded light without a semantic decomposition into the visual analogue of words. Instead of attempting to remove objects, we remove random patches that most likely do not form a semantic segment." On natural images that's a complaint about the proxy task; on construction-sheet line-art it's a complaint with an extra layer, because the proxy task is reconstruction, and the things you'd actually want reconstructed (symbols, lines, dimension text) are a small minority of the input. The post raises this as a plausible low-information-signal concern. It does not measure the failure. The practitioner who runs MAE on a construction-document corpus and compares against the alternatives in §11 is the one who would.
+
+The recipe choices act 2 explores from here can be read as different answers to "is pixel reconstruction the right pretext, and if not, what should we do instead?" §5 asks a complementary question one level up, on natural images: even when MAE *does* learn useful representations, where do they live in the encoder?
+
+{/* Reader can now: state MAE's recipe (75% mask, encoder-on-visible, small decoder, pixel-MSE on masked patches), articulate why pixel reconstruction on whitespace-heavy data is a plausible low-information-signal concern (without overclaiming a measured failure), and see the §5 framing question. */}
+
+{/* TODO: §5: The MIM block regime */}
 {/* TODO: §12–§15: Act 3 + coda */}
