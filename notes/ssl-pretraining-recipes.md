@@ -491,7 +491,137 @@ Codex's verbatim closing: **"C-RADIOv4 closure is sound. The revised paragraph a
 
 ## Outline
 
-*(populated in Phase 3)*
+16 sections across three acts. 15 figures (14 × static-svg + 1 × plot). No interactive figures: none of the mechanisms meet the four override clauses (continuous sweep / animation / drag / multi-state toggle), and the post's deliverable is a recipe taxonomy + decision tree, which static SVG handles cleanly. Construction-sheet throughline carries every act.
+
+### Act 1 — The problem
+
+**§1. The construction sheet that won't pretrain itself**
+- Throughline open: introduce the sheet — a single floor plan or section detail. What it looks like; what makes it unlike LVD-1689M / NV-CC-Img-Text.
+- Claim: this corpus exists; the canonical SSL backbones haven't seen it; the practitioner has to pick a recipe.
+- Figure 1: annotated construction sheet — whitespace, line-art strokes, repetitive symbols, low color, mostly-empty patches.
+- Reader walks away knowing what makes this corpus distinct from natural images and why "download a checkpoint and fine-tune" needs a closer look.
+- Backed by: the corpus shape is descriptive scene-setting, not a load-bearing assertion.
+
+**§2. Dense-feature quality is the load-bearing axis**
+- Claim: segmentation needs per-patch features, not a single CLS token. Different SSL recipes produce different dense-feature qualities; classification benchmarks alone don't predict segmentation transfer.
+- Figure 2: CLS vs per-patch — same image, two heads, class probability vs per-patch label heatmap.
+- Reader walks away knowing why the recipe-selection question can't be reduced to "best ImageNet number wins."
+- Backed by: row 11 (DINO's emergent segmentation observation), row 17 (DINOv3's patch-locality-decay diagnosis), row 10 (MIM-Refiner's block regime).
+
+**§3. The question we can't answer head-on**
+- Claim: there is no canonical bake-off for construction-document SSL. Adjacent evidence — DINOv3 Web ViT-7B SOTA on LoveDA / DIOR; Lahrichi 2025's "no consistent advantage to GeoNet over ImageNet"; GLARE 2026's modest continual-pretraining deltas; Medical 3D MAE's +1.97 DSC over no-pretraining — exists for satellite / medical / documents (DiT). Construction-document line-art is not in any published comparison.
+- Figure 3: bake-off coverage matrix — rows = domains (natural / satellite / medical / docs / construction-drawings); columns = strategies (zero-shot natural-init / continual SSL on natural / from-scratch SSL on domain); cells = citation or "no published bake-off."
+- Throughline close (act 1): we'll walk seven recipe families across the construction sheet and end at a decision tree where the sheet lands at one terminal node.
+- Reader walks away with the post's open question explicit: the answer for line-art-heavy engineering documents has to come from the recipe taxonomy plus what each recipe's signal can extract from this kind of data.
+- Backed by: row 31 (DINOv3 Web SOTA on satellite + Medical 3D MAE), row 32 (Lahrichi + GLARE), row 30 (Medical 3D MAE).
+
+### Act 2 — The recipes
+
+**§4. Pixel-reconstruction MIM (MAE)**
+- Throughline open: feed the construction sheet to MAE — 75% mask, asymmetric encoder, lightweight pixel decoder.
+- Claim: MAE generates supervision by reconstructing held-out pixel patches; the encoder operates only on the visible 25%; the decoder is small.
+- Figure 4: MAE forward pass on the construction sheet — visible patches → encoder → mask tokens injected → decoder → pixel reconstruction.
+- Reader walks away predicting where the loss collapses on whitespace-heavy data: most masked patches are themselves whitespace, so reconstruction is trivial.
+- Backed by: rows 1 (architecture), 2 (ADE20K 53.6 ViT-L).
+
+**§5. The MIM block regime**
+- Claim: MIM-Refiner shows MAE features peak in mid-encoder layers; late layers are pre-allocated to the reconstruction task and lose semantic structure.
+- Figure 5: MIM-Refiner block-regime plot — k-NN accuracy + reconstruction loss vs layer index; three regimes shaded (general / abstractions / reconstruction-prep).
+- Type: plot (multi-curve quantitative comparison; legitimate kit-primitive use, not an interactive override).
+- Reader walks away knowing the dense-feature signal lives in the middle of the encoder, not at the last block — and why off-the-shelf MAE features under-perform on dense tasks without head-tuning.
+- Backed by: row 10 (block-regime analysis).
+
+**§6. Changing the MIM target — features and tokens**
+- Throughline open: the same masked construction sheet, but the prediction target isn't pixels.
+- Claim: MaskFeat predicts HOG; data2vec predicts EMA-teacher latent features; BEiT predicts discrete tokens from a pretrained dVAE / VQ-KD codebook. None of MaskFeat / data2vec / data2vec 2.0 report image dense-prediction transfer in their headline tables. BEiT v2's strong ADE20K numbers come via a CLIP-distilled tokenizer — i.e. inheriting CLIP's web pretraining.
+- Figure 6: three-panel target comparison on the same masked sheet — pixel target (MAE) | feature target (HOG cells / EMA latents) | token target (dVAE / VQ-KD codebook).
+- Reader walks away knowing the choice of target shifts what the encoder keeps; only BEiT v2 reports strong dense-prediction numbers, and that's partly a CLIP-distillation result.
+- Backed by: rows 4 (MaskFeat HOG), 5 (MaskFeat no image dense transfer), 6 (data2vec no image dense transfer), 7 (collapse failure modes), 8 (BEiT dVAE), 9 (BEiT v2 VQ-KD + ADE20K).
+
+**§7. Self-distillation (DINO → iBOT → DINOv2)**
+- Claim: a student matches a teacher's output distribution under different augmentations; iBOT extends this to masked-patch self-distillation; DINOv2 = DINO + iBOT + KoLeo regularizer + Sinkhorn-Knopp centering, trained on 142M curated images. DINO's emergent-segmentation observation is what makes this lineage the dense-feature SSL family.
+- Figure 7: DINO/iBOT loss flow on the construction sheet — student sees global+local crops, teacher EMA sees a global crop, KL on class probs; iBOT adds masked-patch self-distillation.
+- Reader walks away knowing invariance-to-augmentation is the trick that produces patch-level structure without explicit reconstruction.
+- Backed by: rows 11 (DINO emergent segmentation), 12 (iBOT online tokenizer), 13 (iBOT ADE20K 50.0), 14 (DINOv2 loss + LVD-142M).
+
+**§8. Dense-feature collapse and how the latest recipes fix it**
+- Throughline open: by DINOv2 the dense features on the construction sheet had artifact tokens — high-norm "spikes" concentrated in low-information regions like whitespace patches.
+- Claim: large self-distilled ViTs develop ~2% artifact tokens with ~10× output norm; registers fix them with <2% FLOP overhead; long DINO/iBOT training also leaks CLS-like signal into patches (cosine sim between CLS and patches grows); DINOv3's Gram anchoring loss preserves the patch-patch similarity geometry across training.
+- Figure 8: artifact-token heatmaps before/after registers (left half) + Gram anchoring schematic (right half: X·X⊤ vs X_G·X_G⊤).
+- Reader walks away knowing dense-feature collapse is a real failure mode of long-training self-distillation, and the most recent SSL recipes engineer specifically against it.
+- Backed by: rows 15 (registers diagnosis), 16 (Gram anchoring loss), 17 (locality-decay observation), 18 (DINOv3 ADE20K 63.0).
+
+**§9. JEPA — predicting in latent space**
+- Throughline open: same construction sheet; predict the encoder's own latent features at masked target positions, not pixels or HOG.
+- Claim: I-JEPA uses a context encoder + predictor + EMA target encoder; pixel-space prediction empirically degrades the linear probe; V-JEPA / V-JEPA 2 extend this shape to video. No published image dense-prediction transfer in any of these.
+- Figure 9: side-by-side of MAE pixel prediction and I-JEPA latent prediction on the sheet.
+- Reader walks away knowing latent-space prediction is a different bet (skip pixel detail), but the JEPA family hasn't produced an image dense-prediction story.
+- Backed by: rows 19 (I-JEPA representation-space prediction), 20 (no I-JEPA ADE20K).
+
+**§10. Autoregressive image pretraining (AIM)**
+- Claim: prefix-LM with normalized-pixel L2 target; pretraining loss correlates with downstream classification performance, scaling with model + data like LLMs; transfer benchmarks are classification-only. iGPT predates this with pure-AR pixel modeling at small resolution. AIMv2 is multimodal causal AR (image + text), not vision-only SSL.
+- Figure 10: AIM prefix-LM masking schematic on the construction sheet — bidirectional prefix, AR loss on the rest.
+- Reader walks away knowing AR is a classification scaling-laws story; the dense-prediction numbers don't yet exist for this family.
+- Backed by: rows 21 (AIM prefix-LM), 22 (AIM no dense transfer), 34 (AIMv2 multimodal — listed for completeness, not load-bearing).
+
+**§11. Multi-teacher distillation (RADIO line)**
+- Throughline open: the construction sheet is fed to a student that imitates an ensemble of foundation models, not to a pretext task.
+- Claim: AM-RADIO → RADIOv2.5 → C-RADIOv4 train a student to match teacher activations (DFN/OpenAI CLIP, DINOv2 / DINOv3, SAM / SAM3, SigLIP2 across versions). Loss formulations evolved (cosine + smooth-L1 → PHI-S balancing → PHI-S-normalized squared error spatial + angular-cone summary). MESA is a self-supervised regularizer (shift-equivariant matching against the student's own EMA), not a primary pretext task. **Central thesis:** this is a different *kind* of self-supervision — the supervision signal is external teacher activations rather than a pretext-derived signal over corrupted/multi-view inputs.
+- Figure 11: AM-RADIO architecture — student + N teachers, summary + spatial losses; C-RADIOv4 deltas annotated (PHI-S spatial, angular-cone summary, MESA EMA-matching).
+- Reader walks away knowing multi-teacher distillation is a *compression* of foundation models; without teachers, there's no recipe to use. The categorical observation matters for taxonomy: this rung doesn't compete with MAE/DINO on supervision shape — it's a different position.
+- Backed by: rows 23 (AM-RADIO loss), 24 (RADIOv2.5 mode-switching), 25 (C-RADIOv4 PHI-S/angular/MESA), 26 (C-RADIOv4-H ADE20K 55.20), 27 (teachers), 28 (PHI-S), 35 (cross-RADIO synthesis), 36 (central thesis).
+
+**§12. Domain-adaptive specialization**
+- Claim: from-scratch SSL on the domain when the corpus is large enough — DiT (BEiT-style on document images, IIT-CDIP 42M, layout / table / classification gains), Medical 3D MAE (39k MRI volumes, +1.97 DSC over from-scratch nnU-Net), SatMAE (fMoW). The published comparisons are usually domain-SSL vs domain-supervised, not domain-SSL vs continual-from-natural-image — so the question this post is asking is mostly missing from the canonical results.
+- Figure 12: domain-adaptive bar chart — DiT PubLayNet 91.0→94.9, ICDAR cTDaR 94.23→96.55, RVL-CDIP 91.11→92.69; Medical 3D MAE Δ +1.97 DSC.
+- Reader walks away knowing domain-adaptive recipes work for documents and medical at scale, but the corpus scale required to make them work isn't always reachable, and the head-to-head against continual-from-natural is rarely reported.
+- Backed by: rows 29 (DiT), 30 (Medical 3D MAE).
+
+### Act 3 — The verdict
+
+**§13. Where each recipe lands on dense prediction**
+- Throughline open: the cross-recipe ADE20K mIoU table — the empirical spine of the post.
+- Claim: ViT-L IN1K + UperNet — MAE 53.6, BEiT v1 53.3, BEiT v2 56.7 (CLIP-distilled tokenizer), D2V2-Refined 54.4. ViT-B IN1K + UperNet — MAE 48.1, iBOT 50.0, BEiT v2 53.1. Frozen-backbone — DINOv2-g 53.0, **DINOv3-7B 63.0**. Multi-teacher — RADIOv2.5-g 54.56, C-RADIOv4-H 55.20.
+- Figure 13: cross-recipe ADE20K mIoU bar chart, grouped by recipe family. DINOv3-7B bar towers; multi-teacher cluster competitive at smaller scale; MIM family in the middle; JEPA / AR absent (no published number).
+- Reader walks away knowing on natural-image ADE20K the self-distillation lineage with dense-feature-collapse fixes wins outright; multi-teacher distillation is competitive at much smaller compute; pure-MIM is mid; pure-AR doesn't compete on this axis.
+- Backed by: rows 2, 9, 13, 18, 26 + cross-method summary in research notes.
+
+**§14. The published OOD evidence**
+- Claim: the published OOD evidence we have — DINOv3 Web ViT-7B (frozen, no satellite-specific fine-tune) sets SOTA on LoveDA (56.2 mIoU) and DIOR (80.5 mAP), beating DINOv3 Sat-493M and prior satellite-specialized models; iSAID is a hedge (DINOv3 Web 71.4 < SkySense V2 71.9). Lahrichi 2025: "no consistent advantage to pre-training with GeoNet as compared to ImageNet" across six segmentation benchmarks; two-stage MAE-IN→GN beats from-scratch MAE-GN on 5 of 6 benchmarks but the advantage is modest (1-2%). GLARE 2026: modest +0.2 to +0.6 mIoU continual-pretraining (adapter-based) gains over UDI initialization across ADE20K / Pascal Context / Cityscapes / LoveDA. Medical 3D MAE: +1.97 DSC over no-pretraining nnU-Net; the medical paper does NOT compare to continual SSL on a natural-image checkpoint. **No published bake-off exists for construction documents or engineering drawings specifically.**
+- Figure 14: published OOD evidence summary — domains (satellite, medical, docs, construction-drawings) × strategies (zero-shot natural-init / continual SSL on natural / from-scratch SSL on domain); cells filled with the best published delta + paper, or "—" for absent.
+- Reader walks away knowing the published evidence does not support a simple "domain-adaptive SSL strictly wins" thesis; for construction documents specifically there is no measured bake-off, and the recipe choice is an empirical question for the practitioner.
+- Backed by: rows 31, 32.
+
+**§15. The decision tree**
+- Throughline close (act 3): the construction sheet lands at one terminal node, with other terminals labeled by data shape.
+- Claim: a decision tree gated on three axes — corpus scale × domain distance from natural images × downstream task density — maps each leaf to a recipe pick. Internal nodes use what the recipe taxonomy tells us (e.g., "if downstream task is dense and compute is fixed: prefer self-distillation with collapse fixes over pure MIM"); the leaf for the construction-sheet case is empirical, hedged with "no measured bake-off; start with continual self-distillation on top of a DINOv3 checkpoint."
+- Figure 15: the decision tree as static SVG. Branches by corpus scale → domain distance → task density. Leaves labeled with recipe + when-to-use. Construction sheet shown landing at one specific terminal; satellite, medical, and document terminals also labeled.
+- Reader walks away with the deliverable: a defensible answer for "what should I pretrain on?" given the practitioner's data shape.
+- Backed by: synthesis from every prior matrix row.
+
+**§16. Coda — what we don't know**
+- The construction-document SSL bake-off is the figure this post couldn't include. The decision tree's construction-sheet leaf is an extrapolation from satellite/medical evidence + recipe-taxonomy reasoning, not a measured number. The next 12 months — more domain-adaptive RADIO-style training, JEPA on more domains, specialized DINOv3 variants — could close this gap. Concrete pointer: if you're sitting on a million unlabeled construction sheets, the paper to read first is DINOv3; the recipe to try first is continual self-distillation with Gram anchoring on top of a DINOv3 checkpoint; the figure to make sure you publish is the one this post can't.
+- No figure (per narrative-template.md, codas typically close on a small concrete point without a final figure).
+
+### Figure table
+
+| # | Figure | Type | Mechanism | Reader notices |
+|---|---|---|---|---|
+| 1 | ConstructionSheet | static-svg | Annotated construction sheet — whitespace, line-art strokes, repetitive symbols, low color, mostly-empty patches | What makes this corpus distinct from natural images |
+| 2 | DenseVsCLS | static-svg | Per-patch label heatmap vs CLS class probability on the same image | Why CLS-quality and dense-feature-quality are different axes |
+| 3 | OODCoverageMatrix | static-svg | Domains × init-strategies grid; cells = citation or "no published bake-off" | The bake-off coverage gap for construction documents |
+| 4 | MAEForwardPass | static-svg | Asymmetric encoder; visible 25%; lightweight pixel decoder; 75% mask | Pixel reconstruction collapses on whitespace-heavy data |
+| 5 | MIMBlockRegime | plot | k-NN accuracy + reconstruction loss vs layer index; three regimes shaded | Best MIM features are mid-encoder, not last |
+| 6 | MIMTargetComparison | static-svg | Three panels: pixel target | feature target (HOG / EMA latents) | token target (dVAE / VQ-KD) | Target choice shifts what the encoder learns to keep |
+| 7 | DINOiBOTLossFlow | static-svg | Student multi-crop, EMA teacher, KL on class probs; iBOT adds masked-patch self-distillation | Invariance-to-augmentation produces emergent segmentation |
+| 8 | RegistersGramFix | static-svg | Artifact tokens before/after registers + Gram anchoring schematic (X·X⊤ vs X_G·X_G⊤) | Latest SSL recipes engineer against dense-feature collapse |
+| 9 | JEPAvsMAE | static-svg | MAE pixel target vs I-JEPA latent target on the sheet | Latent prediction sidesteps pixel-detail cost |
+| 10 | AIMPrefixLM | static-svg | Bidirectional prefix + AR rest, normalized pixel L2 target | AR is a classification scaling-laws story |
+| 11 | RADIOArchitecture | static-svg | Student + N teachers; summary + spatial losses; PHI-S, MESA, angular-cone summary annotated | Multi-teacher distillation is foundation-model compression, not a pretext |
+| 12 | DomainAdaptiveResults | static-svg | DiT PubLayNet/ICDAR/RVL-CDIP deltas + Medical 3D MAE Δ DSC | Domain-adaptive recipes work at scale |
+| 13 | ADE20KCrossRecipe | static-svg | Bar chart of ADE20K mIoU by recipe family | Self-distillation + collapse fixes towers; multi-teacher competitive; MIM mid; AR / JEPA absent |
+| 14 | OODEvidenceSummary | static-svg | Domains × strategies grid; cells = best published delta + paper, or "—" | No measured bake-off for construction documents |
+| 15 | DecisionTree | static-svg | Branches: corpus scale → domain distance → task density; leaves = recipe pick + when-to-use | The deliverable |
 
 ## Resume here
 
@@ -503,9 +633,9 @@ Last touched: 2026-05-04.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | pending | `## Outline` |
+| 3. Outline + figure list | in progress (draft outline + 15-figure table written; awaiting Vic approval before Gate 1) | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
-| 5. Implement figures | pending | per-figure table populated at end of Phase 3 |
+| 5. Implement figures | pending (table populated below) | per-figure table |
 | 6. Playwright review | pending | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
@@ -518,13 +648,35 @@ Last touched: 2026-05-04.
 | 2026-05-04 | 0 (research, run 3) | structural-fixes-applied (3 STRUCTURAL + 2 COSMETIC; stale-prose cleanup → fixes committed) | `notes/ssl-pretraining-recipes-codex-research-20260504-run3.md` |
 | 2026-05-04 | 0 (research, run 4) | Step-6-acceptance-override (2 STRUCTURAL + 1 COSMETIC; converging trajectory 8→4→3→2; small stale-prose contradictions of already-fixed rows, fixes applied; Vic-approved override per AskUserQuestion) | `notes/ssl-pretraining-recipes-codex-research-20260504-run4.md` |
 
+### Phase 5 figure progress
+
+Locked at end of Phase 3 (after Gate 1 acceptance).
+
+| # | Figure | Type | Status | Commit |
+|---|---|---|---|---|
+| 1 | ConstructionSheet | static-svg | TODO | — |
+| 2 | DenseVsCLS | static-svg | TODO | — |
+| 3 | OODCoverageMatrix | static-svg | TODO | — |
+| 4 | MAEForwardPass | static-svg | TODO | — |
+| 5 | MIMBlockRegime | plot | TODO | — |
+| 6 | MIMTargetComparison | static-svg | TODO | — |
+| 7 | DINOiBOTLossFlow | static-svg | TODO | — |
+| 8 | RegistersGramFix | static-svg | TODO | — |
+| 9 | JEPAvsMAE | static-svg | TODO | — |
+| 10 | AIMPrefixLM | static-svg | TODO | — |
+| 11 | RADIOArchitecture | static-svg | TODO | — |
+| 12 | DomainAdaptiveResults | static-svg | TODO | — |
+| 13 | ADE20KCrossRecipe | static-svg | TODO | — |
+| 14 | OODEvidenceSummary | static-svg | TODO | — |
+| 15 | DecisionTree | static-svg | TODO | — |
+
 ### Suggested next batch
 
-1. Dispatch Phase 2 parallel research subagents — split across (MIM/feature-prediction/token recipes) and (self-distillation + JEPA + autoregressive + multi-teacher). Each builds quoted-source notes per the primary-source decision tree.
-2. Read NVIDIA's RADIO line papers myself (AM-RADIO, RADIOv2.5, C-RADIOv4) to verify whether they include any SSL auxiliary loss alongside teacher distillation, since this is a load-bearing claim of section 7.
-3. Surface a candidate construction sheet for the throughline anchor — Vic to provide a representative example or pick from a pile.
-4. Build the `## Claim-source matrix` from Phase 2 outputs.
-5. Run Gate 0 (codex truthfulness pass) on the matrix.
+1. **Vic reviews the outline + 15-figure table.** Iterate until locked. Specifically: confirm 16-section / 15-figure shape; confirm the merge of feature-prediction MIM + masked-token MIM into a single §6 (rather than two sections); confirm Fig 5 as `plot` (only non-static figure); confirm act 1 has 3 sections (some posts compress to 2). Throughline check: construction sheet visible in §1, §3, §4, §6, §7 (implicit), §8, §9, §11, §13, §15.
+2. Vic to surface a representative construction sheet for Phase 5 figure work (floor plan or section detail; high enough resolution that Fig 1 / Fig 4 / Fig 6 / Fig 7 / Fig 9 can show patches at MAE-scale).
+3. Run Gate 1 (codex on `## Spec` + `## Throughline` + `## Research notes` + `## Claim-source matrix` + `## Outline` + figure table). Per the gate-runner cap, accept on cosmetic-only or apply STRUCTURAL fixes and re-run (cap = 3 invocations, with possible Step-6 override on the 4th).
+4. After Gate 1 passes: lock per-figure types; advance to Phase 4 (draft prose).
+5. Phase 4 first batch: §1 + §2 + §3 (Act 1) — three commits, voice-check between each.
 
 ### How to resume from a fresh context
 
