@@ -679,15 +679,15 @@ The trick that closes the gap is straightforward. If patches at the same spatial
 
 The intuition is easiest with raw pixels. Take a frame at time *t* and a frame at time *t−1*. For each spatial patch position *p*, compute the L1 distance between the two patches:
 
-```
-D_{p,t} = ‖p_t − p_{t−1}‖_1
-```
+$$
+D_{p,t} = \|p_t - p_{t-1}\|_1
+$$
 
 You now have a 2D map of "how much did this patch change between these two frames." Collect these distances across the whole clip, pick the *q*-th percentile, and use that as a threshold. Drop every patch whose distance is below the threshold:
 
-> "For every patch p at time `0<t≤T`, compute `D_{p,t}=‖p_t − p_{t−1}‖_1`, and denote `{D_t}` as the differences of all patches between frames t−1 and t."
-> "For each frame collect `{D_t}_{t=1}^T` and compute sequence-level cut-off threshold d as q-th percentile, where q is a user-selected pruning rate."
-> "For all patches in the consecutive frames, keep those that satisfy `{D_{p,t}} ≥ d`; this defines the binary mask M_t."
+> "For every patch $p$ at time $0 < t \leq T$, compute $D_{p,t} = \|p_t - p_{t-1}\|_1$, and denote $\{D_t\}$ as the differences of all patches between frames $t-1$ and $t$."
+> "For each frame collect $\{D_t\}_{t=1}^T$ and compute sequence-level cut-off threshold $d$ as $q$-th percentile, where $q$ is a user-selected pruning rate."
+> "For all patches in the consecutive frames, keep those that satisfy $D_{p,t} \geq d$; this defines the binary mask $M_t$."
 
 That's the algorithm. *q* is user-tunable: q=0 keeps everything; q=0.75 keeps the top 25% of changing patches; q=0.95 keeps almost nothing. The first frame is always kept whole, since there's no *t−1* to diff against.
 

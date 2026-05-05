@@ -317,8 +317,8 @@ What if you could hold on to the early, healthy Gram matrix? What if, during lat
 This is Gram anchoring. The details:
 
 1. Take a snapshot of the model at an earlier training checkpoint, chosen while the dense features are still sharp, before collapse has set in. Call this the *Gram teacher*. Hold it fixed for now. (It will be refreshed periodically, every 10k iterations or so, by copying in the current EMA teacher's weights. The early-snapshot intuition is what matters; the refresh schedule is a practical detail.)
-2. During later training, on each batch, run the image through both the current student *and* the current Gram teacher. Compute both Gram matrices: G<sub>student</sub> and G<sub>teacher</sub>.
-3. Add a new term to the loss: the Frobenius norm of the difference between the two Gram matrices. Written out, it's `‖G_S − G_T‖²_F`, which is just "sum up the squared differences between corresponding cells."
+2. During later training, on each batch, run the image through both the current student *and* the current Gram teacher. Compute both Gram matrices: $G_S$ and $G_T$.
+3. Add a new term to the loss: the Frobenius norm of the difference between the two Gram matrices. Written out, it's $\|G_S - G_T\|^2_F$, which is just "sum up the squared differences between corresponding cells."
 4. Train as normal. The student keeps its DINO and iBOT losses, but now also has to keep its Gram matrix from drifting away from the frozen snapshot.
 
 It's worth pausing on why this works, because the logic is subtle. At first glance, anchoring a newer model to an older version of itself sounds like it would prevent learning. You're telling the model "be like your dumber self." Shouldn't that stop the model from improving?
@@ -519,8 +519,8 @@ This property (how widely a set of feature vectors spreads out in its space) has
 
 Here are the measured values, from the C-RADIOv4 paper:
 
-- **DINOv3-7B** — `dispersion ≈ 2.186`
-- **SigLIP2-g** — `dispersion ≈ 0.694`
+- **DINOv3-7B** — dispersion $\approx 2.186$
+- **SigLIP2-g** — dispersion $\approx 0.694$
 
 DINOv3's features spread over roughly three times as much angular volume as SigLIP2's. The geometric analogy: DINOv3 is a floodlight, casting a broad cone. SigLIP2 is a laser pointer, emitting a narrow beam.
 

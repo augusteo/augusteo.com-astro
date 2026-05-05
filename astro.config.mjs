@@ -4,6 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 
 // https://astro.build/config
 export default defineConfig({
@@ -30,5 +32,7 @@ export default defineConfig({
     shikiConfig: {
       theme: "solarized-light",
     },
+    remarkPlugins: [remarkMath],
+    rehypePlugins: [rehypeKatex],
   },
 });
