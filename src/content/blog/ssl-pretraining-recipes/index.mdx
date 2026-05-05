@@ -19,7 +19,148 @@ A general contractor's archive easily runs to tens of thousands of these sheets.
 
 This is the practitioner's setup most SSL papers don't cover. [MAE](https://arxiv.org/abs/2111.06377) trained on ImageNet-1K. [DINOv3](https://arxiv.org/abs/2508.10104)'s largest run trained on LVD-1689M, a curated 1.7B-image scrape biased heavily toward natural photographs. [C-RADIOv4](https://arxiv.org/abs/2601.17237) distilled from SigLIP2, DINOv3, and SAM3, all trained on natural-image data. None of these papers ship a construction-document checkpoint, and none benchmark transfer to construction-document segmentation. Some natural-image SSL backbones do ship domain-specialized variants. DINOv3 has SAT-493M, a satellite specialization with Earth-observation benchmark numbers. No comparable construction-document variant exists, in any of the recipes this post covers.
 
-{/* TODO: Fig 1: ConstructionSheet, annotated construction sheet showing whitespace, line-art strokes, repetitive symbols, low color, mostly-empty patches */}
+<figure>
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs>
+<marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+<path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+</marker>
+</defs>
+<rect x="30" y="60" width="620" height="380" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1"/>
+<g font-family="JetBrains Mono" font-size="7" fill="#6B6258" text-anchor="middle">
+<text x="80" y="74">1</text>
+<text x="130" y="74">2</text>
+<text x="180" y="74">3</text>
+<text x="230" y="74">4</text>
+<text x="280" y="74">5</text>
+<text x="330" y="74">6</text>
+<text x="380" y="74">7</text>
+<text x="430" y="74">8</text>
+<text x="480" y="74">9</text>
+<text x="80" y="432">1</text>
+<text x="180" y="432">3</text>
+<text x="280" y="432">5</text>
+<text x="380" y="432">7</text>
+<text x="480" y="432">9</text>
+</g>
+<g font-family="JetBrains Mono" font-size="7" fill="#6B6258" text-anchor="middle">
+<text x="42" y="100">R</text>
+<text x="42" y="135">P</text>
+<text x="42" y="170">N</text>
+<text x="42" y="205">M</text>
+<text x="42" y="240">L</text>
+<text x="42" y="275">K</text>
+<text x="42" y="310">J</text>
+<text x="42" y="345">H</text>
+<text x="42" y="380">G</text>
+<text x="42" y="415">F</text>
+</g>
+<rect x="540" y="80" width="100" height="76" fill="#F9F5EB" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="590" y="93" font-family="serif" font-size="8" font-weight="700" fill="#1A1A1A" text-anchor="middle">SANIBEL FIRE</text>
+<text x="590" y="103" font-family="serif" font-size="8" font-weight="700" fill="#1A1A1A" text-anchor="middle">AND RESCUE</text>
+<text x="590" y="113" font-family="serif" font-size="8" font-weight="700" fill="#1A1A1A" text-anchor="middle">STATION 172</text>
+<line x1="552" y1="120" x2="628" y2="120" stroke="#1A1A1A" stroke-width="0.3"/>
+<text x="590" y="132" font-family="serif" font-size="7" font-style="italic" fill="#6B6258" text-anchor="middle">2nd floor architectural</text>
+<text x="590" y="142" font-family="serif" font-size="7" font-style="italic" fill="#6B6258" text-anchor="middle">plan · 1/4" = 1'-0"</text>
+<text x="590" y="152" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" font-weight="700">A102</text>
+<g stroke="#1A1A1A" fill="none">
+<rect x="90" y="180" width="430" height="220" stroke-width="1.4"/>
+<line x1="170" y1="180" x2="170" y2="400" stroke-width="0.8"/>
+<line x1="170" y1="240" x2="520" y2="240" stroke-width="0.8"/>
+<line x1="170" y1="320" x2="520" y2="320" stroke-width="0.8"/>
+<line x1="240" y1="180" x2="240" y2="240" stroke-width="0.6"/>
+<line x1="310" y1="180" x2="310" y2="240" stroke-width="0.6"/>
+<line x1="380" y1="180" x2="380" y2="240" stroke-width="0.6"/>
+<line x1="450" y1="180" x2="450" y2="240" stroke-width="0.6"/>
+<line x1="240" y1="320" x2="240" y2="400" stroke-width="0.6"/>
+<line x1="310" y1="320" x2="310" y2="400" stroke-width="0.6"/>
+<line x1="380" y1="320" x2="380" y2="400" stroke-width="0.6"/>
+<line x1="450" y1="320" x2="450" y2="400" stroke-width="0.6"/>
+<line x1="170" y1="290" x2="240" y2="290" stroke-width="0.6"/>
+</g>
+<g font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">
+<text x="205" y="208">PATIO</text>
+<text x="205" y="220" font-family="JetBrains Mono" font-size="7" fill="#6B6258">221</text>
+<text x="275" y="208">KITCHEN</text>
+<text x="275" y="220" font-family="JetBrains Mono" font-size="7" fill="#6B6258">206</text>
+<text x="345" y="208">DINING</text>
+<text x="345" y="220" font-family="JetBrains Mono" font-size="7" fill="#6B6258">207</text>
+<text x="415" y="208">DAY ROOM</text>
+<text x="415" y="220" font-family="JetBrains Mono" font-size="7" fill="#6B6258">208</text>
+<text x="485" y="208">FITNESS</text>
+<text x="485" y="220" font-family="JetBrains Mono" font-size="7" fill="#6B6258">205</text>
+<text x="345" y="285" font-family="serif" font-size="9" fill="#1A1A1A">CORRIDOR 201</text>
+<text x="205" y="263" font-size="7" fill="#6B6258">LAUNDRY</text>
+<text x="205" y="305" font-size="7" fill="#6B6258">RESTROOM</text>
+<text x="205" y="355">STAIR #1</text>
+<text x="205" y="367" font-family="JetBrains Mono" font-size="7" fill="#6B6258">200</text>
+<text x="275" y="365">BUNK 1</text>
+<text x="275" y="377" font-family="JetBrains Mono" font-size="7" fill="#6B6258">220</text>
+<text x="345" y="365">BUNK 2</text>
+<text x="345" y="377" font-family="JetBrains Mono" font-size="7" fill="#6B6258">219</text>
+<text x="415" y="365">BUNK 3</text>
+<text x="415" y="377" font-family="JetBrains Mono" font-size="7" fill="#6B6258">218</text>
+<text x="485" y="365">BUNK 4</text>
+<text x="485" y="377" font-family="JetBrains Mono" font-size="7" fill="#6B6258">217</text>
+</g>
+<g stroke="#1A1A1A" stroke-width="0.4" fill="none">
+<line x1="120" y1="245" x2="160" y2="245"/>
+<line x1="120" y1="252" x2="160" y2="252"/>
+<line x1="120" y1="259" x2="160" y2="259"/>
+<line x1="120" y1="266" x2="160" y2="266"/>
+<line x1="120" y1="273" x2="160" y2="273"/>
+<line x1="120" y1="280" x2="160" y2="280"/>
+<rect x="120" y="245" width="40" height="42" stroke-width="0.6"/>
+</g>
+<g stroke="#1A1A1A" stroke-width="0.5" fill="none">
+<path d="M 250 240 A 12 12 0 0 0 262 240"/>
+<path d="M 320 240 A 12 12 0 0 0 332 240"/>
+<path d="M 390 240 A 12 12 0 0 0 402 240"/>
+<path d="M 460 240 A 12 12 0 0 0 472 240"/>
+<path d="M 250 320 A 12 12 0 0 1 262 320"/>
+<path d="M 320 320 A 12 12 0 0 1 332 320"/>
+<path d="M 390 320 A 12 12 0 0 1 402 320"/>
+</g>
+<g fill="#FFFFFF" stroke="#1A1A1A" stroke-width="0.5">
+<circle cx="240" cy="195" r="5"/>
+<circle cx="380" cy="350" r="5"/>
+<circle cx="500" cy="265" r="5"/>
+<circle cx="155" cy="195" r="5"/>
+</g>
+<g font-family="JetBrains Mono" font-size="5" fill="#1A1A1A" text-anchor="middle">
+<text x="240" y="197">A6</text>
+<text x="380" y="352">M8</text>
+<text x="500" y="267">F1</text>
+<text x="155" y="197">J1</text>
+</g>
+<g stroke="#1A1A1A" stroke-width="0.3">
+<line x1="90" y1="172" x2="170" y2="172"/>
+<line x1="90" y1="167" x2="90" y2="177"/>
+<line x1="170" y1="167" x2="170" y2="177"/>
+<text x="130" y="167" font-family="JetBrains Mono" font-size="7" fill="#6B6258" text-anchor="middle">12'-6"</text>
+<line x1="170" y1="172" x2="240" y2="172"/>
+<line x1="240" y1="167" x2="240" y2="177"/>
+<text x="205" y="167" font-family="JetBrains Mono" font-size="7" fill="#6B6258" text-anchor="middle">10'-9"</text>
+<line x1="240" y1="172" x2="310" y2="172"/>
+<line x1="310" y1="167" x2="310" y2="177"/>
+<text x="275" y="167" font-family="JetBrains Mono" font-size="7" fill="#6B6258" text-anchor="middle">10'-9"</text>
+</g>
+<g font-family="serif" font-size="11" font-style="italic" fill="#6B6258">
+<text x="60" y="34">thin black lines on white paper</text>
+<line x1="160" y1="42" x2="260" y2="180" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
+<text x="270" y="34">drawing grid (column · row)</text>
+<line x1="430" y1="42" x2="430" y2="68" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
+<text x="60" y="478">standardized symbols (door swings, callout tags, dim. witnesses)</text>
+<line x1="120" y1="468" x2="155" y2="200" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
+<line x1="240" y1="468" x2="260" y2="248" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
+<text x="380" y="478">dimension text · sparse + structural</text>
+<line x1="430" y1="466" x2="275" y2="174" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
+<text x="60" y="510">"wide field of empty paper" · ~70-80% of patches at 16×16 are blank or near-blank</text>
+<line x1="240" y1="500" x2="345" y2="270" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
+</g>
+</svg>
+<figcaption><strong>Fig 1.</strong> A construction document is mostly empty paper with thin black line-art, scattered standardized symbols (door swings, callout tags, dimension witnesses), and a few blocks of dimension text. Image stand-in based on Schenkel Shultz, Sanibel Fire and Rescue Station 172, second-floor architectural plan A102 (1/4" = 1'-0", 2024), used as a representative sheet. The post's question: do SSL recipes that learned representations from natural-image photographs transfer cleanly to <em>this</em> kind of input?</figcaption>
+</figure>
 
 The defensible framing is narrower than "SSL hasn't seen this kind of data." Web-scale pretraining sets very plausibly include some line drawings; the open question is what the *tested-and-reported* transfer surface actually covers, and that surface excludes construction documents specifically. As the practitioner with this corpus, you're being asked to pick a recipe (fine-tune a natural-image checkpoint zero-shot? continue self-supervised pretraining on top of one? train SSL from scratch on your own corpus?) without a published comparison that tells you which to bet on for *this* domain.
 
