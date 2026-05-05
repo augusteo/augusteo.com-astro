@@ -927,7 +927,7 @@ Vic re-authorized the cap (4th invocation) and asked for deep research with `mod
 
 ## Resume here
 
-Last touched: 2026-05-04 (Phase 6 playwright per-figure visual review COMPLETE; 13 of 13 figures pass. Five rendering issues caught and fixed in a single follow-up commit (Z-order overlap on Fig 9, text overflow on Fig 10, bin-header overlap on Fig 11, label cramping on Fig 6, cell text overflow on Fig 12). Phase 7 — freshness re-check + Gate 2 codex + hero handoff + ship — is next).
+Last touched: 2026-05-04 (Phase 7 freshness re-check + Gate 2 codex (4 runs incl. Vic-authorized deep-research cap extension) + final voice-check ALL DONE. 16 STRUCTURAL findings across the four Gate 2 runs, all resolved (14 fixed in code; 1 STRUCTURAL + 1 COSMETIC overridden with documented rationale). Trajectory: Gate 2 run 1 → 7 STRUCTURAL, run 2 → 4, run 3 → 2, run 4 → 3 (Lahrichi mis-categorization caught by deep research). Spot-checks confirmed MAE quote / DINOv3 numbers / C-RADIOv4 numbers / MESA-PHI-S-angular-cone formulations match primary sources verbatim. Phase 7 step 5 (hero hand-off) is next; Vic to paste an image path or "skip".
 
 ### Phase status
 
@@ -939,7 +939,7 @@ Last touched: 2026-05-04 (Phase 6 playwright per-figure visual review COMPLETE; 
 | 4. Draft prose | done — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions retained per voice-rules. Post-Phase-4 codex review pass: 1 P1 MDX build blocker fixed | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
 | 5. Implement figures | done — all 13 figures landed; voice-check + build clean on each commit. Anchor batch (Fig 1, 2, 3, 5, 6, 8) unblocked when Vic surfaced Sanibel FS-172 sheet A102; used as the source-image template across the anchor figures | per-figure table below |
 | 6. Playwright review | **done** — all 13 figures passed visual review; 5 issues caught and fixed in commit `2f9467f` (Z-order Fig 9, overflow Fig 10, overlap Fig 11, cramping Fig 6, overflow Fig 12) | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + ship | freshness done; Gate 2 done (4 runs, 16 STRUCTURAL → all resolved, 2 overrides); voice-check done (justified-clean: 3 act-divider em-dashes + 2 verbatim-quote banned-words exemptions); hero hand-off pending Vic | hero image, dev verification, ship |
 
 ### Codex history
 
@@ -981,19 +981,15 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 ### Suggested next batch
 
-**Phases 5 and 6 COMPLETE.** All 13 figures landed; all 13 passed playwright visual review (after one round of fixes for layout overlaps).
+**Phases 5, 6, and Phase 7 steps 1-4 COMPLETE.** All 13 figures landed; all 13 passed playwright visual review (after one round of fixes for layout overlaps). Phase 7 freshness pass + Gate 2 (4 codex runs, 16 STRUCTURAL findings all resolved, 2 overrides documented) + final voice-check all done.
 
 Two new SVG-author lessons from Phase 6 are folded into Hard rules #14 and #15 below; both `bun run build` and voice-check pass without catching them, so they have to live in this tracker until promoted to the skill.
 
-**Phase 7 — pre-ship freshness pass + Gate 2 + hero handoff + ship — is next.**
+**Phase 7 step 5 (hero hand-off) is next; awaiting Vic.**
 
-Phase 7 runner per the skill:
+Remaining Phase 7 steps:
 
-1. **Freshness re-check** every row in `## Claim-source matrix`. For each arxiv entry, check for v-bumps newer than the cited version. For each blog/repo, check for substantive edits since the cited access date. Update access dates; halt and update if a newer source materially changes a claim.
-2. **Force `pubDate := today`** in the frontmatter to match publication reality.
-3. **Run Gate 2** (codex on the full draft + matrix + all prior gate reviews).
-4. **Final voice-check pass** on the full file.
-5. **Hero hand-off** — follow `../../explainer-shared/hero-handoff.md`. Compose prompt with all slots filled; wait for Vic to paste a path or "skip"; copy to `src/assets/blog/ssl-pretraining-recipes/hero.<ext>`; propose `heroAlt`; edit frontmatter.
+5. **Hero hand-off** — follow `../../explainer-shared/hero-handoff.md`. Prompt has been composed in chat with all slots filled (post title, summary pulling from §1 / §3 / §13, key themes (taxonomy of seven recipe families, dense-feature quality as load-bearing axis, the construction-sheet throughline, the routing-questions tree), tone (hard-won technical clarity, skeptical of "domain-adaptive SSL strictly wins"), scene (a draftsman's worktable with a construction sheet at the center, a magnifying glass on a single patch, a small artist's palette with seven mixed colors, a pencil-compass tracing a question-mark routing tree), visual anchors, what to avoid). Vic pastes an image path or "skip".
 6. **Verify**: `draft: false`, `essay: true`, real `heroImage`, real `heroAlt`. Walk every figure end-to-end. Lighthouse LCP under 2.5s.
 7. **Final commit** naming the post.
 
