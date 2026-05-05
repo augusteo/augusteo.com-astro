@@ -27,7 +27,27 @@ The motivating use case throughout is construction documents. The tree generaliz
 
 {/* Reader can now: picture the construction-sheet corpus shape, articulate the practitioner's recipe-selection question, and locate the post's claim space (no published bake-off; routing-tree as the deliverable). */}
 
-{/* TODO: §2: Dense-feature quality is the load-bearing axis */}
+### 2. Dense-feature quality is the load-bearing axis
+
+A ViT trained on ImageNet outputs a CLS token plus a grid of patch embeddings, one per non-overlapping patch. For classification, you train a head on the CLS token and that's the model. For segmentation, you train a head on the per-patch embeddings, one prediction per patch (or per upsampled position). The two downstream tasks read different parts of the encoder's output, and they reward different things.
+
+This sounds obvious until you look at what SSL recipes actually optimize. MAE optimizes pixel reconstruction loss on masked patches. DINO optimizes a similarity between teacher and student class probabilities under different augmentations. These objectives shape both the CLS token and the per-patch features, but not symmetrically. A recipe can produce a CLS token that classifies ImageNet at 85% while leaving per-patch features that don't separate adjacent objects cleanly, or the reverse.
+
+[DINO's original paper](https://arxiv.org/abs/2104.14294) noticed this empirically: self-supervised ViT features carry "explicit information about the semantic segmentation of an image, which does not emerge as clearly with supervised ViTs, nor with convnets." That observation is the seed for treating the DINO line as the dense-feature SSL family. It's also why the same ImageNet linear-probe percentage means different things across recipes once you use them for segmentation downstream.
+
+{/* TODO: Fig 2: DenseVsCLS, same image, two heads, class probability vs per-patch label heatmap */}
+
+Two later observations sharpen the picture. [MIM-Refiner](https://arxiv.org/abs/2402.10093) showed that MAE's encoder organizes itself in three regimes: early blocks learn general features, middle blocks form abstractions (k-NN accuracy peaks here), late blocks pre-allocate themselves to the reconstruction task (k-NN accuracy drops). If you plug the *last* block of a frozen MAE into a segmentation head, you're reading from the wrong place: the dense-feature signal is in the middle. Off-the-shelf last-layer features under-deliver on dense tasks not because MAE is bad at SSL, but because the loss specializes the late blocks to a target the segmentation head doesn't care about.
+
+[DINOv3](https://arxiv.org/abs/2508.10104) documented the dual problem on the self-distillation side: long-trained DINO/iBOT shows "cosine similarity between the CLS token and the patch outputs gradually increases during training... the locality of the patch features diminishes." The CLS token leaks into the patch features. Same encoder, later in training, but the patches stop being patch-specific and start carrying CLS-like information. Different failure mode from MAE, same consequence: dense-feature quality is fragile.
+
+So when this post asks which SSL recipe gives the best fine-tuning starting point for construction-document segmentation, the question can't be reduced to "best ImageNet number wins." The recipe shapes how the encoder allocates representational capacity between CLS-shaped and patch-shaped features, and the segmentation head reads only from the patch-shaped half. Recipes that already produce strong dense features (DINOv3 with Gram anchoring; iBOT with its online tokenizer) have the lead before fine-tuning starts. Recipes with weak dense features can sometimes be salvaged with layer selection and head design, but not for free.
+
+Three factors route your starting-point recipe choice in act 3. *Corpus scale*: some recipes only work at natural-image-pretraining scale (1B+ images), others succeed on 39k volumes; your data shape gates which is realistic. *Domain distance from natural images*: DINOv3 Web's frozen features are state-of-the-art on satellite, but they have no measured number on construction-document line-art; distance gates how much you can lean on a natural-image checkpoint. *Downstream task density*: classification can ride a strong CLS token alone; dense prediction needs the patch features to be good and in the right encoder layer. Each act-2 recipe section walks one family across these three factors. Act 3 turns them into a routing tree.
+
+{/* Reader can now: distinguish CLS-token quality from dense-feature quality, see why ImageNet linear-probe percentages don't translate to segmentation transfer, and anticipate the three routing factors (corpus scale, domain distance, task density) the post returns to in act 3. */}
+
+{/* TODO: §3: The question we can't answer head-on */}
 {/* TODO: §3: The question we can't answer head-on */}
 {/* TODO: §4–§11: Act 2 recipe rungs */}
 {/* TODO: §12–§15: Act 3 + coda */}
