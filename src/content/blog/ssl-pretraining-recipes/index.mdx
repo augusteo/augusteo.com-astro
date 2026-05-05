@@ -155,7 +155,7 @@ This is the practitioner's setup most SSL papers don't cover. [MAE](https://arxi
 <line x1="240" y1="468" x2="260" y2="248" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
 <text x="380" y="478">dimension text · sparse + structural</text>
 <line x1="430" y1="466" x2="275" y2="174" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
-<text x="60" y="510">"wide field of empty paper" · ~70-80% of patches at 16×16 are blank or near-blank</text>
+<text x="60" y="510">"wide field of empty paper" · most patches are blank or near-blank at common patch sizes</text>
 <line x1="240" y1="500" x2="345" y2="270" stroke="#6B6258" stroke-width="0.5" marker-end="url(#ar1)"/>
 </g>
 </svg>
@@ -1062,7 +1062,7 @@ For the construction-document practitioner, self-distillation has two specific p
 
 ### 8. Dense-feature collapse and how the latest recipes fix it
 
-§7 ended on DINOv2 as the recipe that produces the strongest frozen-backbone dense features in the post's coverage. What §7 didn't say is that pushing self-distillation further than DINOv2 reveals two failure modes the recipe's authors didn't anticipate at first. Both are observed on natural-image pretraining; the construction-document version of either failure would be the figure this post can't include. But the failure modes themselves are generic enough that they're worth understanding before deciding whether to use a self-distillation recipe at all.
+§7 ended on DINOv2 as the recipe that produces the strongest frozen-backbone dense features in the post's coverage so far. What §7 didn't say is that pushing self-distillation further than DINOv2 reveals two failure modes the recipe's authors didn't anticipate at first. Both are observed on natural-image pretraining; the construction-document version of either failure would be the figure this post can't include. But the failure modes themselves are generic enough that they're worth understanding before deciding whether to use a self-distillation recipe at all.
 
 The first failure mode is artifact tokens. [Darcet et al. 2024](https://arxiv.org/abs/2309.16588) noticed that large self-distilled ViTs (DINOv2 ViT-L and ViT-g, but also OpenCLIP and DeiT-III) produce a small fraction of output tokens with much higher norm than the rest. From the paper: "tokens with roughly 10x higher norm at the output and correspond to a small fraction of the total sequence (around 2%)." The artifacts emerge "after one third of training" and only on the three largest model sizes; smaller DINO ViTs don't show them. Spatially, the artifact tokens land in low-information background regions of the image: patches the model evidently doesn't need for the task at hand and has repurposed for internal computation.
 
@@ -1398,7 +1398,7 @@ Multi-teacher distillation answers a different question. Suppose somebody else h
 > Spatial: L_features(x) = Σᵢ γᵢ L_match(hᵢ^(v)(x' | Θᵢ^(v)), tᵢ^(v)(x | Φᵢ^(v)))
 > with L_match = α·L_cos + β·L_smooth_L1, α=0.9, β=0.1
 
-There is no SSL auxiliary loss on the student. The entire training signal is "match these teachers' outputs." Whatever representational structure the teachers have, the student is being trained to inherit it directly.
+In AM-RADIO, there is no SSL auxiliary loss on the student. The entire training signal is "match these teachers' outputs." Whatever representational structure the teachers have, the student is being trained to inherit it directly. (Later RADIO-line variants add a self-supervised regularizer, MESA, on top of teacher imitation; §11 reaches that shape after the AM-RADIO base.)
 
 [RADIOv2.5](https://arxiv.org/abs/2412.07679) added two pieces. First, a diagnosis: the original RADIO has a "mode-switching" pathology where the features behave like DINOv2 at resolutions ≤512² and like SAM at higher resolutions. Per the paper: "at resolutions lower than or equal to 512², the features most closely resemble those of DINOv2... At higher resolutions, the model starts to behave more like SAM." The cause: at high resolutions, the student in earlier RADIO training only saw SAM features. Second, a remedy: balanced multi-teacher loss schedules and PHI-S loss balancing (more in a moment). RADIOv2.5 lands ADE20K mIoU 54.56 at the g-scale student.
 
@@ -1437,7 +1437,7 @@ A piece of the recipe worth knowing about across the line: [PHI-S](https://arxiv
 <text x="137" y="187" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">summary</text>
 <rect x="186" y="172" width="80" height="22" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.5"/>
 <text x="226" y="187" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">spatial</text>
-<text x="180" y="220" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">no SSL aux loss; labels are</text>
+<text x="180" y="220" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">AM-RADIO base: labels are</text>
 <text x="180" y="232" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">teacher activations only</text>
 <rect x="400" y="110" width="240" height="240" fill="none" stroke="#B8651A" stroke-width="1.5"/>
 <text x="520" y="128" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#B8651A">TEACHER ENSEMBLE</text>
@@ -1465,18 +1465,18 @@ A piece of the recipe worth knowing about across the line: [PHI-S](https://arxiv
 <text x="80" y="502">• MESA regularizer: shift-equivariant student vs student-EMA term (new in v4)</text>
 </g>
 </svg>
-<figcaption><strong>Fig 9.</strong> [AM-RADIO](https://arxiv.org/abs/2312.06709) base architecture. The student is a ViT trained to match a frozen ensemble of pretrained teachers on both summary (CLS-shaped) and spatial (per-patch) outputs. There is no SSL auxiliary loss on the student; the only training signal is teacher activations. [C-RADIOv4](https://arxiv.org/abs/2601.17237) keeps the student-and-teachers shape but rewrites both losses (angular-cone for summary, [PHI-S](https://arxiv.org/abs/2410.01680)-normalized squared error for spatial) and adds a MESA shift-equivariant regularizer where the student matches its own EMA on a shifted crop.</figcaption>
+<figcaption><strong>Fig 9.</strong> [AM-RADIO](https://arxiv.org/abs/2312.06709) base architecture. The student is a ViT trained to match a frozen ensemble of pretrained teachers on both summary (CLS-shaped) and spatial (per-patch) outputs. In the AM-RADIO base, the student's only training signal is teacher activations; there is no SSL auxiliary loss. [C-RADIOv4](https://arxiv.org/abs/2601.17237) keeps the student-and-teachers shape but rewrites both losses (angular-cone for summary, [PHI-S](https://arxiv.org/abs/2410.01680)-normalized squared error for spatial) and adds a MESA shift-equivariant self-supervised regularizer where the student matches its own EMA on a shifted crop. MESA makes C-RADIOv4 a hybrid: teacher imitation plus a self-supervised term, not pure teacher imitation.</figcaption>
 </figure>
 
 The categorical observation across the line is this: multi-teacher distillation occupies a different position in the SSL recipe taxonomy than the prior recipes. Supervision shape is external: the labels are another model's activations, not a pretext task on corrupted or multi-view inputs of the unlabeled corpus. This isn't "RADIO is not SSL"; it's a different *kind* of self-supervision, where the label-source is a foundation-model checkpoint rather than a transformation of the input. The student needs no labeled data, but it needs working teachers.
 
-That's where the recipe meets the construction-document practitioner's reality. RADIO's pretraining starting point is the teacher set: CLIP, DINOv2, SAM, and their successors. None of these teachers has been published with construction-document weights. If the practitioner has access to teacher checkpoints that produce useful features on construction documents (perhaps a CLIP-style model fine-tuned on construction-document image-caption pairs, or a DINOv2-style model continued-pretrained on construction sheets), RADIO can compress that ensemble into a fast student. If they don't, RADIO has nothing to compress.
+That's where the recipe meets the construction-document practitioner's reality. RADIO's pretraining starting point is the teacher set: CLIP, DINOv2, SAM, and their successors. We did not find construction-document checkpoints for these teachers in the public model zoos commonly used for SSL pretraining (HuggingFace, NVIDIA NGC, Meta's released checkpoints) at the time of writing. If the practitioner has access to teacher checkpoints that produce useful features on construction documents (perhaps a CLIP-style model fine-tuned on construction-document image-caption pairs, or a DINOv2-style model continued-pretrained on construction sheets), RADIO can compress that ensemble into a fast student. If they don't, RADIO has nothing to compress.
 
 Whether suitable teacher checkpoints exist is a question the practitioner answers from outside this post's matrix. The post does not assert "no teacher set ships with construction-document weights" as an absence claim, since that's a statement about all possible teachers in the world, which the matrix cannot cover. What the post does say: §14's decision tree treats teacher availability as a hard practitioner-facing gate, not a confounder. If you have teachers that work on your domain, RADIO is a recipe; if you don't, the section's recipe doesn't apply, and you fall back to one of §11's options.
 
 §11 turns to those options. With multi-teacher distillation off the table for practitioners without a working teacher set, the remaining recipe shapes are from-scratch SSL on the practitioner's own corpus, or continual SSL on top of a natural-image checkpoint.
 
-{/* Reader can now: state the multi-teacher distillation recipe (student matches teachers' summary + spatial outputs; no SSL aux loss on the student; loss formulations from cosine + smooth-L1 to PHI-S-normalized squared error; MESA as shift-equivariant regularizer); see C-RADIOv4-H ADE20K 55.20 + RADIOv2.5-g 54.56; understand the categorical observation (supervision shape is external, not pretext-derived); recognize teacher availability as a hard practitioner-facing gate, not a confounder; anticipate §11 (from-scratch + continual-from-natural). */}
+{/* Reader can now: state the multi-teacher distillation recipe (student matches teachers' summary + spatial outputs; AM-RADIO base has no SSL aux loss on the student, C-RADIOv4 adds MESA as a shift-equivariant self-supervised regularizer on top of teacher imitation; loss formulations from cosine + smooth-L1 to PHI-S-normalized squared error); see C-RADIOv4-H ADE20K 55.20 + RADIOv2.5-g 54.56; understand the categorical observation (supervision shape is external for the primary signal, not pretext-derived); recognize teacher availability as a hard practitioner-facing gate, not a confounder; anticipate §11 (from-scratch + continual-from-natural). */}
 
 ### 11. Domain-adaptive recipes: from-scratch and continual-from-natural
 
@@ -1793,8 +1793,8 @@ Documents have [DiT](https://arxiv.org/abs/2203.02378) for from-scratch domain S
 <text x="225" y="134">DIOR 80.5 mAP</text>
 <text x="395" y="120">+0.5 LoveDA mIoU</text>
 <text x="395" y="134">+0.4 ADE20K mIoU</text>
-<text x="565" y="120">MAE-IN ≥ MAE-GN</text>
-<text x="565" y="134">on 5/6 segmentation benchmarks</text>
+<text x="565" y="120">MAE-IN→GN ≥ MAE-GN</text>
+<text x="565" y="134">on 5/6 (two-stage continual)</text>
 <text x="565" y="210">+2.97 DSC over</text>
 <text x="565" y="224">dynamic nnU-Net baseline</text>
 <text x="565" y="238">on 39k MRI volumes</text>
@@ -2014,7 +2014,7 @@ What this post does not do: prescribe a specific continual-pretraining recipe fo
 
 The next twelve months will probably move some of these questions. C-RADIOv4 is a few months old at the time of writing; its successors will explore different teacher sets, possibly including domain-specific teachers. DINOv3 has six months of provenance; its specialization on satellite (SAT-493M) suggests more domain-tuned variants are likely. JEPA recipes still don't have published image dense-prediction transfer, but if a future V-JEPA or I-JEPA paper reports ADE20K numbers, the JEPA-vs-self-distillation question becomes more tractable. None of that timeline is on construction-document line-art specifically.
 
-If you're a practitioner picking an SSL recipe for a domain that isn't natural images, the practical advice is: start with the highest-published-frozen-backbone recipe that fits your scale (DINOv3 frozen probe at the high end, MAE or BEiT-style MIM if you can only afford to run a smaller recipe), measure your downstream task density honestly (is it really segmentation, or could a strong CLS token work?), and budget for a continual-pretraining A/B on top of the natural-image checkpoint. The question of whether construction-document SSL deserves its own published checkpoint is one a future paper would have to answer; this post couldn't.
+If you're a practitioner picking an SSL recipe for a domain that isn't natural images, the shape of the decision the matrix backs is: start with the highest-published-frozen-backbone recipe that fits your scale (DINOv3 frozen probe at the high end, MAE or BEiT-style MIM if you can only afford to run a smaller recipe), measure your downstream task density honestly (is it really segmentation, or could a strong CLS token work?), and treat a continual-pretraining A/B on top of the natural-image checkpoint as the experiment worth budgeting for, if your scale can afford it. The published evidence the post draws on is adjacent-domain (Lahrichi 2025 on satellite, GLARE 2026 across natural plus satellite); whether the same shape generalizes to construction-document line-art is the experiment, not a recipe with published numbers. The question of whether construction-document SSL deserves its own published checkpoint is one a future paper would have to answer; this post couldn't.
 
 ## References
 
