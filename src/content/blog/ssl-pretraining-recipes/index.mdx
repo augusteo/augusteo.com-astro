@@ -564,9 +564,11 @@ Now feed it the construction sheet. The 75% mask falls across a sheet where many
 
 Whether this signal is *enough* to drive useful representation learning on construction documents specifically is a question no published paper answers. [MAE itself is honest about a related concern](https://arxiv.org/abs/2111.06377): "Images are merely recorded light without a semantic decomposition into the visual analogue of words. Instead of attempting to remove objects, we remove random patches that most likely do not form a semantic segment." On natural images that's a complaint about the proxy task; on construction-sheet line-art it's a complaint with an extra layer, because the proxy task is reconstruction, and the things you'd actually want reconstructed (symbols, lines, dimension text) are a small minority of the input. The post raises this as a plausible low-information-signal concern. It does not measure the failure. The practitioner who runs MAE on a construction-document corpus and compares against the alternatives in §11 is the one who would.
 
+Adjacent line-art SSL work supports the mechanism without measuring construction-document transfer. Sketch and handwriting SSL ([Vectorization and Rasterization, 2021](https://arxiv.org/abs/2103.13716)) explicitly calls out that the standard photo augmentation menu (color jitter, Gaussian blur) is poorly matched to sparse-stroke inputs: jitter on monochrome is a no-op, blur erases the thin lines that carry the signal. Drawing-domain detection ([Domain-Adaptive SSL for face/body in drawings, 2022](https://arxiv.org/abs/2211.10641)) lands on a teacher-student continued-pretraining shape with adapted augmentations, the same recipe shape this post discusses for natural-image SSL transfer. Construction sheets share the sparse-stroke failure mode that motivates these papers, but add canonical orientation (titleblocks, north arrows, dimension reading direction), standardized symbols whose semantics are sensitive to small perturbations, grid and dimension-text overlays, OCR-able callout text, and aspect ratios that exceed anything the sketch literature trains at. Treat these papers as background for augmentation design, not as evidence of measured transfer to construction-document line-art.
+
 The recipe choices act 2 explores from here can be read as different answers to "is pixel reconstruction the right pretext, and if not, what should we do instead?" §5 asks a complementary question one level up, on natural images: even when MAE *does* learn useful representations, where do they live in the encoder?
 
-{/* Reader can now: state MAE's recipe (75% mask, encoder-on-visible, small decoder, pixel-MSE on masked patches), articulate why pixel reconstruction on whitespace-heavy data is a plausible low-information-signal concern (without overclaiming a measured failure), and see the §5 framing question. */}
+{/* Reader can now: state MAE's recipe (75% mask, encoder-on-visible, small decoder, pixel-MSE on masked patches), articulate why pixel reconstruction on whitespace-heavy data is a plausible low-information-signal concern (without overclaiming a measured failure), read adjacent line-art SSL as mechanistic background rather than measured construction-document transfer, and see the §5 framing question. */}
 
 ### 5. The MIM block regime
 
@@ -2033,6 +2035,7 @@ If you're a practitioner picking an SSL recipe for a domain that isn't natural i
 - [Vision Transformers Need Registers (DINOv2 with Registers)](https://arxiv.org/abs/2309.16588), Darcet et al., Meta (2023; ICLR 2024 Oral).
 - [DINOv3](https://arxiv.org/abs/2508.10104), Meta (2025).
 - [DiT: Self-supervised Pre-training for Document Image Transformer](https://arxiv.org/abs/2203.02378), Microsoft (2022).
+- [Domain-Adaptive Self-Supervised Pre-Training for Face & Body Detection in Drawings](https://arxiv.org/abs/2211.10641) (2022).
 - [GLARE: Adapter-based continual SSL pretraining over UDI for natural and satellite segmentation](https://arxiv.org/abs/2509.17816), TMLR-formatted submission (2025; v2 2026).
 - [iBOT: Image BERT Pre-Training with Online Tokenizer](https://arxiv.org/abs/2111.07832), Zhou et al. (2021).
 - [Generative Pretraining from Pixels (iGPT)](https://proceedings.mlr.press/v119/chen20s), Chen et al., OpenAI (ICML 2020).
@@ -2047,3 +2050,4 @@ If you're a practitioner picking an SSL recipe for a domain that isn't natural i
 - [SimMIM: A Simple Framework for Masked Image Modeling](https://arxiv.org/abs/2111.09886), Xie et al., MSRA (2021).
 - [V-JEPA: Revisiting Feature Prediction for Learning Visual Representations from Video](https://arxiv.org/abs/2404.08471), Bardes et al., Meta (2024).
 - [V-JEPA 2: Self-Supervised Video Models for Understanding, Prediction, and Planning](https://arxiv.org/abs/2506.09985), Meta (2025).
+- [Vectorization and Rasterization: Self-Supervised Learning for Sketch and Handwriting](https://arxiv.org/abs/2103.13716) (2021).
