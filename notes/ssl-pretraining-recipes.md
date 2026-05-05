@@ -832,7 +832,7 @@ Findings: **0 STRUCTURAL + 0 TYPE-CHANGE + 0 COSMETIC.** Trajectory: 16 → 6 �
 
 ## Resume here
 
-Last touched: 2026-05-04 (Phase 4 prose COMPLETE + post-Phase-4 codex review pass: 1 P1 finding caught and fixed — MDX curly-brace JSX-parse blocker on the C-RADIOv4 + MESA loss equations. `bun run build` now completes 100 pages in 7.27s).
+Last touched: 2026-05-04 (Phase 5 non-anchor batch COMPLETE — 7 of 13 figures landed: Fig 4, 7, 9, 10, 11, 12, 13. The 6 anchor figures (1, 2, 3, 5, 6, 8) remain blocked on Vic surfacing a representative construction sheet).
 
 ### Phase status
 
@@ -840,9 +840,9 @@ Last touched: 2026-05-04 (Phase 4 prose COMPLETE + post-Phase-4 codex review pas
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | **done** (Gate 1 closed at run 5; trajectory 16 → 6 → 5 → 5 → 0; 5 codex runs total, 1 Vic-authorized cap extension at run 4) | `## Outline` |
-| 4. Draft prose | **done** — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions (act-divider em-dashes, I-JEPA primary-source quote, DINOv2 paper title) retained per voice-rules. Post-Phase-4 codex review (`/codex review` against session-start ref): 1 P1 finding (MDX build blocker on `{u∈Ω}` and `{S→T}` / `{S→S̃}` curly-brace expressions in the §10 RADIO equations); fixed by replacing curly braces with parens. `bun run build` now completes 100 pages in 7.27s | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
-| 5. Implement figures | pending (table populated below; Fig 1 + 5 figures using the construction-sheet anchor blocked on Vic's input; 6 non-anchor figures unblocked) | per-figure table |
+| 3. Outline + figure list | done (Gate 1 closed at run 5; trajectory 16 → 6 → 5 → 5 → 0; 5 codex runs total, 1 Vic-authorized cap extension at run 4) | `## Outline` |
+| 4. Draft prose | done — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions retained per voice-rules. Post-Phase-4 codex review pass: 1 P1 MDX build blocker fixed | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
+| 5. Implement figures | **7 of 13 done** (non-anchor batch landed: Fig 4, 7, 9, 10, 11, 12, 13; voice-check + build clean on each commit). 6 anchor figures (Fig 1, 2, 3, 5, 6, 8) blocked on Vic providing a representative construction sheet | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
@@ -866,47 +866,41 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | ConstructionSheet | static-svg | TODO | — |
-| 2 | DenseVsCLS | static-svg | TODO | — |
-| 3 | MAEForwardPass | static-svg | TODO | — |
-| 4 | MIMBlockRegime | static-svg | TODO | — |
-| 5 | MIMTargetComparison | static-svg | TODO | — |
-| 6 | DINOiBOTLossFlow | static-svg | TODO | — |
-| 7 | RegistersGramFix | static-svg | TODO | — |
-| 8 | JEPAvsMAE | static-svg | TODO | — |
-| 9 | RADIOArchitecture | static-svg | TODO | — |
-| 10 | DomainAdaptiveResults | static-svg | TODO | — |
-| 11 | ADE20KCrossRecipe | static-svg | TODO | — |
-| 12 | OODEvidenceSummary | static-svg | TODO | — |
-| 13 | DecisionTree | static-svg | TODO | — |
+| 1 | ConstructionSheet | static-svg | TODO (anchor; needs Vic's construction sheet) | — |
+| 2 | DenseVsCLS | static-svg | TODO (anchor) | — |
+| 3 | MAEForwardPass | static-svg | TODO (anchor) | — |
+| 4 | MIMBlockRegime | static-svg | done | 7649b94 |
+| 5 | MIMTargetComparison | static-svg | TODO (anchor) | — |
+| 6 | DINOiBOTLossFlow | static-svg | TODO (anchor) | — |
+| 7 | RegistersGramFix | static-svg | done | d7ae94f |
+| 8 | JEPAvsMAE | static-svg | TODO (anchor) | — |
+| 9 | RADIOArchitecture | static-svg | done | e4c525e |
+| 10 | DomainAdaptiveResults | static-svg | done | d54a4de |
+| 11 | ADE20KCrossRecipe | static-svg | done | 758cf12 |
+| 12 | OODEvidenceSummary | static-svg | done | 65464a9 |
+| 13 | DecisionTree | static-svg | done | 7b472eb |
 
 ### Suggested next batch
 
-**Phase 4 prose done + post-Phase-4 codex review pass complete.** All 15 sections drafted, Act dividers in place, References section emitted, one commit per section, voice-check clean on body prose. Standing exemptions (act-divider em-dashes, the I-JEPA "hand-crafted" primary-source quote, the DINOv2 paper title's "Robust") are documented in the relevant commit messages.
+**Phase 5 non-anchor batch COMPLETE.** 7 of 13 figures landed (Fig 4, 7, 9, 10, 11, 12, 13). One commit per figure. Voice-check clean on each commit (5 pre-existing standing exemptions unchanged). `bun run build` clean on each commit (7.0–7.5s, 100 pages).
 
-Codex `/codex review` against session-start ref `8e1765b` returned **1 P1 finding** (`commit aac113b`): the §10 C-RADIOv4 + MESA loss equations contained `{u∈Ω}` / `{S→T}` / `{S→S̃}`, which MDX parses as JSX expressions. `∈` and `→` are not valid JS, so `bun run build` failed with `Could not parse expression with acorn`. Fix: replaced the curly braces with parens; build now completes 100 pages in 7.27s. No other findings from codex; the 25 prior commits are clean per its review. **Going forward**: when writing math in MDX, avoid `{...}` even inside blockquoted equations — use parens, or wrap the whole equation in a fenced code block (\`\`\`).
+**Two SVG-author rules learned this batch (carry forward):**
 
-Phase 5 (implement figures) is next. 13 static-SVG figures total. The construction-sheet-anchor figures need Vic's input first; the 6 non-anchor figures can start immediately.
+1. **Em-dashes (U+2014) inside SVG `<text>` content trip voice-check** the same way they trip prose. `PANEL A — TITLE` and `MULTI-TEACHER GATE — parallel` were both flagged. Use mid-dot `·` (U+00B7) as the in-figure separator instead.
+2. **Inline `<g ...><text>` on a single line is parsed by MDX as a paragraph** that doesn't get closed before the next line, producing `Expected a closing tag for <g>`. Always put `<g ...>` on its own line, then `<text>...` on the next.
 
-**Phase 5 batches:**
+**Phase 5 anchor batch — blocked on Vic.** 6 figures (Fig 1, 2, 3, 5, 6, 8) all use a representative construction sheet as their visual anchor. Vic's input needed: a single floor plan or section detail (one image is enough; the figures all reuse the same image with different overlays).
 
-1. **Non-anchor batch (unblocked).** Order by complexity, low → high:
-   - Fig 4 (MIMBlockRegime) — simple line chart; k-NN + reconstruction loss vs layer index, three regimes shaded.
-   - Fig 11 (ADE20KCrossRecipe) — multi-bar chart in 5 protocol bins.
-   - Fig 12 (OODEvidenceSummary) — domains × strategies grid.
-   - Fig 9 (RADIOArchitecture) — architecture diagram (student + teachers, summary + spatial losses, C-RADIOv4 deltas annotated).
-   - Fig 10 (DomainAdaptiveResults) — two-panel bar chart (from-scratch + continual-from-natural deltas).
-   - Fig 13 (DecisionTree) — routing tree with 4 leaves + teacher-availability gate.
-2. **Anchor batch (blocked on Vic's construction sheet).** Vic surfaces a representative construction sheet (a single floor plan / section detail). Then:
-   - Fig 1 (ConstructionSheet) — annotated sheet, scene-setting.
-   - Fig 2 (DenseVsCLS) — same image, two heads (CLS class probability vs per-patch heatmap).
-   - Fig 3 (MAEForwardPass) — visible patches → encoder → mask tokens → decoder → reconstruction, on the sheet.
-   - Fig 5 (MIMTargetComparison) — three-panel target comparison on the masked sheet.
-   - Fig 6 (DINOiBOTLossFlow) — DINO/iBOT loss flow on the sheet.
-   - Fig 8 (JEPAvsMAE) — MAE pixel prediction vs I-JEPA latent prediction on the sheet.
-3. **Bonus, anchor-or-generic.** Fig 7 (RegistersGramFix) — explicitly conceptual on a generic image per Gate 1 run-4 fix; could be done in non-anchor batch but visually adjacent to the throughline.
+When Vic surfaces the sheet, anchor batch order (low → high complexity):
 
-Phase 6 (playwright) and Phase 7 (Gate 2 + freshness pass + hero handoff + ship) follow after all 13 figures land.
+- Fig 1 (ConstructionSheet) — annotated sheet, scene-setting overlay.
+- Fig 2 (DenseVsCLS) — same image, two heads (CLS class probability vs per-patch heatmap).
+- Fig 3 (MAEForwardPass) — visible patches → encoder → mask tokens → decoder → reconstruction, on the sheet.
+- Fig 5 (MIMTargetComparison) — three-panel target comparison on the masked sheet.
+- Fig 6 (DINOiBOTLossFlow) — DINO/iBOT loss flow on the sheet.
+- Fig 8 (JEPAvsMAE) — MAE pixel prediction vs I-JEPA latent prediction on the sheet.
+
+Phase 6 (playwright per-figure visual review) starts immediately after the anchor batch lands. Phase 7 (freshness pass + Gate 2 + hero handoff + ship) follows.
 
 ### How to resume from a fresh context
 
@@ -929,3 +923,5 @@ Phase 6 (playwright) and Phase 7 (Gate 2 + freshness pass + hero handoff + ship)
 9. **`draft: false` from Phase 1 onward** (this is topic mode, not HTML-import).
 10. **Project-memory pointer + MEMORY.md entry verified at end of Phase 1.** See project memory at `~/.claude/projects/-Users-vic-dev-augusteo-com-astro/memory/project_ssl_pretraining_recipes_post.md` and the MEMORY.md index entry.
 11. **`bun run build` must pass before any prose commit lands.** Codex caught a P1 MDX build blocker post-Phase-4 (`{u∈Ω}` JSX-parse failure on the §10 RADIO equations). Going forward: when writing math in MDX, **never use bare `{...}` inside body prose** — MDX parses them as JSX expressions and any non-JS character (∈, →, Ω, ŷ, …) breaks the build. Use parens for math grouping, or wrap the whole equation in a fenced code block. Voice-check alone does not catch this; only `bun run build` does.
+12. **SVG content is voice-checked too.** Em-dashes (U+2014) inside SVG `<text>` content fail voice-check the same way as prose em-dashes. Use mid-dot `·` as the in-figure separator. Voice-check finds these even when they're deep inside `<svg>` blocks because it does line-based grep, not MDX-AST.
+13. **Inline `<g ...><text>` on a single line breaks the MDX parser.** Always put `<g ...>` on its own line, then `<text>` children on subsequent lines. Otherwise MDX treats the inline `<text>` as paragraph content and reports `Expected a closing tag for <g>`.
