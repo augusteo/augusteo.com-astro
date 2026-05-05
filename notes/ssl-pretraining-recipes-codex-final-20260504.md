@@ -77,3 +77,40 @@ Sources checked: [DINOv3 arXiv](https://arxiv.org/abs/2508.10104), [C-RADIOv4 ar
 
 
 ---
+
+---
+
+## Gate 2 run 2 (2026-05-04)
+
+codex
+**Findings**
+
+1. **STRUCTURAL — DINOv3 satellite evidence is mislabeled as “zero-shot” / “no domain training.”**  
+[index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:1726), [index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:1744), [index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:1827)  
+Row 31 supports “frozen backbone, no satellite-specific fine-tune/pretraining,” not zero-shot satellite evaluation with no domain training at all. Fig 12’s column says “ZERO-SHOT / natural-image init, no domain training,” and prose says “DINOv3 Web is doing zero-shot transfer.” That is a materially different mental model: frozen-backbone benchmark results can still involve supervised benchmark heads / probes. Fix to “frozen-backbone transfer / no satellite SSL pretraining” unless the DINOv3 paper explicitly reports no satellite-label head training.
+
+2. **STRUCTURAL — Lahrichi row is over-ranked into an unsupported three-way ordering.**  
+[index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:1728)  
+The prose says: “continual-from-natural > from-scratch-on-natural ≈ from-scratch-on-domain.” Row 32 supports: GeoNet has “no consistent advantage” over ImageNet, and two-stage MAE-IN→GN beats MAE-GN on 5/6 benchmarks. It does **not** support two-stage continual being greater than ImageNet-only/from-scratch-on-natural. Drop the three-way ranking or rewrite as: “two-stage MAE-IN→GN beats from-scratch MAE-GN modestly; ImageNet and GeoNet pretraining show no consistent winner.”
+
+3. **STRUCTURAL — Run-1 finding 1 is not fully closed; unsupported patch-blankness and loss-dominance claims remain.**  
+[index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:158), [index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:162), [index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:562)  
+The fix softened “~70–80%” to “most patches,” but the post still claims “mostly empty paper,” “most patches are blank,” “a typical visible patch is plain white,” “masked patches… are also mostly white,” and “reconstruction loss is dominated by trivially recovering whitespace.” No matrix row measures patch occupancy on A102 or supports loss dominance. This is load-bearing for the MAE intuition. Either add a row with an actual patch-count / mask-loss estimate from the figure source, or soften to non-quantified intuition: “many patches,” “can be dominated,” “plausibly.”
+
+4. **STRUCTURAL — Opening paragraph makes unsupported training-data / absence claims about C-RADIOv4 teachers and construction variants.**  
+[index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:20)  
+“C-RADIOv4 distilled from SigLIP2, DINOv3, and SAM3, all trained on natural-image data” is not backed by row 27, which only names the teachers. The same paragraph’s “No comparable construction-document variant exists” is broader than the matrix’s safer claim: no covered paper reports construction-document transfer / no published bake-off. Rewrite to the matrix-backed form: “C-RADIOv4 uses SigLIP2, DINOv3, and SAM3 teachers; the paper reports no construction-document specialization or transfer benchmark.”
+
+**Run-1 Closure**
+
+- Finding 1: **not closed**. The exact percentage is gone, but unsupported majority/loss-dominance wording remains.
+- Finding 2: **closed**. AM-RADIO vs C-RADIOv4 / MESA wording is now scoped correctly.
+- Finding 3: **closed at line 1473**, but line 20 introduces a related unsupported absence/training-data claim.
+- Finding 4: **closed**. Fig 12 now says MAE-IN→GN, not MAE-IN.
+- Finding 5: **mostly closed**. The coda now frames continual pretraining as an experiment, not a published recipe.
+- Finding 6: **closed**. Rows 29 / 30 / 32 are honestly annotated as marginal-foundational.
+- Finding 7: **override still acceptable**. SVG text cannot be markdown-linked; captions carry the links.
+
+No references-section completeness issue found. No new prose named-source hyperlink issue found outside the SVG-text override.
+2026-05-05T05:46:51.055534Z ERROR codex_core::session: failed to record rollout items: thread 019df6ab-107d-77f2-931d-20a526fd5d0b not found
+tokens used
