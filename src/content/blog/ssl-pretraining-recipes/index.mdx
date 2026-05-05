@@ -389,7 +389,7 @@ Satellite imagery has the most evidence. [DINOv3 §8.3](https://arxiv.org/abs/25
 
 [GLARE 2026](https://arxiv.org/abs/2509.17816) measures continual pretraining specifically. Starting from a UDI-initialized natural-image-SSL checkpoint, GLARE trains an adapter via SSL on top and reports modest +0.2 to +0.6 mIoU gains over UDI alone across natural and satellite segmentation benchmarks (ADE20K 41.2→41.6, Pascal Context 49.1→49.3, Cityscapes 74.7→75.3, LoveDA 50.9→51.5). So the "continue pretraining on top of a natural-image checkpoint" recipe is documented to help, modestly, on the domains GLARE evaluates.
 
-3D medical imaging has its own story. [Medical 3D MAE](https://arxiv.org/abs/2410.23132) ran MAE on 39,168 unlabeled MRI volumes inside an nnU-Net architecture and reports +1.97 DSC over a no-pretraining nnU-Net baseline. The medical paper does not compare against continual SSL on a natural-image checkpoint, so the head-to-head against the natural-image-init recipe is absent. What you have is "from-scratch MAE on 39k medical volumes beats no pretraining."
+3D medical imaging has its own story. [Medical 3D MAE](https://arxiv.org/abs/2410.23132) ran MAE on 39,168 unlabeled MRI volumes inside an nnU-Net architecture and reports approximately +3 DSC over a state-of-the-art dynamically-optimized nnU-Net baseline. The medical paper does not compare against continual SSL on a natural-image checkpoint, so the head-to-head against the natural-image-init recipe is absent. What you have is "from-scratch MAE on 39k medical volumes beats no pretraining."
 
 Documents have [DiT](https://arxiv.org/abs/2203.02378). DiT runs BEiT-style MIM on IIT-CDIP (42M document images) and reports gains on PubLayNet layout detection (91.0→94.9 mAP), ICDAR cTDaR table detection (94.23→96.55 F1), and RVL-CDIP document classification (91.11→92.69%). The downstream tasks are layout, table, classification. Not vision-only segmentation on line-art. DiT's "documents" are scanned reports and forms, text-heavy and layout-driven. Construction documents share the scanned, mostly-empty-paper surface texture but the dense task is different.
 
@@ -1486,7 +1486,7 @@ Take the from-scratch shape first. [DiT](https://arxiv.org/abs/2203.02378) ran B
 
 Notice the downstream task list. Layout, table, classification. Not vision-only segmentation on line-art. DiT's "documents" are scanned reports, forms, invoices, contracts: text-heavy and layout-driven. Construction documents share the surface texture (scanned, mostly-empty paper) but the dense task is different. A floor plan's segmentation labels are spatial regions of structure, not bounding boxes for text columns or tables. DiT's evidence is for document-layout pretraining specifically. It does not generalize to "vision-only SSL works on line-art."
 
-[Medical 3D MAE](https://arxiv.org/abs/2410.23132) takes the from-scratch shape into a different domain: MAE on 39,168 unlabeled 3D MRI brain volumes, inside an nnU-Net architecture. The result is +1.97 DSC over a no-pretraining nnU-Net baseline ("the first work to demonstrate that SSL pretraining with a fixed architecture can consistently outperform a state-of-the-art, dynamically optimized nnU-Net baseline"). The medical paper does not compare against continual SSL on a natural-image checkpoint, so the head-to-head against the natural-image-init recipe is absent. What you have is: from-scratch MAE on 39k medical volumes beats no pretraining.
+[Medical 3D MAE](https://arxiv.org/abs/2410.23132) takes the from-scratch shape into a different domain: MAE on 39,168 unlabeled 3D MRI brain volumes, inside an nnU-Net architecture. The result is approximately +3 DSC over a dynamically-optimized nnU-Net baseline ("the first work to demonstrate that SSL pretraining with a fixed architecture can consistently outperform a state-of-the-art, dynamically optimized nnU-Net baseline"; abstract headline of "approximately 3 Dice points"). The medical paper does not compare against continual SSL on a natural-image checkpoint, so the head-to-head against the natural-image-init recipe is absent. What you have is: from-scratch MAE on 39k medical volumes beats no pretraining.
 
 The two from-scratch papers cover different scales (DiT at 42M, Medical 3D MAE at 39k) and different downstream tasks. Both work, in their own setting. Neither tells you what would happen if you ran the same recipe on construction-document line-art and compared it against continual pretraining on a natural-image checkpoint.
 
@@ -1516,12 +1516,12 @@ Continual-from-natural is the second recipe shape. [GLARE 2026](https://arxiv.or
 <rect x="210" y="78" width="341" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
 <rect x="210" y="108" width="203" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
 <rect x="210" y="138" width="138" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
-<rect x="210" y="168" width="172" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="210" y="168" width="261" height="20" fill="#B8651A" opacity="0.7" stroke="#1A1A1A" stroke-width="0.5"/>
 <g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
 <text x="557" y="92">+3.9</text>
 <text x="419" y="122">+2.32</text>
 <text x="354" y="152">+1.58</text>
-<text x="388" y="182">+1.97</text>
+<text x="477" y="182">+2.97</text>
 </g>
 <line x1="210" y1="200" x2="560" y2="200" stroke="#8F8578"/>
 <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
@@ -1729,7 +1729,7 @@ This intuition is not unique to DINOv3. [Lahrichi 2025](https://arxiv.org/abs/25
 
 [GLARE 2026](https://arxiv.org/abs/2509.17816) measures the continual-from-natural recipe shape directly. Adapter-based continual pretraining on top of a UDI initialization, evaluated across natural and satellite segmentation: ADE20K 41.2 → 41.6, Pascal Context 49.1 → 49.3, Cityscapes 74.7 → 75.3, LoveDA 50.9 → 51.5. Each gain is +0.2 to +0.6 mIoU. The pattern is consistent across the four benchmarks GLARE evaluates. Continual SSL on top of a natural-image checkpoint helps, modestly, when the recipe is well-tuned.
 
-Medical imaging gives a different shape of evidence. [Medical 3D MAE](https://arxiv.org/abs/2410.23132) reports +1.97 DSC over a no-pretraining nnU-Net baseline on 39k MRI volumes. The medical paper does not compare against continual SSL on a natural-image checkpoint. It compares against "no pretraining," which is the right baseline to argue "SSL is worth doing" but not the right baseline to argue "domain-SSL beats continual-from-natural." For 3D MRI volumes, no published natural-image SSL recipe applies directly (you can't run DINOv3 on volumetric data without an architectural adapter), so the comparison would have to be against continual SSL on a 3D-medical-init checkpoint, which doesn't exist in published form. Medical's published evidence is "from-scratch SSL on 39k volumes beats no pretraining."
+Medical imaging gives a different shape of evidence. [Medical 3D MAE](https://arxiv.org/abs/2410.23132) reports approximately +3 DSC over a dynamically-optimized nnU-Net baseline on 39k MRI volumes. The medical paper does not compare against continual SSL on a natural-image checkpoint. It compares against "no pretraining," which is the right baseline to argue "SSL is worth doing" but not the right baseline to argue "domain-SSL beats continual-from-natural." For 3D MRI volumes, no published natural-image SSL recipe applies directly (you can't run DINOv3 on volumetric data without an architectural adapter), so the comparison would have to be against continual SSL on a 3D-medical-init checkpoint, which doesn't exist in published form. Medical's published evidence is "from-scratch SSL on 39k volumes beats no pretraining."
 
 Documents have [DiT](https://arxiv.org/abs/2203.02378) for from-scratch domain SSL at 42M images. The downstream tasks are document-layout (PubLayNet), table detection (ICDAR cTDaR), and document classification (RVL-CDIP). DiT does not evaluate continual-from-natural either. The published evidence is "from-scratch BEiT-style on 42M document images beats supervised baselines on document-layout, table, and classification tasks."
 
@@ -1795,8 +1795,8 @@ Documents have [DiT](https://arxiv.org/abs/2203.02378) for from-scratch domain S
 <text x="395" y="134">+0.4 ADE20K mIoU</text>
 <text x="565" y="120">MAE-IN ≥ MAE-GN</text>
 <text x="565" y="134">on 5/6 segmentation benchmarks</text>
-<text x="565" y="210">+1.97 DSC over</text>
-<text x="565" y="224">no-pretrain nnU-Net</text>
+<text x="565" y="210">+2.97 DSC over</text>
+<text x="565" y="224">dynamic nnU-Net baseline</text>
 <text x="565" y="238">on 39k MRI volumes</text>
 <text x="225" y="300">PubLayNet 91.0 mAP</text>
 <text x="225" y="314">(this is the baseline</text>
@@ -1920,8 +1920,8 @@ Treat the tree as descriptive guidance, not prescriptive truth. It's a way to or
 <text x="350" y="124" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">STARTING POINT</text>
 <text x="350" y="140" font-family="serif" font-size="11" fill="#1A1A1A">From-scratch 3D MAE</text>
 <text x="350" y="152" font-family="serif" font-size="11" fill="#1A1A1A">on the domain corpus</text>
-<text x="350" y="166" font-family="serif" font-size="10" fill="#6B6258">+1.97 DSC over no-</text>
-<text x="350" y="178" font-family="serif" font-size="10" fill="#6B6258">pretrain (row 30)</text>
+<text x="350" y="166" font-family="serif" font-size="10" fill="#6B6258">+2.97 DSC vs dyn-config</text>
+<text x="350" y="178" font-family="serif" font-size="10" fill="#6B6258">nnU-Net (row 30)</text>
 <line x1="342" y1="186" x2="500" y2="186" stroke="#C9BEAA" stroke-width="0.5"/>
 <rect x="350" y="194" width="71" height="20" fill="#15803D" opacity="0.85"/>
 <rect x="421" y="194" width="71" height="20" fill="#B91C1C" opacity="0.85"/>
@@ -1990,7 +1990,7 @@ Per-leaf baseline disclaimer: this leaf's evidence is ViT-7B frozen-backbone wit
 
 Per-leaf baseline disclaimer: starting-point evidence is at ViT-7B frozen-backbone (row 31, DINOv3 Web on LoveDA / DIOR / iSAID); continuation evidence (GLARE) is adapter-based at ViT-S/16 on UDI initialization (row 32). The starting-point and continuation evidence run on different protocols within the same leaf; neither is a unified ViT-frozen baseline against the other leaves.
 
-**3. Medical (3D MRI volumes) leaf**. Starting point: from-scratch 3D MAE on the domain (row 30: +1.97 DSC over no-pretraining nnU-Net). Continuation: no published comparison against continual SSL on a natural-image checkpoint (a head-to-head doesn't exist for volumetric medical data). Flag: **published evidence vs no-pretraining; experiment vs continual-from-natural.** This leaf does NOT claim "domain-SSL beats continual-from-natural"; the comparison hasn't been published.
+**3. Medical (3D MRI volumes) leaf**. Starting point: from-scratch 3D MAE on the domain (row 30: approximately +3 DSC over a dynamically-optimized nnU-Net baseline). Continuation: no published comparison against continual SSL on a natural-image checkpoint (a head-to-head doesn't exist for volumetric medical data). Flag: **published evidence vs no-pretraining; experiment vs continual-from-natural.** This leaf does NOT claim "domain-SSL beats continual-from-natural"; the comparison hasn't been published.
 
 Per-leaf baseline disclaimer: 3D Residual Encoder U-Net within nnU-Net; DSC against no-pretraining (row 30). Not a ViT frozen / linear dense-feature probe. Cross-leaf comparison to the satellite or construction-document leaf is not supported; the model architecture and the metric are both different.
 
