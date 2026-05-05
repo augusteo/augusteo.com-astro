@@ -649,7 +649,241 @@ Three target swaps have been published, each with a different bet.
 
 [BEiT v1](https://arxiv.org/abs/2106.08254) predicts discrete visual tokens from a pretrained DALL-E dVAE (vocab size 8192). The model masks 40% of patches and minimizes cross-entropy against the dVAE's tokenization of the original image. [BEiT v2](https://arxiv.org/abs/2208.06366) replaces the dVAE with a VQ-KD tokenizer trained by knowledge-distilling CLIP features: "the output vectors aim at reconstructing the semantic features of a teacher model, e.g., DINO, and CLIP."
 
-{/* TODO: Fig 5: MIMTargetComparison, three-panel target comparison on the same masked sheet, pixel target (MAE) / feature target (HOG cells, EMA latents) / token target (dVAE, VQ-KD codebook) */}
+<figure>
+<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs>
+<marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+<path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+</marker>
+</defs>
+<text x="113" y="22" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.4" font-weight="700">PIXEL TARGET</text>
+<text x="113" y="36" font-family="serif" font-size="10" font-style="italic" fill="#B8651A" text-anchor="middle">MAE · raw pixel MSE</text>
+<text x="340" y="22" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.4" font-weight="700">FEATURE TARGET</text>
+<text x="340" y="36" font-family="serif" font-size="10" font-style="italic" fill="#15803D" text-anchor="middle">MaskFeat (HOG) · data2vec (EMA latent)</text>
+<text x="567" y="22" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.4" font-weight="700">TOKEN TARGET</text>
+<text x="567" y="36" font-family="serif" font-size="10" font-style="italic" fill="#9333EA" text-anchor="middle">BEiT v1 (dVAE) · BEiT v2 (VQ-KD)</text>
+<line x1="226" y1="48" x2="226" y2="450" stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="3,3"/>
+<line x1="454" y1="48" x2="454" y2="450" stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="3,3"/>
+<g stroke="#FFFFFF" stroke-width="0.5">
+<rect x="40" y="60" width="20" height="20" fill="#F4EEE3"/>
+<rect x="60" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="80" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="100" y="60" width="20" height="20" fill="#FBE9CE"/>
+<rect x="120" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="140" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="160" y="60" width="20" height="20" fill="#F4EEE3"/>
+<rect x="180" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="40" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="60" y="80" width="20" height="20" fill="#93C5FD" opacity="0.7"/>
+<rect x="80" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="100" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="120" y="80" width="20" height="20" fill="#93C5FD" opacity="0.7"/>
+<rect x="140" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="160" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="180" y="80" width="20" height="20" fill="#FBE9CE"/>
+<rect x="40" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="60" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="80" y="100" width="20" height="20" fill="#F4EEE3"/>
+<rect x="100" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="120" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="140" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="160" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="180" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="40" y="120" width="20" height="20" fill="#FBE9CE"/>
+<rect x="60" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="80" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="100" y="120" width="20" height="20" fill="#F4EEE3"/>
+<rect x="120" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="140" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="160" y="120" width="20" height="20" fill="#FBE9CE"/>
+<rect x="180" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+</g>
+<text x="113" y="160" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same masked sheet (input)</text>
+<line x1="113" y1="170" x2="113" y2="200" stroke="#6B6258" stroke-width="1" marker-end="url(#ar5)"/>
+<text x="113" y="218" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle" font-weight="600">predict at masked positions:</text>
+<text x="113" y="232" font-family="serif" font-size="10" fill="#B8651A" text-anchor="middle">raw pixel values</text>
+<g stroke="#FFFFFF" stroke-width="0.5">
+<rect x="40" y="244" width="20" height="20" fill="#F4EEE3"/>
+<rect x="60" y="244" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="80" y="244" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="100" y="244" width="20" height="20" fill="#FBE9CE"/>
+<rect x="120" y="244" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="140" y="244" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="160" y="244" width="20" height="20" fill="#F4EEE3"/>
+<rect x="180" y="244" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="40" y="264" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="60" y="264" width="20" height="20" fill="#93C5FD" opacity="0.7"/>
+<rect x="80" y="264" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="100" y="264" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="120" y="264" width="20" height="20" fill="#93C5FD" opacity="0.7"/>
+<rect x="140" y="264" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="160" y="264" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="180" y="264" width="20" height="20" fill="#FBE9CE"/>
+<rect x="40" y="284" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="60" y="284" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="80" y="284" width="20" height="20" fill="#F4EEE3"/>
+<rect x="100" y="284" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="120" y="284" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="140" y="284" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="160" y="284" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="180" y="284" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="40" y="304" width="20" height="20" fill="#FBE9CE"/>
+<rect x="60" y="304" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="80" y="304" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="100" y="304" width="20" height="20" fill="#F4EEE3"/>
+<rect x="120" y="304" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="140" y="304" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+<rect x="160" y="304" width="20" height="20" fill="#FBE9CE"/>
+<rect x="180" y="304" width="20" height="20" fill="#F4EEE3" opacity="0.7"/>
+</g>
+<text x="113" y="345" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">L = ‖ŷ − x‖²</text>
+<text x="113" y="360" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">on masked patches only</text>
+<text x="113" y="395" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">Whitespace dominates the loss:</text>
+<text x="113" y="410" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">most masked patches are blank.</text>
+<text x="113" y="425" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">Pixel detail (color, antialiasing)</text>
+<text x="113" y="440" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">consumes capacity downstream</text>
+<text x="113" y="453" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">tasks don't need.</text>
+<g stroke="#FFFFFF" stroke-width="0.5">
+<rect x="266" y="60" width="20" height="20" fill="#F4EEE3"/>
+<rect x="286" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="306" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="326" y="60" width="20" height="20" fill="#FBE9CE"/>
+<rect x="346" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="366" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="386" y="60" width="20" height="20" fill="#F4EEE3"/>
+<rect x="406" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="266" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="286" y="80" width="20" height="20" fill="#93C5FD" opacity="0.7"/>
+<rect x="306" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="326" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="346" y="80" width="20" height="20" fill="#93C5FD" opacity="0.7"/>
+<rect x="366" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="386" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="406" y="80" width="20" height="20" fill="#FBE9CE"/>
+<rect x="266" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="286" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="306" y="100" width="20" height="20" fill="#F4EEE3"/>
+<rect x="326" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="346" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="366" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="386" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="406" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="266" y="120" width="20" height="20" fill="#FBE9CE"/>
+<rect x="286" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="306" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="326" y="120" width="20" height="20" fill="#F4EEE3"/>
+<rect x="346" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="366" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="386" y="120" width="20" height="20" fill="#FBE9CE"/>
+<rect x="406" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+</g>
+<text x="340" y="160" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same masked sheet (input)</text>
+<line x1="340" y1="170" x2="340" y2="200" stroke="#6B6258" stroke-width="1" marker-end="url(#ar5)"/>
+<text x="340" y="218" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle" font-weight="600">predict at masked positions:</text>
+<text x="340" y="232" font-family="serif" font-size="10" fill="#15803D" text-anchor="middle">HOG (MaskFeat) / EMA latents (data2vec)</text>
+<g transform="translate(266,244)">
+<g stroke="#15803D" stroke-width="0.8" fill="none">
+<line x1="10" y1="20" x2="30" y2="20"/>
+<line x1="20" y1="10" x2="20" y2="30"/>
+<line x1="13" y1="13" x2="27" y2="27"/>
+<line x1="27" y1="13" x2="13" y2="27"/>
+<rect x="2" y="2" width="36" height="36" stroke="#15803D" stroke-width="0.4"/>
+</g>
+<g stroke="#15803D" stroke-width="0.8" fill="none">
+<line x1="50" y1="20" x2="70" y2="20"/>
+<line x1="60" y1="10" x2="60" y2="30"/>
+<rect x="42" y="2" width="36" height="36" stroke="#15803D" stroke-width="0.4"/>
+</g>
+<g stroke="#15803D" stroke-width="0.8" fill="none">
+<line x1="93" y1="13" x2="107" y2="27"/>
+<line x1="107" y1="13" x2="93" y2="27"/>
+<line x1="90" y1="20" x2="110" y2="20"/>
+<rect x="82" y="2" width="36" height="36" stroke="#15803D" stroke-width="0.4"/>
+</g>
+<g stroke="#15803D" stroke-width="0.8" fill="none">
+<line x1="130" y1="20" x2="150" y2="20"/>
+<rect x="122" y="2" width="36" height="36" stroke="#15803D" stroke-width="0.4"/>
+</g>
+</g>
+<text x="340" y="304" font-family="serif" font-size="9" font-style="italic" fill="#15803D" text-anchor="middle">orientation histograms (HOG)</text>
+<text x="340" y="324" font-family="JetBrains Mono" font-size="8" fill="#6B6258" text-anchor="middle">· OR ·</text>
+<g font-family="JetBrains Mono" font-size="8" fill="#15803D">
+<text x="270" y="340">f(t) = </text>
+<text x="305" y="340">[ 0.41, -0.18, 0.62, ..., 0.07 ]</text>
+<text x="340" y="356" text-anchor="middle" fill="#6B6258" font-style="italic">EMA-teacher latent vector</text>
+</g>
+<text x="340" y="395" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">Skip pixel detail. Predict</text>
+<text x="340" y="410" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">orientation gradients (fixed) or</text>
+<text x="340" y="425" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">EMA-teacher features (learned).</text>
+<text x="340" y="453" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">No published dense-seg transfer.</text>
+<g stroke="#FFFFFF" stroke-width="0.5">
+<rect x="490" y="60" width="20" height="20" fill="#F4EEE3"/>
+<rect x="510" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="530" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="550" y="60" width="20" height="20" fill="#FBE9CE"/>
+<rect x="570" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="590" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="610" y="60" width="20" height="20" fill="#F4EEE3"/>
+<rect x="630" y="60" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="490" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="510" y="80" width="20" height="20" fill="#93C5FD" opacity="0.7"/>
+<rect x="530" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="550" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="570" y="80" width="20" height="20" fill="#93C5FD" opacity="0.7"/>
+<rect x="590" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="610" y="80" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="630" y="80" width="20" height="20" fill="#FBE9CE"/>
+<rect x="490" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="510" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="530" y="100" width="20" height="20" fill="#F4EEE3"/>
+<rect x="550" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="570" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="590" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="610" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="630" y="100" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="490" y="120" width="20" height="20" fill="#FBE9CE"/>
+<rect x="510" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="530" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="550" y="120" width="20" height="20" fill="#F4EEE3"/>
+<rect x="570" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="590" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+<rect x="610" y="120" width="20" height="20" fill="#FBE9CE"/>
+<rect x="630" y="120" width="20" height="20" fill="#1A1A1A" opacity="0.55"/>
+</g>
+<text x="567" y="160" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same masked sheet (input)</text>
+<line x1="567" y1="170" x2="567" y2="200" stroke="#6B6258" stroke-width="1" marker-end="url(#ar5)"/>
+<text x="567" y="218" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle" font-weight="600">predict at masked positions:</text>
+<text x="567" y="232" font-family="serif" font-size="10" fill="#9333EA" text-anchor="middle">discrete codebook indices</text>
+<g font-family="JetBrains Mono" font-size="9" fill="#FFFFFF">
+<rect x="490" y="244" width="36" height="22" fill="#9333EA" opacity="0.85"/>
+<text x="508" y="259" text-anchor="middle">4827</text>
+<rect x="528" y="244" width="36" height="22" fill="#9333EA" opacity="0.6"/>
+<text x="546" y="259" text-anchor="middle">1093</text>
+<rect x="566" y="244" width="36" height="22" fill="#9333EA" opacity="0.95"/>
+<text x="584" y="259" text-anchor="middle">2056</text>
+<rect x="604" y="244" width="36" height="22" fill="#9333EA" opacity="0.45"/>
+<text x="622" y="259" text-anchor="middle">7741</text>
+<rect x="490" y="270" width="36" height="22" fill="#9333EA" opacity="0.7"/>
+<text x="508" y="285" text-anchor="middle">3318</text>
+<rect x="528" y="270" width="36" height="22" fill="#9333EA" opacity="0.85"/>
+<text x="546" y="285" text-anchor="middle">5024</text>
+<rect x="566" y="270" width="36" height="22" fill="#9333EA" opacity="0.55"/>
+<text x="584" y="285" text-anchor="middle">0962</text>
+<rect x="604" y="270" width="36" height="22" fill="#9333EA" opacity="0.95"/>
+<text x="622" y="285" text-anchor="middle">6113</text>
+</g>
+<text x="567" y="312" font-family="serif" font-size="9" font-style="italic" fill="#9333EA" text-anchor="middle">vocab size 8192 (dVAE) /</text>
+<text x="567" y="324" font-family="serif" font-size="9" font-style="italic" fill="#9333EA" text-anchor="middle">VQ-KD distilled from CLIP (v2)</text>
+<text x="567" y="345" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">L = cross-entropy</text>
+<text x="567" y="358" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">on masked patches only</text>
+<text x="567" y="395" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">Highest published dense numbers</text>
+<text x="567" y="410" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">(BEiT v2 56.7 mIoU at ViT-L UperNet),</text>
+<text x="567" y="425" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">but BEiT v2's tokenizer is</text>
+<text x="567" y="440" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">CLIP-distilled. Load-bearing</text>
+<text x="567" y="453" font-family="serif" font-size="10" fill="#6B6258" text-anchor="middle">piece, not the masked-MIM loss.</text>
+</svg>
+<figcaption><strong>Fig 5.</strong> Three target swaps for masked-image modeling. The masking shape is the same in all three (mask 60–75% of patches, predict at masked positions); what differs is what the encoder is asked to predict. Pixel target (MAE): raw pixel MSE. Feature target (MaskFeat / data2vec): orientation histograms or EMA-teacher latents. Token target (BEiT v1 / v2): discrete codebook indices, cross-entropy loss. The token-target lead carries a caveat: BEiT v2's VQ-KD tokenizer is itself distilled from CLIP, so the empirical pairing doesn't cleanly separate "token target" from "CLIP-distilled tokenizer."</figcaption>
+</figure>
 
 The dense-prediction numbers tell a partial story. At ViT-L on IN1K with a UperNet head (head explicitly matched), MAE lands at 53.6 mIoU on ADE20K, [D2V2-Refined](https://arxiv.org/abs/2402.10093) (MIM-Refiner applied to data2vec 2.0) at 54.4, and BEiT v2 at 56.7. BEiT v1 reports 53.3 at ViT-L, but under a SETR-PUP head rather than UperNet, so it sits adjacent to that bin rather than head-to-head with it. Within the MIM family at matched UperNet protocol, BEiT v2 is the leader by 3.1 points over MAE and 2.3 points over D2V2-Refined. MaskFeat and data2vec do not report image dense-prediction transfer at all in their published evaluation sets. Both are classification-only on ImageNet; MaskFeat additionally reports video transfer (Kinetics, AVA, SSv2).
 
