@@ -1,8 +1,9 @@
 ---
 title: "Self-supervised pretraining when your data isn't natural images"
 description: "Seven SSL recipe families graded for fine-tuning a vision backbone on construction documents and other line-art-heavy domains the canonical SSL backbones haven't covered."
-pubDate: 2026-05-04T12:00:00Z
-heroAlt: "TODO: hero image not yet selected"
+pubDate: 2026-05-05T12:00:00Z
+heroImage: "@assets/blog/ssl-pretraining-recipes/hero.jpeg"
+heroAlt: "Watercolor and ink sketch of a draftsman's worktable: an architectural floor plan with a brass magnifying glass over it, a wooden artist's palette with earthy paint wells, and a pencil compass tracing a question mark."
 tags: ["AI", "ML"]
 featured: false
 draft: false
@@ -20,7 +21,7 @@ A general contractor's archive easily runs to tens of thousands of these sheets.
 This is the practitioner's setup most SSL papers don't cover. [MAE](https://arxiv.org/abs/2111.06377) trained on ImageNet-1K. [DINOv3](https://arxiv.org/abs/2508.10104)'s largest run trained on LVD-1689M, a curated 1.7B-image scrape biased heavily toward natural photographs. [C-RADIOv4](https://arxiv.org/abs/2601.17237) distills from SigLIP2, DINOv3, and SAM3 teachers. None of these papers ship a construction-document checkpoint, and none report a benchmark on construction-document segmentation. Some natural-image SSL backbones do ship domain-specialized variants. DINOv3 has SAT-493M, a satellite specialization with Earth-observation benchmark numbers. No comparable construction-document specialization or transfer benchmark is reported in the recipes this post covers.
 
 <figure>
-<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
 <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
@@ -179,7 +180,7 @@ This sounds obvious until you look at what SSL recipes actually optimize. MAE op
 [DINO's original paper](https://arxiv.org/abs/2104.14294) noticed this empirically: self-supervised ViT features carry "explicit information about the semantic segmentation of an image, which does not emerge as clearly with supervised ViTs, nor with convnets." That observation is the seed for treating the DINO line as the dense-feature SSL family. It's also why the same ImageNet linear-probe percentage means different things across recipes once you use them for segmentation downstream.
 
 <figure>
-<svg viewBox="0 0 680 480" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 480" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
 <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
@@ -410,7 +411,7 @@ Take the construction sheet. Cut it into a grid of 16×16 patches. Mask 75% of t
 Two design choices are doing most of the work. First, the encoder sees only the visible patches: for a 75% mask ratio, that's 4× fewer tokens, which is what makes MAE pretraining cheap enough to be practical at scale. Second, the decoder is asymmetric, much smaller than the encoder. Since the task is just pixel reconstruction (not a downstream task), the decoder gets discarded after pretraining. Only the encoder transfers downstream.
 
 <figure>
-<svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
 <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
@@ -578,7 +579,7 @@ The construction sheet helped frame §4's open question, but the next question i
 Read the curves left to right. Early blocks are doing what every encoder does: learning low-level structure. Middle blocks are doing what segmentation downstream actually wants: forming patch-level abstractions that separate objects. Late blocks are doing what the loss function asks for: collapsing the patch features back into something the small decoder can reconstruct pixels from. The reconstruction objective rewards the model for *forgetting* high-level structure in the late layers, because a reconstruction-friendly representation is closer to a pixel-friendly one than a segmentation-friendly one.
 
 <figure>
-<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%">
 <rect x="60" y="60" width="187" height="200" fill="#F4EEE3" opacity="0.55"/>
 <rect x="247" y="60" width="186" height="200" fill="#EDE5D4" opacity="0.6"/>
 <rect x="433" y="60" width="187" height="200" fill="#C9BEAA" opacity="0.32"/>
@@ -649,7 +650,7 @@ Three target swaps have been published, each with a different bet.
 [BEiT v1](https://arxiv.org/abs/2106.08254) predicts discrete visual tokens from a pretrained DALL-E dVAE (vocab size 8192). The model masks 40% of patches and minimizes cross-entropy against the dVAE's tokenization of the original image. [BEiT v2](https://arxiv.org/abs/2208.06366) replaces the dVAE with a VQ-KD tokenizer trained by knowledge-distilling CLIP features: "the output vectors aim at reconstructing the semantic features of a teacher model, e.g., DINO, and CLIP."
 
 <figure>
-<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
 <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
@@ -905,7 +906,7 @@ The first surprising result from this recipe: when you visualize the student's s
 [iBOT](https://arxiv.org/abs/2111.07832) extends DINO with masked-patch self-distillation. The student sees a masked image; the teacher (still an EMA of the student) sees the unmasked version. The student's masked-patch features have to match the teacher's corresponding patch features. iBOT keeps DINO's class-token loss but adds the patch-token loss; it also dispenses with a separate tokenizer because the teacher itself plays that role online. Per the paper: "the online tokenizer is jointly learnable with the MIM objective and dispenses with a multi-stage training pipeline where the tokenizer needs to be pre-trained beforehand." iBOT lands ADE20K mIoU 50.0 at ViT-B/16 under UperNet, beating MAE's 48.1 at the same scale.
 
 <figure>
-<svg viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
 <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
@@ -1077,7 +1078,7 @@ DINOv3's fix is a regularizer called Gram anchoring. The Gram matrix of a set of
 The patch-patch similarities are pinned to the early snapshot; individual patch features can drift, but only as long as the relative similarity structure stays close to the teacher's. Trained with this loss in the refinement phase, DINOv3 hits ADE20K mIoU 63.0 on a frozen ViT-7B backbone, the highest dense number in the post's matrix.
 
 <figure>
-<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%">
 <text x="20" y="22" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.2">PANEL A · ARTIFACT TOKENS</text>
 <text x="20" y="36" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">conceptual; reported on natural images, large self-distilled ViTs late in training</text>
 <rect x="40" y="50" width="240" height="160" fill="#EDE5D4" stroke="#8F8578"/>
@@ -1235,7 +1236,7 @@ Take the construction sheet. Pick a context block (some contiguous region of pat
 That's [I-JEPA](https://arxiv.org/abs/2301.08243). The recipe trades the masked-prediction-on-pixels framing for masked-prediction-on-features, and explicitly argues that learning to predict in latent space sheds detail the model doesn't need: "JEPAs do not seek representations invariant to a set of hand-crafted data augmentations, but instead seek representations that are predictive of each other." And: "by predicting in representation space, I-JEPA produces semantic representations while using less compute." The paper backs the latent-space bet with an ablation: the same recipe with pixel-space prediction "leads to a significant degradation in the linear probing performance."
 
 <figure>
-<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <marker id="ar8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
 <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
@@ -1419,7 +1420,7 @@ MESA is genuinely self-supervised (student's EMA, not a teacher), but it's a *re
 A piece of the recipe worth knowing about across the line: [PHI-S](https://arxiv.org/abs/2410.01680). When you distill from teachers whose activation statistics differ wildly (CLIP's cosine-distance-shaped features vs DINOv2's distributional features vs SAM's segmentation-shaped features), the per-teacher losses can dominate each other in ways that don't reflect the teachers' relative importance. PHI-S applies a Hadamard isotropic standardization to balance the activation distributions before the loss runs, "where each dimension of a multivariate distribution is standardized using the same scale" via Hadamard matrices. The PHI-S paper reports it "produces the best student model across the suite of methods studied."
 
 <figure>
-<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <marker id="ar9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
 <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
@@ -1495,7 +1496,7 @@ Continual-from-natural is the second recipe shape. [GLARE 2026](https://arxiv.or
 [Lahrichi 2025](https://arxiv.org/abs/2502.10669) ran the more demanding head-to-head: pretrain MAE and SwAV on GeoNet (a satellite corpus) versus ImageNet, then evaluate across six downstream remote-sensing tasks (four segmentation, two classification). Conclusion: "no consistent advantage to pre-training with GeoNet as compared to ImageNet, regardless of whether SwAV or MAE was used." Two-stage MAE-IN→GN beats from-scratch MAE-GN on five of six tasks, with a modest 1–2% advantage. The two-stage result is the relevant data point for continual-from-natural: pretraining first on natural images, then continuing on the domain corpus, beats pretraining only on the domain corpus, modestly, in this satellite setting (the gain is reported across the mixed segmentation/classification task set, not segmentation alone).
 
 <figure>
-<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <pattern id="hatch10" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
 <line x1="0" y1="0" x2="0" y2="6" stroke="#9333EA" stroke-width="1"/>
@@ -1604,7 +1605,7 @@ Fig 11 stratifies the published numbers into five loose groupings:
 (d) RADIO line under each paper's own protocol: RADIOv2.5-g 54.56, C-RADIOv4-H 55.20 at 512px. RADIO papers have their own evaluation regimens (model-size axis varies; the resolution at which C-RADIOv4-H reports matters). These numbers are best read as RADIO-line-internal comparisons.
 
 <figure>
-<svg viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg" width="100%">
 <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle" letter-spacing="1.2">
 <text x="162" y="24">BIN A</text>
 <text x="254" y="24">BIN A'</text>
@@ -1734,7 +1735,7 @@ Medical imaging gives a different shape of evidence. [Medical 3D MAE](https://ar
 Documents have [DiT](https://arxiv.org/abs/2203.02378) for from-scratch domain SSL at 42M images. The downstream tasks are document-layout (PubLayNet), table detection (ICDAR cTDaR), and document classification (RVL-CDIP). DiT does not evaluate continual-from-natural either. The published evidence is "from-scratch BEiT-style on 42M document images beats supervised baselines on document-layout, table, and classification tasks."
 
 <figure>
-<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%">
 <defs>
 <pattern id="hatch12" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
 <line x1="0" y1="0" x2="0" y2="6" stroke="#C9BEAA" stroke-width="1"/>
@@ -1846,7 +1847,7 @@ A note on what kind of tree this is. The three axes (corpus scale, domain distan
 Treat the tree as descriptive guidance, not prescriptive truth. It's a way to organize the published evidence into a routing map.
 
 <figure>
-<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%">
 <text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.4">FOUR ROUTING DESTINATIONS</text>
 <text x="340" y="38" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">descriptive synthesis, not prescriptive ranking · per-leaf baselines differ</text>
 <text x="340" y="54" font-family="serif" font-size="11" fill="#6B6258" text-anchor="middle">practitioner answers: corpus scale · domain distance from natural images · downstream task density</text>

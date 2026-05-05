@@ -927,7 +927,7 @@ Vic re-authorized the cap (4th invocation) and asked for deep research with `mod
 
 ## Resume here
 
-Last touched: 2026-05-04 (Phase 7 freshness re-check + Gate 2 codex (4 runs incl. Vic-authorized deep-research cap extension) + final voice-check ALL DONE. 16 STRUCTURAL findings across the four Gate 2 runs, all resolved (14 fixed in code; 1 STRUCTURAL + 1 COSMETIC overridden with documented rationale). Trajectory: Gate 2 run 1 → 7 STRUCTURAL, run 2 → 4, run 3 → 2, run 4 → 3 (Lahrichi mis-categorization caught by deep research). Spot-checks confirmed MAE quote / DINOv3 numbers / C-RADIOv4 numbers / MESA-PHI-S-angular-cone formulations match primary sources verbatim. Phase 7 step 5 (hero hand-off) is next; Vic to paste an image path or "skip".
+Last touched: 2026-05-05 (POST SHIPPED. Phase 7 complete end-to-end. Hero image landed (`hero.jpeg`, watercolor-and-ink draftsman's-worktable composition); pubDate forced to 2026-05-05; verification pass caught 13 latent `height="auto"` SVG attribute errors that Phases 5 + 6 hadn't flagged — all 13 figures fixed via single replace-all (`width="100%" height="auto"` → `width="100%"`); post now renders at `/blog/ssl-pretraining-recipes` with 0 console errors. All 13 figures spot-checked in playwright: Fig 9 (AM-RADIO scoping correct), Fig 12 (Lahrichi cell correct, Medical 3D MAE ~+3 DSC). Final state: draft:false, essay:true, real heroImage + heroAlt, pubDate today, voice-check justified-clean, build clean.)
 
 ### Phase status
 
@@ -939,7 +939,7 @@ Last touched: 2026-05-04 (Phase 7 freshness re-check + Gate 2 codex (4 runs incl
 | 4. Draft prose | done — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions retained per voice-rules. Post-Phase-4 codex review pass: 1 P1 MDX build blocker fixed | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
 | 5. Implement figures | done — all 13 figures landed; voice-check + build clean on each commit. Anchor batch (Fig 1, 2, 3, 5, 6, 8) unblocked when Vic surfaced Sanibel FS-172 sheet A102; used as the source-image template across the anchor figures | per-figure table below |
 | 6. Playwright review | **done** — all 13 figures passed visual review; 5 issues caught and fixed in commit `2f9467f` (Z-order Fig 9, overflow Fig 10, overlap Fig 11, cramping Fig 6, overflow Fig 12) | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | freshness done; Gate 2 done (4 runs, 16 STRUCTURAL → all resolved, 2 overrides); voice-check done (justified-clean: 3 act-divider em-dashes + 2 verbatim-quote banned-words exemptions); hero hand-off pending Vic | hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + ship | **DONE** (freshness done; Gate 2 done — 4 runs, 16 STRUCTURAL → all resolved, 2 overrides; voice-check justified-clean; hero landed; verification pass caught + fixed 13 `height="auto"` console errors; final commit landed) | hero image, dev verification, ship |
 
 ### Codex history
 
