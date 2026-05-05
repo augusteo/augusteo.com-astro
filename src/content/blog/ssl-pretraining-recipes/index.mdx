@@ -285,7 +285,55 @@ MESA is genuinely self-supervised (student's EMA, not a teacher), but it's a *re
 
 A piece of the recipe worth knowing about across the line: [PHI-S](https://arxiv.org/abs/2410.01680). When you distill from teachers whose activation statistics differ wildly (CLIP's cosine-distance-shaped features vs DINOv2's distributional features vs SAM's segmentation-shaped features), the per-teacher losses can dominate each other in ways that don't reflect the teachers' relative importance. PHI-S applies a Hadamard isotropic standardization to balance the activation distributions before the loss runs, "where each dimension of a multivariate distribution is standardized using the same scale" via Hadamard matrices. The PHI-S paper reports it "produces the best student model across the suite of methods studied."
 
-{/* TODO: Fig 9: RADIOArchitecture, AM-RADIO architecture (student + N teachers; summary + spatial losses), C-RADIOv4 deltas annotated (PHI-S spatial, angular-cone summary, MESA EMA-matching). Architecture only; central thesis is in §10 prose. */}
+<figure>
+<svg viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<defs>
+<marker id="ar9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+</marker>
+</defs>
+<rect x="295" y="20" width="90" height="46" fill="#EDE5D4" stroke="#8F8578"/>
+<text x="340" y="40" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A">image x</text>
+<text x="340" y="56" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">unlabeled</text>
+<line x1="320" y1="68" x2="190" y2="106" stroke="#6B6258" stroke-width="1" marker-end="url(#ar9)"/>
+<line x1="360" y1="68" x2="510" y2="106" stroke="#6B6258" stroke-width="1" marker-end="url(#ar9)"/>
+<rect x="80" y="110" width="200" height="130" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<text x="180" y="138" text-anchor="middle" font-family="serif" font-size="14" font-weight="600" fill="#2563EB">STUDENT</text>
+<text x="180" y="154" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">ViT, being trained</text>
+<rect x="100" y="172" width="74" height="22" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.5"/>
+<text x="137" y="187" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">summary</text>
+<rect x="186" y="172" width="80" height="22" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.5"/>
+<text x="226" y="187" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">spatial</text>
+<text x="180" y="220" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">no SSL aux loss; labels are</text>
+<text x="180" y="232" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">teacher activations only</text>
+<rect x="400" y="110" width="240" height="240" fill="none" stroke="#B8651A" stroke-width="1.5"/>
+<text x="520" y="128" text-anchor="middle" font-family="serif" font-size="13" font-weight="600" fill="#B8651A">TEACHER ENSEMBLE</text>
+<text x="520" y="142" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">frozen, pretrained</text>
+<rect x="412" y="156" width="216" height="50" fill="#FBE9CE" opacity="0.8" stroke="#B8651A" stroke-width="0.5"/>
+<text x="520" y="178" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">SigLIP2 / DFN-CLIP</text>
+<text x="520" y="194" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vision-language</text>
+<rect x="412" y="216" width="216" height="50" fill="#FBE9CE" opacity="0.8" stroke="#B8651A" stroke-width="0.5"/>
+<text x="520" y="238" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">DINOv3 (v4) / DINOv2 (v1)</text>
+<text x="520" y="254" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">self-distilled vision</text>
+<rect x="412" y="276" width="216" height="50" fill="#FBE9CE" opacity="0.8" stroke="#B8651A" stroke-width="0.5"/>
+<text x="520" y="298" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">SAM3 (v4) / SAM (v1)</text>
+<text x="520" y="314" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">segmentation-shaped</text>
+<line x1="280" y1="183" x2="398" y2="166" stroke="#1A1A1A" stroke-width="1" marker-end="url(#ar9)"/>
+<text x="338" y="160" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">L_summary</text>
+<line x1="280" y1="183" x2="398" y2="240" stroke="#1A1A1A" stroke-width="1" marker-end="url(#ar9)"/>
+<text x="338" y="226" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">L_spatial</text>
+<rect x="60" y="260" width="240" height="22" fill="none" stroke="#9333EA" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="180" y="276" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#9333EA">+ MESA: student vs student-EMA on shifted x</text>
+<rect x="60" y="300" width="580" height="120" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="80" y="322" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.2">C-RADIOv4 DELTAS vs ORIGINAL AM-RADIO</text>
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+<text x="80" y="346">• L_summary: angular-cone normalization L_angle = Θ(x,y)² / Disp(Θ_y) (replaces cosine in v1)</text>
+<text x="80" y="370">• L_spatial: PHI-S-normalized squared error (replaces α·cos + β·smooth-L1 in v1)</text>
+<text x="80" y="394">• MESA regularizer: shift-equivariant student vs student-EMA term (new in v4)</text>
+</g>
+</svg>
+<figcaption><strong>Fig 9.</strong> [AM-RADIO](https://arxiv.org/abs/2312.06709) base architecture. The student is a ViT trained to match a frozen ensemble of pretrained teachers on both summary (CLS-shaped) and spatial (per-patch) outputs. There is no SSL auxiliary loss on the student; the only training signal is teacher activations. [C-RADIOv4](https://arxiv.org/abs/2601.17237) keeps the student-and-teachers shape but rewrites both losses (angular-cone for summary, [PHI-S](https://arxiv.org/abs/2410.01680)-normalized squared error for spatial) and adds a MESA shift-equivariant regularizer where the student matches its own EMA on a shifted crop.</figcaption>
+</figure>
 
 The categorical observation across the line is this: multi-teacher distillation occupies a different position in the SSL recipe taxonomy than the prior recipes. Supervision shape is external: the labels are another model's activations, not a pretext task on corrupted or multi-view inputs of the unlabeled corpus. This isn't "RADIO is not SSL"; it's a different *kind* of self-supervision, where the label-source is a foundation-model checkpoint rather than a transformation of the input. The student needs no labeled data, but it needs working teachers.
 
