@@ -186,5 +186,25 @@ For the construction-document practitioner deciding whether to use a self-distil
 
 {/* Reader can now: name the two failure modes of long-trained self-distillation (artifact tokens, patch-locality decay) and what fixes them (registers, Gram anchoring); see DINOv3 ADE20K 63.0 as the highest published frozen-backbone dense number; understand that the failure modes are reported on natural images, with the construction-document version unmeasured but plausible; anticipate §9 (JEPA framing as a third bet). */}
 
-{/* TODO: §9: JEPA family */}
+### 9. JEPA: predicting in latent space
+
+§8 closed on DINOv3 as the most engineered-against-collapse self-distillation recipe currently published. The JEPA family takes a different bet. Pixel reconstruction wastes capacity on appearance detail (§4); self-distillation needs collapse-fix engineering at scale (§8). What if you skip both and predict the encoder's own latent features at held-out positions instead?
+
+Take the construction sheet. Pick a context block (some contiguous region of patches). Pick several target blocks (other regions, randomly chosen). Run the context block through a context encoder. Run the original full image through a target encoder, which is an EMA of the context encoder. The training task is for a small predictor module to take the context-encoder output and predict the target-encoder's features at the target-block positions. The prediction loss is MSE in feature space; nothing is reconstructed in pixel or token space.
+
+That's [I-JEPA](https://arxiv.org/abs/2301.08243). The recipe trades the masked-prediction-on-pixels framing for masked-prediction-on-features, and explicitly argues that learning to predict in latent space sheds detail the model doesn't need: "JEPAs do not seek representations invariant to a set of hand-crafted data augmentations, but instead seek representations that are predictive of each other." And: "by predicting in representation space, I-JEPA produces semantic representations while using less compute." The paper backs the latent-space bet with an ablation: the same recipe with pixel-space prediction "leads to a significant degradation in the linear probing performance."
+
+{/* TODO: Fig 8: JEPAvsMAE, side-by-side of MAE pixel prediction and I-JEPA latent prediction on the sheet */}
+
+The compute story is real. I-JEPA's headline is that "a huge I-JEPA model (ViT-H/14) requires less compute than a small iBOT model (ViT-S/16)." On dense-prediction transfer, the picture is partial. I-JEPA reports ImageNet linear probes (ViT-H/14 79.3%, ViT-H/16₄₄₈ 81.1%) and Clevr/Count + Clevr/Dist for spatial-reasoning evaluation (Clevr/Count 86.7, Clevr/Dist 72.4 vs DINO ViT-B/8 53.4 and iBOT ViT-L/16 62.8). But ADE20K mIoU is not in the paper's evaluation set. There is no published I-JEPA dense-segmentation transfer number to compare against MAE 53.6 or DINOv3 63.0.
+
+[V-JEPA](https://arxiv.org/abs/2404.08471) extends the framing to video: spatiotemporal feature prediction across video clips. Headline numbers are video-only (Kinetics-400 81.9%, SSv2 72.2%) plus an ImageNet attentive probe (77.9%) from video-only pretraining. [V-JEPA 2](https://arxiv.org/abs/2506.09985) is a two-phase recipe: phase 1 mask-denoising feature prediction on VideoMix22M (~22M video samples covering >1M hours) plus 1M ImageNet, phase 2 action-conditioned post-training on 62 hours of robot videos. Headline: ImageNet attentive probe 85.1% at ViT-g384. Neither V-JEPA nor V-JEPA 2 reports image dense-prediction transfer. The evaluation sets confine to video classification (Kinetics, SSv2, AVA) and image classification.
+
+For the construction-document practitioner, the JEPA family is a recipe shape with a clean theoretical case but no published evidence for dense-prediction transfer on images, let alone construction documents. The bet that latent-space prediction sidesteps pixel-target waste is plausible and partly backed by the I-JEPA pixel-vs-latent ablation; whether that translates to higher segmentation transfer than self-distillation does is an empirical question nobody in the JEPA line has measured. Picking JEPA as a starting recipe for construction-document segmentation means running the experiment yourself.
+
+§10 leaves SSL-as-pretext-task altogether. Multi-teacher distillation trains a student to imitate a fixed ensemble of foundation models; there's no masked-prediction loss, no augmentation invariance, no latent-space prediction. The supervision shape is categorically different.
+
+{/* Reader can now: state the JEPA recipe (context encoder + predictor + EMA target encoder; MSE loss in feature space at target-block positions); see I-JEPA's pixel-vs-latent ablation as the published case for the latent-space bet; recognize that I-JEPA / V-JEPA / V-JEPA 2 publish no image dense-prediction transfer; understand picking JEPA for construction-document segmentation means running the experiment yourself; anticipate §10 (multi-teacher distillation as a categorically different supervision shape). */}
+
+{/* TODO: §10: Multi-teacher distillation (RADIO line) */}
 {/* TODO: §12–§15: Act 3 + coda */}
