@@ -137,3 +137,32 @@ Gate 2 run 2’s DINOv3 “zero-shot,” Lahrichi over-ranking, and C-RADIOv4/ab
 
 2026-05-05T05:52:52.184484Z ERROR codex_core::session: failed to record rollout items: thread 019df6b0-bf73-7100-adb2-fa0a1e045db3 not found
 tokens used
+
+---
+
+## Gate 2 run 4 (2026-05-04 — Vic-authorized cap extension, deep research mode)
+
+codex
+Found structural issues. I would not ship yet.
+
+**Findings**
+
+1. **STRUCTURAL — Fig 12 puts a continual-pretraining result in the “from-scratch SSL” column.**  
+   In [src/content/blog/ssl-pretraining-recipes/index.mdx](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:1796), the satellite row’s `FROM-SCRATCH SSL / no natural-image init` cell says `MAE-IN→GN ≥ MAE-GN on 5/6`. But Lahrichi defines `MAE-IN-GN` as ImageNet pretraining followed by GeoNet pretraining, i.e. a two-stage continual-from-natural setup, not from-scratch domain SSL. Source: Lahrichi §7.2 says they pretrained with MAE on ImageNet, then on GeoNet, and call it `MAE-IN-GN`; the 5/6 modest advantage is explicitly against `MAE-GN` ([ar5iv L174-L175](https://ar5iv.org/html/2502.10669v1)).  
+   Fix: move this to the continual-SSL column, or change the from-scratch cell to “GeoNet-only pretraining tested; no consistent advantage over ImageNet.”
+
+2. **STRUCTURAL — Lahrichi is repeatedly described as six segmentation benchmarks, but the paper uses six downstream tasks, only four of which are segmentation.**  
+   [index.mdx:1728](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:1728) says Lahrichi evaluates “across six segmentation benchmarks.” The source’s Table 1 lists SEN12MS, DeepGlobe, Field Delineation, and LandCoverNet as segmentation, but BigEarthNet is multi-label classification and EuroSAT is multi-class classification ([ar5iv L73-L79](https://ar5iv.org/html/2502.10669v1)). The same overstatement appears in the matrix row 32 notes.  
+   Fix: say “six downstream RS tasks, including four segmentation tasks,” or narrow the claim where the prose specifically needs dense-prediction evidence.
+
+3. **STRUCTURAL — The Lahrichi synthesis overstates “segmentation” support for the decision-tree conclusion.**  
+   [index.mdx:1827](/Users/vic/dev/augusteo.com-astro/src/content/blog/ssl-pretraining-recipes/index.mdx:1827) uses Lahrichi as “direct head-to-head evidence” for the two-stage continual-from-natural result in a paragraph about domain-adaptive SSL and dense tasks. The two-stage 5/6 result is real, but because the six tasks include two classification tasks, it should not be presented as a clean dense-prediction / segmentation-only verdict.  
+   Fix: keep the two-stage claim, but qualify it as “across six RS downstream tasks” and avoid using it alone as segmentation-only evidence.
+
+**Spot checks that looked clean**
+
+The quoted MAE limitation matches the CVF paper text, including the “recorded light” / “semantic segment” wording ([CVF page](https://openaccess.thecvf.com/content/CVPR2022/papers/He_Masked_Autoencoders_Are_Scalable_Vision_Learners_CVPR_2022_paper)). DINOv3 satellite numbers match Table 19: LoveDA 56.2, iSAID 71.4, DIOR 80.5 ([ar5iv L811-L819](https://ar5iv.org/html/2508.10104v1)). C-RADIOv4’s 55.20 at 512px matches Table 2 ([ar5iv L52-L56](https://ar5iv.org/html/2601.17237v1)), and the MESA / PHI-S / angular-summary description matches the C-RADIOv4 paper sections ([ar5iv L73-L97](https://ar5iv.org/html/2601.17237v1)).
+
+
+2026-05-05T06:02:54.169377Z ERROR codex_core::session: failed to record rollout items: thread 019df6b8-80b0-7732-9d35-0cf01136cd46 not found
+tokens used
