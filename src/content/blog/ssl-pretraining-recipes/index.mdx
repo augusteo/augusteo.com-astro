@@ -102,7 +102,54 @@ The construction sheet helped frame §4's open question, but the next question i
 
 Read the curves left to right. Early blocks are doing what every encoder does: learning low-level structure. Middle blocks are doing what segmentation downstream actually wants: forming patch-level abstractions that separate objects. Late blocks are doing what the loss function asks for: collapsing the patch features back into something the small decoder can reconstruct pixels from. The reconstruction objective rewards the model for *forgetting* high-level structure in the late layers, because a reconstruction-friendly representation is closer to a pixel-friendly one than a segmentation-friendly one.
 
-{/* TODO: Fig 4: MIMBlockRegime, k-NN accuracy + reconstruction loss vs layer index, line chart with two curves and three regimes shaded */}
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<rect x="60" y="60" width="187" height="200" fill="#F4EEE3" opacity="0.55"/>
+<rect x="247" y="60" width="186" height="200" fill="#EDE5D4" opacity="0.6"/>
+<rect x="433" y="60" width="187" height="200" fill="#C9BEAA" opacity="0.32"/>
+<line x1="247" y1="60" x2="247" y2="260" stroke="#8F8578" stroke-width="0.5" stroke-dasharray="2,3"/>
+<line x1="433" y1="60" x2="433" y2="260" stroke="#8F8578" stroke-width="0.5" stroke-dasharray="2,3"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle" letter-spacing="1.2">
+<text x="153" y="44">EARLY</text>
+<text x="340" y="44">MIDDLE</text>
+<text x="527" y="44">LATE</text>
+</g>
+<g font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">
+<text x="153" y="58">general features</text>
+<text x="340" y="58">abstractions form</text>
+<text x="527" y="58">prep for reconstruction</text>
+</g>
+<line x1="60" y1="260" x2="620" y2="260" stroke="#8F8578"/>
+<line x1="60" y1="260" x2="60" y2="60" stroke="#8F8578"/>
+<g stroke="#C9BEAA" stroke-width=".5" stroke-dasharray="2,3">
+<line x1="60" y1="120" x2="620" y2="120"/>
+<line x1="60" y1="180" x2="620" y2="180"/>
+</g>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+<text x="60" y="278">0</text>
+<text x="153" y="278">4</text>
+<text x="247" y="278">8</text>
+<text x="340" y="278">12</text>
+<text x="433" y="278">16</text>
+<text x="527" y="278">20</text>
+<text x="620" y="278">24</text>
+<text x="340" y="298" font-size="11">block index</text>
+</g>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.2">
+<text x="50" y="68" text-anchor="end">HIGH</text>
+<text x="50" y="262" text-anchor="end">LOW</text>
+</g>
+<path d="M60,228 Q120,200 153,170 Q200,128 247,108 Q310,82 350,80 Q400,84 433,102 Q490,142 527,172 Q580,196 620,212" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+<path d="M60,75 Q150,100 247,135 Q340,160 396,170 Q450,182 490,190 Q540,205 620,222" fill="none" stroke="#B8651A" stroke-width="2.5"/>
+<g font-family="serif" font-size="12" font-style="italic">
+<text x="350" y="100" fill="#2563EB" text-anchor="middle">k-NN accuracy</text>
+<line x1="350" y1="86" x2="350" y2="80" stroke="#2563EB" stroke-width=".8"/>
+<text x="500" y="155" fill="#B8651A" text-anchor="middle">reconstruction loss</text>
+<line x1="500" y1="161" x2="495" y2="186" stroke="#B8651A" stroke-width=".8"/>
+</g>
+</svg>
+<figcaption><strong>Fig 4.</strong> [MIM-Refiner](https://arxiv.org/abs/2402.10093) measured k-NN accuracy and reconstruction loss at every encoder block of a ViT-L pretrained with MAE on ImageNet. Three regimes emerge along block depth. Early blocks improve both metrics. Middle blocks form abstractions: k-NN accuracy keeps rising while reconstruction loss flattens. Late blocks specialize for the reconstruction task: reconstruction loss drops faster while k-NN accuracy <em>declines</em>. The two curves are on different y-scales in the source paper; this figure shows the qualitative shape.</figcaption>
+</figure>
 
 The MIM-Refiner authors put it more bluntly: "as models increase in size, the decoder eventually reaches a point where it cannot further improve the pre-training objective on its own. Consequently, it begins to delegate a portion of the reconstruction task back to the last encoder blocks. This transfer adversely affects the feature quality for downstream tasks associated with those blocks." The bigger the model, the more aggressively the loss specializes the late blocks against your downstream task.
 
