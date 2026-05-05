@@ -884,10 +884,7 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 **Phases 5 and 6 COMPLETE.** All 13 figures landed; all 13 passed playwright visual review (after one round of fixes for layout overlaps).
 
-**Two new SVG-author lessons from Phase 6 (worth tracking for future posts):**
-
-4. **Z-order matters when figures stack panels.** A panel drawn AFTER a sub-element will cover it. Always check that no later `<rect>` overlaps an earlier element's bounding box. Fig 9 had this exact bug (deltas panel covered the bottom of the SAM3 teacher box).
-5. **Text labels in side-by-side panels need width budgeting.** If two italic labels are positioned at adjacent center-x's, compute their pixel widths against the available gap before committing. Font-size 10 italic serif is roughly 4–4.5 px/char. Fig 6 and Fig 11 both had label overlap from violating this.
+Two new SVG-author lessons from Phase 6 are folded into Hard rules #14 and #15 below; both `bun run build` and voice-check pass without catching them, so they have to live in this tracker until promoted to the skill.
 
 **Phase 7 — pre-ship freshness pass + Gate 2 + hero handoff + ship — is next.**
 
@@ -905,9 +902,10 @@ Phase 7 runner per the skill:
 
 1. Read this file end-to-end. Spec / Throughline / Research notes / Claim-source matrix / Outline / Codex review sections carry every locked-in choice.
 2. Run resume-mode migration if any v2 sections are missing.
-3. `git log --oneline | head -30` to see commits since the spec commit.
-4. `grep -n TODO src/content/blog/ssl-pretraining-recipes/index.mdx` for remaining placeholders. (No MDX yet — created in Phase 4.)
-5. Pick the next batch above; implement, voice-check, commit, update this tracker.
+3. `git log --oneline | head -30` to see commits since the spec commit. Most recent: tracker update for Phase 6 done; before that, commit `2f9467f` with the Phase 6 fixes.
+4. `grep -n TODO src/content/blog/ssl-pretraining-recipes/index.mdx` to verify zero figure placeholders remain (should return 1 hit on `heroAlt: "TODO: hero image not yet selected"` until Phase 7 hero hand-off).
+5. Pick the next batch above. As of last touch: Phase 7 runner steps 1–7 (freshness re-check → pubDate update → Gate 2 → voice-check → hero hand-off → verify → ship commit).
+6. Walk each figure at `http://localhost:4321/blog/ssl-pretraining-recipes` if you want to spot-check the Phase 6 fixes (Figs 6, 9, 10, 11, 12 were the ones touched).
 
 ### Hard rules to keep applying
 
@@ -924,3 +922,5 @@ Phase 7 runner per the skill:
 11. **`bun run build` must pass before any prose commit lands.** Codex caught a P1 MDX build blocker post-Phase-4 (`{u∈Ω}` JSX-parse failure on the §10 RADIO equations). Going forward: when writing math in MDX, **never use bare `{...}` inside body prose** — MDX parses them as JSX expressions and any non-JS character (∈, →, Ω, ŷ, …) breaks the build. Use parens for math grouping, or wrap the whole equation in a fenced code block. Voice-check alone does not catch this; only `bun run build` does.
 12. **SVG content is voice-checked too.** Em-dashes (U+2014) inside SVG `<text>` content fail voice-check the same way as prose em-dashes. Use mid-dot `·` as the in-figure separator. Voice-check finds these even when they're deep inside `<svg>` blocks because it does line-based grep, not MDX-AST.
 13. **Inline `<g ...><text>` on a single line breaks the MDX parser.** Always put `<g ...>` on its own line, then `<text>` children on subsequent lines. Otherwise MDX treats the inline `<text>` as paragraph content and reports `Expected a closing tag for <g>`.
+14. **Z-order matters when figures stack panels.** SVG draws elements in document order; a panel drawn AFTER a sub-element will cover it. Always check that no later `<rect>` overlaps an earlier element's bounding box. Fig 9 had exactly this bug (deltas panel at y=300-420 covered the bottom of the SAM3 teacher sub-box at y=276-326). Both `bun run build` and voice-check pass with this kind of overlap; only playwright catches it.
+15. **Text labels in side-by-side panels need width budgeting.** If two italic labels are positioned at adjacent center-x's, compute their pixel widths against the available gap BEFORE committing. Font-size 10 italic serif is roughly 4–4.5 px/char; font-size 8 is ~3.5 px/char. Both Fig 6 (iBOT row) and Fig 11 (bin headers) had label overlap from violating this; Fig 11 was fixed by switching to 2-line stacked descriptors at smaller font.
