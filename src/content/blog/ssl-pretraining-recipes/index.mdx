@@ -48,6 +48,27 @@ Three factors route your starting-point recipe choice in act 3. *Corpus scale*: 
 {/* Reader can now: distinguish CLS-token quality from dense-feature quality, see why ImageNet linear-probe percentages don't translate to segmentation transfer, and anticipate the three routing factors (corpus scale, domain distance, task density) the post returns to in act 3. */}
 
 {/* TODO: §3: The question we can't answer head-on */}
-{/* TODO: §3: The question we can't answer head-on */}
+### 3. The question we can't answer head-on
+
+There is no canonical bake-off for construction-document SSL. Adjacent domains have published comparisons; construction documents do not. Before the post walks through recipe families, you need to see exactly what's measured and what isn't.
+
+Satellite imagery has the most evidence. [DINOv3 §8.3](https://arxiv.org/abs/2508.10104) reports that DINOv3 Web ViT-7B (frozen, no satellite-specific fine-tune) sets state-of-the-art on LoveDA (56.2 mIoU) and DIOR (80.5 mAP), beating both DINOv3's own SAT-493M satellite specialization and prior satellite-specialized models on those benchmarks. iSAID is a hedge: DINOv3 Web 71.4 < SkySense V2 71.9. The headline is that natural-image self-distillation at scale transfers cleanly to satellite without a satellite-specific recipe.
+
+[Lahrichi 2025](https://arxiv.org/abs/2502.10669) ran the head-to-head you'd actually want to see. The authors pretrained MAE and SwAV on GeoNet (a satellite corpus) versus ImageNet, then evaluated across six segmentation benchmarks. The conclusion: "no consistent advantage to pre-training with GeoNet as compared to ImageNet, regardless of whether SwAV or MAE was used." Two-stage MAE-IN→GN beats from-scratch MAE-GN on five of six benchmarks, with a modest 1–2% advantage. On satellite, ImageNet pretraining is at minimum competitive with domain pretraining; sometimes better.
+
+[GLARE 2026](https://arxiv.org/abs/2509.17816) measures continual pretraining specifically. Starting from a UDI-initialized natural-image-SSL checkpoint, GLARE trains an adapter via SSL on top and reports modest +0.2 to +0.6 mIoU gains over UDI alone across natural and satellite segmentation benchmarks (ADE20K 41.2→41.6, Pascal Context 49.1→49.3, Cityscapes 74.7→75.3, LoveDA 50.9→51.5). So the "continue pretraining on top of a natural-image checkpoint" recipe is documented to help, modestly, on the domains GLARE evaluates.
+
+3D medical imaging has its own story. [Medical 3D MAE](https://arxiv.org/abs/2410.23132) ran MAE on 39,168 unlabeled MRI volumes inside an nnU-Net architecture and reports +1.97 DSC over a no-pretraining nnU-Net baseline. The medical paper does not compare against continual SSL on a natural-image checkpoint, so the head-to-head against the natural-image-init recipe is absent. What you have is "from-scratch MAE on 39k medical volumes beats no pretraining."
+
+Documents have [DiT](https://arxiv.org/abs/2203.02378). DiT runs BEiT-style MIM on IIT-CDIP (42M document images) and reports gains on PubLayNet layout detection (91.0→94.9 mAP), ICDAR cTDaR table detection (94.23→96.55 F1), and RVL-CDIP document classification (91.11→92.69%). The downstream tasks are layout, table, classification. Not vision-only segmentation on line-art. DiT's "documents" are scanned reports and forms, text-heavy and layout-driven. Construction documents share the scanned, mostly-empty-paper surface texture but the dense task is different.
+
+Construction-document line-art is not in any of these comparisons. None of the canonical SSL papers (MAE, BEiT family, MaskFeat, data2vec, MIM-Refiner, DINO line, JEPA family, AIM/AIMv2, AM-RADIO/RADIOv2.5/C-RADIOv4) report transfer to construction documents. None of the domain-adaptive papers (DiT, Medical 3D MAE, the satellite line) measure construction-document line-art either. The closest published surface texture is DiT's document corpus, but its dense task is layout / table detection on text-heavy documents, not segmentation on line-art floor plans.
+
+This is the open question the post explores, and it's the reason act 3's deliverable is a routing-questions tree rather than a measured ranking. For domain shapes with published evidence (satellite, medical, document-layout), the tree's terminals point at specific recipes the literature backs. For construction-document line-art, the tree's terminal is "start from DINOv3 frozen probe; whether continual pretraining on top helps is an experiment you'd run, not a recipe with published numbers." A practitioner working on construction documents is at the frontier of what published SSL has measured.
+
+Act 2 walks each recipe family across the construction sheet. For each family it asks the same three questions: what signal does the recipe extract from a sheet like this; where does that signal break down on whitespace-heavy line-art; what do the published dense-prediction numbers say. The construction sheet stays in view through every recipe section. The closing routing-questions tree in act 3 routes you to the leaf that fits your data shape.
+
+{/* Reader can now: see exactly which adjacent domains have published bake-offs (satellite, medical, document-layout) and which don't (construction-document line-art); understand why act 3 is a routing-questions tree rather than a measured ranking; anticipate the three-question framing for each act-2 recipe section. */}
+
 {/* TODO: §4–§11: Act 2 recipe rungs */}
 {/* TODO: §12–§15: Act 3 + coda */}
