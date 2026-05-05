@@ -707,7 +707,140 @@ A note on what kind of tree this is. The three axes (corpus scale, domain distan
 
 Treat the tree as descriptive guidance, not prescriptive truth. It's a way to organize the published evidence into a routing map.
 
-{/* TODO: Fig 13: DecisionTree, static-SVG routing tree. Three top-level qualitative branches (corpus scale / domain distance / task density) plus the teacher-availability gate. Each leaf labeled with (i) starting point quoting the matrix row, (ii) experiment-vs-evidence flag, (iii) named matrix row that justifies the starting point under that domain's published protocol, (iv) per-leaf baseline disclaimer. All four labeled terminals explicit (construction-document, satellite, medical, document-corpus). */}
+<figure>
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.4">FOUR ROUTING DESTINATIONS</text>
+<text x="340" y="38" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">descriptive synthesis, not prescriptive ranking · per-leaf baselines differ</text>
+<text x="340" y="54" font-family="serif" font-size="11" fill="#6B6258" text-anchor="middle">practitioner answers: corpus scale · domain distance from natural images · downstream task density</text>
+<line x1="40" y1="64" x2="640" y2="64" stroke="#8F8578" stroke-width="0.8"/>
+<g>
+<rect x="14" y="74" width="158" height="338" fill="#F9F5EB" stroke="#C9BEAA"/>
+<rect x="14" y="74" width="158" height="34" fill="#FBE9CE" stroke="#C9BEAA"/>
+<text x="93" y="92" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#1A1A1A" text-anchor="middle">CONSTRUCTION</text>
+<text x="93" y="104" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">document line-art</text>
+<line x1="14" y1="108" x2="172" y2="108" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="22" y="124" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">STARTING POINT</text>
+<text x="22" y="140" font-family="serif" font-size="11" fill="#1A1A1A">DINOv3 frozen probe</text>
+<text x="22" y="154" font-family="serif" font-size="10" fill="#6B6258">ADE20K mIoU 63.0</text>
+<text x="22" y="166" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">at frozen ViT-7B</text>
+<text x="22" y="178" font-family="JetBrains Mono" font-size="9" fill="#6B6258">matrix row 18</text>
+<line x1="14" y1="186" x2="172" y2="186" stroke="#C9BEAA" stroke-width="0.5"/>
+<rect x="22" y="194" width="142" height="20" fill="#B91C1C" opacity="0.85"/>
+<text x="93" y="208" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.2">EXPERIMENT</text>
+<text x="22" y="226" font-family="serif" font-size="10" fill="#1A1A1A">No measured bake-off.</text>
+<text x="22" y="238" font-family="serif" font-size="10" fill="#1A1A1A">A/B continual-pretraining</text>
+<text x="22" y="250" font-family="serif" font-size="10" fill="#1A1A1A">on top is what the</text>
+<text x="22" y="262" font-family="serif" font-size="10" fill="#1A1A1A">practitioner runs.</text>
+<line x1="14" y1="270" x2="172" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="22" y="286" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">PER-LEAF BASELINE</text>
+<text x="22" y="302" font-family="serif" font-size="10" fill="#1A1A1A">ViT-7B frozen + DINOv3</text>
+<text x="22" y="314" font-family="serif" font-size="10" fill="#1A1A1A">segmentation head.</text>
+<text x="22" y="328" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Cross-leaf comparison</text>
+<text x="22" y="340" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">to leaves 2–4 not</text>
+<text x="22" y="352" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">supported.</text>
+<text x="22" y="380" font-family="serif" font-size="10" fill="#1A1A1A">Row 32 (Lahrichi /</text>
+<text x="22" y="392" font-family="serif" font-size="10" fill="#1A1A1A">GLARE) backs the</text>
+<text x="22" y="404" font-family="serif" font-size="10" fill="#1A1A1A">absence; nothing for</text>
+<text x="22" y="416" font-family="serif" font-size="10" fill="#1A1A1A">construction docs.</text>
+</g>
+<g>
+<rect x="178" y="74" width="158" height="338" fill="#F9F5EB" stroke="#C9BEAA"/>
+<rect x="178" y="74" width="158" height="34" fill="#D1FAE5" stroke="#C9BEAA"/>
+<text x="257" y="92" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#1A1A1A" text-anchor="middle">SATELLITE</text>
+<text x="257" y="104" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">aerial / earth-obs imagery</text>
+<line x1="178" y1="108" x2="336" y2="108" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="186" y="124" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">STARTING POINT</text>
+<text x="186" y="140" font-family="serif" font-size="11" fill="#1A1A1A">DINOv3 Web ViT-7B</text>
+<text x="186" y="152" font-family="serif" font-size="11" fill="#1A1A1A">frozen</text>
+<text x="186" y="166" font-family="serif" font-size="10" fill="#6B6258">LoveDA 56.2 SOTA,</text>
+<text x="186" y="178" font-family="serif" font-size="10" fill="#6B6258">DIOR 80.5 SOTA</text>
+<line x1="178" y1="186" x2="336" y2="186" stroke="#C9BEAA" stroke-width="0.5"/>
+<rect x="186" y="194" width="142" height="20" fill="#15803D" opacity="0.85"/>
+<text x="257" y="208" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.2">PUBLISHED EVIDENCE</text>
+<text x="186" y="226" font-family="serif" font-size="10" fill="#1A1A1A">Optional adapter-based</text>
+<text x="186" y="238" font-family="serif" font-size="10" fill="#1A1A1A">continual SSL on top:</text>
+<text x="186" y="250" font-family="serif" font-size="10" fill="#1A1A1A">+0.2 to +0.6 mIoU</text>
+<text x="186" y="262" font-family="serif" font-size="10" fill="#6B6258">(GLARE; row 32).</text>
+<line x1="178" y1="270" x2="336" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="186" y="286" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">PER-LEAF BASELINE</text>
+<text x="186" y="302" font-family="serif" font-size="10" fill="#1A1A1A">Starting-point: ViT-7B</text>
+<text x="186" y="314" font-family="serif" font-size="10" fill="#1A1A1A">frozen, DINOv3 head.</text>
+<text x="186" y="328" font-family="serif" font-size="10" fill="#1A1A1A">Continuation: ViT-S/16</text>
+<text x="186" y="340" font-family="serif" font-size="10" fill="#1A1A1A">adapter on UDI.</text>
+<text x="186" y="354" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Two protocols within</text>
+<text x="186" y="366" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">one leaf.</text>
+<text x="186" y="384" font-family="serif" font-size="10" fill="#1A1A1A">Lahrichi 2025: from-</text>
+<text x="186" y="396" font-family="serif" font-size="10" fill="#1A1A1A">scratch GeoNet shows no</text>
+<text x="186" y="408" font-family="serif" font-size="10" fill="#1A1A1A">consistent advantage.</text>
+</g>
+<g>
+<rect x="342" y="74" width="158" height="338" fill="#F9F5EB" stroke="#C9BEAA"/>
+<rect x="342" y="74" width="158" height="34" fill="#DBEAFE" stroke="#C9BEAA"/>
+<text x="421" y="92" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#1A1A1A" text-anchor="middle">MEDICAL 3D</text>
+<text x="421" y="104" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">MRI / volumetric scans</text>
+<line x1="342" y1="108" x2="500" y2="108" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="350" y="124" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">STARTING POINT</text>
+<text x="350" y="140" font-family="serif" font-size="11" fill="#1A1A1A">From-scratch 3D MAE</text>
+<text x="350" y="152" font-family="serif" font-size="11" fill="#1A1A1A">on the domain corpus</text>
+<text x="350" y="166" font-family="serif" font-size="10" fill="#6B6258">+1.97 DSC over no-</text>
+<text x="350" y="178" font-family="serif" font-size="10" fill="#6B6258">pretrain (row 30)</text>
+<line x1="342" y1="186" x2="500" y2="186" stroke="#C9BEAA" stroke-width="0.5"/>
+<rect x="350" y="194" width="71" height="20" fill="#15803D" opacity="0.85"/>
+<rect x="421" y="194" width="71" height="20" fill="#B91C1C" opacity="0.85"/>
+<text x="385" y="208" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">EVIDENCE</text>
+<text x="457" y="208" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">EXPERIMENT</text>
+<text x="350" y="226" font-family="serif" font-size="10" fill="#1A1A1A">Evidence: vs no-</text>
+<text x="350" y="238" font-family="serif" font-size="10" fill="#1A1A1A">pretrain nnU-Net.</text>
+<text x="350" y="250" font-family="serif" font-size="10" fill="#1A1A1A">Experiment: vs</text>
+<text x="350" y="262" font-family="serif" font-size="10" fill="#1A1A1A">continual-from-natural</text>
+<text x="350" y="274" font-family="serif" font-size="10" fill="#1A1A1A">(unpublished).</text>
+<line x1="342" y1="280" x2="500" y2="280" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="350" y="296" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">PER-LEAF BASELINE</text>
+<text x="350" y="312" font-family="serif" font-size="10" fill="#1A1A1A">3D Residual Encoder</text>
+<text x="350" y="324" font-family="serif" font-size="10" fill="#1A1A1A">U-Net inside nnU-Net,</text>
+<text x="350" y="336" font-family="serif" font-size="10" fill="#1A1A1A">DSC vs no-pretrain.</text>
+<text x="350" y="354" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Not a ViT frozen probe.</text>
+<text x="350" y="366" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Cross-leaf comparison</text>
+<text x="350" y="378" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">not supported.</text>
+</g>
+<g>
+<rect x="506" y="74" width="158" height="338" fill="#F9F5EB" stroke="#C9BEAA"/>
+<rect x="506" y="74" width="158" height="34" fill="#FBE9CE" stroke="#C9BEAA"/>
+<text x="585" y="92" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#1A1A1A" text-anchor="middle">DOC CORPUS</text>
+<text x="585" y="104" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">scanned reports / forms</text>
+<line x1="506" y1="108" x2="664" y2="108" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="514" y="124" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">STARTING POINT</text>
+<text x="514" y="140" font-family="serif" font-size="11" fill="#1A1A1A">DiT, BEiT-style on</text>
+<text x="514" y="152" font-family="serif" font-size="11" fill="#1A1A1A">42M IIT-CDIP corpus</text>
+<text x="514" y="166" font-family="serif" font-size="10" fill="#6B6258">PubLayNet 91.0→94.9,</text>
+<text x="514" y="178" font-family="serif" font-size="10" fill="#6B6258">cTDaR 94.23→96.55</text>
+<line x1="506" y1="186" x2="664" y2="186" stroke="#C9BEAA" stroke-width="0.5"/>
+<rect x="514" y="194" width="142" height="20" fill="#15803D" opacity="0.85"/>
+<text x="585" y="208" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.2">PUBLISHED EVIDENCE</text>
+<text x="514" y="226" font-family="serif" font-size="10" fill="#1A1A1A">From-scratch domain</text>
+<text x="514" y="238" font-family="serif" font-size="10" fill="#1A1A1A">SSL at 42M corpus,</text>
+<text x="514" y="250" font-family="serif" font-size="10" fill="#1A1A1A">document-layout tasks</text>
+<text x="514" y="262" font-family="serif" font-size="10" fill="#1A1A1A">specifically.</text>
+<line x1="506" y1="270" x2="664" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="514" y="286" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">PER-LEAF BASELINE</text>
+<text x="514" y="302" font-family="serif" font-size="10" fill="#1A1A1A">BEiT-style MIM, 42M</text>
+<text x="514" y="314" font-family="serif" font-size="10" fill="#1A1A1A">documents. Evaluation</text>
+<text x="514" y="326" font-family="serif" font-size="10" fill="#1A1A1A">mixes layout / table /</text>
+<text x="514" y="338" font-family="serif" font-size="10" fill="#1A1A1A">classification deltas.</text>
+<text x="514" y="356" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Construction-sheet</text>
+<text x="514" y="368" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">line-art routes to</text>
+<text x="514" y="380" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">leaf 1, NOT this leaf.</text>
+</g>
+<line x1="40" y1="424" x2="640" y2="424" stroke="#8F8578" stroke-width="0.5" stroke-dasharray="3,3"/>
+<text x="340" y="442" font-family="JetBrains Mono" font-size="11" fill="#9333EA" text-anchor="middle" letter-spacing="1.4" font-weight="700">MULTI-TEACHER GATE · parallel to all four leaves</text>
+<text x="340" y="460" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">If working teacher checkpoints exist on your domain (CLIP fine-tuned on your corpus,</text>
+<text x="340" y="476" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">DINOv2-style continued-pretrained, or similar), RADIO-line distillation is a recipe</text>
+<text x="340" y="492" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">(matrix rows 23–28, 35, 36). If you don't, fall back to whichever leaf above your</text>
+<text x="340" y="508" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">data shape routes to. Teacher availability is binary practitioner access, not a</text>
+<text x="340" y="524" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">domain-shape axis; the post does not assert any absence claim about teachers.</text>
+</svg>
+<figcaption><strong>Fig 13.</strong> The four leaves and the parallel teacher-availability gate. Each leaf names a starting point under that domain's published protocol, an explicit experiment-vs-evidence flag, and a per-leaf baseline disclaimer. The four leaves are <em>not</em> four comparable points on a single decision surface; they are four routing destinations whose evidence is intra-domain. Construction-document line-art routes to leaf 1 with the experiment flag, not to leaf 4.</figcaption>
+</figure>
 
 The four leaves:
 
