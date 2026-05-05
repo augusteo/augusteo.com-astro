@@ -224,7 +224,7 @@ There is no SSL auxiliary loss on the student. The entire training signal is "ma
 
 [C-RADIOv4](https://arxiv.org/abs/2601.17237) is the most recent step in the line. The teachers shifted to the current SOTA: SigLIP2, DINOv3, SAM3. The loss formulations changed too. Spatial loss is now squared error against PHI-S-normalized teacher outputs (per the paper's Equation 1, §2.3.1):
 
-> L_spatial(x, ŷ) = (1/|Ω|) Σ_{u∈Ω} (𝓕_{S→T}[x]_u − ŷ_u)²
+> L_spatial(x, ŷ) = (1/|Ω|) Σ_(u∈Ω) (𝓕_(S→T)[x]_u − ŷ_u)²
 
 Cosine distance is explicitly dropped from the summary loss in favor of an angular-cone-normalized formulation:
 
@@ -232,7 +232,7 @@ Cosine distance is explicitly dropped from the summary loss in favor of an angul
 
 C-RADIOv4 also adds MESA, a shift-equivariant regularizer where the student matches its own EMA on a shifted crop of the same image:
 
-> L_mesa(x, x̃) = (1/|Ω|) Σ (𝓕_{S→S̃}[LN(x)]_u − LN(x̃)_u)²
+> L_mesa(x, x̃) = (1/|Ω|) Σ (𝓕_(S→S̃)[LN(x)]_u − LN(x̃)_u)²
 
 MESA is genuinely self-supervised (student's EMA, not a teacher), but it's a *regularizer* that enforces shift equivariance, not a primary pretext task. Without MESA, C-RADIOv4 is still trained primarily by teacher imitation. C-RADIOv4-H lands ADE20K mIoU 55.20 at 512px.
 
