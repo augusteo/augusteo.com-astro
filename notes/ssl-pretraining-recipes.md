@@ -832,7 +832,7 @@ Findings: **0 STRUCTURAL + 0 TYPE-CHANGE + 0 COSMETIC.** Trajectory: 16 → 6 �
 
 ## Resume here
 
-Last touched: 2026-05-04 (Phase 4 Act 1 done: §1, §2, §3 drafted + committed; voice-check clean each commit).
+Last touched: 2026-05-04 (Phase 4 prose COMPLETE: §1–§15 + Act dividers + References all drafted, committed, voice-check clean on body prose).
 
 ### Phase status
 
@@ -841,8 +841,8 @@ Last touched: 2026-05-04 (Phase 4 Act 1 done: §1, §2, §3 drafted + committed;
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | **done** (Gate 1 closed at run 5; trajectory 16 → 6 → 5 → 5 → 0; 5 codex runs total, 1 Vic-authorized cap extension at run 4) | `## Outline` |
-| 4. Draft prose | in progress — Act 1 done (§1, §2, §3 drafted + committed); Act 2 next (§4–§11 recipe rungs) | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
-| 5. Implement figures | pending (table populated below) | per-figure table |
+| 4. Draft prose | **done** — §1–§15 + Act 1/2/3 dividers + References all drafted; one commit per section; voice-check clean on body prose; standing exemptions (act-divider em-dashes, I-JEPA primary-source quote, DINOv2 paper title) retained per voice-rules | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
+| 5. Implement figures | pending (table populated below; Fig 1 + 5 figures using the construction-sheet anchor blocked on Vic's input; 6 non-anchor figures unblocked) | per-figure table |
 | 6. Playwright review | pending | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
@@ -882,22 +882,29 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 ### Suggested next batch
 
-**Phase 4 Act 1 done.** §1, §2, §3 drafted and committed; voice-check clean on each. Act 2 next.
+**Phase 4 prose done.** All 15 sections drafted, Act dividers in place, References section emitted, one commit per section, voice-check clean on body prose. Standing exemptions (act-divider em-dashes, the I-JEPA "hand-crafted" primary-source quote, the DINOv2 paper title's "Robust") are documented in the relevant commit messages.
 
-Act 2 batches (each section: drop figure placeholder, write prose, voice-check, commit):
+Phase 5 (implement figures) is next. 13 static-SVG figures total. The construction-sheet-anchor figures need Vic's input first; the 6 non-anchor figures can start immediately.
 
-1. **§4 — Pixel-reconstruction MIM (MAE).** Throughline: feed the construction sheet to MAE; 75% mask; asymmetric encoder; lightweight pixel decoder. Backed by rows 1, 2.
-2. **§5 — The MIM block regime.** MIM-Refiner three-regime structure; off-the-shelf last-layer features under-deliver; layer selection recovers the dense-feature signal. Backed by row 10.
-3. **§6 — Changing the MIM target.** MaskFeat (HOG), data2vec (EMA latents), BEiT (dVAE / VQ-KD tokens). Within-MIM 3.4-point spread at ViT-L UperNet, BEiT v2's CLIP-distillation caveat, BEiT v1 SETR-PUP head note. Backed by rows 4–9, 37, 38.
-4. **§7 — Self-distillation (DINO → iBOT → DINOv2).** Multi-crop invariance; emergent segmentation; iBOT online tokenizer. Backed by rows 11–14.
-5. **§8 — Dense-feature collapse.** Artifact tokens (registers fix); patch-locality decay (Gram anchoring fix). DINOv3 ViT-7B 63.0 ADE20K. Run-4 fix applied: failure mode is generic-natural-image, no measured construction-doc result. Backed by rows 15–18.
-6. **§9 — JEPA family.** Predict in latent space; pixel-space prediction degrades linear probe; no image dense-prediction transfer in I-JEPA / V-JEPA / V-JEPA 2. Backed by rows 19, 20, 41.
-7. **§10 — Multi-teacher distillation (RADIO line).** Student matches teacher activations; central-thesis prose; teacher-availability gate. Backed by rows 23–28, 35, 36.
-8. **§11 — Domain-adaptive recipes (from-scratch + continual-from-natural).** Run-4 reshape: DiT (text-heavy layout-driven, NOT line-art) + Medical 3D MAE for from-scratch; GLARE + Lahrichi for continual-from-natural. Backed by rows 29, 30, 32.
+**Phase 5 batches:**
 
-After Act 2: Act 3 (§12, §13, §14, §15) — three-or-four-section batch. Then references section. Then Phase 5 figures.
+1. **Non-anchor batch (unblocked).** Order by complexity, low → high:
+   - Fig 4 (MIMBlockRegime) — simple line chart; k-NN + reconstruction loss vs layer index, three regimes shaded.
+   - Fig 11 (ADE20KCrossRecipe) — multi-bar chart in 5 protocol bins.
+   - Fig 12 (OODEvidenceSummary) — domains × strategies grid.
+   - Fig 9 (RADIOArchitecture) — architecture diagram (student + teachers, summary + spatial losses, C-RADIOv4 deltas annotated).
+   - Fig 10 (DomainAdaptiveResults) — two-panel bar chart (from-scratch + continual-from-natural deltas).
+   - Fig 13 (DecisionTree) — routing tree with 4 leaves + teacher-availability gate.
+2. **Anchor batch (blocked on Vic's construction sheet).** Vic surfaces a representative construction sheet (a single floor plan / section detail). Then:
+   - Fig 1 (ConstructionSheet) — annotated sheet, scene-setting.
+   - Fig 2 (DenseVsCLS) — same image, two heads (CLS class probability vs per-patch heatmap).
+   - Fig 3 (MAEForwardPass) — visible patches → encoder → mask tokens → decoder → reconstruction, on the sheet.
+   - Fig 5 (MIMTargetComparison) — three-panel target comparison on the masked sheet.
+   - Fig 6 (DINOiBOTLossFlow) — DINO/iBOT loss flow on the sheet.
+   - Fig 8 (JEPAvsMAE) — MAE pixel prediction vs I-JEPA latent prediction on the sheet.
+3. **Bonus, anchor-or-generic.** Fig 7 (RegistersGramFix) — explicitly conceptual on a generic image per Gate 1 run-4 fix; could be done in non-anchor batch but visually adjacent to the throughline.
 
-Vic to surface a representative construction sheet for Phase 5 figure work. Lands in §1's Fig 1 spec.
+Phase 6 (playwright) and Phase 7 (Gate 2 + freshness pass + hero handoff + ship) follow after all 13 figures land.
 
 ### How to resume from a fresh context
 
