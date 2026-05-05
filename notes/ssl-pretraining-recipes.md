@@ -658,6 +658,18 @@ Findings: 4 STRUCTURAL + 1 TYPE-CHANGE-labeled-but-static-preserving STRUCTURAL 
 
 **Closure status:** structural fixes applied (run 4); Gate 1 run 5 next (the Vic-authorized cap-extension run). If run 5 is clean / cosmetic-only, Gate 1 closes. If run 5 surfaces new STRUCTURAL, halt and surface to Vic again with a tighter AskUserQuestion (almost certainly: accept-and-proceed, since run 5 is already past the original 3-rerun cap and Vic has already decided once).
 
+### Gate 1 run 5 (Vic-authorized cap-extension), 2026-05-04
+
+Findings: **0 STRUCTURAL + 0 TYPE-CHANGE + 0 COSMETIC.** Trajectory: 16 → 6 → 5 → 5 → 0 (runs 1 → 2 → 3 → 4 → 5). Codex 0.125.0, gpt-5.5, reasoning-effort medium.
+
+**Codex's verbatim output:**
+
+> Run-4 closure check: findings 1, 2, 3, 4, and 5 are closed.
+>
+> No new substantive STRUCTURAL issues found.
+
+**Gate 1 CLOSED.** Phase 3 done. Phase 4 (draft prose) next.
+
 ## Outline
 
 **15 sections across three acts. 13 figures, all static-svg.** Post-Gate-1-run-2: §10 (AR — was the negative-control rung) dropped entirely per finding 6; AR/iGPT absence now lives as a paragraph in §12's prose (was §13). Section count 16 → 15; figure count unchanged at 13 (§10 had no figure). §11-§16 renumbered down to §10-§15. Run-1 baseline carried forward: Fig 5 (was Fig 5 / `plot`) re-typed to `static-svg` per finding 13; old Fig 3 (OOD-coverage, duplicate of Fig 14) and old Fig 10 (AIM-prefix-LM) dropped. Construction-sheet throughline explicit in every act-2 recipe section. Recipe ramp framed rung-by-rung. **Post-Gate-1-run-4 fixes:** §8 reframed (drops measured-on-construction-sheet artifact-token claim; failure mode is generic-natural-image, construction-doc equivalent is unmeasured; finding 1); §11 reshaped to teach BOTH from-scratch domain-SSL AND continual-from-natural side-by-side, with explicit DiT-as-document-layout-not-line-art scope (findings 2 + 3); §14 routing-axis provenance stated as descriptive synthesis backed by row 43, document-corpus leaf scoped to text-rich layout-heavy documents (findings 3 + 4); Fig 7 mechanism reframed to conceptual schematic on a generic image with explicit "not measured on construction sheet" labels (finding 5); Fig 10 mechanism reshaped to two-panel chart spanning from-scratch + continual-from-natural (finding 2); matrix row 43 added (synthesis row backing routing-axis logic; finding 4). Section count and figure count unchanged.
@@ -820,7 +832,7 @@ Findings: 4 STRUCTURAL + 1 TYPE-CHANGE-labeled-but-static-preserving STRUCTURAL 
 
 ## Resume here
 
-Last touched: 2026-05-04 (Gate 1 run 4 fired; halted at Step-6 cap pending Vic decision).
+Last touched: 2026-05-04 (Gate 1 closed at run 5; Phase 3 done; Phase 4 drafting next).
 
 ### Phase status
 
@@ -828,8 +840,8 @@ Last touched: 2026-05-04 (Gate 1 run 4 fired; halted at Step-6 cap pending Vic d
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed via Step-6 override after 4 codex runs; trajectory 8→4→3→2 STRUCTURAL) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | in progress — Step-6 cap fired (Gate 1 run 4: 5 STRUCTURAL; trajectory 16 → 6 → 5 → 5 flat. Run 4 surfaced substantively new findings, NOT the convergent stale-prose shape Gate 0 saw. Halted and pending Vic AskUserQuestion: accept-and-proceed / fix-and-rerun / halt / per-finding override.) | `## Outline` |
-| 4. Draft prose | pending | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
+| 3. Outline + figure list | **done** (Gate 1 closed at run 5; trajectory 16 → 6 → 5 → 5 → 0; 5 codex runs total, 1 Vic-authorized cap extension at run 4) | `## Outline` |
+| 4. Draft prose | pending — start with §1 + §2 + §3 (Act 1) | `src/content/blog/ssl-pretraining-recipes/index.mdx` |
 | 5. Implement figures | pending (table populated below) | per-figure table |
 | 6. Playwright review | pending | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
@@ -845,7 +857,8 @@ Last touched: 2026-05-04 (Gate 1 run 4 fired; halted at Step-6 cap pending Vic d
 | 2026-05-04 | 1 (outline) | structural-fixes-applied (14 STRUCTURAL + 1 TYPE-CHANGE + 1 COSMETIC; Fig 5 re-typed `plot`→`static-svg` via auto-mode override of unlock AskUserQuestion; figures 3 + 10 dropped; central thesis moved to §11 prose; matrix extended to 41 rows; §15 reframed from prescriptive tree to routing-questions tree) | `notes/ssl-pretraining-recipes-codex-outline-20260504.md` |
 | 2026-05-04 | 1 (outline, run 2) | structural-fixes-applied (6 STRUCTURAL; trajectory 16 → 6; §10 dropped + 16 → 15 sections, AR/JEPA negative control merged into §12 prose; §14 four leaves enumerated, X/Y/Z thresholds dropped, teacher availability as gate; Fig 11 restructured into 4 protocol bins; matrix extended to 42 rows with iGPT) | `notes/ssl-pretraining-recipes-codex-outline-20260504-run2.md` |
 | 2026-05-04 | 1 (outline, run 3) | structural-fixes-applied (5 STRUCTURAL; trajectory 16 → 6 → 5; Fig 11 5-grouping downgrade + BEiT v1 SETR-PUP caveat; teacher-availability reframed as practitioner-facing; per-leaf §14 baseline disclaimers; §5 ramp tightened to upstream-of-construction-documents; §12 construction-sheet annotation) | `notes/ssl-pretraining-recipes-codex-outline-20260504-run3.md` |
-| 2026-05-04 | 1 (outline, run 4 — Step-6 cap) | halted-pending-Vic-decision (5 STRUCTURAL; trajectory 16 → 6 → 5 → 5 flat with substantively new findings: §8 construction-sheet artifact overreach, §10→§11 missing continual-from-natural bridge, §11 DiT scope overreach, §14 decision-tree routing-logic backing, Fig 7 heatmap framing. Not the convergent stale-prose shape — new structural at different layer.) | notes section `### Gate 1 run 4 (Step-6 cap)` |
+| 2026-05-04 | 1 (outline, run 4 — Step-6 cap) | structural-fixes-applied (5 STRUCTURAL; trajectory 16 → 6 → 5 → 5 with substantively new findings: §8 construction-sheet artifact overreach, §10→§11 missing continual-from-natural bridge, §11 DiT scope overreach, §14 decision-tree routing-logic backing, Fig 7 heatmap framing. Vic chose Fix-and-run-5 cap extension; fixes applied) | notes section `### Gate 1 run 4 (Step-6 cap)` |
+| 2026-05-04 | 1 (outline, run 5 — Vic-authorized cap extension) | **clean; Gate 1 CLOSED** (0 STRUCTURAL + 0 TYPE-CHANGE + 0 COSMETIC; codex confirmed run-4 findings 1-5 all closed). Trajectory final: 16 → 6 → 5 → 5 → 0 | notes section `### Gate 1 run 5` |
 
 ### Phase 5 figure progress
 
@@ -869,15 +882,14 @@ Locked at end of Phase 3 (after Gate 1 acceptance). Post-Gate-1-run-1: 13 figure
 
 ### Suggested next batch
 
-**Run 4 fired (Step-6 cap). Trajectory flat at 5 STRUCTURAL, but with substantively NEW findings — not the convergent stale-prose shape Gate 0 run 4 had.** Awaiting Vic's Step-6 AskUserQuestion answer. Options being surfaced:
+**Gate 1 closed at run 5 (clean).** Phase 3 done. Phase 4 (draft prose) is next. Plan:
 
-1. **Accept-and-proceed (Step-6 override).** Findings 1, 2, 3, 5 are real but small-scope; finding 4 is more of a synthesis-claim critique. Vic accepts as sufficient and moves to Phase 4. Recorded as `Step-6 override` in this notes file.
-2. **Fix-and-rerun (extend the cap by one).** Vic authorizes one more run after fixes. Run 5 would invocation #5, beyond the 3-rerun cap; an explicit cap extension. Findings 1 (§8 reframe), 2 (continual-from-natural bridge in §11), 3 (§11 DiT scope tightening), 5 (Fig 7 mechanism reframe) are tractable; finding 4 might need a synthesis matrix row.
-3. **Halt the post.** Codex's findings reveal a deeper scope issue (e.g. routing-logic backing) that requires re-spec, not just outline-tweak.
-4. **Per-finding override.** Vic accepts some findings, fixes others. e.g. fix 1, 3, 5; override 2 (continual-from-natural is implicit in §14, doesn't need an Act-2 rung) and 4 (routing logic is synthesis, not a matrix-row claim).
-
-Vic to surface a representative construction sheet for Phase 5 figure work. Not a Gate 1 blocker.
-Phase 4 first batch when Gate 1 closes: §1 + §2 + §3 (Act 1) — three commits, voice-check between each.
+1. Create `src/content/blog/ssl-pretraining-recipes/index.mdx` with frontmatter (title, description, pubDate, tags, featured: false, draft: false, essay: true; heroAlt placeholder, no heroImage yet).
+2. Draft §1 (Act 1, "The construction sheet that won't pretrain itself"). Voice-check. Commit.
+3. Draft §2 (Act 1, "Dense-feature quality is the load-bearing axis"). Voice-check. Commit.
+4. Draft §3 (Act 1, "The question we can't answer head-on"). Voice-check. Commit.
+5. Continue into Act 2 with §4–§9 (recipe family rungs).
+6. Vic to surface a representative construction sheet for Phase 5 figure work — not a Phase 4 blocker, but lands in §1's Fig 1 spec.
 
 ### How to resume from a fresh context
 
