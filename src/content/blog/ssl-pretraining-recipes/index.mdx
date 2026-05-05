@@ -1003,7 +1003,8 @@ The first surprising result from this recipe: when you visualize the student's s
 <text x="387" y="350" text-anchor="middle">f₃</text>
 <rect x="395" y="340" width="14" height="14" fill="none" stroke="#2563EB"/>
 <text x="402" y="350" text-anchor="middle">f₄</text>
-<text x="380" y="370" font-style="italic" fill="#6B6258" text-anchor="middle">student masked-patch features</text>
+<text x="380" y="368" font-style="italic" fill="#2563EB" text-anchor="middle">student</text>
+<text x="485" y="368" font-style="italic" fill="#B8651A" text-anchor="middle">teacher</text>
 </g>
 <rect x="270" y="395" width="140" height="42" fill="#1A1A1A" stroke="#B8651A"/>
 <text x="340" y="413" font-family="JetBrains Mono" font-size="10" fill="#B8651A" text-anchor="middle" letter-spacing="1.2">iBOT LOSS</text>
@@ -1019,7 +1020,6 @@ The first surprising result from this recipe: when you visualize the student's s
 <text x="492" y="350" text-anchor="middle">t₃</text>
 <rect x="500" y="340" width="14" height="14" fill="none" stroke="#B8651A"/>
 <text x="507" y="350" text-anchor="middle">t₄</text>
-<text x="485" y="370" font-style="italic" fill="#6B6258" text-anchor="middle">teacher patch features (online tokenizer)</text>
 </g>
 <line x1="525" y1="350" x2="558" y2="350" stroke="#6B6258" stroke-width="1" marker-end="url(#ar6)"/>
 <rect x="560" y="320" width="100" height="65" fill="none" stroke="#B8651A" stroke-width="1.4"/>
@@ -1420,7 +1420,7 @@ MESA is genuinely self-supervised (student's EMA, not a teacher), but it's a *re
 A piece of the recipe worth knowing about across the line: [PHI-S](https://arxiv.org/abs/2410.01680). When you distill from teachers whose activation statistics differ wildly (CLIP's cosine-distance-shaped features vs DINOv2's distributional features vs SAM's segmentation-shaped features), the per-teacher losses can dominate each other in ways that don't reflect the teachers' relative importance. PHI-S applies a Hadamard isotropic standardization to balance the activation distributions before the loss runs, "where each dimension of a multivariate distribution is standardized using the same scale" via Hadamard matrices. The PHI-S paper reports it "produces the best student model across the suite of methods studied."
 
 <figure>
-<svg viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
 <defs>
 <marker id="ar9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
 <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
@@ -1456,14 +1456,14 @@ A piece of the recipe worth knowing about across the line: [PHI-S](https://arxiv
 <text x="338" y="160" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">L_summary</text>
 <line x1="280" y1="183" x2="398" y2="240" stroke="#1A1A1A" stroke-width="1" marker-end="url(#ar9)"/>
 <text x="338" y="226" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">L_spatial</text>
-<rect x="60" y="260" width="240" height="22" fill="none" stroke="#9333EA" stroke-width="0.8" stroke-dasharray="3,2"/>
-<text x="180" y="276" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#9333EA">+ MESA: student vs student-EMA on shifted x</text>
-<rect x="60" y="300" width="580" height="120" fill="#F9F5EB" stroke="#C9BEAA"/>
-<text x="80" y="322" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.2">C-RADIOv4 DELTAS vs ORIGINAL AM-RADIO</text>
+<rect x="60" y="370" width="240" height="22" fill="none" stroke="#9333EA" stroke-width="0.8" stroke-dasharray="3,2"/>
+<text x="180" y="386" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#9333EA">+ MESA: student vs student-EMA on shifted x</text>
+<rect x="60" y="408" width="580" height="120" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="80" y="430" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.2">C-RADIOv4 DELTAS vs ORIGINAL AM-RADIO</text>
 <g font-family="serif" font-size="11" fill="#1A1A1A">
-<text x="80" y="346">• L_summary: angular-cone normalization L_angle = Θ(x,y)² / Disp(Θ_y) (replaces cosine in v1)</text>
-<text x="80" y="370">• L_spatial: PHI-S-normalized squared error (replaces α·cos + β·smooth-L1 in v1)</text>
-<text x="80" y="394">• MESA regularizer: shift-equivariant student vs student-EMA term (new in v4)</text>
+<text x="80" y="454">• L_summary: angular-cone normalization L_angle = Θ(x,y)² / Disp(Θ_y) (replaces cosine in v1)</text>
+<text x="80" y="478">• L_spatial: PHI-S-normalized squared error (replaces α·cos + β·smooth-L1 in v1)</text>
+<text x="80" y="502">• MESA regularizer: shift-equivariant student vs student-EMA term (new in v4)</text>
 </g>
 </svg>
 <figcaption><strong>Fig 9.</strong> [AM-RADIO](https://arxiv.org/abs/2312.06709) base architecture. The student is a ViT trained to match a frozen ensemble of pretrained teachers on both summary (CLS-shaped) and spatial (per-patch) outputs. There is no SSL auxiliary loss on the student; the only training signal is teacher activations. [C-RADIOv4](https://arxiv.org/abs/2601.17237) keeps the student-and-teachers shape but rewrites both losses (angular-cone for summary, [PHI-S](https://arxiv.org/abs/2410.01680)-normalized squared error for spatial) and adds a MESA shift-equivariant regularizer where the student matches its own EMA on a shifted crop.</figcaption>
@@ -1533,7 +1533,8 @@ Continual-from-natural is the second recipe shape. [GLARE 2026](https://arxiv.or
 <text x="560" y="214">+4</text>
 <text x="385" y="232" font-size="11">delta from no-pretrain baseline</text>
 </g>
-<text x="20" y="252" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">DiT scope is document-LAYOUT (text, tables, classification); Medical 3D MAE is brain-MRI segmentation. Neither benchmarks vision-only segmentation on line-art. Bars cannot be compared across rows: different metrics.</text>
+<text x="20" y="246" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">DiT scope is document-LAYOUT (text, tables, classification); Medical 3D MAE is brain-MRI segmentation.</text>
+<text x="20" y="260" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Neither benchmarks vision-only segmentation on line-art. Bars cannot be compared across rows: different metrics.</text>
 <line x1="40" y1="280" x2="640" y2="280" stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3"/>
 <text x="340" y="300" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">PANEL B · CONTINUAL SSL ON A NATURAL-IMAGE CHECKPOINT</text>
 <text x="340" y="320" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">delta over natural-image-init baseline; mIoU on segmentation benchmarks</text>
@@ -1612,12 +1613,17 @@ Fig 11 stratifies the published numbers into five loose groupings:
 <text x="456" y="24">BIN C</text>
 <text x="548" y="24">BIN D</text>
 </g>
-<g font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">
-<text x="162" y="40">ViT-L · UperNet · IN1K</text>
-<text x="254" y="40">ViT-L · SETR-PUP · IN1K</text>
-<text x="346" y="40">ViT-B · UperNet · IN1K</text>
-<text x="456" y="40">DINO frozen probe</text>
-<text x="548" y="40">RADIO each-protocol</text>
+<g font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">
+<text x="162" y="38">ViT-L · UperNet</text>
+<text x="162" y="50">IN1K matched</text>
+<text x="254" y="38">ViT-L · SETR-PUP</text>
+<text x="254" y="50">IN1K</text>
+<text x="346" y="38">ViT-B · UperNet</text>
+<text x="346" y="50">IN1K matched</text>
+<text x="456" y="38">DINO line</text>
+<text x="456" y="50">frozen probe</text>
+<text x="548" y="38">RADIO line</text>
+<text x="548" y="50">each-paper protocol</text>
 </g>
 <line x1="70" y1="320" x2="670" y2="320" stroke="#8F8578"/>
 <line x1="70" y1="320" x2="70" y2="60" stroke="#8F8578"/>
@@ -1789,8 +1795,7 @@ Documents have [DiT](https://arxiv.org/abs/2203.02378) for from-scratch domain S
 <text x="395" y="120">+0.5 LoveDA mIoU</text>
 <text x="395" y="134">+0.4 ADE20K mIoU</text>
 <text x="565" y="120">MAE-IN ≥ MAE-GN</text>
-<text x="565" y="134">on 5/6 segmentation</text>
-<text x="565" y="148">benchmarks</text>
+<text x="565" y="134">on 5/6 segmentation benchmarks</text>
 <text x="565" y="210">+1.97 DSC over</text>
 <text x="565" y="224">no-pretrain nnU-Net</text>
 <text x="565" y="238">on 39k MRI volumes</text>
