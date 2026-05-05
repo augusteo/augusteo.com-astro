@@ -114,5 +114,29 @@ For the construction-document practitioner this matters in a specific way. The b
 
 {/* Reader can now: locate MIM features in the encoder (mid-block, not last-block); see why "MAE is bad at dense tasks" is partly a layer-selection artifact rather than a recipe-level verdict; anticipate §6 (target swap) and §7 (framing swap) as the next two recipe knobs. */}
 
-{/* TODO: §6: Changing the MIM target */}
+### 6. Changing the MIM target: features and tokens
+
+§5 showed that MAE's late blocks are specialized to pixel reconstruction, and that specialization actively hurts dense-task transfer. The natural next question is to keep the masking shape (mask 60-75% of patches at random; predict at masked positions) but change *what* the encoder is asked to predict. If the prediction target is something other than pixels, do the late blocks still burn against the downstream task?
+
+Three target swaps have been published, each with a different bet.
+
+[MaskFeat](https://arxiv.org/abs/2112.09133) predicts hand-designed HOG (Histogram of Oriented Gradients) features at masked positions. Per the paper, HOG "works particularly well in terms of both performance and efficiency" relative to the other targets MaskFeat tested (raw pixels, deep features, sparse codes). HOG is a fixed, parameter-free target: orientation-aware enough to capture local structure, but stripped of color and lighting noise. The intuition is that asking the model to predict edge gradients instead of raw pixels keeps the high-frequency structural signal while skipping the appearance noise the late blocks would otherwise model.
+
+[data2vec](https://arxiv.org/abs/2202.03555) predicts the EMA-teacher's own latent features at masked positions, averaged across the top K teacher FFN blocks. The target is dynamic: it's whatever representation the teacher (a slow-moving copy of the student) currently produces. The bet is that a learned, semantic latent target keeps the model from wasting capacity on pixel detail that doesn't matter downstream. data2vec 2.0 is the same idea, faster.
+
+[BEiT v1](https://arxiv.org/abs/2106.08254) predicts discrete visual tokens from a pretrained DALL-E dVAE (vocab size 8192). The model masks 40% of patches and minimizes cross-entropy against the dVAE's tokenization of the original image. [BEiT v2](https://arxiv.org/abs/2208.06366) replaces the dVAE with a VQ-KD tokenizer trained by knowledge-distilling CLIP features: "the output vectors aim at reconstructing the semantic features of a teacher model, e.g., DINO, and CLIP."
+
+{/* TODO: Fig 5: MIMTargetComparison, three-panel target comparison on the same masked sheet, pixel target (MAE) / feature target (HOG cells, EMA latents) / token target (dVAE, VQ-KD codebook) */}
+
+The dense-prediction numbers tell a partial story. At ViT-L on IN1K with a UperNet head (head explicitly matched), MAE lands at 53.6 mIoU on ADE20K, [D2V2-Refined](https://arxiv.org/abs/2402.10093) (MIM-Refiner applied to data2vec 2.0) at 54.4, and BEiT v2 at 56.7. BEiT v1 reports 53.3 at ViT-L, but under a SETR-PUP head rather than UperNet, so it sits adjacent to that bin rather than head-to-head with it. Within the MIM family at matched UperNet protocol, BEiT v2 is the leader by 3.1 points over MAE and 2.3 points over D2V2-Refined. MaskFeat and data2vec do not report image dense-prediction transfer at all in their published evaluation sets. Both are classification-only on ImageNet; MaskFeat additionally reports video transfer (Kinetics, AVA, SSv2).
+
+The BEiT v2 lead carries a caveat. The VQ-KD tokenizer is itself distilled from CLIP, which means BEiT v2's pretraining inherits CLIP's web-pretrained semantic structure through the tokenizer. That doesn't make BEiT v2 "not really SSL," but it does mean the empirical pairing (CLIP-distilled tokenizer plus 56.7 mIoU) doesn't cleanly separate "BEiT v2's recipe is the best MIM target" from "BEiT v2's tokenizer carried in CLIP's representational quality." The post's claim-source matrix backs the pairing as a fact; it does not back a causal "v2 only works because of CLIP" reading.
+
+For the construction-document practitioner this section narrows the MIM target choice. Pixel reconstruction (MAE) is the most-tested baseline and the cheapest to run from scratch on a custom corpus, but its late-block degradation is the worst. Feature targets (MaskFeat, data2vec) skip pixel detail but don't have published dense-prediction numbers, so transfer to construction-document segmentation is even more an open question than for MAE. Token targets (BEiT v1/v2) have the highest published dense numbers, but the highest entry (BEiT v2) requires running a CLIP-distilled VQ-KD tokenizer, which itself is a natural-image artifact that may or may not work as a target distribution for line-art. The practitioner who picks BEiT v2 as a starting recipe should note that the tokenizer is the load-bearing piece, not the masked-prediction loss.
+
+§7 leaves the MIM framing entirely. Self-distillation skips the "what should we predict at masked positions?" question by not having explicit prediction targets at all.
+
+{/* Reader can now: name the three target swaps (HOG, EMA latents, discrete tokens) and what each tries to fix; see the within-MIM ViT-L UperNet ranking (BEiT v2 > D2V2-Refined > MAE; BEiT v1 adjacent under SETR-PUP); flag BEiT v2's CLIP-distillation caveat (the empirical pairing is matrix-backed, the causal reading is not); see why §7's framing swap is the natural next move. */}
+
+{/* TODO: §7: Self-distillation (DINO → iBOT → DINOv2) */}
 {/* TODO: §12–§15: Act 3 + coda */}
