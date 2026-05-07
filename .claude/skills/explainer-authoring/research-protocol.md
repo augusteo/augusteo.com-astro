@@ -256,7 +256,7 @@ In prose, name the source explicitly the first time it shows up:
 
 Subsequent mentions can be implicit. Avoid "experts argue" or "studies have shown." Either name the source or speak in your own voice.
 
-For the post's `### References` section: title, link, year. Every entry must be a markdown hyperlink (`[title](url)`), never a bare title-and-author string. The reader must be able to trace every load-bearing claim to a source without reading the private notes file.
+For the post's `## References` section: title, link, year. Every entry must be a markdown hyperlink (`[title](url)`), never a bare title-and-author string. The reader must be able to trace every load-bearing claim to a source without reading the private notes file.
 
 ## Project-memory schema
 

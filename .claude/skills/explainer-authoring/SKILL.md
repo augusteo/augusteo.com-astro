@@ -197,6 +197,7 @@ Read `html-import.md` end-to-end before starting. The full conversion playbook l
    ## Throughline
    ## Research notes
    ## Claim-source matrix
+   ## Related posts on augusteo.com
    ## Outline
    ## Codex research review     (appears after Gate 0 fires)
    ## Codex outline review      (appears after Gate 1 fires)
@@ -214,6 +215,7 @@ Read `html-import.md` end-to-end before starting. The full conversion playbook l
 
    - `## Throughline` — `*Pre-v2 post; throughline added retroactively or skipped.*` Inserted between `## Spec` and `## Research notes`.
    - `## Claim-source matrix` — `*Pre-v2 post; matrix not retroactively populated.*` Inserted between `## Research notes` and `## Outline`.
+   - `## Related posts on augusteo.com` — `*Pre-rule post; related-posts scan not retroactively run.*` Inserted between `## Claim-source matrix` and `## Outline`. The stub is treated as forward-looking; Gate 2's cross-reference check is a no-op when this stub is the entire body of the section. (If the resumed post is past Phase 4 already, retroactive scanning + linking would force prose / References edits the post wasn't built around. Forward-looking is the right call; new posts under the rule do the work in Phase 2.)
    - `### Codex history` — empty table header `| Date | Gate | Outcome | Findings file |\n|---|---|---|---|`. Inserted as the first sub-section under `## Resume here`, after the "Last touched" line and before any other `### …` section.
 
    Other v2 fields (topic-evolution classification, per-row recency status, figure type locks, imported-interactive classification, Gate 1 unlock state, freshness metadata) are NOT retroactively populated; they are forward-looking — only required for posts started under v2. The migration only needs to add the section stubs so the post file matches the canonical shape and a fresh-context agent doesn't trip on missing sections.
@@ -263,9 +265,10 @@ Goal: a `## Research notes` section with primary sources quoted directly, AND a 
 
 6. Merge subagent outputs into `notes/<post-slug>.md` under `## Research notes`. Group by sub-topic, not by source.
 7. Where a small reference implementation is feasible, run it. Save to `notes/<post-slug>-reference.<ext>`.
-8. Show Vic the notes file + matrix. Ask if anything is missing or wrong.
-9. Update the `## Resume here` tracker: phase 2 → done.
-10. **Run Gate 0** (see Codex gates below).
+8. **Scan augusteo.com for related existing posts.** `ls src/content/blog/` and pick topic-adjacent slugs by name; for the strongest 1-3 candidates, read the post and note (a) what it covers that this post can build on or contrast with, and (b) one or two natural **prose** anchor points in the new post's outline where an inline link or callback fits (typical anchor points: the dek, the opening setup paragraph of Act 1, a section that reuses a concept defined in the prior post, the closing italic line). The `## References` block is NOT an anchor point — every related post automatically gets a References entry in Phase 4 step 5; anchor points are for inline prose links only. Record findings under a `## Related posts on augusteo.com` subsection in the notes file with: slug, link path (`/blog/<slug>`), one-line summary of what it covers, and the prose anchor points. The newer post does the linking; older posts are NOT retroactively edited.
+9. Show Vic the notes file + matrix. Ask if anything is missing or wrong.
+10. Update the `## Resume here` tracker: phase 2 → done.
+11. **Run Gate 0** (see Codex gates below).
 
 ### Phase 2 — HTML-import mode (fact-check)
 
@@ -280,7 +283,16 @@ For each claim, status is one of:
 
 For UNSUPPORTED or CONTRADICTED claims, run the **unsupported-claim repair workflow** in `html-import.md`. The skill repairs the prose; Vic does not. Each repair is its own commit. Voice-check exits clean before each commit.
 
-Run Gate 0 after the matrix is populated and repairs are committed.
+**Also run the augusteo.com related-posts scan + apply** (HTML-import mode does the work inline because Phase 4 is skipped; there's no later phase that would weave links). Procedure:
+
+1. Same scan as topic-mode step 8: `ls src/content/blog/`, pick topic-adjacent slugs, read the strongest 1-3 candidates, record `## Related posts on augusteo.com` in the notes file with slug, `/blog/<slug>` link path, one-line summary, and the prose anchor points. The `## References` block is NOT an anchor point.
+2. **Apply the rule directly to the imported MDX:**
+   - For each recorded related post, edit the imported `src/content/blog/<post-slug>/index.mdx` to add inline markdown links at each named prose anchor point using `[Title](/blog/<slug>)` (root-relative).
+   - Add each related post to the imported MDX's `## References` section as a top entry using `[Title](https://augusteo.com/blog/<slug>). <one-line role>, Augusteo <year>.` (full https URL — matches the canonical `omni-modal-stack` ↔ `unified-vision-stack` pattern).
+   - If the import is a sequel/follow-up, add the italic dek under the H1 and the optional closing italic line per the Phase 4 step 7 pattern (use root-relative `/blog/<slug>` paths).
+3. Each related-post application is its own commit (same shape as the unsupported-claim repair commits). Voice-check exits clean before each commit.
+
+Run Gate 0 after the matrix is populated and repairs are committed (related-post applications included).
 
 **On Gate 0 acceptance** (no STRUCTURAL findings, or all STRUCTURAL findings fixed): record the acceptance in `## Codex research review` and the Codex history table, and proceed to Phase 3. **Do NOT flip the draft flag.** The MDX stays `draft: true` for the rest of the pipeline; Vic flips to `draft: false` explicitly when shipping (see hard rule #9). The post is now in the same shape as a topic-mode post post-Phase-2: drafted, fact-checked, ready for outline review.
 
@@ -316,11 +328,12 @@ Goal: a working MDX file with section prose and figure placeholders.
 2. Draft section by section. For each section: state the claim, drop a figure placeholder (`{/* TODO: Fig N: <mechanism> */}` for static, `{/* TODO: <FigureName /> */}` for interactive), tell the reader what to notice, then explain the mechanism, then hand off.
 3. **Per-section "what reader now sees" check.** After each section, write a one-line HTML comment in the MDX: `{/* Reader can now: <one-line description of what they can predict/see/do that they couldn't before> */}`. If the line can't be written, halt and rework before the next section.
 4. **Apply voice rules during drafting** (see `voice-rules.md`). After each section, run `scripts/voice-check.sh src/content/blog/<post-slug>/index.mdx`. Re-run until clean.
-5. **Emit a `## References` section** at the end of the post by transcribing every quoted primary source from the matrix. One Markdown link per source: title, authors (or org), year, arxiv ID or URL. Every entry must be a real `[title](url)` hyperlink — never a bare title-and-author string.
+5. **Emit a `## References` section** at the end of the post by transcribing every quoted primary source from the matrix. One Markdown link per source: title, authors (or org), year, arxiv ID or URL. Every entry must be a real `[title](url)` hyperlink — never a bare title-and-author string. **Also include the related posts** identified in Phase 2's `## Related posts on augusteo.com` subsection — list each as the FIRST entry / entries in `## References` using the form `[Title](https://augusteo.com/blog/<slug>). <one-line role>, Augusteo <year>.` (full https URL, matching the canonical `omni-modal-stack` ↔ `unified-vision-stack` pattern at `src/content/blog/omni-modal-stack/index.mdx:1431`: `## References` always uses absolute https URLs because the section is a bibliography that may be consumed off-site; in-post prose links use root-relative `/blog/<slug>` per step 7). Prequel/sequel/companion entries appear at the top of References alongside primary sources, not in a separate block.
 6. **Hyperlink inline named-source mentions.** Whenever the prose names a specific external writeup, paper, post, postmortem, or report, wrap the named phrase in a markdown link to the same URL used in the References section.
-7. **Throughline callbacks** per `narrative-template.md`'s "Throughline rhythm".
-8. Commit per section. After each commit, update the `## Resume here` tracker.
-9. When all sections are drafted, update the tracker: phase 4 → done.
+7. **Cross-reference related augusteo.com posts in prose.** From the `## Related posts on augusteo.com` notes-file section, weave links at the anchor points identified in Phase 2. Pattern (per `omni-modal-stack`): if the new post is a sequel/follow-up, lead with an italic dek line under the H1 (`*A sequel to [The Title](/blog/slug). <one-line setup of what's picked up>. About a <N>-minute read.*`); add at least one inline link in the opening setup of Act 1 that names the prior post and what it established; close with an optional italic line at the very end (`*Sequel to [The Title](/blog/slug), written <Month Year>.*`). For non-sequel topical overlaps, just inline-link at the anchor point — no dek framing. Use root-relative paths (`/blog/<slug>`) for in-post links; full `https://augusteo.com/...` URLs only inside `## References`.
+8. **Throughline callbacks** per `narrative-template.md`'s "Throughline rhythm".
+9. Commit per section. After each commit, update the `## Resume here` tracker.
+10. When all sections are drafted, update the tracker: phase 4 → done.
 
 ## Phase 5: implement figures
 
@@ -396,8 +409,8 @@ All gates invoke the project-local `codex` skill. They auto-fire at phase bounda
    gate; substitute [QUOTE THE GOAL STATEMENT] with the literal Goal text;
    embed the relevant notes-file sections per the gate's "What you provide
    to codex" section (Gate 0: Spec + Throughline + Research notes + Matrix;
-   Gate 1: + Outline + figure table; Gate 2: + full MDX + all prior Codex
-   review sections).
+   Gate 1: + Outline + figure table; Gate 2: + full MDX + Related posts on
+   augusteo.com + all prior Codex review sections).
 
 2. Invoke codex skill via Skill tool:
      skill: codex
@@ -450,11 +463,12 @@ All gates invoke the project-local `codex` skill. They auto-fire at phase bounda
 
 **When:** Phase 7, after freshness re-check, before ship.
 
-**Input:** full MDX + full notes file (`## Spec` + `## Throughline` + `## Research notes` + `## Claim-source matrix` + all prior `## Codex … review` sections).
+**Input:** full MDX + full notes file (`## Spec` + `## Throughline` + `## Research notes` + `## Claim-source matrix` + `## Related posts on augusteo.com` + all prior `## Codex … review` sections).
 
 **Focus:** drift between prose and matrix, weak arguments, subtly wrong models, References-section completeness + hyperlinking. PLUS:
 - Walk every prose claim. Find the matrix row that supports it. Flag any claim with no matrix row.
 - Verify the freshness re-check from Phase 7 actually fired. Flag any matrix row whose source date is older than the topic-evolution bar.
+- **Verify cross-references to related augusteo.com posts.** For every entry in the notes file's `## Related posts on augusteo.com` section, confirm: (a) it appears as a real `[Title](/blog/<slug>)` **root-relative** link in the prose at one of the anchor points the notes file named, AND (b) it appears as an entry in the post's `## References` section using the **full https URL form** `[Title](https://augusteo.com/blog/<slug>)`. Flag any related-post entry that the notes file recorded but the prose / References don't carry, AND flag any URL-form mismatch (root-relative inside References, or full https inside prose). The check is a no-op only in two narrow cases: (1) the section is genuinely empty (Phase 2 scan returned no relevant candidates) — i.e., no body content at all between the heading and the next heading, OR (2) the section's body is **exactly** the resume-mode forward-looking stub line `*Pre-rule post; related-posts scan not retroactively run.*` and nothing else. If real entries are added below the stub, the no-op does NOT apply — every entry gets walked.
 
 ## The `## Resume here` tracker
 
@@ -520,6 +534,7 @@ Three to five lines naming the next concrete action. Order from low complexity t
 8. **Sentence-case headings.** Numbered sections (`### 3. The all-reduce sub-problem`) match `unified-vision-stack`. Em-dashes (U+2014) are forbidden in prose (voice-rules.md) BUT permitted in act-divider headings (`## Act 1 — The Lens`); voice-check exempts heading-line em-dashes when the line starts with `## Act `. **En-dashes (U+2013) are allowed everywhere** — use them for numeric ranges (`5–10 GPUs`), date ranges (`2023–2024`), and other span notations. Voice-check does not flag en-dashes; do not auto-repair them.
 9. **`draft: true` from creation through ship; Vic flips to `draft: false` explicitly.** Both modes write the MDX with `draft: true` at creation (topic mode in Phase 4, HTML-import mode in Phase 1) and the flag stays `true` for every commit the skill makes. The skill never auto-flips to `draft: false` — not on Gate 0 acceptance, not after the freshness pass, not at "ship." Vic owns the flip as an explicit, separate action (a single-purpose commit `flip draft to false; ship` is the canonical shape). Do not toggle the flag between figure / section commits during development; it stays `true` until Vic's explicit ship action.
 10. **Project-memory pointer + MEMORY.md entry are required and verified at end of Phase 1.** Schema, format, and failure-repair procedure in `research-protocol.md` "Project-memory schema". Halt if missing or malformed and repair fails. (Intentional coupling to the discovery mechanism for fresh-context resume.)
+11. **The blog is interconnected; newer posts link to older relevant posts.** Phase 2 scans `src/content/blog/` for topic-adjacent posts and records anchor points in the notes file under `## Related posts on augusteo.com`. Phase 4 weaves inline links at those anchor points and adds the related posts as top entries in `## References` (matching the `omni-modal-stack` ↔ `unified-vision-stack` pattern). Older posts are NOT retroactively edited — only the newer post does the linking. If the related-posts scan returns zero candidates that meet the bar, that's fine; the rule is "search and link if relevant", not "force a link".
 
 ## Halt-and-ask conditions
 
@@ -622,6 +637,7 @@ After Phase 7:
 - `draft: true` (stays `true` — Vic flips to `false` himself as the ship action), `essay: true`, `pubDate` is today.
 - **Every load-bearing claim in the post traces back to a row in `## Claim-source matrix`.** Walk and verify.
 - **Every matrix row's source passes the freshness check** as of `pubDate`.
+- **Every entry in `## Related posts on augusteo.com` appears in the prose AND in `## References`** (or the section is intentionally empty).
 - The notes file's `## Codex … review` sections all close on cosmetic rather than structural issues.
 
 ## Common rationalizations to refuse

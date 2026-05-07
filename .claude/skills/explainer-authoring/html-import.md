@@ -74,7 +74,7 @@ HTML-import-specific defaults at write time:
 | `<figure>` or `<figure class="wide">` containing `<svg>…</svg><figcaption><span class="fignum">FIG N</span>caption</figcaption>` | preserve as `<figure>` (drop `class="wide"`) + normalized `<svg>` + `<figcaption><strong>Fig N.</strong> caption</figcaption>` |
 | `<a href="https://…">text</a>` (external link) | `[text](https://…)` |
 | `<a href="#sN">text</a>` (in-page cross-reference) | drop the link, keep the text |
-| `<footer>` containing `<div class="refs">` | Convert to a final `### References` section in the MDX. Preserve `<a>` links as `[text](url)`. Drop the `<a>Top</a>` / `<a>Contents</a>` nav and the "Prepared for …" tagline (post chrome). Strip the `<strong>References.</strong>` prefix since the heading replaces it. |
+| `<footer>` containing `<div class="refs">` | Convert to a final `## References` section in the MDX (heading depth 2, matching topic-mode posts and the canonical `omni-modal-stack` ↔ `unified-vision-stack` pair). Preserve `<a>` links as `[text](url)`. Drop the `<a>Top</a>` / `<a>Contents</a>` nav and the "Prepared for …" tagline (post chrome). Strip the `<strong>References.</strong>` prefix since the heading replaces it. |
 | `<footer>` with no `.refs` block | strip entirely |
 | `<div class="progress">…</div>` (the JS scroll progress bar near `<body>`) | strip |
 | `<p style="text-align:center;…">▪ ▪ ▪</p>` (decorative end-of-content separator) | strip |
@@ -356,7 +356,7 @@ When converting, scan the source HTML for these markers in order:
 11. `<div class="codeblock">` → fenced code with inferred language
 12. `<blockquote>` (no class) → `> *…*`
 13. `<figure>` → `<figure>` (drop `class="wide"`, normalize `<svg>`, auto-classify type)
-14. `<footer>` `<div class="refs">` → `### References` with markdown links
+14. `<footer>` `<div class="refs">` → `## References` with markdown links (heading depth 2)
 15. Strip: `<head>`, `<style>`, `<script>`, `<div class="toc">`, `<div class="progress">`, `<header class="masthead">`, `▪ ▪ ▪`, footer chrome
 
 ## Edge cases

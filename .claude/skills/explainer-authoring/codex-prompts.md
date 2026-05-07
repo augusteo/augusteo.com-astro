@@ -172,7 +172,7 @@ found" and stop. Otherwise, keep finding things.
 **What you provide to codex:**
 
 - The full `src/content/blog/<post-slug>/index.mdx`.
-- The full `notes/<post-slug>.md` (`## Spec`, `## Throughline`, `## Research notes`, `## Claim-source matrix` with freshness-pass updates, all prior `## Codex … review` sections).
+- The full `notes/<post-slug>.md` (`## Spec`, `## Throughline`, `## Research notes`, `## Claim-source matrix` with freshness-pass updates, `## Related posts on augusteo.com`, all prior `## Codex … review` sections).
 
 **The prompt:**
 
@@ -216,7 +216,7 @@ Find:
    Flag scenario contamination.
 
 7. REFERENCES SECTION COMPLETENESS AND HYPERLINKING. Every primary source quoted in the
-   matrix must appear in the post's `### References` section so the reader can trace any
+   matrix must appear in the post's `## References` section so the reader can trace any
    claim back to its source. Flag missing entries. Each entry must be a markdown
    hyperlink (`[title](url)`), not a bare title-and-author string.
 
@@ -224,6 +224,22 @@ Find:
    writeup, paper, post, postmortem, or report (e.g. "Andres Freund's writeup", "the
    Mattermost postmortem"), the named source must be a markdown hyperlink to the same URL
    used in the References section. Flag any plain-text inline named source.
+
+9. CROSS-REFERENCES TO RELATED augusteo.com POSTS. The notes file's `## Related posts on
+   augusteo.com` section names existing posts the new post should link to (the blog is
+   meant to be interconnected; newer posts link to older relevant ones). For each entry
+   in that section, verify: (a) the prose links to the related post at one of the named
+   anchor points using a ROOT-RELATIVE `[Title](/blog/<slug>)` markdown link (no
+   `https://augusteo.com` prefix in prose), AND (b) the related post appears as an entry
+   in the post's `## References` section using the FULL HTTPS URL form
+   `[Title](https://augusteo.com/blog/<slug>). <one-line role>, Augusteo <year>.` Flag any
+   related-post entry that the notes file recorded but the prose / References don't carry,
+   AND flag any URL-form mismatch (root-relative inside `## References`, or
+   `https://augusteo.com` inside prose links). This check is a no-op only in two narrow
+   cases: (1) the section body is genuinely empty (no content between the heading and the
+   next heading), OR (2) the section body is EXACTLY the resume-mode forward-looking stub
+   line `*Pre-rule post; related-posts scan not retroactively run.*` and nothing else. If
+   real entries are present below the stub, the no-op does NOT apply — walk every entry.
 
 For each finding, label it STRUCTURAL (must fix before shipping) or COSMETIC. Order by
 load-bearing-ness. Cite specific paragraph / sentence / matrix row.
@@ -260,7 +276,7 @@ For Gate <N>:
 3. Append the gate's "What you provide to codex" content as inline embedded sections:
    - Gate 0: `## Spec` + `## Throughline` + `## Research notes` + `## Claim-source matrix` + topic-evolution classification.
    - Gate 1: above + `## Outline` + figure table.
-   - Gate 2: above + full MDX content + all prior `## Codex … review` sections.
+   - Gate 2: above + full MDX content + `## Related posts on augusteo.com` + all prior `## Codex … review` sections.
 4. The result is a single string ready to pass to the codex skill.
 
 ### Step 2: Invoke the codex skill
