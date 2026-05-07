@@ -6,7 +6,7 @@ heroImage: "@assets/blog/inside-gas-town/hero.png"
 heroAlt: "Watercolor frontier town: a lit beacon with a small dog at its base, a piped refinery with rising smoke, and a one-eyed watchtower, linked by a rope of red beads."
 tags: ["Tech", "AI", "Claude Code"]
 featured: false
-draft: true
+draft: false
 essay: true
 ---
 
@@ -787,19 +787,157 @@ The Comms major's case is small-SaaS displacement. Sehn's is an experienced engi
 
 The skeptical case is worth registering. SaaS isn't only the 20% of features you actually use. It's the SOC 2 audit, the SSO integration, the data residency guarantees, the SLAs, the on-call team that takes incident calls at 2 AM, and the legal liability that travels with all of those. A pack that approves Wyvern character submissions doesn't need any of that. A pack that touches payroll, payments, customer PII, or anything regulated does. The question isn't whether you can build a working in-house pack — the Comms major proves you can. It's whether operating, securing, and being legally responsible for that pack stays below the SaaS bill once you add up everything the SaaS was actually doing. For small niche workflows, the math probably works. For replacing your CRM or your accounting system, probably not. Gas City's territory is the middle, and the shape of that middle is what's still empirical.
 
-> **The 11 stages of AI-assisted coding.**
->
-> Yegge's adoption framework, originally 8 stages at Gas Town launch, extended to 11 with Gas City. Locate yourself before deciding what to install.
->
-> **1.** Zero-AI · **2.** IDE agent, permissions on · **3.** IDE agent, YOLO · **4.** IDE wide-agent · **5.** CLI single-agent, YOLO · **6.** CLI multi-agent (3–5) · **7.** 10+ agents, hand-managed · **8.** Building your own orchestrator · **9.** First deployed pack (a real business process) · **10.** Many deployed packs (you become the bottleneck) · **11.** Factory builder (a meta-orchestrator manages your packs).
->
-> Yegge's blunt advice: Stage 7+ to use Gas Town safely. Stage 5–6 should not install it. Stage 1–4 should not even read about it.
+### 13. Locate yourself before installing
+
+Sitting alongside the technical pieces of the project is a framework that doesn't appear in the codebase at all. Yegge sketched it at Gas Town's launch as eight stages of AI-assisted coding adoption; with Gas City, he extended it to eleven. It is the most opinionated piece of advice anyone associated with the project gives, and it is the part most likely to be ignored.
+
+The point of the ladder is that Gas Town is not a beginner tool. Beads, hooks, the Refinery, the Deacon, NDI — every part of it is the answer to specific kinds of pain. If you haven't felt the pain, you can't tell which parts are load-bearing and which are baroque. You'll bypass the load-bearing parts, and your repo will catch fire.
+
+<figure>
+<svg viewBox="0 0 760 600" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="Yegge's 11-stage ladder of AI-assisted coding adoption, with three safety zones marked: stages 1–4 'don't even read about Gas Town' at the top, stages 5–6 'don't install yet' in the middle, and stages 7+ 'Gas Town safe to install' at the bottom. Stages 9, 10, 11 were added with Gas City in April 2026.">
+  <text x="40" y="22" font-size="13" font-weight="600">The ladder of AI-assisted coding adoption</text>
+  <text x="40" y="40" font-size="10" fill="#8a8377" letter-spacing="0.08em">YEGGE'S 11 STAGES · ORIGINALLY 8 AT GAS TOWN LAUNCH, EXTENDED WITH GAS CITY</text>
+
+  <rect x="40" y="60" width="510" height="164" fill="#ecd0c2"/>
+  <rect x="40" y="246" width="510" height="84" fill="#f0d9b8"/>
+  <rect x="40" y="352" width="510" height="234" fill="#dde6d3"/>
+
+  <g transform="translate(50,68)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">1</text>
+    <text x="48" y="15" font-size="12" font-weight="600">Zero-AI</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">human writes every line</text>
+  </g>
+  <g transform="translate(50,106)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">2</text>
+    <text x="48" y="15" font-size="12" font-weight="600">IDE agent, permissions on</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">Cursor, Copilot, every change reviewed</text>
+  </g>
+  <g transform="translate(50,144)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">3</text>
+    <text x="48" y="15" font-size="12" font-weight="600">IDE agent, YOLO</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">approval prompts off, lots of edits</text>
+  </g>
+  <g transform="translate(50,182)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">4</text>
+    <text x="48" y="15" font-size="12" font-weight="600">IDE wide-agent</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">agent with broader codebase reach</text>
+  </g>
+
+  <g transform="translate(50,254)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">5</text>
+    <text x="48" y="15" font-size="12" font-weight="600">CLI single-agent, YOLO</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">Claude Code or similar, off the leash</text>
+  </g>
+  <g transform="translate(50,292)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">6</text>
+    <text x="48" y="15" font-size="12" font-weight="600">CLI multi-agent (3–5)</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">a small fleet, manually coordinated</text>
+  </g>
+
+  <g transform="translate(50,360)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">7</text>
+    <text x="48" y="15" font-size="12" font-weight="600">10+ agents, hand-managed</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">tmux, baling wire, you-as-foreman</text>
+  </g>
+  <g transform="translate(50,398)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">8</text>
+    <text x="48" y="15" font-size="12" font-weight="600">Building your own orchestrator</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">where Gas Town itself was born</text>
+  </g>
+
+  <g transform="translate(50,452)">
+    <line x1="0" y1="12" x2="490" y2="12" stroke="#b8543e" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="245" y="6" text-anchor="middle" font-style="italic" font-size="10" fill="#b8543e">↓ added by Gas City, April 2026 · no longer about coding</text>
+  </g>
+
+  <g transform="translate(50,472)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">9</text>
+    <text x="48" y="15" font-size="12" font-weight="600">First deployed pack</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">a real business process runs itself</text>
+  </g>
+  <g transform="translate(50,510)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">10</text>
+    <text x="48" y="15" font-size="12" font-weight="600">Many deployed packs</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">you become the bottleneck</text>
+  </g>
+  <g transform="translate(50,548)">
+    <rect x="0" y="0" width="490" height="34" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.2"/>
+    <circle cx="22" cy="17" r="13" fill="#1c1a15"/>
+    <text x="22" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="#fdfbf6">11</text>
+    <text x="48" y="15" font-size="12" font-weight="600">Factory builder</text>
+    <text x="48" y="29" font-size="11" fill="#3a342a">a meta-orchestrator manages your packs</text>
+  </g>
+
+  <g transform="translate(560,60)">
+    <rect x="0" y="0" width="180" height="164" fill="#ecd0c2" stroke="#1c1a15" stroke-width="0.6"/>
+    <text x="90" y="22" text-anchor="middle" font-size="10" fill="#8a4a3a" letter-spacing="0.08em">STAGES 1–4</text>
+    <text x="90" y="50" text-anchor="middle" font-size="13" font-weight="600">Don't even read</text>
+    <text x="90" y="66" text-anchor="middle" font-size="13" font-weight="600">about Gas Town</text>
+    <text x="90" y="100" text-anchor="middle" font-size="10" fill="#3a342a">framework solves problems</text>
+    <text x="90" y="114" text-anchor="middle" font-size="10" fill="#3a342a">you haven't run into yet</text>
+  </g>
+  <g transform="translate(560,246)">
+    <rect x="0" y="0" width="180" height="84" fill="#f0d9b8" stroke="#1c1a15" stroke-width="0.6"/>
+    <text x="90" y="22" text-anchor="middle" font-size="10" fill="#8a6a3a" letter-spacing="0.08em">STAGES 5–6</text>
+    <text x="90" y="48" text-anchor="middle" font-size="13" font-weight="600">Don't install yet</text>
+    <text x="90" y="68" text-anchor="middle" font-size="10" fill="#3a342a">you'll wreck your repo</text>
+  </g>
+  <g transform="translate(560,352)">
+    <rect x="0" y="0" width="180" height="234" fill="#dde6d3" stroke="#1c1a15" stroke-width="0.6"/>
+    <text x="90" y="22" text-anchor="middle" font-size="10" fill="#5a6b48" letter-spacing="0.08em">STAGES 7+</text>
+    <text x="90" y="50" text-anchor="middle" font-size="13" font-weight="600">Gas Town</text>
+    <text x="90" y="66" text-anchor="middle" font-size="13" font-weight="600">becomes safe</text>
+    <text x="14" y="100" font-size="10" fill="#3a342a">You've already felt the pain</text>
+    <text x="14" y="114" font-size="10" fill="#3a342a">Gas Town's design solves.</text>
+    <text x="14" y="128" font-size="10" fill="#3a342a">Each role earns its keep.</text>
+    <line x1="14" y1="148" x2="166" y2="148" stroke="#b8543e" stroke-width="0.8" stroke-dasharray="3 3"/>
+    <text x="90" y="170" text-anchor="middle" font-style="italic" font-size="10" fill="#b8543e">stages 9–11 are the</text>
+    <text x="90" y="184" text-anchor="middle" font-style="italic" font-size="10" fill="#b8543e">Gas City extension</text>
+    <text x="90" y="206" text-anchor="middle" font-size="10" fill="#3a342a">(no longer about code)</text>
+  </g>
+
+  <g transform="translate(20,60)">
+    <line x1="0" y1="0" x2="0" y2="520" stroke="#8a8377" stroke-width="0.8"/>
+    <polygon points="-3,516 3,516 0,520" fill="#8a8377"/>
+    <text x="-12" y="260" text-anchor="middle" font-size="9" fill="#8a8377" letter-spacing="0.12em" transform="rotate(-90, -12, 260)">MORE AGENTS · MORE AUTONOMY</text>
+  </g>
+</svg>
+<figcaption><strong>Fig 9.</strong> Yegge's 11-stage ladder of AI-assisted coding adoption. Stages 1–8 existed at Gas Town's launch; stages 9–11 were added with Gas City in April 2026, when the ceiling moved from "running your own orchestrator" to "running a fleet of deployable agent packs." The three safety zones are Yegge's, not mine: install Gas Town at Stage 7 or above, hold off at 5–6, and at 1–4 don't bother reading about it yet.</figcaption>
+</figure>
+
+Yegge's three cut points are blunt. **Stage 7 and up:** install Gas Town. By the time you're hand-managing ten or more agents, you've already lived inside the problems Gas Town's roles are designed for. The Refinery makes obvious sense. The Witness makes obvious sense. You'll know which knobs to leave alone. **Stage 5–6:** don't install it. One agent, or a small handful, is fine; the orchestrator's overhead will eat you, and you'll fight machinery you don't yet need. He has [begged the community](https://steve-yegge.medium.com/welcome-to-gas-town-4f25ee16dd04), repeatedly, not to do this. **Stage 1–4:** don't even read about it. The framework is an answer to a question you haven't asked.
+
+The shape of the extension is its own story. Stages 9, 10, 11 are no longer about coding. They're the trajectory of someone who got coding-orchestration working and is now stamping out small autonomous packs for the rest of the business: image moderation, compliance review, contract triage. Stage 7 used to be the top of the ladder; the framework had a ceiling at "run your own orchestrator." Gas City raised the ceiling, and what now sits above the old ceiling is no longer a developer-tools question. It's an operations question, and probably an org-design one.
+
+For a serious user, the most useful thing about the ladder is that it tells you not to skip rungs. The Stage 9 win comes from having a working Stage 7–8 system to put it on top of. If you're at Stage 6 today, the next thing to chase is not Gas City. It's making your work durable enough that any Stage 7–8 orchestrator (Gas Town or somebody else's) can run on it.
 
 > **Checkpoint: what you know now.**
 >
 > **Gas City is the SDK abstraction over Gas Town.** Roles, topology, and orchestration become declarative TOML packs. The same engine that runs a coding swarm can run image moderation, ops triage, anything you can describe as a graph of agents.
 >
 > **The strategic claim is SaaS replacement.** A non-technical Comms major has displaced a niche SaaS at her company with a pack. Tim Sehn rewrote 30,000 lines of Dolt's storage backend in C in a day, for $3,000 in API credits. The territory between those two points is the bet, not yet proven.
+>
+> **Where you are determines what you can install.** Yegge's 11-stage ladder is blunt: Stage 7+ for Gas Town, 5–6 for "not yet," 1–4 for "don't even read about it." The framework grew from 8 to 11 with Gas City because the top of the ladder is no longer about code.
 
 ## Four ideas worth stealing
 
