@@ -11,7 +11,11 @@ This file covers both static SVG figures and interactive Canvas/Plot figures. Se
    bun run dev
    ```
    Use `Bash` with `run_in_background: true`. The server takes ~3-5 seconds to come up. Wait for the "ready" log line before navigating, or retry once on a failed first navigation.
-2. Navigate to the post route via the playwright MCP server:
+2. Ensure the screenshot output directory exists (it's gitignored, so a fresh checkout won't have it):
+   ```bash
+   mkdir -p .playwright-screenshots
+   ```
+3. Navigate to the post route via the playwright MCP server:
    ```
    mcp__plugin_playwright_playwright__browser_navigate { url: "http://localhost:4321/blog/<post-slug>" }
    ```
@@ -22,7 +26,7 @@ This file covers both static SVG figures and interactive Canvas/Plot figures. Se
 For each figure, in order:
 
 1. Scroll the figure into view. Use `mcp__plugin_playwright_playwright__browser_evaluate` with a small `scrollIntoView()` snippet on the figure's element if it isn't already visible.
-2. Snapshot. Use `mcp__plugin_playwright_playwright__browser_take_screenshot`. Don't snapshot the whole viewport for narrow figures; pass an element selector or clip box when feasible.
+2. Snapshot. Use `mcp__plugin_playwright_playwright__browser_take_screenshot`. **Always pass `filename: ".playwright-screenshots/<descriptive-name>.png"`** (e.g. `.playwright-screenshots/fig-3-architecture.png`) — this directory is gitignored. Without an explicit `filename`, the MCP server drops `page-{timestamp}.png` files into the repo root, which Vic then has to clean up by hand. Don't snapshot the whole viewport for narrow figures; pass an element selector or clip box when feasible.
 3. Read the screenshot back. Verify against the figcaption: does the figure visibly communicate what the caption claims?
 4. Run the type-specific checks below.
 5. If anything fails, edit the SVG in MDX, save, wait for the dev server to reload (~1 second), re-snapshot. Repeat until clean.

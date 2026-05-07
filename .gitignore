@@ -31,3 +31,7 @@ pnpm-debug.log*
 public/assets/blog/
 .gstack/
 .playwright-mcp/
+.playwright-screenshots/
+
+# scheduled tasks runtime lock
+.claude/scheduled_tasks.lock
