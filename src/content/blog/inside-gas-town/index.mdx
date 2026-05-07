@@ -24,7 +24,7 @@ This trail is mostly invisible to you, mostly invisible to the next session, and
 
 Most of the friction in working with a single coding agent is downstream of this. The agent rediscovers facts you already taught it. It pursues approaches you already rejected. It writes the same broken function twice. It reaches the end of its context with the work two-thirds done and no good way to hand off. None of this is the model's fault, exactly. It's the medium.
 
-The job of an orchestrator (which is what Gas Town is) is to fix the medium. Make the trail durable, make the work survive the session, let multiple agents pass the work between them without losing what's on it. Once you accept that as the goal, almost everything else in Gas Town's design follows.
+The job of an orchestrator (which is what Gas Town is) is to fix the medium. You can't preserve the cognitive trail itself — the LLM's scratch reasoning is gone the moment the context fills up, and no orchestrator gets that back. But you can preserve the *result* of the trail: the work that's been done, the decisions that have been made explicit, the open questions a future session can pick up. Make the work survive the session, let multiple agents pass it between them without losing what's on it. Once you accept that as the goal, almost everything else in Gas Town's design follows.
 
 ### 2. The naive answer, and why it explodes
 
@@ -107,7 +107,7 @@ If you've used Linear or Jira, this looks like a step backwards. You're trading 
 
 But there are two things Beads gets right that Linear and Jira can't.
 
-The first is that the issues are *in the repo*. Your branch and your work tracker move together. When you check out an old commit, the issue tracker rewinds to match. When you fork a branch to try something out, the work plan forks with it. Git's whole vocabulary for managing parallel work (branches, merges, rebases, cherry-picks) applies to your tickets the same way it applies to your code. This sounds small. It is not. It means an AI agent reading your repo has access to the full work history without any extra API call.
+The first is that the issues are *in the repo*. The work tracker lives where your code lives, version-controlled by git. In the original SQLite+JSONL Beads, this meant your branch and your work tracker moved together: checkout an old commit, the issues rewound to match; fork a branch, the work plan forked with it. Beads v1.0's default Classic mode currently keeps all issues on Dolt's `main` branch regardless of your git branch position; restoring the original branch coupling is on the [Dolt team's roadmap](https://www.dolthub.com/blog/2026-04-15-common-beads-workflows/) but not implemented yet. Either way, the issues are queryable structured data your agent can read directly, with full history committed alongside your code, no API call required.
 
 The second is the data format. Whether the format is JSONL or a Dolt table, the agent gets structured records it can read, edit, append to, and version. There's no opaque database, no auth flow, no rate limit, no schema migration. The agent reads the work tracker the same way it reads your code: as queryable structured data, version-controlled by git.
 
@@ -337,7 +337,7 @@ It's a clean design. The bead acceptance criteria are the contract. The git hist
 
 NDI is weaker than Temporal's guarantees. Temporal will execute exactly the workflow you wrote. NDI will execute *some* workflow that satisfies the acceptance criteria you wrote, and the path may meander. For the kinds of work coding agents do (where there are usually many valid solutions and the goal is the outcome, not the trajectory) this is plenty, as long as the acceptance criteria are tight enough to catch trajectory-sensitive failures like races or partial migrations. Where they aren't, the LLM can pass each step and still produce a globally wrong result, and you fall back to the script approach for those steps.
 
-There's parallel academic work pointing in the same direction. The [MAKER paper](https://arxiv.org/abs/2511.09030) from Cognizant and UT Austin (Nov 2025) showed you can complete an LLM task with over a million dependent steps and zero errors, by decomposing the task into atomic microagents and applying per-step error correction. NDI is a less clinical version of the same insight: long LLM workflows complete reliably when each step is atomized, well-specified, and individually checkable. Gas Town adds the working substrate and the role hierarchy on top.
+There's parallel academic work pointing in the same direction. The [MAKER paper](https://arxiv.org/abs/2511.09030) (Meyerson et al., Nov 2025) reports completing a single task spanning over a million dependent LLM steps with zero errors, by extreme decomposition into single-purpose microagents combined with multi-agent voting at each step. The benchmark is constructed; the principle is what travels: long LLM workflows complete reliably when each step is atomized, well-specified, and individually checkable. NDI is the less clinical version of the same insight, with Gas Town adding the working substrate and the role hierarchy on top.
 
 > *The path is whatever the agent decides. The destination is whatever the bead says.*
 
@@ -450,7 +450,7 @@ Three roles operate at the **town level** (across all rigs):
 
 **The Mayor** is your front desk. It's the agent you talk to most. When you have an idea ("we need to fix the rate limiter"), you talk to the Mayor. The Mayor files beads, drafts plans, slings work to other agents, and gathers status when convoys land. It's the only agent with a global view of the town.
 
-**The Deacon** is the watchdog. It runs a patrol loop, every couple of minutes, checking on the health of the town. It can dispatch maintenance work, restart stuck agents, escalate genuine problems to you. The Deacon is what makes Gas Town keep running while you're at lunch. (It is also, in early Gas Town versions, the role most likely to go feral. Yegge had to issue a public warning during the first month asking users to disable the Deacon because it was, in his words, ["spree-killing all the other workers while on his patrol."](https://steve-yegge.medium.com/gas-town-from-clown-show-to-v1-0-c239d9a407ec) This has since been fixed.)
+**The Deacon** is the watchdog. It runs a patrol loop, every couple of minutes, checking on the health of the town. It can dispatch maintenance work, restart stuck agents, escalate genuine problems to you. The Deacon is what makes Gas Town keep running while you're at lunch. (It is also, in early Gas Town versions, the role most likely to go feral. Yegge has talked openly about the Deacon's tendency to go on ["serial killer sprees, viciously taking out random workers mid-job"](https://steve-yegge.medium.com/gas-town-from-clown-show-to-v1-0-c239d9a407ec) — calling it the modern-day Butler in the Gas Town murder mysteries — and at one point recommended disabling it. Largely fixed by v1.0.)
 
 **The Dogs** are the Deacon's hands, plus one structural exception. The patrol loop got too crowded with chores (clean up stale branches, run plugins, GC merged worktrees), so the Deacon hands those off to dedicated maintenance agents. The exception is Boot the Dog, who isn't a maintenance helper at all: Boot wakes up every five minutes and checks whether the Deacon is alive. Boot watches the Deacon, the other Dogs work for the Deacon. We'll come back to that distinction in section 10.
 
@@ -661,7 +661,7 @@ Gas Town shipped with seven hardcoded roles. They are the right shape for coding
 
 Gas City is the answer.
 
-Some chronology, because the timeline matters. Gas Town launched January 1, 2026: 17 days of vibe-coded Go, 75,000 lines, 2,000 commits. The community Discord and a handful of Fortune 100 trial deployments showed up almost immediately. By early March it had an 8-stage adoption framework, a [Wasteland federation layer](https://steve-yegge.medium.com/welcome-to-the-wasteland-a-thousand-gas-towns-a5eb9bc8dc1f) (a DoltHub-backed commons board where Gas Towns post wanted work and earn portable reputation by completing each others' tasks), and a measurable cost (one early adopter reported $100/hour in API spend during heavy use).
+Some chronology, because the timeline matters. Gas Town launched January 1, 2026: 17 days of vibe-coded Go, 75,000 lines, 2,000 commits. The community Discord and a handful of Fortune 100 trial deployments showed up almost immediately. By early March it had an 8-stage adoption framework, a [Wasteland federation layer](https://steve-yegge.medium.com/welcome-to-the-wasteland-a-thousand-gas-towns-a5eb9bc8dc1f) (a Dolt-backed trust network where thousands of Gas Towns can share a common Wanted Board and pick up work other Gas Towns post), and a measurable cost (one early adopter reported $100/hour in API spend during heavy use).
 
 <figure>
 <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" width="100%" font-family="serif" role="img" aria-label="Timeline of the Beads/Gas Town/Gas City stack from October 2025 to April 2026.">
@@ -692,32 +692,32 @@ Some chronology, because the timeline matters. Gas Town launched January 1, 2026
     <text x="0" y="22" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">MAR 4, 2026</text>
   </g>
 
-  <g transform="translate(665,100)">
-    <circle cx="-15" cy="0" r="6" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.8"/>
-    <line x1="-15" y1="6" x2="-15" y2="22" stroke="#1c1a15" stroke-width="1"/>
-    <text x="-15" y="36" text-anchor="middle" font-weight="600" font-size="11">Beads + GT v1.0</text>
-    <text x="-15" y="52" text-anchor="middle" font-size="11" fill="#3a342a">Dolt migration done</text>
-    <text x="-15" y="-14" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">APR 21</text>
+  <g transform="translate(620,100)">
+    <circle cx="0" cy="0" r="6" fill="#fdfbf6" stroke="#1c1a15" stroke-width="1.8"/>
+    <line x1="0" y1="6" x2="0" y2="22" stroke="#1c1a15" stroke-width="1"/>
+    <text x="0" y="36" text-anchor="middle" font-weight="600" font-size="11">Beads + GT v1.0</text>
+    <text x="0" y="52" text-anchor="middle" font-size="11" fill="#3a342a">Dolt migration done</text>
+    <text x="0" y="-14" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">APR 3</text>
 
-    <circle cx="35" cy="0" r="7" fill="#b8543e" stroke="#1c1a15" stroke-width="1.8"/>
-    <line x1="35" y1="-7" x2="35" y2="-22" stroke="#1c1a15" stroke-width="1"/>
-    <text x="35" y="-32" text-anchor="middle" font-weight="600" font-size="12">Gas City</text>
-    <text x="35" y="22" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">APR 24, 2026</text>
+    <circle cx="80" cy="0" r="7" fill="#b8543e" stroke="#1c1a15" stroke-width="1.8"/>
+    <line x1="80" y1="-7" x2="80" y2="-22" stroke="#1c1a15" stroke-width="1"/>
+    <text x="80" y="-32" text-anchor="middle" font-weight="600" font-size="12">Gas City</text>
+    <text x="80" y="22" text-anchor="middle" font-size="10" fill="#8a8377" letter-spacing="0.05em">APR 24, 2026</text>
 
-    <path d="M-30,68 Q10,76 50,68" fill="none" stroke="#b8543e" stroke-width="1" opacity="0.6"/>
-    <text x="10" y="86" text-anchor="middle" font-style="italic" font-size="10" fill="#b8543e">3 days apart</text>
+    <path d="M-10,68 Q35,76 90,68" fill="none" stroke="#b8543e" stroke-width="1" opacity="0.6"/>
+    <text x="40" y="86" text-anchor="middle" font-style="italic" font-size="10" fill="#b8543e">3 weeks apart</text>
   </g>
 
   <text x="380" y="180" text-anchor="middle" font-style="italic" font-size="11" fill="#b8543e">six months · one developer started this</text>
 </svg>
-<figcaption><strong>Fig 7.</strong> The trajectory from Beads to Gas City. Six months between the first git-backed issue tracker and a deployable SDK for building agent factories. The cluster at the right is real: v1.0 of two projects and the launch of a third all landed within the same week of April 2026.</figcaption>
+<figcaption><strong>Fig 7.</strong> The trajectory from Beads to Gas City. Six months between the first git-backed issue tracker and a deployable SDK for building agent factories. The cluster at the right is real: v1.0 of two projects and the launch of a third all landed in the same three-week window of April 2026.</figcaption>
 </figure>
 
 By April both Gas Town and Beads hit v1.0. Beads' storage layer migrated from JSONL+SQLite to embedded Dolt, a git-versioned SQL database; the "single binary, no daemon" experience came back, with version history and SQL queries built in. Yegge's framing for the Dolt migration is that it's been the unsung hero of the whole stack: Dolt gives the agents Git-style branch/merge semantics on structured data, which is exactly what a federated work system needs.
 
-Then in late April, Yegge announced [Gas City](https://steve-yegge.medium.com/welcome-to-gas-city-57f564bb3607). Gas City is Gas Town disassembled and rebuilt as an SDK: roles, topology, and orchestration patterns become declarative *packs* that you can deploy and run. Yegge didn't write Gas City himself; it was built by Julian Knutsen and Chris Sells from the community, after Yegge sketched the vision. Yegge calls it a "Dark Factory Factory": Gas Town is one factory; Gas City is the toolkit for stamping out new ones.
+Then in late April, Yegge announced [Gas City](https://steve-yegge.medium.com/welcome-to-gas-city-57f564bb3607). Gas City is Gas Town disassembled and rebuilt as an SDK: roles, topology, and orchestration patterns become declarative *packs* that you can deploy and run. Yegge didn't write Gas City himself; it was built by Julian Knutsen and Chris Sells from the community, after Yegge sketched the vision. Gas Town is one factory; Gas City is the toolkit for stamping out new ones.
 
-The strategic change is bigger than the technical one. The original Gas Town pitch was "Kubernetes for coding agents." The Gas City pitch is something more ambitious: agents-running-themselves, for any business process. Yegge calls these "dark factories" (agents working without humans watching) but he reframes Gas City as a "light factory," because every action is observable and auditable in Dolt.
+The strategic change is bigger than the technical one. The original Gas Town pitch was "Kubernetes for coding agents." The Gas City pitch is something more ambitious: agents-running-themselves, for any business process. Industry calls a facility that runs without humans watching a "dark factory." Yegge reframes Gas City as a "light factory" — or, in his phrasing, "a very well-lit dark one!" — because every action is observable and auditable in Dolt.
 
 The example he gives is from his own MMORPG, Wyvern. Players who hit level 25 get to upload custom character images. Yegge has to review them for inappropriate content and approve or reject them. This is a small recurring task that has nothing to do with code. He describes a two-agent pack: one agent reviews each submission, another agent checks the first agent's work. Two agents instead of one because, as he puts it, any agent can go temporarily insane at any time. A second pair of eyes is cheap insurance.
 
@@ -784,6 +784,8 @@ The small end is from [Yegge's v1.0 post](https://steve-yegge.medium.com/gas-tow
 The large end is from [a DoltHub blog post in late March](https://www.dolthub.com/blog/2026-03-24-a-week-in-gas-town/). Tim Sehn, the CEO of DoltHub (and an old colleague of Yegge's from Amazon), used Gas Town to rewrite roughly 30,000 lines of Dolt's storage backend from Go into C, embedded inside SQLite. By 4pm that day, all 87,000 SQLite acceptance tests were passing. He had not written serious C in twenty years. The whole experiment cost him about $3,000 in API credits. An experienced systems engineer using Gas Town to do something he plausibly could not have done by hand at all.
 
 The Comms major's case is small-SaaS displacement. Sehn's is an experienced engineer punching through a productivity ceiling Gas Town can move. Whether the wide territory between them, generic business processes run by small in-house packs that pay for themselves, is full or empty, no one knows yet. That's the Gas City bet, and the Gas City pivot says Yegge is making it. The interesting layer of the stack is no longer the coding orchestrator; it's the layer above it, where you stamp out small agent crews for whatever business process needs running. The coding case is just the first one anyone got working.
+
+The skeptical case is worth registering. SaaS isn't only the 20% of features you actually use. It's the SOC 2 audit, the SSO integration, the data residency guarantees, the SLAs, the on-call team that takes incident calls at 2 AM, and the legal liability that travels with all of those. A pack that approves Wyvern character submissions doesn't need any of that. A pack that touches payroll, payments, customer PII, or anything regulated does. The question isn't whether you can build a working in-house pack — the Comms major proves you can. It's whether operating, securing, and being legally responsible for that pack stays below the SaaS bill once you add up everything the SaaS was actually doing. For small niche workflows, the math probably works. For replacing your CRM or your accounting system, probably not. Gas City's territory is the middle, and the shape of that middle is what's still empirical.
 
 > **The 11 stages of AI-assisted coding.**
 >
