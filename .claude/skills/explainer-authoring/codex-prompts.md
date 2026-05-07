@@ -346,20 +346,18 @@ This cap exists because if codex has surfaced STRUCTURAL findings 4 times in a r
 
 **Gate 1 unlock-protocol fires count against this cap.** Each TYPE-CHANGE STRUCTURAL → unlock protocol → re-run cycle uses one of the 3 invocation slots. See SKILL.md "Per-figure-type unlock protocol → Interaction with the gate-runner loop cap" for the concrete invocation sequence.
 
-### Step 6a: Override does NOT mean Gate 0 acceptance for HTML mode
+### Step 6a: Override never auto-ships; Vic owns the draft flip
 
-**Critical safeguard for HTML-import mode.** If Vic picks `accept-and-proceed` or `override-on-specific-finding` at Step 6 for **Gate 0** in HTML-import mode, this is NOT the same as Gate 0 acceptance. The MDX's `draft: true` flag does NOT flip to `draft: false` automatically.
+**Critical safeguard.** Per hard rule #9, the MDX is `draft: true` from creation through ship in both modes — neither Gate 0 acceptance nor a Step-6 override flips it. The skill never writes `draft: false`. What Step 6 controls is whether the gate-runner proceeds to the next phase, not whether the post is shippable.
 
-Instead:
+Recording requirements when Vic picks `accept-and-proceed` or `override-on-specific-finding`:
 
-1. The Step-6 override is recorded in `## Codex research review` and the Codex history table with the explicit annotation `Step-6 override; not Gate 0 acceptance`.
-2. The MDX stays `draft: true`.
-3. Vic must take a **separate, explicit action** to flip `draft: false` for the post to ship: either say "flip draft to false; I accept the unresolved findings X, Y, Z" or run a single-purpose commit that sets `draft: false` with a commit message naming the override-accepted findings.
-4. The single-purpose commit message must include the literal phrase `Step-6 override on Gate 0 — overridden findings:` followed by the list, so the audit trail is searchable in `git log`.
+1. The Step-6 outcome is recorded in `## Codex research review` (Gate 0), `## Codex outline review` (Gate 1), or `## Codex final review` (Gate 2) AND in the Codex history table.
+2. For overrides specifically, annotate the entry as `Step-6 override` and list the unresolved findings being overridden. For clean acceptance, annotate as `accepted (no STRUCTURAL findings)` or `accepted (all STRUCTURAL findings fixed)`.
+3. The MDX stays `draft: true` regardless.
+4. When Vic is ready to ship, Vic flips the flag himself in a single-purpose commit. If the ship is happening with unresolved STRUCTURAL findings (Step-6 override on Gate 0 or Gate 2), the commit message must include the literal phrase `Step-6 override on Gate <N> — overridden findings:` followed by the list, so the audit trail is searchable in `git log`. A clean ship needs no special commit-message annotation.
 
-This rule exists because Step 6 is the gate-runner's escape hatch from infinite re-runs; it is NOT a truthfulness override. "Truthfulness first" (hard rule #1) means publishing with unresolved STRUCTURAL findings requires a deliberate second action by Vic, not a single AskUserQuestion answer. The two-step structure is the friction that catches a tired agent's "Vic said proceed → publish" misread.
-
-For Gates 1 and 2, Step 6 override has the same recording requirements (record in notes + Codex history with `Step-6 override` annotation) but does not gate `draft: false` (Gates 1 and 2 don't change the draft flag — only Gate 0 acceptance in HTML mode does that).
+This safeguard exists because Step 6 is the gate-runner's escape hatch from infinite re-runs; it is NOT a truthfulness override. "Truthfulness first" (hard rule #1) means publishing with unresolved STRUCTURAL findings requires a deliberate, separate action by Vic — never a single AskUserQuestion answer that the skill silently turns into a publish. The two-step structure (override now + Vic's explicit ship commit later) is the friction that catches a tired agent's "Vic said proceed → publish" misread.
 
 ### Step 7: Proof-of-fire
 

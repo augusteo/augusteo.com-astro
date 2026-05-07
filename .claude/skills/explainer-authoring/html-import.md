@@ -45,7 +45,7 @@ HTML-import-specific defaults at write time:
 | `heroImage` | Omitted; added in Phase 7's hero hand-off. |
 | `tags` | Infer 1–3 tags per `mdx-output-spec.md` rules. Default `["Tech"]` if uncertain. |
 | `featured` | `false`. |
-| `draft` | `false` (Vic publishes these directly). |
+| `draft` | `true`. Vic flips to `false` explicitly when ready to ship; the skill never auto-flips. |
 | `essay` | `true`. |
 | `slug` | Per the unified slug-derivation rule in the main SKILL.md (kebab-case, drop articles, cap at 6 words, halt on collision). |
 
@@ -374,7 +374,7 @@ When converting, scan the source HTML for these markers in order:
 After Phase 1 completes in HTML-import mode, the working tree should have:
 
 ```
-src/content/blog/<slug>/index.mdx          # converted MDX, draft: false, essay: true
+src/content/blog/<slug>/index.mdx          # converted MDX, draft: true, essay: true
 notes/<slug>.md                            # ## Spec, ## Throughline, ## Outline (extracted),
                                            # initial figure table with auto-classified types,
                                            # ## Resume here pointing at Phase 2 (fact-check)

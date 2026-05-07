@@ -1,12 +1,12 @@
 # Hero image hand-off
 
-Shared workflow for adding a hero image to a blog post. Used by both `explainer-authoring` (final step of Phase 8) and `html-explainer-to-post` (Phase 2). The flow is identical; only the timing differs.
+Shared workflow for adding a hero image to a blog post. Used by both `explainer-authoring` (Phase 7 hero hand-off step) and `html-explainer-to-post` (Phase 2). The flow is identical; only the timing differs.
 
 The hand-off has two halves: a **prompt template** that the skill outputs for Vic to feed into an image model, and a **post-image flow** that copies the result into the repo and updates the MDX frontmatter.
 
 ## When to invoke
 
-- `explainer-authoring`: Phase 8, after the final codex gate passes and the prose is locked. Hero is the last thing added.
+- `explainer-authoring`: Phase 7, after the final codex gate (Gate 2) passes and the prose is locked. Hero is the last thing added before Vic's ship commit.
 - `html-explainer-to-post`: Phase 2, after the MDX has been written and Phase 1 has reported. Hero is optional in this skill — Vic can say "skip" to ship heroless.
 
 ## The prompt template

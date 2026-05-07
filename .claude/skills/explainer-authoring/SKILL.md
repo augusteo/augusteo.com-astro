@@ -177,13 +177,13 @@ Read `html-import.md` end-to-end before starting. The full conversion playbook l
 4. **Normalize SVGs** per the rules in `html-import.md`.
 5. **Auto-classify each `<figure>`:** `static-svg` (inline SVG, no scripts/handlers) or `imported-interactive` (has `<canvas>`, `<script>`, `on*=` handlers, or JS-lib references). For `imported-interactive`, run the safety review checklist in `html-import.md` before accepting.
 6. **Slug-collision check** against `src/content/blog/<slug>/`. Halt if exists (mode-detection layer should have caught most cases; this is the belt-and-suspenders check).
-7. **Write** `src/content/blog/<slug>/index.mdx` **with `draft: true`** (NOT `draft: false`). The MDX is unverified at this point. The `draft: true` flag stays until Gate 0 passes in Phase 2 (see Phase 2 step "flip to draft: false on Gate 0 acceptance"). This is the one exception to the "draft: false from Phase 1 onward" hard rule, and it exists because HTML-import mode writes prose before fact-checking it; topic mode writes prose section-by-section after research locks the matrix.
+7. **Write** `src/content/blog/<slug>/index.mdx` **with `draft: true`**. Both skill modes always create posts as `draft: true` (see hard rule #9). The flag stays `true` for the entire pipeline; Vic flips it to `false` as an explicit ship action.
 8. **Write** `notes/<slug>.md` with:
    - `## Spec` extracted from `<h1>` + `<p class="dek">`.
    - `## Throughline` per the extraction-or-synthesis flow in `html-import.md`. Halt and ask Vic if neither extraction nor fallback-ladder synthesis works.
    - `## Outline` extracted from `<h2 id="sN">` headings.
    - Initial figure table with auto-classified types.
-   - `## Resume here` initialized at "Phase 1 done, Phase 2 (fact-check) next. MDX is `draft: true` until Gate 0 accepts."
+   - `## Resume here` initialized at "Phase 1 done, Phase 2 (fact-check) next. MDX is `draft: true` (stays `true` until Vic ships)."
 9. **Project-memory verification (REQUIRED, halt if missing).** Same as topic-mode step 6.
 
 ### Phase 1 — resume mode
@@ -282,7 +282,7 @@ For UNSUPPORTED or CONTRADICTED claims, run the **unsupported-claim repair workf
 
 Run Gate 0 after the matrix is populated and repairs are committed.
 
-**On Gate 0 acceptance** (no STRUCTURAL findings, or all STRUCTURAL findings fixed): in HTML-import mode, flip `draft: true` → `draft: false` in the MDX frontmatter. Single-purpose commit: `accept Gate 0; flip draft to false`. The post is now in the same shape as a topic-mode post post-Phase-2: drafted, fact-checked, ready for outline review.
+**On Gate 0 acceptance** (no STRUCTURAL findings, or all STRUCTURAL findings fixed): record the acceptance in `## Codex research review` and the Codex history table, and proceed to Phase 3. **Do NOT flip the draft flag.** The MDX stays `draft: true` for the rest of the pipeline; Vic flips to `draft: false` explicitly when shipping (see hard rule #9). The post is now in the same shape as a topic-mode post post-Phase-2: drafted, fact-checked, ready for outline review.
 
 ## Phase 3: outline + figure list
 
@@ -310,7 +310,7 @@ Goal: a working MDX file with section prose and figure placeholders.
 **HTML-import mode skips this phase.** The imported MDX is the draft. Voice-check runs against it; the skill auto-repairs any failures (em-dashes replaced with appropriate punctuation; banned words rewritten unless they're real technical terms with a one-line comment naming why they stay).
 
 1. Create `src/content/blog/<post-slug>/index.mdx` with frontmatter per `src/content.config.ts` and `../../explainer-shared/mdx-output-spec.md`:
-   - `title`, `description`, `pubDate`, `tags`, `featured: false`, `draft: false`, `essay: true`.
+   - `title`, `description`, `pubDate`, `tags`, `featured: false`, `draft: true`, `essay: true`.
    - `heroAlt: "TODO: hero image not yet selected"` placeholder so the content collection validates.
    - Omit `heroImage` (Phase 7 adds it).
 2. Draft section by section. For each section: state the claim, drop a figure placeholder (`{/* TODO: Fig N: <mechanism> */}` for static, `{/* TODO: <FigureName /> */}` for interactive), tell the reader what to notice, then explain the mechanism, then hand off.
@@ -381,7 +381,7 @@ Goal: the post ships with current sources, no claim drift, and a real hero image
 3. **Run Gate 2** (see Codex gates below).
 4. **Final `voice-check.sh` pass** on the full file. Em dashes: zero. Banned words: zero or justified.
 5. **Hero hand-off.** Follow `../../explainer-shared/hero-handoff.md`: compose the prompt with every slot filled in, wait for Vic to paste a path or say "skip", validate, copy to `src/assets/blog/<slug>/hero.<ext>`, view via Read, propose `heroAlt`, edit frontmatter.
-6. **Verify.** Confirm `draft: false`, `essay: true`, real `heroImage`, real `heroAlt`. Walk every figure, read the post end-to-end at `http://localhost:4321/blog/<post-slug>`. Lighthouse: LCP under 2.5s on cold load.
+6. **Verify.** Confirm `draft: true` (it stays `true` — Vic flips to `false` himself when shipping; see hard rule #9), `essay: true`, real `heroImage`, real `heroAlt`. Walk every figure, read the post end-to-end at `http://localhost:4321/blog/<post-slug>`. Lighthouse: LCP under 2.5s on cold load.
 7. **Final commit** naming the post.
 8. **Update the `## Resume here` tracker:** phase 7 → done. Optionally remove the MEMORY.md "in progress" pointer (the project memory entry can stay as a build record).
 
@@ -518,7 +518,7 @@ Three to five lines naming the next concrete action. Order from low complexity t
 6. **Per-figure type is locked at Phase 3, unlock only via Gate 1 STRUCTURAL finding + Vic approval.**
 7. **One section per commit, one figure per commit, one migration per commit.** Safe revert points.
 8. **Sentence-case headings.** Numbered sections (`### 3. The all-reduce sub-problem`) match `unified-vision-stack`. Em-dashes (U+2014) are forbidden in prose (voice-rules.md) BUT permitted in act-divider headings (`## Act 1 — The Lens`); voice-check exempts heading-line em-dashes when the line starts with `## Act `. **En-dashes (U+2013) are allowed everywhere** — use them for numeric ranges (`5–10 GPUs`), date ranges (`2023–2024`), and other span notations. Voice-check does not flag en-dashes; do not auto-repair them.
-9. **`draft: false` from Phase 1 onward in topic mode.** HTML-import mode is the one exception: the MDX is written `draft: true` at Phase 1 (because conversion precedes verification) and flipped to `draft: false` only on Gate 0 acceptance in Phase 2. After that flip, the rule applies normally — no flipping back.
+9. **`draft: true` from creation through ship; Vic flips to `draft: false` explicitly.** Both modes write the MDX with `draft: true` at creation (topic mode in Phase 4, HTML-import mode in Phase 1) and the flag stays `true` for every commit the skill makes. The skill never auto-flips to `draft: false` — not on Gate 0 acceptance, not after the freshness pass, not at "ship." Vic owns the flip as an explicit, separate action (a single-purpose commit `flip draft to false; ship` is the canonical shape). Do not toggle the flag between figure / section commits during development; it stays `true` until Vic's explicit ship action.
 10. **Project-memory pointer + MEMORY.md entry are required and verified at end of Phase 1.** Schema, format, and failure-repair procedure in `research-protocol.md` "Project-memory schema". Halt if missing or malformed and repair fails. (Intentional coupling to the discovery mechanism for fresh-context resume.)
 
 ## Halt-and-ask conditions
@@ -619,7 +619,7 @@ After Phase 7:
 - `scripts/voice-check.sh` exits clean on the final file.
 - Tag list overlaps existing site vocabulary.
 - Hero image present, `heroAlt` describes what's visible.
-- `draft: false`, `essay: true`, `pubDate` is today.
+- `draft: true` (stays `true` — Vic flips to `false` himself as the ship action), `essay: true`, `pubDate` is today.
 - **Every load-bearing claim in the post traces back to a row in `## Claim-source matrix`.** Walk and verify.
 - **Every matrix row's source passes the freshness check** as of `pubDate`.
 - The notes file's `## Codex … review` sections all close on cosmetic rather than structural issues.
