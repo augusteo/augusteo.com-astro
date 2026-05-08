@@ -73,7 +73,29 @@ But sessioned doesn't fix the next problem.
 
 ### 3. The second failure: surface and control plane
 
-{/* TODO: §3 prose */}
+v2 is sessioned. Per-PR memory survives between turns; the agent can answer "why did you choose this name?" without falling over. The lifespan rung is right.
+
+Then nobody uses it.
+
+The team's review traffic happens in Slack and on GitHub, not in CLIs. Engineers reading a draft PR don't open a terminal to ask the agent for an opinion; they tag the reviewer in the thread and keep working. The agent that lives only behind a CLI is not where the work is. Usage drops. The first month's enthusiasm evaporates.
+
+That is a surface problem. The agent's lifespan is fine; the agent's reach is not.
+
+The surface dial has three rungs.
+
+*CLI or API* puts the agent behind an explicit invocation: a terminal command, an HTTP call, an SDK. The user has to know the agent exists and go to it.
+
+*Gateway* puts the agent behind a small, always-on routing surface that the user already addresses for other things. A single process owns the agent's exposure: it accepts inbound traffic on whatever transports the team needs, routes that traffic to the right session, and emits the agent's responses back. The control plane is one place; the channels are pluggable.
+
+*Multi-channel assistant* puts the agent into the channels users already inhabit. Slack DMs, GitHub PR comments, group-chat threads, and scheduled cron messages all reach the same agent through the same gateway, with each conversation routed by where it came from. The user reaches the agent by writing in the place where the work is happening, and the gateway handles the rest.
+
+Climbing the surface dial costs you a control plane. A CLI doesn't need one. A gateway does: it is the ongoing process that owns sessions, channels, and tool routing, and it has to stay running long enough to be reachable. A multi-channel assistant is a gateway plus per-channel adapters, plus a routing rule that says which inbound message lands in which session.
+
+For our engineer, v2 to v3 is a Slack bot and a GitHub bot wired to the same agent. Engineers can address the agent from where they already are; the agent answers in the same thread; sessions stay coherent because each surface routes to a consistent agent context.
+
+But multi-channel reach doesn't fix the next problem either.
+
+{/* Reader can now: see why "a single Gateway as control plane" is a specific design decision, not table stakes. */}
 
 ### 4. The third failure: adaptation
 
