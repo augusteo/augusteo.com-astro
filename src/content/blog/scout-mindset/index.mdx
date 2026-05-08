@@ -869,7 +869,91 @@ This section runs the systems-layer moves that finish the diagnosis. None of the
 
 **Adversarial collaboration.** The systems-layer analog of Galef's individual self-tests. The pattern is: a person with a strong prior on a question and a person with the opposite strong prior agree, in advance, on a research design or a piece of evidence whose outcome they both predict differently. They write down their predictions. They run the test. The loser updates publicly. Mellers and Hauenstein from section 6 are the textbook literature-scale instance: a 2014 paper made a causal claim, a 2025 reanalysis tested it under different statistical assumptions, the public dispute is now legible. Smaller versions of the same pattern can run inside a team or across two teams that disagree. The trick is the precommitment in step one; without it, both sides can claim retrospectively that the outcome confirmed their prior.
 
-{/* TODO: Fig 8: SystemsLayer. Two-tier diagram. Top tier: individual moves from §7 (the five Galef tests + calibration tracking). Bottom tier: systems-layer moves (precommitment, scoring as a team practice, aggregation under independence, outside review, adversarial collaboration). Arrows showing how systems-layer moves generalize the individual ones (e.g., calibration-tracking-personal → calibration-tracking-team-aggregated → Goldstein's "All Surveys Logit"). The Hauenstein-Mellers dispute is annotated as the literature-scale instance of the adversarial-collaboration row. */}
+<figure>
+<svg viewBox="0 0 680 580" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+
+<defs>
+<marker id="f8arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+  <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+</marker>
+</defs>
+
+<text x="340" y="32" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">INDIVIDUAL MOVES (§7)</text>
+
+<rect x="30" y="50" width="200" height="120" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
+<text x="130" y="70" font-family="JetBrains Mono" font-size="9" fill="#2563EB" letter-spacing="0.8" text-anchor="middle">SELF-TESTS</text>
+<text x="130" y="92" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">five Chapter-5 prompts</text>
+<text x="130" y="106" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">run on a real belief</text>
+<g font-family="serif" font-size="9" fill="#6B6258" font-style="italic">
+  <text x="130" y="128" text-anchor="middle">double standard · outsider · conformity</text>
+  <text x="130" y="142" text-anchor="middle">selective skeptic · status quo</text>
+</g>
+<text x="130" y="162" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">cognitive prompts; help; partial</text>
+
+<rect x="240" y="50" width="200" height="120" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
+<text x="340" y="70" font-family="JetBrains Mono" font-size="9" fill="#2563EB" letter-spacing="0.8" text-anchor="middle">PERSONAL CALIBRATION</text>
+<text x="340" y="92" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">log your forecasts and</text>
+<text x="340" y="106" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">score them later</text>
+<text x="340" y="128" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">predicted prob → observed outcome</text>
+<text x="340" y="142" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">Brier on your own predictions</text>
+<text x="340" y="162" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">small-N personal regime</text>
+
+<rect x="450" y="50" width="200" height="120" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
+<text x="550" y="70" font-family="JetBrains Mono" font-size="9" fill="#2563EB" letter-spacing="0.8" text-anchor="middle">PERSONAL PRECOMMITMENT</text>
+<text x="550" y="92" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">write down what evidence</text>
+<text x="550" y="106" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">would change your mind</text>
+<text x="550" y="128" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">decided in advance, not under fire</text>
+<text x="550" y="142" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">includes Darwin's notebook (§4)</text>
+<text x="550" y="162" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">a personal artifact-class move</text>
+
+<g stroke="#6B6258" stroke-width="1.2" stroke-dasharray="3,3">
+  <line x1="130" y1="170" x2="130" y2="226" marker-end="url(#f8arrow)"/>
+  <line x1="340" y1="170" x2="340" y2="226" marker-end="url(#f8arrow)"/>
+  <line x1="550" y1="170" x2="550" y2="226" marker-end="url(#f8arrow)"/>
+</g>
+<text x="340" y="200" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">generalize at the team / institution scale</text>
+
+<text x="340" y="252" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">SYSTEMS-LAYER MOVES (§8)</text>
+
+<rect x="30" y="270" width="200" height="130" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2" rx="3"/>
+<text x="130" y="290" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">OUTSIDE REVIEW</text>
+<text x="130" y="312" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">red team, dissent register,</text>
+<text x="130" y="326" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">adversarial collaboration</text>
+<text x="130" y="348" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">scout's self-tests, externalized:</text>
+<text x="130" y="362" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">someone else runs them on you,</text>
+<text x="130" y="376" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">in writing, on the record</text>
+
+<rect x="240" y="270" width="200" height="130" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2" rx="3"/>
+<text x="340" y="290" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">TEAM AGGREGATION + SCORING</text>
+<text x="340" y="312" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">multiple forecasts, scored</text>
+<text x="340" y="326" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">and aggregated</text>
+<text x="340" y="348" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">Goldstein "All Surveys Logit":</text>
+<text x="340" y="362" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">recency-weighted, calibration-aware,</text>
+<text x="340" y="376" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">trusts the aggregate over any individual</text>
+
+<rect x="450" y="270" width="200" height="130" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2" rx="3"/>
+<text x="550" y="290" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">PRECOMMITMENT REGISTER</text>
+<text x="550" y="312" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">team-wide log of</text>
+<text x="550" y="326" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">change-of-mind triggers</text>
+<text x="550" y="348" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">decision-architecture move:</text>
+<text x="550" y="362" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">criteria committed before evidence,</text>
+<text x="550" y="376" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">visible to everyone on the team</text>
+
+<text x="130" y="394" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.6" text-anchor="middle"></text>
+
+<line x1="30" y1="430" x2="650" y2="430" stroke="#C9BEAA" stroke-width="0.6" stroke-dasharray="2,3"/>
+
+<text x="340" y="450" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">LITERATURE-SCALE INSTANCE</text>
+
+<rect x="30" y="466" width="620" height="74" fill="#F9F5EB" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="44" y="486" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="0.8">HAUENSTEIN 2025 vs MELLERS 2014</text>
+<text x="44" y="506" font-family="serif" font-size="11" fill="#1A1A1A">the same architecture, run at field scale: a published study (Mellers 2014), a published reanalysis</text>
+<text x="44" y="520" font-family="serif" font-size="11" fill="#1A1A1A">that contests its causal claim (Hauenstein 2025), an open record. adversarial collaboration in the</text>
+<text x="44" y="534" font-family="serif" font-size="11" fill="#1A1A1A">literature is what scout mode at the largest scale looks like.</text>
+
+</svg>
+<figcaption><strong>Fig 8.</strong> Two tiers, plus a literature-scale row. Top: the individual moves from §7 (the five Galef tests, personal calibration tracking, personal precommitment in the Darwin-notebook tradition). Bottom: the systems-layer moves the diagnosis from §4 demands. Outside review and adversarial collaboration externalize the self-tests; team aggregation generalizes personal Brier into Goldstein's "All Surveys Logit"; a team-wide precommitment register generalizes the personal one. The bottom row pulls the same architecture up to literature scale: Hauenstein 2025 contesting Mellers 2014 in print is adversarial collaboration that the field-as-system actually ran.</figcaption>
+</figure>
 
 The diagram in Figure 8 sketches how the individual moves and the systems-layer moves nest. The five Galef tests sit at the personal scale; precommitment and calibration tracking sit at the personal-or-team scale; aggregation, outside review, and adversarial collaboration sit at the team-or-institutional scale. The throughline from section 2 is what reappears explicitly here. Goldstein's "All Surveys Logit" was the largest-scale instance of the same family of moves. Your two-person team running blind first-pass forecasts before discussion is a smaller instance of the same family. They share a structural move and a math story; the difference is the scale they run at.
 
