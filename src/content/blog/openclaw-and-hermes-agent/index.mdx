@@ -165,7 +165,27 @@ The next section unpacks the three layers OpenClaw uses to keep that structure h
 
 ### 7. Workspaces, sessions, sandboxes: three layered concepts
 
-{/* TODO: §7 prose */}
+OpenClaw organizes execution along three layers, each owning a different decision.
+
+*Workspaces* are per-agent filesystem roots. The concept docs state: "Workspace root: `~/.openclaw/workspace` (configurable via `agents.defaults.workspace`)." Each agent inside a Gateway gets one. A `home` agent and a `work` agent each have their own workspace, mapped under separate directories. Tools that read or write files do so against the agent's workspace, not against the user's home directory.
+
+*Sessions* are conversation contexts. The README states that OpenClaw "organizes conversations into sessions. Each message is routed to a session based on where it came from: DMs, group chats, cron jobs." Session transcripts persist as JSONL, one file per session, at `~/.openclaw/agents/<agentId>/sessions/<SessionId>.jsonl`. The session store is what makes a "longer-lived agent" actually long-lived: the conversation isn't held in process memory that vanishes on restart, it's a file on disk the agent reads when it resumes.
+
+*Sandboxes* are optional execution-isolation backends. They wrap non-`main` sessions when sandboxing is enabled. The sandbox docs name three workspace-access modes:
+
+> `none`: sandbox gets an isolated workspace under `~/.openclaw/sandboxes/<sessionId>/workspace`; the agent's `~/.openclaw/workspace` is not mounted.
+>
+> `ro`: workspace mounted read-only at `/agent` inside the sandbox.
+>
+> `rw`: workspace mounted read-write at `/workspace`; tool-side writes propagate back to the host.
+
+The three modes are a spectrum from "the sandbox can't see anything you have" (`none`) through "the sandbox can read but not write your work" (`ro`) to "the sandbox is essentially the agent" (`rw`).
+
+The three layers compose. A workspace is what an agent owns. A session is a conversation pinned to that agent. A sandbox is an optional wall around the tools the session is about to invoke. The decision at each layer is independent: you can have multiple agents with separate workspaces sharing one Gateway; you can have multiple sessions in one agent without sandboxing any of them; you can sandbox some sessions but not others.
+
+That last decision is the security model, which the next section covers.
+
+{/* Reader can now: tell which decision lives at which layer. */}
 
 ### 8. The security model: host-by-default for `main`, sandbox tiers for non-`main`
 
