@@ -618,7 +618,7 @@ Run 3 closed F2-F6, F9-F12 directly; F1, F7, F8 are recorded as Step-6 overrides
 
 ## Resume here
 
-Last touched: 2026-05-08 (Phase 6 done; 10/10 figures passed playwright review. Two structural fixes applied during Phase 6 — see Phase 6 fix summary below. Phase 7 next: pre-ship freshness pass + Gate 2 + hero handoff + ship).
+Last touched: 2026-05-08 (Phase 7 closed; post-cap Vic-mandated codex consult applied 3 STRUCTURAL + 1 ADVISORY findings across commits `ff5f2e1`, `72a5698`, `3099504`, `9d7db16`. All three prior Step-6 overrides reaffirmed. MDX stays `draft: true`; Vic owns the ship.).
 
 ### Phase 6 fix summary
 
@@ -653,6 +653,7 @@ The remaining Phase-6-watchlist items (Fig 5 hand-placed curve labels; Fig 10 ou
 | 2026-05-08 | 2 (final) Run 1 | 20 STRUCTURAL findings + 1 confirmed-passing item; F2 (Galef rows secondary) is the existing Step-6 override from Gate 0 Run 3; F1, F15, F18, F19 typo/stale items + F3-F14 + F16-F17 + F20 drift/linking items applied as commits A/B/C; Run 2 of Gate 2 to follow. | `notes/scout-mindset-codex-final-20260508.md` + `## Codex final review` |
 | 2026-05-08 | 2 (final) Run 2 | 16 STRUCTURAL + 1 COSMETIC findings; F1 carried-forward Step-6 override; F2-F17 applied as commit `7c01766` (batch D); deeper revisions for §1 sourcing, §4 architecture-causation, §5 Brier mental model + AOMT calibration, §6/§8 Hauenstein-as-adversarial-collab mislabel, §10 notebook = precommitment + calibration + adversarial-archive equivalence, References Phase-7-placeholder cleanup, inline-link URL alignment. | `notes/scout-mindset-codex-final-run2-20260508.md` + `## Codex final review` Run 2 disposition |
 | 2026-05-08 | 2 (final) Run 3 | 12 STRUCTURAL findings; gate-runner cap hit; **Step-6 escape fired**; F2-F6, F9-F12 applied as batch E; **F1 (Galef-rows-secondary), F7 (Darwin/GJP/Hauenstein over-connection), F8 (systems-layer-toolkit-unsourced) recorded as Step-6 overrides** (documented reasoning in `## Codex final review` Run 3 disposition). The MDX stays `draft: true` per hard rule #9; Vic's ship commit will carry the override audit trail. | `notes/scout-mindset-codex-final-run3-20260508.md` + `## Codex final review` Run 3 disposition |
+| 2026-05-08 | post-cap codex consult (Vic-mandated extra pass beyond Gate 2 Run 3) | 3 STRUCTURAL + 1 ADVISORY; all 4 applied as commits `ff5f2e1` (F1 Fig 9 geometry fix — Panel A circles were ~10pp visually too high, Panel B CI bounds 2-9px off; recomputed from axis units), `72a5698` (F2 verbatim-quote capitalization restored across Kunda/LRL/Ditto-Lopez/Mellers/Swaryandini), `3099504` (F3 unmatrixed "no published response" line dropped from §10 closing), `9d7db16` (A3 §8 closing line tightened — separated structural-match-to-§4-diagnosis from empirical-GJP-evidence claim). All three Step-6 overrides reaffirmed by codex (A1, A2, A3). MDX still `draft: true`. | this row + commits above |
 
 ### Phase 5 figure progress
 
