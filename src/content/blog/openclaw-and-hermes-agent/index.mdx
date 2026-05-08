@@ -99,7 +99,31 @@ But multi-channel reach doesn't fix the next problem either.
 
 ### 4. The third failure: adaptation
 
-{/* TODO: §4 prose */}
+v3 has reach. Anyone on the team can invoke the agent through the channels they already use; conversations stay coherent across surfaces; usage is back up. The agent is *available*.
+
+It also keeps making the same mistakes.
+
+Week one, an engineer corrects the agent: "we use explicit error types, not `errors.New`." Week two, the agent suggests `errors.New` again. The agent is told the project's tests live in `_test/`, not `tests/`. Two days later it writes a test under `tests/`. The agent has reached the team, but the team's conventions never reach the agent.
+
+That is an adaptation problem. The agent's lifespan is fine and the agent's reach is fine. What is broken is what the agent carries forward between sessions.
+
+The adaptation dial has three rungs.
+
+*Stateless* means nothing persists. Each session begins with the system prompt and ends with the response; everything the user said about the codebase, the team, or the conventions vanishes when the session closes.
+
+*Persistent memory* means information survives between sessions. The agent can recall the previous conversation, look up past decisions, retrieve documents the user wrote earlier, and build a personal context that grows with use. The agent gets better at understanding *who* is asking and *what* has been said before.
+
+*Skill creation and self-improvement* is a different rung from persistent memory. Memory is what the agent has *seen*; skills are what the agent has *learned to do*. A skill is a parameterized procedure the agent can invoke later: "write a test for this function in our codebase's style," or "review this PR for conventions we've discussed." Skills are the unit of practice. An agent on this rung not only remembers, it codifies what it has learned into reusable form. When the user reaches for an agent's recall, they get memory; when the user reaches for an agent's competence, they get skills.
+
+The two rungs share a common lever: the user (or the agent itself) telling the agent something it should not forget. They differ in what is preserved. Persistent memory captures observations like "the team prefers explicit error types." Skill creation captures procedures: a `write-test-with-explicit-errors` skill the agent can invoke without being reminded.
+
+A concrete adaptation-axis example sitting on the skills rung is [the Claude Code plugins I use every day](/blog/claude-code-plugin-stack). Each plugin is a packaged skill: a name, a procedure, and a small amount of glue the agent runs without being prompted. Plugins compound. The agent gets better at the work as more skills accumulate, without the user having to repeat instructions in every session.
+
+For our engineer, v3 to v4 is adding a memory layer (the agent recalls past conversations and decisions) and a skills system (the agent codifies the team's conventions as named procedures it can invoke). The agent stops repeating last week's mistakes.
+
+Three failures, three dials. The next section places the running scenario on the map.
+
+{/* Reader can now: see why "skills" and "memory" sit on different rungs. */}
 
 ### 5. The dial map
 
