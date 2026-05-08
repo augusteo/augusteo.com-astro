@@ -575,14 +575,16 @@ Last touched: 2026-05-07.
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | GJPvsICPM | static-svg | TODO | |
-| 2 | FourAsymmetries | static-svg | TODO | |
-| 3 | ArchitectureBeneath | static-svg | TODO | |
-| 4 | CalibrationPlot | static-svg | TODO | |
-| 5 | AggregatorAndOpenQuestion | static-svg | TODO | |
-| 6 | FiveSelfTests | static-svg | TODO | |
-| 7 | TrainabilityLandscape | static-svg | TODO | |
-| 8 | DarwinGoldenRule | static-svg | TODO | |
+| 1 | OneBeliefTwoUpdates | static-svg | TODO | |
+| 2 | GJPvsICPM | static-svg | TODO | |
+| 3 | ThreeAsymmetriesPlusContestedFourth | static-svg | TODO | |
+| 4 | ArchitectureBeneath | static-svg | TODO | |
+| 5 | CalibrationPlot | static-svg | TODO | |
+| 6 | AggregationFunnel | static-svg | TODO | |
+| 7 | FiveSelfTestsMapping | static-svg | TODO | |
+| 8 | SystemsLayer | static-svg | TODO | |
+| 9 | TrainabilitySplitPanels | static-svg | TODO | |
+| 10 | DarwinGoldenRuleThreeScales | static-svg | TODO | |
 
 ### Suggested next batch
 
