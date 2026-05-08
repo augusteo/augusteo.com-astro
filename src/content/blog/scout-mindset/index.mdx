@@ -29,3 +29,25 @@ For now, pick the belief. We'll keep coming back to it.
 
 {/* Reader can now: identify a single belief in their own head whose update would change depending on how the evidence is framed; predict the rest of Act 1 will explain the systematic ways the brain does this. */}
 
+### 2. The result that shouldn't be possible
+
+Now zoom out. Hold the personal-scale failure mode in mind, then look at what happened when the U.S. intelligence community ran the test at scale.
+
+Between 2011 and 2015, the Intelligence Advanced Research Projects Activity (IARPA) ran a forecasting tournament called the Aggregative Contingent Estimation program. Among the contestants was the [Good Judgment Project](https://goodjudgment.com/), an open team led by Phil Tetlock and Barbara Mellers. Among the parallel benchmarks was a market the U.S. intelligence community ran on the side called the Intelligence Community Prediction Market, populated by analysts with access to classified information. *(The "intelligence analysts with classified-information access" framing for the ICPM is sourced to Tetlock's public characterization of the comparison and to Goldstein's introduction; if a Phase 7 verbatim pull narrows the description, the prose narrows with it.)*
+
+A subsequent technical paper by [Goldstein, Hartman, Comstock and colleagues](https://goodjudgment.com/wp-content/uploads/2020/11/Goldstein-et-al-GJP-vs-ICPM.pdf) compared GJP aggregation methods to the ICPM on a one-year unclassified-question subset where both populations had answered the same questions. The headline result, scored on Brier (a squared-error metric where lower is better, scaled here on the 0-to-2 range the Goldstein paper uses):
+
+{/* TODO: Fig 2: GJPvsICPM. Two-bar chart, ICPM ≈ 0.23 vs GJP "All Surveys Logit" ≈ 0.15 on 0-to-2 Brier scale; ex-post-selection caveat annotated; subtitle clarifies the 0-to-2 convention. */}
+
+ICPM, the classified-information-access market: about 0.23. GJP's best aggregation method, an "All Surveys Logit" weighting that combined open-tournament forecasters' probabilistic estimates: about 0.15.
+
+That's the puzzle. An open tournament's calibrated-aggregation procedure beat a market populated by professionals with access to classified information.
+
+The way this result usually gets told in popular accounts is something like "elite GJP teams beat the CIA by 25 to 30 percent". That phrasing collapses two findings that need to be kept apart. Goldstein's paper is a comparison of *aggregation methods*, with a clearly-stated caveat that the "best method" was selected ex post from a set of candidates the GJP team built. It isn't a claim that any individual GJP forecaster was sharper than any individual analyst, nor that the GJP team's training package caused the gap. We'll keep those questions separate; the second one is contested in section 6 in ways popular accounts haven't picked up.
+
+What the result *does* say, even after those caveats, is that a calibrated probabilistic aggregation procedure run on open-tournament forecasters could outperform a single prediction market run on classified intelligence. The interesting question is then not "are amateurs better than experts" but "what does the system that won actually do, and which of its properties carry over to a single person who isn't running a tournament?" That's the rest of this post.
+
+A historical note before the section closes. In 1876, late in his life, Charles Darwin wrote a short autobiography for his children. In it he described a single habit he claimed had shaped most of his work, a "golden rule" he had followed for many years. Section 4 quotes it in full. For now: 130 years before IARPA paid people to forecast, an English naturalist running an experiment on himself was already implementing a piece of what won.
+
+{/* Reader can now: restate the GJP-vs-ICPM result with the correct framing (algorithmic aggregation comparison, not "elite teams beat the CIA"); recognize that the post is pursuing the question "why does this aggregation help?" rather than "why are amateurs better than experts?". */}
+
