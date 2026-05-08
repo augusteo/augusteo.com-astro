@@ -127,7 +127,19 @@ Three failures, three dials. The next section places the running scenario on the
 
 ### 5. The dial map
 
-{/* TODO: §5 prose + Fig 1 placeholder */}
+Three failures, three dials, one running scenario.
+
+{/* TODO: Fig 1: ThreeDialMap. Three orthogonal axes (lifespan, surface, adaptation) drawn together; v1 / v2 / v3 / v4 placed at the failing rung on each axis; small annotations at each rung climb explain "what broke that motivated this rung." */}
+
+Each rung climb in the running scenario is a different dial. v1 to v2 changed lifespan. v2 to v3 changed surface. v3 to v4 changed adaptation. The team didn't have a single agent problem; it had three agent problems, and only after each was named separately did "the right agent shape" stop being a single ranking.
+
+The rungs aren't fully independent. A daemon can host a gateway; a gateway is the natural home for a multi-channel adapter; persistent memory is easier when the process lives long enough to write it down. But the dials are orthogonal in the way that matters for design: a framework can climb one without climbing the others. There are sessioned agents with no gateway. There are gateways with no skill creation. There are scheduled agents with no memory. The architectures we will look at in Acts 2 and 3 each pick their own placement, and most of them pick at least one rung the others didn't.
+
+We will now place OpenClaw, the Claw family variants, and Hermes Agent on this map. None of them sits where v4 sits, with all three dials at the top rung. The placements scatter, and several Claw variants' distinctive bets sit *off* the three dials entirely. Where that happens, the section that introduces the framework names the off-axis concern explicitly; the dial map handles what it can. Tool choice falls out of which dial your use case actually needs, or, for some variants, which off-axis concern.
+
+OpenClaw is next.
+
+{/* Reader can now: predict that each architecture's distinctive bet is one specific dial, not all three. */}
 
 ## Act 2 — OpenClaw and the gateway problem
 
