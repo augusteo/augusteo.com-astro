@@ -281,7 +281,153 @@ The post is not a sequel to any of these — they're topical companions rather t
 
 ## Outline
 
-*Populated in Phase 3.*
+Three-act structure following `narrative-template.md`. Eight sections, ~900-1100 words each, ~8-10 figures total, all `static-svg` by default per `figure-recipes.md`'s static-default rule. Throughline (GJP-aggregator-vs-ICPM result + Hauenstein open question) threads through every act. Recurring vignette: Darwin's "golden rule" inside Acts 1, 3.
+
+**Word budget:** ~7,500 words core prose + ~1,500 words figure captions + references = ~9,000 words total → ~30-min read.
+
+**Per-section "what reader now sees" check** (per `narrative-template.md`'s Section-connection rule): each section has a one-line "Reader can now: …" target. The drafting phase will mirror these into HTML comments inside the MDX immediately after each section's last paragraph. If a target can't be written for a section, the section is rejected and reworked before the next.
+
+### Act 1 — The puzzle
+
+#### 1. The result that shouldn't be possible
+
+Opens on Goldstein et al.'s GJP-vs-ICPM result. The ICPM (Intelligence Community Prediction Market) Brier was .23 on a 0-to-2 scale; the GJP's best aggregation method ("All Surveys Logit") landed at .15 on the same benchmark. That's an internal IC market populated by analysts with classified-information access getting beaten by an algorithmic combination of public-tournament forecasters' probabilities. Lay out the paradox in one short paragraph; pivot directly to the question the rest of Act 1 answers: why doesn't being smart, well-informed, and professional protect the ICPM analysts from this outcome?
+
+This section explicitly sets the post's frame: the answer is *not* "scouts beat soldiers". It's "systems that force calibrated probabilistic updating tend to beat unaided institutional judgment". The post earns the reader's trust by walking the careful version of the result.
+
+Also seeds the recurring vignette: a one-paragraph mention of Darwin's golden rule (1887) as the historical case of someone who *built* the kind of system Goldstein measured.
+
+**Reader can now:** restate the GJP-vs-ICPM result in one sentence using the correct framing (algorithmic aggregation, not "elite teams"), and predict what kinds of mechanisms the rest of the post will need to explain.
+
+**Figure 1** [static-svg]: Two-bar chart. ICPM .23 vs GJP-best ("All Surveys Logit") .15 on 0-to-2 Brier scale. Annotated with ex-post-selection caveat. Subtitle clarifies the 0-to-2 convention so it doesn't collide with the 0-to-1 individual-forecaster convention used later. *Mechanism shown:* the empirical anchor that motivates the rest of the post.
+
+#### 2. The four asymmetries: why smart professionals still default to soldier mode
+
+The longest section of Act 1. Walks the four mechanisms the empirical literature pins on soldier-mode reasoning. Each mechanism gets ~200 words of prose plus a small figure or panel. Sequence:
+
+a. **Directional goals bias what your search retrieves** (Kunda 1990). Not just *how* you weight evidence; *which* evidence the brain even surfaces.
+b. **Identical evidence polarizes rather than converges** (Lord, Ross, Lepper 1979). The capital-punishment study. Same evidence, more polarized priors.
+c. **Preferred conclusions face lower evidentiary thresholds** (Ditto & Lopez 1992). The medical-test-result study; longer scrutiny of unfavorable results, more retesting.
+d. **Identity-protective cognition: more numerate doesn't always mean more accurate** (Kahan et al. 2017, with replication and conceptual caveats). The post is explicit about the contested empirical and mechanistic status: Persson 2021 (preregistered replication, no good evidence under criteria), Connor 2024 (replicated basic effect, did *not* find the high-numeracy amplification), Glüer-Pagin & Spectre 2024-online/2025 (motivation to reason but not motivated reasoning in Kahan's sense). The post does not claim "mechanism real, dose-response contested"; it says the result is influential and the field is still arguing about size and explanation.
+
+These four together are the section's intuition payoff: smart people fail at calibrated judgment because the architecture of cognition is built this way, not because they're careless.
+
+**Reader can now:** name the four asymmetries; explain why a more numerate person can be *less* accurate on identity-loaded data; predict that "just be more rational" is not a plan that survives the literature.
+
+**Figure 2** [static-svg]: Four-panel composite figure, one panel per asymmetry. Panel a (Kunda): a beam of light illuminating only some items in a memory/evidence pool. Panel b (Lord/Ross/Lepper): two priors and two posteriors moving *further* apart after identical evidence between them. Panel c (Ditto/Lopez): asymmetric gates — wide for preferred, narrow for non-preferred. Panel d (Kahan + caveats): two scatter plots side-by-side (skin-rash framing: numeracy → accuracy monotone up; gun-control framing: numeracy → polarization), with a footnote box pointing at Persson 2021 / Connor 2024 / Glüer-Pagin & Spectre 2024 caveat that the specific high-numeracy effect is contested. *Mechanism shown:* the literature's anatomy of soldier mode in one image.
+
+#### 3. The architecture beneath: why the asymmetries are the default
+
+A shorter, more theoretical section. The asymmetries from Section 2 are not bugs; they're features of the social architecture the brain runs on. Two primary frames:
+
+- **Reason is built for argument** (Mercier & Sperber 2017, *The Enigma of Reason*). Reasoning evolved for justification and persuasion in argument, not for solo truth-seeking.
+- **Self-deception serves outward deception** (Trivers 2011, *The Folly of Fools*). If the false belief is genuinely held, the deceiver transmits no involuntary tells.
+
+Together: soldier mode isn't a personal failure; it's a social adaptation. The implication for the reader: scout mode is a counter-program that has to be built explicitly. This sets up the historical-precedent question: has anyone done it, and what did they do?
+
+Closes on Darwin's golden rule, fully quoted (the only verbatim primary-source long quote in Act 1). The historical seed for what scout mode looks like in practice.
+
+**Reader can now:** explain why the asymmetries don't go away with more education; predict that scout mode requires explicit habits, not just better intentions; recognize Darwin's notebook practice as an existence-proof.
+
+**Figure 3** [static-svg]: A two-layer diagram. Top layer: the four asymmetries as discrete shapes. Bottom layer: the social architecture (argument/justification + self-deception) as the substrate the asymmetries grow out of. Pull-out box on the right: Darwin's golden rule passage in his own typeface, with a small ink-stained notebook icon. *Mechanism shown:* the asymmetries are surface features of a deeper social-architectural substrate; Darwin's rule is the smallest known counter-move.
+
+### Act 2 — The scout's measurable side
+
+Act 2 stops feeling the problem and starts measuring it. Three sections.
+
+#### 4. AOMT, Brier, and what calibration actually looks like
+
+Two related ideas in one section.
+
+a. **Actively open-minded thinking (AOMT)** is operationalizable. Baron's scale (1985, 1988; published instrument Stanovich & West 1997; canonical exposition in *Thinking and Deciding* 4th ed. 2008): willingness to seek contrary evidence, weigh new evidence against held beliefs, tolerate complexity, update in proportion. In the GJP, AOMT was one of several dispositional predictors of individual forecasting accuracy (Mellers et al. 2015 *JEP: Applied*) — alongside cognitive ability, political knowledge, training, teaming, deliberation time, and update frequency. The post does *not* call AOMT "the strongest predictor"; that's been my earlier overclaim and is corrected here.
+
+b. **Brier score** is the metric that lets "calibration" be a measurable thing rather than a vibe. Convention note: GJP individual-forecaster Brier in modern usage is 0-to-1 binary mean of (*p* − *o*)². Goldstein's GJP-vs-ICPM paper uses 0-to-2 two-outcome Brier. The post explicitly says which scale is in play whenever a number appears.
+
+The section ties them together: AOMT is the trait, Brier is how you verify the trait is doing what you'd hope.
+
+**Reader can now:** define AOMT in one sentence; explain what a Brier-score difference of .08 (ICPM .23 → GJP-best .15 on 0-to-2 scale) means in practical terms; recognize that "I'm well-calibrated" is a claim with a number attached.
+
+**Figure 4** [static-svg]: Calibration plot. X-axis = forecast probability (0 to 1). Y-axis = observed frequency. Diagonal line = perfect calibration. Two curves: well-calibrated forecaster (close to diagonal); overconfident forecaster (steeper than diagonal). Brier-score readouts in the corner. Small inset showing 5-7 sample items from Baron's AOMT scale. *Mechanism shown:* what calibration vs overconfidence looks like in the same coordinate frame.
+
+#### 5. The aggregator beats experts: Goldstein revisited and the Hauenstein open question
+
+Returns to the throughline. With Section 4's setup, the reader can now interpret Goldstein's result more carefully.
+
+The mechanism: aggregating many independently-noisy probabilistic forecasts gives variance reduction; if the individual forecasters are *also* well-calibrated (per Section 4), the aggregate Brier improves further. This is what the GJP's "All Surveys Logit" did: weight individual forecasts by recent accuracy, aggregate, time-discount the older ones. The ICPM, by contrast, was a single market, with all the herding/selection/timing pathologies markets have.
+
+Then the open question. Mellers et al. 2014 reported that *training, teaming, and tracking* individually improved Brier; Hauenstein et al. 2025 (*Psychological Science*, online December 2024) reanalyzed the same data with item-response-theory and found those effects shrank, vanished, or in some cases reversed once method-variance variables were controlled. The post does not claim this kills the GJP findings. It says: the *aggregation* result holds (Goldstein); the question of *which causal mechanism* drove the individual-level forecasting gains is still being argued in the literature, with no published Mellers/Tetlock response located as of pubdate. This is itself a scout-mode behavior at the field level — accept the open question rather than pretend it's closed.
+
+**Reader can now:** explain why aggregating well-calibrated forecasts helps; explain why the GJP-vs-ICPM gap doesn't translate cleanly to "X intervention causes Y improvement"; recognize an open empirical question in the wild and resist the urge to pick a side prematurely.
+
+**Figure 5** [static-svg]: Two-panel figure. Panel a: many small noisy probabilistic forecasts (light dots) with their aggregate point (bold) and the truth value; the aggregate is closer to truth than any individual. Panel b: a Mellers-2014 "training/teaming improved Brier" arrow on top, with a Hauenstein-2025 "controlled for method variance" overlay showing the effect shrinking/reversing — explicitly not a conclusion but an open gap. *Mechanism shown:* aggregation reduces variance; whether the individual interventions causally reduced individual Brier is contested.
+
+### Act 3 — Personal scout mode
+
+Act 3 takes the field-level insights and translates to operational moves the reader can run on themselves this week. Three sections.
+
+#### 6. Galef's five self-tests
+
+The operational core. Run on a real belief the reader holds. Each test is a thought experiment that catches a specific failure mode from Act 1.
+
+- **Double Standard Test** — would I judge this evidence the same way if it pointed elsewhere? (catches Lord/Ross/Lepper biased assimilation)
+- **Outsider Test** — what would I advise a stranger in this situation? (catches Ditto/Lopez evidentiary asymmetry)
+- **Conformity Test** — would I still hold this if my peers didn't? (catches the Mercier-Sperber argument-driven framing)
+- **Selective Skeptic Test** — would I scrutinize this evidence as harshly if it supported the other side? (catches the Kunda directional-search asymmetry)
+- **Status Quo Bias Test** — if I didn't already hold this position, would I adopt it? (catches the gravitational pull of an existing commitment)
+
+The post pairs each test with the asymmetry it catches; the reader sees the architecture-to-move mapping explicitly.
+
+Caveat noted in prose: Galef's terminology is paraphrased from secondary outlines (publisher excerpts, EA Forum, LessWrong); Phase 7 will tighten against the published book. If a name shifts, the prose updates.
+
+**Reader can now:** name the five tests; pick a real belief and run at least one on it; map each test back to the asymmetry it catches.
+
+**Figure 6** [static-svg]: A 5x2 mapping diagram. Left column: the five tests. Right column: the asymmetry each test catches. Arrows from each test to its target asymmetry. Or alternatively, a small flowchart with five entry points and a "did the belief survive?" verdict box. *Mechanism shown:* test-to-asymmetry mapping; the reader sees that the tests are not arbitrary.
+
+#### 7. The trainability picture: small effects, unresolved transfer
+
+The sober counterpart to Section 6. *Can* you actually train scout mode? The literature says: yes, somewhat, with caveats.
+
+- **Single-session debiasing training** (Morewedge et al. 2015): game intervention reduced six biases by ≥31.94% immediately, ≥23.57% at 2-month follow-up; video version smaller effect (≥18.60% immediate, ≥19.20% at 2-month). Six biases tested.
+- **Field transfer** (Sellier et al. 2019, with 2020 corrigendum): trained participants 19% (corrected from 29%) less likely to pick the inferior hypothesis-confirming solution on a Shuttle-Challenger-modeled business case.
+- **The 2025 systematic review** (Swaryandini et al., *Nature Human Behaviour*): 54 RCTs / 10,941 participants in scope; meta-analytic subset 41 studies / 160 effects; pooled *g* = 0.26 (95% CI 0.14–0.39); transfer to real-world decision-making remains unresolved.
+- **Heerma van Voss et al. 2025** (*Scientific Reports*): one-shot debiasing intervention with national risk analysts and students reduced confirmation bias. Closer to the post's analyst-debiasing scenario than Morewedge alone.
+
+Honest framing: the effects are small but real; transfer to real-world decision-making is unresolved; no recent RCT specifically validates scout-mindset as a *package*. The reader should expect modest gains, not transformation.
+
+**Reader can now:** state the realistic expectation for what training in scout-mode-style habits buys you (small but real, transfer unresolved); recognize the difference between in-lab debiasing and real-world decision quality.
+
+**Figure 7** [static-svg]: Effect-size landscape. X-axis = effect size (Hedges *g* or % bias reduction). Y-axis = study identifier. Horizontal bars with confidence intervals: Morewedge game (immediate + 2-mo), Morewedge video (immediate + 2-mo), Sellier 19%, Swaryandini meta-analytic *g* = 0.26, Heerma van Voss 2025. Annotation: "transfer to real-world decision-making unresolved" overlay. *Mechanism shown:* the literature's actual estimates, not the marketing version.
+
+#### 8. Darwin's golden rule, operationalized for 2026
+
+The closing section. Pulls the whole post into one move: write the disconfirming thing down the moment it shows up.
+
+Why this move and not another: it's the one habit every primary source the post cites would endorse — Darwin (1887), Mellers/Tetlock GJP findings (frequent updating), Galef's self-tests (each is a "notice the contrary thing" prompt), Morewedge debiasing (the games train you to spot specific biases). Across 130 years of field development, this is the move that survives.
+
+The post sketches a one-page protocol: a notebook entry per disconfirming observation, dated, with the prior it threatens. The post intentionally does not over-engineer this — Darwin used pen and paper.
+
+Closes on Hauenstein-Mellers as scout mode at the field level (the literature is still arguing about itself; that's the discipline working).
+
+Final paragraph is two sentences. Concrete. No "in summary".
+
+**Reader can now:** write down their first disconfirming-evidence entry by the end of the week; recognize the Darwin → GJP → Galef chain as a single 130-year-old discipline they are now running on themselves.
+
+**Figure 8** [static-svg]: Darwin's-golden-rule diagram. A loop: observation appears → "is this opposed to my general results?" → record at once → re-encounter at review time. Modern note-taking interface analog overlaid on a 1870s notebook page sketch. *Mechanism shown:* the smallest scout-mode habit that survives every primary source.
+
+### Phase 5 figure progress (populated by Phase 3 close)
+
+| # | Figure | Type | Status | Commit |
+|---|---|---|---|---|
+| 1 | GJPvsICPM | static-svg | TODO | |
+| 2 | FourAsymmetries | static-svg | TODO | |
+| 3 | ArchitectureBeneath | static-svg | TODO | |
+| 4 | CalibrationPlot | static-svg | TODO | |
+| 5 | AggregatorAndOpenQuestion | static-svg | TODO | |
+| 6 | FiveSelfTests | static-svg | TODO | |
+| 7 | TrainabilityLandscape | static-svg | TODO | |
+| 8 | DarwinGoldenRule | static-svg | TODO | |
+
+All eight figures are static-svg by default per the static-default rule. None of them currently meet one of the four interactive override clauses (continuous parameter sweep / animated time evolution / drag-based spatial reasoning / multi-state toggle across more states than 3-panel side-by-side can show). Gate 1 may demand re-types via the unlock protocol; the post's preference is to keep all figures static unless the demand is structural.
 
 ## Codex research review
 
@@ -352,7 +498,7 @@ Last touched: 2026-05-07.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 Run 3 closed with 5 of 6 STRUCTURAL fixes + Step-6 override on Galef-rows finding; Phase 7 is the second checkpoint for that override) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` (3 runs documented) |
-| 3. Outline + figure list | pending | `## Outline` |
+| 3. Outline + figure list | in progress (outline + 8-figure table drafted; Gate 1 next) | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/scout-mindset/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -368,7 +514,16 @@ Last touched: 2026-05-07.
 
 ### Phase 5 figure progress
 
-*Populated at end of Phase 3.*
+| # | Figure | Type | Status | Commit |
+|---|---|---|---|---|
+| 1 | GJPvsICPM | static-svg | TODO | |
+| 2 | FourAsymmetries | static-svg | TODO | |
+| 3 | ArchitectureBeneath | static-svg | TODO | |
+| 4 | CalibrationPlot | static-svg | TODO | |
+| 5 | AggregatorAndOpenQuestion | static-svg | TODO | |
+| 6 | FiveSelfTests | static-svg | TODO | |
+| 7 | TrainabilityLandscape | static-svg | TODO | |
+| 8 | DarwinGoldenRule | static-svg | TODO | |
 
 ### Suggested next batch
 
