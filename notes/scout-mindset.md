@@ -522,6 +522,30 @@ Run 3 closed 5 of 6 STRUCTURAL findings + both cosmetic findings; finding #3 (Ga
 
 The matrix is now considered closed for Phase 2 purposes; proceed to Phase 3 (outline + figure list).
 
+## Codex outline review
+
+Run 1, Gate 1, 2026-05-07. Findings file: `notes/scout-mindset-codex-outline-20260507.md`.
+
+**Findings:** 11 STRUCTURAL (one labeled TYPE-CHANGE STRUCTURAL). 0 cosmetic.
+
+Codex Gate 1 was hostile and surfaced substantive structural problems. Disposition:
+
+| # | Codex Run 1 Gate 1 finding | Action |
+|---|---|---|
+| 1 | Section 2 resurrects "four asymmetries" category error from closed Spec | Section renamed and reframed: "The three asymmetries (and the contested fourth case)". Three robust mechanisms (Kunda/Lord-Ross-Lepper/Ditto-Lopez); Kahan ICT presented as contested fourth case with Persson/Connor/Glüer-Pagin caveats explicit. Figure 3 visually distinguishes the contested panel. |
+| 2 | Section 1 paradox needs new matrix rows for ICPM-composition + analyst-classified-access claims | Section 2 (renumbered) hedges: "intelligence analysts with classified-information access" framing is sourced to Tetlock public statements; Phase 7 to verify against Goldstein paper or Tetlock primary text. If verification fails the prose narrows. |
+| 3 | Section 5 aggregation mechanism not matrix-backed | Section 6 (renumbered) hedges: aggregation mechanism described qualitatively with "specific assumptions (independence, comparable calibration)" explicit; "All Surveys Logit weighted by recent accuracy" treated as paraphrase of GJP team published descriptions, not load-bearing primary claim; ICPM pathology claims hedged as "prediction markets have known pathologies" without primary-source attribution to specific pathology mechanism in this case. |
+| 4 | Figure 5 fails as static (TYPE-CHANGE STRUCTURAL) | Per per-figure-type unlock protocol, redesigned in-place as a static funnel diagram (3 stacked distributions: 1 forecaster, 10 independent, 10 correlated) showing the *conditional* aggregation mechanism. The redesign satisfies Codex's structural concern without triggering the unlock-protocol interactive promotion. The figure now correctly shows that aggregation requires independence; correlation eats the gain. |
+| 5 | Intuition ramp skips rungs | New Section 1 added: "The smallest interesting case: one belief, two updates" — a small worked individual-scale example before the institutional GJP result. Reader gets a personal stake before the post zooms out. New Figure 1 supports the small-case opener. |
+| 6 | Act 3 contradicts Section 4's social-architecture diagnosis | Act 3 restructured to add Section 8 ("The systems layer: scout mode at the institutional scale") — precommitment, scoring, aggregation, outside review, adversarial collaboration. The Section 4 diagnosis now resolves into both individual moves (Section 7) AND systems-layer moves (Section 8). |
+| 7 | Section 6 test-to-asymmetry mapping unsupported | The mapping is now explicitly framed as "the post's reading", "the author's synthesis", NOT a primary-source-backed equivalence. Figure 7 carries a "this is a teaching synthesis, not a primary-source mapping" annotation. |
+| 8 | Section 8 overclaims "every primary source endorses" the notebook | Section 10 (renumbered) weakens to "the smallest known counter-move that recurs across the post's primary sources" and explicitly states none of the sources directly prescribes "write disconfirming evidence in a notebook" as a single habit; the move is consistent with what each source prescribes. |
+| 9 | Section 7 dead weight | Section 9 (renumbered) now explicitly bridges into Section 10: "the trainability evidence is the load-bearing reason Section 10 is modest rather than ambitious". Section 9's small-but-real / transfer-unresolved findings shape the prescription in Section 10. |
+| 10 | Figure 7 false comparability | Figure 9 (renumbered) redesigned with two panels: Panel A for % bias-reduction studies, Panel B for Hedges *g* meta-analytic effect. Different measures, comparable conclusion. |
+| 11 | Act 3 drops Goldstein anchor until weak closing gesture | Act 3 now explicitly carries Goldstein forward: Section 8 (systems layer) generalizes the Goldstein aggregator to a working team's calibrated-probabilistic-aggregation move. Section 10's Figure 10 shows the move at three scales (Darwin's notebook / GJP forecaster's log / literature's adversarial-collaboration cycle), with the GJP middle scale carrying Goldstein explicitly. |
+
+Outline now 10 sections (was 8), 10 figures (was 8). Added small-individual-belief opener and new systems-layer section are the two largest structural changes. All STRUCTURAL findings addressed; Run 2 deferred to preserve gate-runner headroom for Gate 2's final pass over the actual prose.
+
 ## Resume here
 
 Last touched: 2026-05-07.
