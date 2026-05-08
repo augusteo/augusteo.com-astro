@@ -19,7 +19,113 @@ Take a belief you actually hold. Something you'd defend in a conversation, with 
 
 Now imagine the same piece of new evidence reaching your inbox twice. Once with the labels stripped off, presented as a contingency table about something neutral, like the effectiveness of a skin cream. Once with the same numbers but with the labels of your political tribe attached, presented as evidence about, say, a gun-control policy or a climate intervention. The numbers are identical. The arithmetic is identical. The conclusion the numbers point to is identical. Your update is not.
 
-{/* TODO: Fig 1: OneBeliefTwoUpdates. Same evidence, two framings; priors and posteriors converge in the neutral framing and diverge in the identity-loaded framing. */}
+<figure>
+<svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+
+<defs>
+<marker id="f1arrowB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+  <path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/>
+</marker>
+<marker id="f1arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+  <path d="M0,0 L10,5 L0,10 z" fill="#B8651A"/>
+</marker>
+</defs>
+
+<rect x="20" y="20" width="310" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="175" y="44" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">NEUTRAL FRAMING</text>
+<text x="175" y="60" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">"a skin cream's effect on a rash"</text>
+
+<line x1="50" y1="200" x2="300" y2="200" stroke="#8F8578" stroke-width="1"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+  <text x="50" y="218">0</text>
+  <text x="112.5" y="218">0.25</text>
+  <text x="175" y="218">0.5</text>
+  <text x="237.5" y="218">0.75</text>
+  <text x="300" y="218">1</text>
+</g>
+<g stroke="#C9BEAA" stroke-width="0.5">
+  <line x1="50" y1="196" x2="50" y2="204"/>
+  <line x1="112.5" y1="196" x2="112.5" y2="204"/>
+  <line x1="175" y1="196" x2="175" y2="204"/>
+  <line x1="237.5" y1="196" x2="237.5" y2="204"/>
+  <line x1="300" y1="196" x2="300" y2="204"/>
+</g>
+<text x="175" y="238" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">probability "the cream works"</text>
+
+<circle cx="100" cy="200" r="6" fill="#2563EB"/>
+<text x="100" y="184" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">A prior</text>
+<text x="100" y="195" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">.2</text>
+
+<circle cx="250" cy="200" r="6" fill="#B8651A"/>
+<text x="250" y="184" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">B prior</text>
+<text x="250" y="195" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">.8</text>
+
+<path d="M 100 200 Q 137 145 150 145" fill="none" stroke="#2563EB" stroke-width="1.5" marker-end="url(#f1arrowB)"/>
+<circle cx="155" cy="145" r="5" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<text x="155" y="132" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">A post .42</text>
+
+<path d="M 250 200 Q 213 145 200 145" fill="none" stroke="#B8651A" stroke-width="1.5" marker-end="url(#f1arrowR)"/>
+<circle cx="195" cy="145" r="5" fill="none" stroke="#B8651A" stroke-width="1.5"/>
+<text x="195" y="132" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">B post .58</text>
+
+<text x="175" y="92" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">priors converge under identical mixed evidence</text>
+
+<rect x="55" y="258" width="240" height="32" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0.8" rx="3"/>
+<text x="68" y="274" font-family="serif" font-size="10" fill="#1A1A1A">prior gap: 0.60</text>
+<text x="180" y="274" font-family="serif" font-size="10" fill="#1A1A1A">→</text>
+<text x="200" y="274" font-family="serif" font-size="10" fill="#1A1A1A">posterior gap: 0.16</text>
+<text x="175" y="286" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">disagreement narrows</text>
+
+<rect x="350" y="20" width="310" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="505" y="44" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">IDENTITY-LOADED FRAMING</text>
+<text x="505" y="60" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">"a gun-control policy's effect on crime"</text>
+
+<line x1="380" y1="200" x2="630" y2="200" stroke="#8F8578" stroke-width="1"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+  <text x="380" y="218">0</text>
+  <text x="442.5" y="218">0.25</text>
+  <text x="505" y="218">0.5</text>
+  <text x="567.5" y="218">0.75</text>
+  <text x="630" y="218">1</text>
+</g>
+<g stroke="#C9BEAA" stroke-width="0.5">
+  <line x1="380" y1="196" x2="380" y2="204"/>
+  <line x1="442.5" y1="196" x2="442.5" y2="204"/>
+  <line x1="505" y1="196" x2="505" y2="204"/>
+  <line x1="567.5" y1="196" x2="567.5" y2="204"/>
+  <line x1="630" y1="196" x2="630" y2="204"/>
+</g>
+<text x="505" y="238" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">probability "the policy reduces crime"</text>
+
+<circle cx="430" cy="200" r="6" fill="#2563EB"/>
+<text x="430" y="184" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">A prior</text>
+<text x="430" y="195" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">.2</text>
+
+<circle cx="580" cy="200" r="6" fill="#B8651A"/>
+<text x="580" y="184" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">B prior</text>
+<text x="580" y="195" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">.8</text>
+
+<path d="M 430 200 Q 415 145 405 145" fill="none" stroke="#2563EB" stroke-width="1.5" marker-end="url(#f1arrowB)"/>
+<circle cx="400" cy="145" r="5" fill="none" stroke="#2563EB" stroke-width="1.5"/>
+<text x="400" y="132" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">A post .12</text>
+
+<path d="M 580 200 Q 595 145 605 145" fill="none" stroke="#B8651A" stroke-width="1.5" marker-end="url(#f1arrowR)"/>
+<circle cx="610" cy="145" r="5" fill="none" stroke="#B8651A" stroke-width="1.5"/>
+<text x="610" y="132" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">B post .88</text>
+
+<text x="505" y="92" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">priors diverge under the same mixed evidence</text>
+
+<rect x="385" y="258" width="240" height="32" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0.8" rx="3"/>
+<text x="398" y="274" font-family="serif" font-size="10" fill="#1A1A1A">prior gap: 0.60</text>
+<text x="510" y="274" font-family="serif" font-size="10" fill="#1A1A1A">→</text>
+<text x="530" y="274" font-family="serif" font-size="10" fill="#1A1A1A">posterior gap: 0.76</text>
+<text x="505" y="286" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">disagreement widens</text>
+
+<text x="340" y="320" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">same evidence in. different update procedure depending on which framing the brain sees.</text>
+
+</svg>
+<figcaption><strong>Fig 1.</strong> The same balanced contingency table reaches two readers' inboxes twice. Once with neutral labels (left), where their priors converge under the evidence and the gap between their posteriors shrinks. Once with identity-loaded labels (right), where the same evidence pushes their posteriors further apart than their priors started. The numbers are stylized; the qualitative pattern is the result Lord, Ross, and Lepper described in 1979 and the contested high-numeracy version Kahan reported in 2017. The figure is the smallest interesting case the post will keep returning to.</figcaption>
+</figure>
 
 This is the sketch of a result the literature has been arguing about for a decade. Section 3 returns to it in its less stylized form, with the dissents attached. Briefly, for now: in a 2017 study, [Dan Kahan and colleagues](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2319992) reported that, on a politically loaded contingency table, more numerate subjects polarized *more* than less numerate ones, not less. Quantitative skill, deployed in service of an identity, gave you a sharper wrong answer. The strong version of that finding is contested in three different ways and section 3 will lay them out. The smaller claim, that the same brain runs different update procedures when the evidence carries identity tags, survives a wider and older literature that section 3 will also catalogue.
 
