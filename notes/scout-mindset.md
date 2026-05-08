@@ -548,7 +548,7 @@ Outline now 10 sections (was 8), 10 figures (was 8). Added small-individual-beli
 
 ## Resume here
 
-Last touched: 2026-05-07 (Phase 4 done; Phase 5 figures next).
+Last touched: 2026-05-07 (Phase 5 done; 10/10 figures landed, in-line playwright screenshot per figure clean. Phase 6 next is the formal per-figure playwright review).
 
 ### Phase status
 
@@ -558,8 +558,8 @@ Last touched: 2026-05-07 (Phase 4 done; Phase 5 figures next).
 | 2. Research / fact-check | done (Gate 0 Run 3 closed with 5 of 6 STRUCTURAL fixes + Step-6 override on Galef-rows finding; Phase 7 is the second checkpoint for that override) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` (3 runs documented) |
 | 3. Outline + figure list | done (Gate 1 Run 1 found 11 STRUCTURAL findings; all fixed in-place; outline now 10 sections with small-case opener and systems-layer section; Run 2 deferred to preserve gate-runner headroom for Gate 2) | `## Outline`, `## Codex outline review` |
 | 4. Draft prose | done (10/10 sections + References + cross-refs woven; voice-check clean apart from act-divider headings + 1 TED-title em-dash) | `src/content/blog/scout-mindset/index.mdx` |
-| 5. Implement figures | pending | per-figure table below |
-| 6. Playwright review | pending | playwright snapshots reviewed |
+| 5. Implement figures | done (10/10 static-svg figures committed one-per-commit; voice-check clean apart from act dividers + TED-title em-dash on every commit; one in-line playwright screenshot per figure used during drafting; Fig 6 Hauenstein inset and Fig 10 ring radii were tightened post-screenshot) | `src/content/blog/scout-mindset/index.mdx` |
+| 6. Playwright review | pending | per-figure playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
@@ -575,35 +575,28 @@ Last touched: 2026-05-07 (Phase 4 done; Phase 5 figures next).
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | OneBeliefTwoUpdates | static-svg | TODO | |
-| 2 | GJPvsICPM | static-svg | TODO | |
-| 3 | ThreeAsymmetriesPlusContestedFourth | static-svg | TODO | |
-| 4 | ArchitectureBeneath | static-svg | TODO | |
-| 5 | CalibrationPlot | static-svg | TODO | |
-| 6 | AggregationFunnel | static-svg | TODO | |
-| 7 | FiveSelfTestsMapping | static-svg | TODO | |
-| 8 | SystemsLayer | static-svg | TODO | |
-| 9 | TrainabilitySplitPanels | static-svg | TODO | |
-| 10 | DarwinGoldenRuleThreeScales | static-svg | TODO | |
+| 1 | OneBeliefTwoUpdates | static-svg | done | 380b4ab |
+| 2 | GJPvsICPM | static-svg | done | 63f5a36 |
+| 3 | ThreeAsymmetriesPlusContestedFourth | static-svg | done | 13c3237 |
+| 4 | ArchitectureBeneath | static-svg | done | e064229 |
+| 5 | CalibrationPlot | static-svg | done | 0595616 |
+| 6 | AggregationFunnel | static-svg | done | cc89674 |
+| 7 | FiveSelfTestsMapping | static-svg | done | 16210e7 |
+| 8 | SystemsLayer | static-svg | done | 5510167 |
+| 9 | TrainabilitySplitPanels | static-svg | done | 07aad66 |
+| 10 | DarwinGoldenRuleThreeScales | static-svg | done | 88ff719 |
 
 ### Suggested next batch
 
-Phase 5: implement figures. All 10 figures are static-svg per the locked outline. One commit per figure. Voice-check passes before each commit. Test in `bun run dev` at `http://localhost:4321/blog/scout-mindset`.
+Phase 6: per-figure playwright visual review at `http://localhost:4322/blog/scout-mindset` (note: a stale dev server already occupies 4321; the freshly started one will land on 4322). Walk every figure: scroll into view, snapshot, run universal checks plus per-figure-type checks from `playwright-checks.md`. Halt on any figure that fails three review iterations.
 
-Order (low complexity to high):
+Known-issues watchlist for Phase 6 review:
 
-1. Fig 5 CalibrationPlot — calibration plot with two curves + Brier readouts + AOMT-scale inset. The kit-fits-cleanly figure; do this first to validate the static-SVG pattern for this post.
-2. Fig 2 GJPvsICPM — two-bar chart, ICPM ≈ 0.23 vs GJP "All Surveys Logit" ≈ 0.15 on 0-to-2 Brier; ex-post-selection caveat annotated.
-3. Fig 9 TrainabilitySplitPanels — two-panel forest-plot-like figure (Panel A: % bias-reduction with error bars; Panel B: Hedges *g* meta-analytic effect with 95% CI).
-4. Fig 1 OneBeliefTwoUpdates — two-panel diagram showing same evidence under two framings.
-5. Fig 6 AggregationFunnel — three stacked panels showing variance reduction under independence and the correlation pathology.
-6. Fig 3 ThreeAsymmetriesPlusContestedFourth — four-panel composite, panel d visually distinguished as "contested" with Persson/Connor/Glüer-Pagin & Spectre dissents footnoted.
-7. Fig 7 FiveSelfTestsMapping — 5x2 mapping diagram with the explicit "the author's reading" annotation.
-8. Fig 4 ArchitectureBeneath — two-layer diagram with the Darwin notebook artifact panel on the right.
-9. Fig 8 SystemsLayer — two-tier individual/systems-layer diagram showing how the moves nest.
-10. Fig 10 DarwinGoldenRuleThreeScales — concentric loop with three scales running the same operation.
+- Fig 5 CalibrationPlot: the `well-calibrated` and `overconfident` curve labels sit near the curves but were placed by hand; verify they don't overlap the curves or the dot markers.
+- Fig 6 AggregationFunnel: the right-side bell labels for panels (i)-(iii) are short serif italic text. Verify they don't collide with the Hauenstein inset's left edge at x=500.
+- Fig 10 DarwinGoldenRuleThreeScales: ring 3 (outer) was reduced from r=240 to r=200 to keep right-edge labels inside viewBox 680. Confirm "contests prior?" and the other right-side outer-ring labels do not clip on a narrower viewport.
 
-After Phase 5: Phase 6 playwright per-figure visual review; then Phase 7 freshness pass + Gate 2 + voice-check final + hero handoff.
+After Phase 6: Phase 7 freshness pass + Gate 2 + voice-check final + hero handoff.
 
 ### How to resume from a fresh context
 
