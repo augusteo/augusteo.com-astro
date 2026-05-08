@@ -549,6 +549,46 @@ Codex Gate 1 was hostile and surfaced substantive structural problems. Dispositi
 
 Outline now 10 sections (was 8), 10 figures (was 8). Added small-individual-belief opener and new systems-layer section are the two largest structural changes. All STRUCTURAL findings addressed; Run 2 deferred to preserve gate-runner headroom for Gate 2's final pass over the actual prose.
 
+## Codex final review
+
+Run 1, Gate 2, 2026-05-08. Findings file: `notes/scout-mindset-codex-final-20260508.md` (15.4 KB; full verbatim codex output).
+
+**Summary.** Codex returned **20 STRUCTURAL findings + 1 confirmed-passing item** (related-augusteo.com cross-links pass). Findings cluster in three groups: (a) low-risk typo/stale items (Fig 9 footnote still says "pending Phase 7", "*g* = 0.26 = half a standard deviation" which is wrong arithmetic, References hyperlink format, Heerma van Voss "title approximate" still in References); (b) prose claims that drift from their matrix rows (ICPM participant-access, "different update procedures" mechanism, "settled / replicate / generalize" claim about the three asymmetries, Trivers "no micro-expressions" specifics, AOMT "cultivable" framing, All Surveys Logit mechanics, prediction-market pathologies, Hauenstein causal gloss, "50-100 / 200-300 forecasts" operational numbers, §8 correlation→causation language, small-team aggregation claim, Heerma van Voss "actual professional context" overclaim); and (c) two systemic issues — Fig 10 over-connecting Darwin / GJP / Hauenstein into "the same four-step operation" rebuilds the framing Gate 0 already warned about, and multiple plain-text named-source mentions need markdown hyperlinks per rule #11.
+
+The Galef-rows-secondary-as-primary item (codex F2) is the same Gate 0 Run 3 Step-6 override; it stays overridden. The Step-6 override is recorded in `## Codex research review` Run 3 disposition; Vic owns the ship action and can pause if Phase 7's Galef verification fails. Phase 7 verification (test names verbatim across multiple secondary outlines) closed without contradicting the post.
+
+Findings: **20 STRUCTURAL, 0 COSMETIC.**
+
+[full findings: notes/scout-mindset-codex-final-20260508.md]
+
+### Run 1 disposition (Gate 2 batches A, B, C applied; commits one-per-batch)
+
+| # | Codex Run 1 Gate 2 finding | Action |
+|---|---|---|
+| 1 | Fig 9 footnote stale ("pending Phase 7 verification") | Updated to reflect Phase 7 verified; numbers now plotted or annotated. |
+| 2 | Galef rows 1-4 secondary-as-primary | **Step-6 override stands** (per Gate 0 Run 3); Phase 7 verification of test names + chapter title against EA Forum / LessWrong / Quillette / McLatchie outlines closed without contradicting the post; override recorded in commit message. |
+| 3 | ICPM participant/classified-access claim unsupported | Softened. Removed the "with access to classified information" specificity; replaced parenthetical "Phase 7 to verify" hedge with the more honest framing that ICPM participation per Goldstein's published description is what the post can stand behind. |
+| 4 | "Different update procedures" mechanism overstates | Softened to "the same brain treats the same evidence differently when the framing changes" without the architectural-mechanism gloss. |
+| 5 | "Settled / replicate / generalize" claim has no row | Softened to "the three findings have been the spine of the motivated-reasoning literature for decades" without the replication-status assertion. |
+| 6 | Glüer-Pagin & Spectre 2025 freshness laundered as current-state | Section 3 prose now frames the dissents as "the literature accumulating dissents over time" rather than current-debate; matrix Row 24 already reclassified as foundational/conceptual replication-context. |
+| 7 | Trivers "no micro-expressions, no autonomic signals" drifts | Softened to the row-level paraphrase: self-deception serves outward deception by removing involuntary tells, without the autonomic-signal specifics. |
+| 8 | AOMT "cultivable" without support | Softened to "AOMT is the trait we'd hope to grow if we could; the trainability question is open" rather than asserting it can be cultivated. |
+| 9 | All Surveys Logit "recency-weighted, calibration-aware" mechanics | Fig 8 caption softened; section 6 prose tightened to the row-level claim. |
+| 10 | Prediction-market pathologies "herd / thin / noisy" | Softened to "prediction markets have known failure modes" without naming specific pathologies the post can't source. |
+| 11 | Hauenstein "look more like artifacts than real causes" gloss | Softened to row-level wording: "the relationship between training/teaming and forecast accuracy differed from the original interpretation once method-variance was controlled". |
+| 12 | "50-100 / 200-300 forecasts" operational numbers | Removed; replaced with "after enough resolved forecasts to silence noise". |
+| 13 | §8 correlation→causation ("keep score" → "do better") | Softened to "the GJP individual data shows update-frequency correlated with accuracy"; no causal language. |
+| 14 | Small-team aggregation claim too strong | Softened to "the same family of move generalizes; the strength of the gain depends on independence and calibration of the participants" without claiming it always beats individuals. |
+| 15 | g = 0.26 = "half a standard deviation" arithmetic error | Corrected to "about a quarter of a standard deviation". |
+| 16 | Heerma van Voss "actual professional context" overclaim | Softened to "national-level risk analysts in a structured workshop setting" — the row-level setting, not full professional context. |
+| 17 | Fig 10 "same four-step operation" rebuilds Gate-0 over-connection | Fig 10 caption + central inset softened to "an analogous loop at three scales" rather than "the same operation"; explicit hedge that the analogy is structural-not-identical. |
+| 18 | References hyperlink format failures (Lord/Ross/Lepper, Ditto/Lopez bare titles) | Updated to single-link `[title](url)` form. |
+| 19 | Heerma van Voss "title approximate" in References | Replaced with verified actual title from the Phase 7 freshness-check agent. |
+| 20 | Inline named-source links missing | Walked the prose; hyperlinked Lord/Ross/Lepper, Ditto/Lopez, Mercier-Sperber, Trivers, Baron, Stanovich-West, Mellers 2014, and the repeat Goldstein/Hauenstein mentions to their References URLs. |
+| 21 | Cross-augusteo.com links pass | No action. |
+
+After fix-application: re-run Gate 2 if substantial number of fixes touched the prose; the gate-runner cap is 3 invocations and Run 1 is the first.
+
 ## Resume here
 
 Last touched: 2026-05-08 (Phase 6 done; 10/10 figures passed playwright review. Two structural fixes applied during Phase 6 — see Phase 6 fix summary below. Phase 7 next: pre-ship freshness pass + Gate 2 + hero handoff + ship).
@@ -573,7 +613,7 @@ The remaining Phase-6-watchlist items (Fig 5 hand-placed curve labels; Fig 10 ou
 | 4. Draft prose | done (10/10 sections + References + cross-refs woven; voice-check clean apart from act-divider headings + 1 TED-title em-dash) | `src/content/blog/scout-mindset/index.mdx` |
 | 5. Implement figures | done (10/10 static-svg figures committed one-per-commit; voice-check clean apart from act dividers + TED-title em-dash on every commit; one in-line playwright screenshot per figure used during drafting; Fig 6 Hauenstein inset and Fig 10 ring radii were tightened post-screenshot) | `src/content/blog/scout-mindset/index.mdx` |
 | 6. Playwright review | done (10/10 passed; two structural fixes — SVG `height="auto"` invalid attr removed across all 10 figures; Fig 6 right-side bell labels moved inside panels because Hauenstein inset's rect-fill was painting over them) | per-figure playwright snapshots reviewed; commit `7a1c184` |
-| 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + ship | freshness pass done; Gate 2 running; hero + ship pending | hero image, dev verification, ship |
 
 ### Codex history
 
@@ -583,6 +623,7 @@ The remaining Phase-6-watchlist items (Fig 5 hand-placed curve labels; Fig 10 ou
 | 2026-05-07 | 0 (research) Run 2 | structural findings (8); fixes applied | `## Codex research review` (Run 2 disposition table) |
 | 2026-05-07 | 0 (research) Run 3 | structural findings (6 + 2 cosmetic); 5 of 6 fixed; **Step-6 override on Galef-rows-secondary-as-primary finding (documented reasoning)**; Phase 7 is the second checkpoint | `## Codex research review` (Run 3 disposition table) |
 | 2026-05-07 | 1 (outline) Run 1 | 11 STRUCTURAL findings (1 TYPE-CHANGE on Figure 5); all fixed in-place; outline restructured to 10 sections with new small-case opener + systems-layer section. Phase 4 prose drafting next; Gate 1 Run 2 deferred to allow gate-runner headroom for Gate 2. | `notes/scout-mindset-codex-outline-20260507.md` + `## Codex outline review` |
+| 2026-05-08 | 2 (final) Run 1 | 20 STRUCTURAL findings + 1 confirmed-passing item; F2 (Galef rows secondary) is the existing Step-6 override from Gate 0 Run 3; F1, F15, F18, F19 typo/stale items + F3-F14 + F16-F17 + F20 drift/linking items applied as commits A/B/C; Run 2 of Gate 2 to follow. | `notes/scout-mindset-codex-final-20260508.md` + `## Codex final review` |
 
 ### Phase 5 figure progress
 
