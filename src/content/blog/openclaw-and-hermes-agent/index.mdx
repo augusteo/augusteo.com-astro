@@ -45,7 +45,31 @@ The next four sections walk a single concrete scenario through each dial in turn
 
 ### 2. The first failure: lifespan
 
-{/* TODO: §2 prose */}
+Imagine you are the engineer rolling out an AI coding agent for your team. The agent should produce patches, review pull requests, and hold its own in technical discussions. You start with the simplest version that could work.
+
+v1 is a CLI script. Engineers invoke it with a prompt; it returns a patch and exits. Each invocation is fresh. No memory of the codebase's conventions, no awareness of the previous PR, no recollection of yesterday's bugfix. Every code review begins at zero.
+
+This is fine for one-shot tasks like "rename this variable" or "add a test for this function," but it falls over the moment the work has continuity. A reviewer asks "why did you choose this name for the helper?" and the agent has nothing to say. The previous turn doesn't exist. A bug is discovered after a merge and the fix happens in a session disconnected from the diff that caused it. The agent is lobotomized between every task.
+
+That is a lifespan problem. The agent's process lives for one invocation, and the unit of work doesn't.
+
+The lifespan dial has four rungs.
+
+*One-shot* is a process per invocation: CLI scripts, single API calls, batch jobs that exit on completion. State leaves with the process.
+
+*Session* is a process per conversation. State persists across turns within one session, then resets when the session ends. Most chatbot interactions live here.
+
+*Daemon or continuous* is an always-on process. The agent stays running, ready to be addressed across many sessions, and can hold ambient state like recent files, pending reviews, or in-flight tasks.
+
+*Scheduled or event-driven* runs in response to triggers (cron, webhook, file change, channel mention) rather than to user invocation. The agent's lifespan is bound to the trigger, not to a user's attention.
+
+Climbing the rungs is not free. A session needs a session store. A daemon needs lifecycle management: startup, shutdown, crash recovery. A scheduled agent needs a trigger system. Each rung adds infrastructure the rung below didn't need, which is why honest dial-placement matters more than reaching the top.
+
+For our engineer, v1 to v2 is the obvious move: a sessioned agent, where each pull request gets its own session. Patches reference earlier patches. Review comments survive context resets. The agent stops starting at zero.
+
+But sessioned doesn't fix the next problem.
+
+{/* Reader can now: tell when "longer-lived" is a different rung vs an artifact of deployment topology. */}
 
 ### 3. The second failure: surface and control plane
 
