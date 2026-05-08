@@ -548,7 +548,7 @@ Outline now 10 sections (was 8), 10 figures (was 8). Added small-individual-beli
 
 ## Resume here
 
-Last touched: 2026-05-07 (Phase 4 section 1 drafted).
+Last touched: 2026-05-07 (Phase 4 done; Phase 5 figures next).
 
 ### Phase status
 
@@ -557,7 +557,7 @@ Last touched: 2026-05-07 (Phase 4 section 1 drafted).
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 Run 3 closed with 5 of 6 STRUCTURAL fixes + Step-6 override on Galef-rows finding; Phase 7 is the second checkpoint for that override) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` (3 runs documented) |
 | 3. Outline + figure list | done (Gate 1 Run 1 found 11 STRUCTURAL findings; all fixed in-place; outline now 10 sections with small-case opener and systems-layer section; Run 2 deferred to preserve gate-runner headroom for Gate 2) | `## Outline`, `## Codex outline review` |
-| 4. Draft prose | in progress (10 of 10 sections drafted; References + cross-refs check next) | `src/content/blog/scout-mindset/index.mdx` |
+| 4. Draft prose | done (10/10 sections + References + cross-refs woven; voice-check clean apart from act-divider headings + 1 TED-title em-dash) | `src/content/blog/scout-mindset/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
@@ -588,13 +588,22 @@ Last touched: 2026-05-07 (Phase 4 section 1 drafted).
 
 ### Suggested next batch
 
-1. Phase 4: draft prose section by section into `src/content/blog/scout-mindset/index.mdx`. Frontmatter with `draft: true`, `essay: true`, placeholder `heroAlt`. One commit per section. Per-section "Reader can now" comment in the MDX.
-2. Voice-check exits clean before each commit (`scripts/voice-check.sh`).
-3. Per the section list (10 sections):
-   - Act 1: §1 small-case opener; §2 GJP-vs-ICPM; §3 three asymmetries + contested fourth; §4 architecture beneath
-   - Act 2: §5 AOMT/Brier/calibration; §6 aggregator + Hauenstein open question
-   - Act 3: §7 Galef five tests; §8 systems layer; §9 trainability picture; §10 Darwin's golden rule operationalized
-4. Once full draft + figures done, run Phase 7 freshness pass + codex Gate 2 + voice-check final + hero handoff.
+Phase 5: implement figures. All 10 figures are static-svg per the locked outline. One commit per figure. Voice-check passes before each commit. Test in `bun run dev` at `http://localhost:4321/blog/scout-mindset`.
+
+Order (low complexity to high):
+
+1. Fig 5 CalibrationPlot — calibration plot with two curves + Brier readouts + AOMT-scale inset. The kit-fits-cleanly figure; do this first to validate the static-SVG pattern for this post.
+2. Fig 2 GJPvsICPM — two-bar chart, ICPM ≈ 0.23 vs GJP "All Surveys Logit" ≈ 0.15 on 0-to-2 Brier; ex-post-selection caveat annotated.
+3. Fig 9 TrainabilitySplitPanels — two-panel forest-plot-like figure (Panel A: % bias-reduction with error bars; Panel B: Hedges *g* meta-analytic effect with 95% CI).
+4. Fig 1 OneBeliefTwoUpdates — two-panel diagram showing same evidence under two framings.
+5. Fig 6 AggregationFunnel — three stacked panels showing variance reduction under independence and the correlation pathology.
+6. Fig 3 ThreeAsymmetriesPlusContestedFourth — four-panel composite, panel d visually distinguished as "contested" with Persson/Connor/Glüer-Pagin & Spectre dissents footnoted.
+7. Fig 7 FiveSelfTestsMapping — 5x2 mapping diagram with the explicit "the author's reading" annotation.
+8. Fig 4 ArchitectureBeneath — two-layer diagram with the Darwin notebook artifact panel on the right.
+9. Fig 8 SystemsLayer — two-tier individual/systems-layer diagram showing how the moves nest.
+10. Fig 10 DarwinGoldenRuleThreeScales — concentric loop with three scales running the same operation.
+
+After Phase 5: Phase 6 playwright per-figure visual review; then Phase 7 freshness pass + Gate 2 + voice-check final + hero handoff.
 
 ### How to resume from a fresh context
 
