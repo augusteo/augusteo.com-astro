@@ -640,7 +640,7 @@ The remaining Phase-6-watchlist items (Fig 5 hand-placed curve labels; Fig 10 ou
 | 4. Draft prose | done (10/10 sections + References + cross-refs woven; voice-check clean apart from act-divider headings + 1 TED-title em-dash) | `src/content/blog/scout-mindset/index.mdx` |
 | 5. Implement figures | done (10/10 static-svg figures committed one-per-commit; voice-check clean apart from act dividers + TED-title em-dash on every commit; one in-line playwright screenshot per figure used during drafting; Fig 6 Hauenstein inset and Fig 10 ring radii were tightened post-screenshot) | `src/content/blog/scout-mindset/index.mdx` |
 | 6. Playwright review | done (10/10 passed; two structural fixes — SVG `height="auto"` invalid attr removed across all 10 figures; Fig 6 right-side bell labels moved inside panels because Hauenstein inset's rect-fill was painting over them) | per-figure playwright snapshots reviewed; commit `7a1c184` |
-| 7. Freshness pass + Gate 2 + ship | freshness pass done; Gate 2 running; hero + ship pending | hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + ship | freshness pass done; Gate 2 closed (3 runs + Step-6 overrides on F1/F7/F8); hero installed (commit `f24a278`); awaits Vic's explicit ship commit | hero image, dev verification, ship |
 
 ### Codex history
 
@@ -671,21 +671,19 @@ The remaining Phase-6-watchlist items (Fig 5 hand-placed curve labels; Fig 10 ou
 
 ### Suggested next batch
 
-Phase 7 (pre-ship freshness pass + Gate 2 + hero hand-off + ship). Concrete actions in order:
+**Vic's explicit ship action.** Phase 7 closed; the post is shippable. The MDX still has `draft: true` per hard rule #9. To ship:
 
-1. **Freshness re-check** every row in `## Claim-source matrix`. Specifically, the explicit Phase 7 to-verify list:
-   - Row 18 (Goldstein Brier numbers `.23 / .15` and ex-post-selection caveat): pull from the PDF and confirm verbatim.
-   - Row 21 (Sellier 2020 corrigendum body): pull verbatim corrigendum text.
-   - Galef rows 1-4 (paraphrased): pull verbatim chapter text from the published book and tighten if any wording shifts.
-   - Row 26 (Heerma van Voss 2025): verify exact authors, DOI, abstract numbers.
-   - Trivers row 12, Mercier-Sperber row 13, Baron row 14: surface page locators.
-2. **Force `pubDate := today`** in the MDX frontmatter when shipping.
-3. **Run Gate 2** (final-draft codex pass) per `codex-prompts.md` Gate 2 prompt template. Inputs: full MDX + Spec + Throughline + Research notes + Claim-source matrix + Related posts + all prior Codex review sections.
-4. **Final voice-check** on the full MDX. Confirm the only em-dashes left are the three act-divider headings + one TED-title.
-5. **Hero hand-off** per `../../explainer-shared/hero-handoff.md`. Skill writes the prompt; Vic supplies the hero image; skill saves to `src/assets/blog/scout-mindset/hero.<ext>`, proposes `heroAlt`, edits frontmatter.
-6. **Verify ship-readiness**: `draft: true` (stays true; Vic flips), `essay: true`, real `heroImage`, real `heroAlt`. Walk every figure end-to-end at the post URL. Lighthouse LCP under 2.5s on cold load.
+1. Verify the post one more time end-to-end at `http://localhost:4322/blog/scout-mindset` (or wherever `bun run dev` lands). Hero, all 10 figures, References, voice-check baseline.
+2. Edit `src/content/blog/scout-mindset/index.mdx` frontmatter: `draft: true` → `draft: false`.
+3. Commit as a single-purpose ship commit. The commit message MUST include the literal phrase below so the audit trail is searchable in `git log`:
 
-Known issues going into Phase 7: none from Phase 6. Outstanding work is the freshness re-check list above.
+   ```
+   Step-6 override on Gate 2 — overridden findings: F1 (Galef-rows-secondary-as-primary, carried forward from Gate 0 Run 3 Step-6 override; Phase 7 verified test names + chapter title verbatim across EA Forum / LessWrong / Quillette / McLatchie outlines), F7 (Darwin/GJP/Hauenstein over-connection, softened across three Gate-2 runs to "different procedures, related-but-not-identical structural shape"), F8 (systems-layer toolkit framed as structural-not-empirical match to the §4 diagnosis, not as deployments validated by the matrix).
+   ```
+
+4. After shipping, optionally remove the MEMORY.md "in progress" pointer; the project-memory entry can stay as a build record.
+
+Known issues going into ship: none beyond the three documented Step-6 overrides above.
 
 ### How to resume from a fresh context
 
