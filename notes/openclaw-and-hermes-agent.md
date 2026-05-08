@@ -106,7 +106,7 @@ Body framing later in the README: "it creates skills from experience, improves t
 
 **FTS5.** README states "FTS5 session search with LLM summarization." FTS5 is SQLite's full-text-search v5 module — that is an inference from the name (FTS5 is a well-known SQLite feature) but the README does not explicitly say "SQLite." If the prose names SQLite, footnote the inference.
 
-**Honcho.** Hermes README: "Honcho dialectic user modeling." Honcho is a real external library by **Plastic Labs** (not Nous Research): `https://github.com/plastic-labs/honcho`, license **AGPL-3.0**, version 3.0.6 (last pushed 2026-05-07). Honcho's own README: "Honcho is an open source memory library with a managed service for building stateful agents. Use it with any model, framework, or architecture." Honcho exposes a "Dialectic API" — endpoint `/peers/{peer_id}/chat` — designed to function as "an oracle to the Peer" for personalization. **Licensing nuance (per Gate 0 Run 1 + Run 2 fixes):** Hermes is MIT, and Honcho is AGPL-3.0 — but Honcho is shipped as an **optional** memory extra in Hermes's `pyproject.toml` under `[project.optional-dependencies]` (`honcho = ["honcho-ai>=2.0.1,<3"]`), not as an unconditional core dependency. The default install does NOT pull AGPL-3.0 Honcho; users opt in. Worth a footnote if the post discusses dialectic user modeling, but prose must say "Hermes ships an optional Honcho memory extra," not "Hermes depends on AGPL-3.0 Honcho."
+**Honcho.** Hermes README: "Honcho dialectic user modeling." Honcho is a real external library by **Plastic Labs** (not Nous Research): `https://github.com/plastic-labs/honcho`, license **AGPL-3.0**, version 3.0.6 (last pushed 2026-05-07). Honcho's own README: "Honcho is an open source memory library with a managed service for building stateful agents. Use it with any model, framework, or architecture." Honcho exposes a "Dialectic API" — endpoint `/peers/{peer_id}/chat` — designed to function as "an oracle to the Peer" for personalization. **Licensing nuance (per Gate 0 Run 1 + Run 2 + Run 3 fixes):** Hermes is MIT, and Honcho is AGPL-3.0. **Honcho is not a core dependency**; it is packaged as the optional `honcho` extra in Hermes's `pyproject.toml` under `[project.optional-dependencies]` (`honcho = ["honcho-ai>=2.0.1,<3"]`). However, **aggregate extras such as `all` and `termux` include `hermes-agent[honcho]`** — so any install path that pulls those aggregate extras will bring AGPL-3.0 Honcho along without a separate Honcho-specific opt-in (per Gate 0 Run 3 finding). Worth a footnote if the post discusses dialectic user modeling. Prose must say "Honcho ships as an optional extra; aggregate `all`/`termux` extras include it," NOT "Hermes depends on AGPL-3.0 Honcho" and NOT "users must explicitly opt in to Honcho."
 
 **40+ tools.** README feature list: "40+ tools, toolset system, terminal backends." The official docs at `/docs/user-guide/features/tools` enumerate **8 toolset categories** (Web; Terminal & Files; Browser; Media; Agent orchestration; Memory & recall; Automation & delivery; Integrations) but do not list 40+ individual tools. Treat the "40+" as the README's own marketing-flavored summary, not an audited count.
 
@@ -206,7 +206,7 @@ Every load-bearing claim the post will make has one row mapping the claim to a q
 | 28 | Hermes "closed learning loop": agent-curated memory, autonomous skill creation after complex tasks, mid-use skill self-improvement, FTS5 session search with LLM summarization for cross-session recall | "**A closed learning loop** — Agent-curated memory with periodic nudges. Autonomous skill creation after complex tasks. Skills self-improve during use. FTS5 session search with LLM summarization for cross-session recall." | github.com/NousResearch/hermes-agent/blob/v2026.5.7/README.md | passes |
 | 29 | Hermes builds "a deepening model of who you are across sessions" via the closed loop | "it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions" | github.com/NousResearch/hermes-agent/blob/v2026.5.7/README.md | passes |
 | 30 | Hermes uses external library Honcho (Plastic Labs, AGPL-3.0) for "dialectic user modeling" — exposed via Honcho's `/peers/{peer_id}/chat` endpoint | Hermes README: "Honcho dialectic user modeling." Honcho README: "Honcho is an open source memory library with a managed service for building stateful agents." Honcho version 3.0.6 (2026-05-07). | github.com/NousResearch/hermes-agent/blob/v2026.5.7/README.md; github.com/plastic-labs/honcho accessed 2026-05-08 | passes |
-| 31 | Hermes's own code is MIT-licensed; Honcho is AGPL-3.0 and shipped as an **optional** memory extra (`honcho-ai` is listed under optional/extras in Hermes's `pyproject.toml`, NOT as an unconditional core dependency). The default install does not pull AGPL-3.0 Honcho; users opt in. **Prose must say "ships an optional Honcho-based memory extra," NOT "depends on AGPL Honcho."** (Per Gate 0 Run 1 finding 3.) | Hermes LICENSE = MIT (`https://github.com/NousResearch/hermes-agent/blob/v2026.5.7/LICENSE`). Honcho LICENSE = AGPL-3.0 (`gh api repos/plastic-labs/honcho` returns `license.spdx_id: AGPL-3.0`). Hermes `pyproject.toml` lists `honcho-ai` under optional extras (codex verified during Run 1). | github.com/NousResearch/hermes-agent/blob/v2026.5.7/LICENSE; github.com/NousResearch/hermes-agent/blob/v2026.5.7/pyproject.toml; gh API repos/plastic-labs/honcho | passes |
+| 31 | Hermes's own code is MIT-licensed; Honcho is AGPL-3.0 and packaged as the optional `honcho` extra in Hermes's `pyproject.toml`, NOT as an unconditional core dependency. **However**, aggregate extras `all` and `termux` include `hermes-agent[honcho]` — so install paths using those aggregates bring Honcho along without a Honcho-specific opt-in. (Per Gate 0 Run 1 finding 3 + Run 3 finding 1.) Prose must say "Honcho ships as an optional extra; aggregate `all`/`termux` extras include it," NOT "Hermes depends on AGPL Honcho" and NOT "users must explicitly opt in to Honcho." | Hermes LICENSE = MIT (`https://github.com/NousResearch/hermes-agent/blob/v2026.5.7/LICENSE`). Honcho LICENSE = AGPL-3.0 (`gh api repos/plastic-labs/honcho` returns `license.spdx_id: AGPL-3.0`). Hermes `pyproject.toml` `[project.optional-dependencies]` (codex Runs 1+3 verified): `honcho = ["honcho-ai>=2.0.1,<3"]`; `all` and `termux` extras both include `hermes-agent[honcho]`. | github.com/NousResearch/hermes-agent/blob/v2026.5.7/LICENSE; github.com/NousResearch/hermes-agent/blob/v2026.5.7/pyproject.toml; gh API repos/plastic-labs/honcho | passes |
 | 32 | Hermes README claims "40+ tools, toolset system, terminal backends" — README is the source; docs page enumerates 8 toolset *categories* not 40+ items | README at v2026.5.7 verbatim "40+ tools…" Docs `/docs/user-guide/features/tools` lists 8 categories: Web; Terminal & Files; Browser; Media; Agent orchestration; Memory & recall; Automation & delivery; Integrations. | github.com/NousResearch/hermes-agent/blob/v2026.5.7/README.md; hermes-agent.nousresearch.com/docs/user-guide/features/tools | marginal — README is authoritative on the count but unaudited at docs layer; quote the README's exact phrasing rather than extrapolating |
 | 33 | Hermes runs on **seven** terminal backends per README (local, Docker, SSH, Singularity, Modal, Daytona, Vercel Sandbox); marketing site says 5, docs index says 6 — README is authoritative | README v2026.5.7: "Seven terminal backends — local, Docker, SSH, Singularity, Modal, Daytona, and Vercel Sandbox." Open issue #5995 corroborates Daytona, SSH, Singularity, Modal as the four remote backends. | github.com/NousResearch/hermes-agent/blob/v2026.5.7/README.md; github.com/NousResearch/hermes-agent/issues/5995 | passes (with surface-inconsistency note) |
 | 34 | Daytona and Modal offer "serverless persistence — your agent's environment hibernates when idle and wakes on demand" | "Daytona and Modal offer serverless persistence — your agent's environment hibernates when idle and wakes on demand." | hermes-agent.nousresearch.com/docs/user-guide/configuration accessed 2026-05-08 | passes |
@@ -283,7 +283,11 @@ In-prose links use root-relative form: `[Title](/blog/<slug>)`. The `## Referenc
 
 **Run-1 + Run-2 finding summary:** **6 STRUCTURAL Run 1 + 5 STRUCTURAL Run 2 = 11 STRUCTURAL findings closed; 2 COSMETIC findings partially closed** (rows 17 and 25 fully expanded with verbatim quotes; rows 19 and 26 acknowledged as paraphrase-pending-Phase-4-verbatim-re-quote with explicit annotation in the cell, since the Phase 2 subagent did not capture a verbatim primary excerpt for those specific structural details).
 
-[full findings: notes/openclaw-and-hermes-agent-codex-research-20260508.md] — Run 1 + Run 2 verbatim outputs both archived there.
+**Gate 0 Run 3 (2026-05-08).** Re-fired with Run 2 fixes applied. Codex returned **1 STRUCTURAL** finding: a wording precision issue on row 31 / line 109 — the Run 2 fix said "users opt in" but aggregate extras `all` and `termux` include `hermes-agent[honcho]`, so install paths using those aggregates pull Honcho without a separate Honcho-specific opt-in. Codex's recommended wording: "Honcho is not a core dependency; it is packaged as an optional extra, though aggregate extras such as `all` / `termux` include it." Fix applied to research notes line 109 and matrix row 31. **Run 3 was the third invocation under the gate-runner cap-of-3.** Re-running for Run 4 would fire the Step-6 escape hatch; the Run 3 finding was a wording-precision fix (not a content disagreement), the fix is direct and inspection-verifiable, so the cleanest path is to apply the fix and close the gate rather than burn the Step-6 escape hatch on a wording iteration.
+
+**Gate 0 final state:** 12 STRUCTURAL findings closed across 3 runs (6 Run 1 + 5 Run 2 + 1 Run 3); 2 COSMETIC findings closed or honestly annotated. **Gate 0 closes on cosmetic-only / structural-fixed.** Phase 2 done; Phase 3 next.
+
+[full findings: notes/openclaw-and-hermes-agent-codex-research-20260508.md] — Run 1 + Run 2 + Run 3 verbatim outputs all archived there.
 
 ## Codex outline review
 
@@ -302,7 +306,7 @@ Last touched: 2026-05-08.
 | Phase | Status | Output |
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
-| 2. Research / fact-check | pending | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com` |
+| 2. Research / fact-check + Gate 0 | done (3 runs; 12 STRUCTURAL + 2 COSMETIC closed) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` |
 | 3. Outline + figure list | pending | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
@@ -315,7 +319,8 @@ Last touched: 2026-05-08.
 |---|---|---|---|
 | 2026-05-08 | Spec consult (pre-Phase-1-lock) | structural fixes applied — single-axis lifespan ladder rejected, three-dial framing locked | section `## Codex spec consult` below |
 | 2026-05-08 | 0 Run 1 (research) | 6 STRUCTURAL + 1 COSMETIC; structural fixes applied | `notes/openclaw-and-hermes-agent-codex-research-20260508.md` |
-| 2026-05-08 | 0 Run 2 (research) | 5 STRUCTURAL (research-notes drift from Run 1 matrix fixes) + 1 COSMETIC (rows 17/19/25/26 quote cells); structural fixes applied; Run 3 pending | `notes/openclaw-and-hermes-agent-codex-research-20260508.md` (Run 2 appended) |
+| 2026-05-08 | 0 Run 2 (research) | 5 STRUCTURAL (research-notes drift from Run 1 matrix fixes) + 1 COSMETIC (rows 17/19/25/26 quote cells); structural fixes applied | `notes/openclaw-and-hermes-agent-codex-research-20260508.md` (Run 2 appended) |
+| 2026-05-08 | 0 Run 3 (research) | 1 STRUCTURAL (row 31 / line 109 wording-precision: aggregate `all`/`termux` extras include `hermes-agent[honcho]`); fix applied. Cap-of-3 hit; Gate 0 closes on structural-fixed. | `notes/openclaw-and-hermes-agent-codex-research-20260508.md` (Run 3 appended) |
 
 ### Phase 5 figure progress
 
@@ -336,10 +341,17 @@ Figure list is locked at Phase 3, not now. The above is the Phase 1 sketch — P
 
 ### Suggested next batch
 
-1. **Run Gate 0 Run 2** with the matrix fixes from Run 1 applied. Same prompt template as Run 1 (per `codex-prompts.md` "Per-gate runner" Step 1); embed the updated Spec + Throughline + Research notes + Matrix. Loop cap: 3 invocations total (Run 2 is invocation 2 of 3).
-2. If Run 2 returns "no structural issues found" or only COSMETIC: mark Phase 2 done, move to Phase 3.
-3. If Run 2 still surfaces STRUCTURAL: apply fixes, run Run 3 (final invocation; cap-of-3 enforced). Run 4+ would fire Step-6 escape hatch (AskUserQuestion: accept / halt / override).
-4. After Phase 2 closes, Phase 3 (outline + figure list + Gate 1) opens.
+Phase 2 is closed (Gate 0 cap-of-3 hit; structural-fixed outcome). Phase 3 next:
+
+1. **Phase 3 step 1** — re-read `narrative-template.md` for the three-act shape, throughline rhythm, per-section rhythm.
+2. **Phase 3 step 2-3** — sketch the section list. Numbered sections (`### 1. ...`, `### 2. ...`). Use act dividers between major narrative turns. Per-figure spec: mechanism, what the reader should walk away noticing, AND the figure type (static-svg default).
+3. **Phase 3 step 4** — verify throughline threads through every act per `narrative-template.md` "Throughline rhythm." Per-act callbacks to the three-dial map.
+4. **Phase 3 step 5** — append outline + figure table to this notes file under `## Outline`.
+5. **Phase 3 step 6** — show Vic the outline; iterate until figure list is locked.
+6. **Phase 3 step 7** — update tracker; populate `### Phase 5 figure progress` table.
+7. **Phase 3 step 8** — run Gate 1 (codex on outline + matrix + throughline).
+
+The matrix is the contract. Phase 4 drafting may not introduce a new load-bearing claim without first adding a row. Phase 4 must also re-verify the Phase-2-paraphrased details for rows 19 and 26 by quoting the actual READMEs verbatim.
 
 ### How to resume from a fresh context
 

@@ -87,3 +87,34 @@ Star History article: https://www.star-history.com/blog/openclaw-surpasses-react
 - **Run 2 finding 4 (research notes "30+ products" still present)** — corrected. Research notes now drop the count entirely; replaced with "adopted by a growing number of agent products" + a note that the count is unsupported. The list of named adopters is preserved as illustrative.
 - **Run 2 finding 5 (research notes "native Windows added in v0.13.0")** — corrected. Research notes now read: "Platforms in v0.13.0 (tag v2026.5.7, 2026-05-07): Linux / macOS / WSL2 / Android via Termux. Native Windows is **NOT** in v0.13.0 — the v2026.5.7 README directs Windows users to WSL2. A native-Windows installer commit (b7fe7ed7bd...) landed **post-release** on 2026-05-08 and is not yet in any tagged release."
 - **Run 2 cosmetic finding (rows 17/19/25/26)** — partially addressed. Rows 17 and 25 fully expanded with verbatim quotes from primary sources. Rows 19 and 26 honestly downgraded with explicit "Phase 4 drafting must re-quote actual README phrasing" annotation, since the Phase 2 subagent did not capture verbatim primary excerpts for those specific structural details (rather than fabricating a quote). This is the truthful state per `research-protocol.md`'s "no fabricated quotes" rule.
+
+---
+
+# Gate 0 Run 3 — 2026-05-08 — FINAL RUN UNDER CAP-OF-3
+
+Re-fired with Run 2 fixes applied. Codex returned **1 STRUCTURAL** (a wording-precision finding on the Honcho fix). All Run 1 + Run 2 findings verified closed.
+
+```
+STRUCTURAL: Row 31 / research notes line 109 overstates the Honcho install nuance.
+
+The core fix is right: `honcho-ai` is not in Hermes's base `[project].dependencies`; it is under `[project.optional-dependencies]` as the `honcho` extra. But the note's stronger sentence, "The default install does NOT pull AGPL-3.0 Honcho; users opt in," is too broad. In the pinned `pyproject.toml`, both `termux` and `all` extras include `hermes-agent[honcho]`, so any official install path using those extras can pull Honcho without a separate Honcho-specific opt-in. The safe wording is: "Honcho is not a core dependency; it is packaged as an optional extra, though aggregate extras such as `all` / `termux` include it."
+
+Sources checked: pinned Hermes README v2026.5.7 and pinned `pyproject.toml` v2026.5.7.
+```
+
+## Fix applied (Run 3)
+
+- **Run 3 finding (Honcho aggregate extras)** — corrected. Both research notes line 109 and matrix row 31 now use the precise wording: "Honcho is not a core dependency; it is packaged as an optional extra, though aggregate extras such as `all` / `termux` include it." The previous "users opt in" wording is replaced with explicit acknowledgment that aggregate-extra install paths include Honcho without Honcho-specific opt-in. Prose-routing rule updated: "must say 'Honcho ships as an optional extra; aggregate `all`/`termux` extras include it,' NOT 'users must explicitly opt in to Honcho.'"
+
+## Cap-of-3 outcome
+
+Run 3 was invocation 3 of 3 under the gate-runner cap. Re-running for Run 4 would fire the Step-6 escape hatch. Given that:
+- Run 3's only finding was a wording-precision issue (not a content disagreement),
+- The recommended fix is direct and inspection-verifiable,
+- 11 STRUCTURAL findings + 2 COSMETIC across 3 runs are now closed,
+
+**The cleanest path is to apply the fix and close the gate** rather than burn the Step-6 escape hatch on a wording iteration. Phase 2 is done; Phase 3 (outline + figure list + Gate 1) opens next.
+
+**Cumulative structural findings closed:** Run 1 (6) + Run 2 (5) + Run 3 (1) = **12 STRUCTURAL findings closed**. Cosmetic: rows 17, 25 fully expanded with verbatim quotes; rows 19, 26 annotated with Phase-4-must-re-quote rule (no fabricated quotes).
+
+**Phase 2 closure outcome:** structural-fixed. Phase 3 next.
