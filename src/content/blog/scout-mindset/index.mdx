@@ -389,7 +389,125 @@ Section 5 gave us the trait (AOMT) and the metric (Brier). With those in hand we
 
 The honest answer is that the post can sketch the *kind* of thing it does qualitatively, and can't make a load-bearing primary-source claim about the exact arithmetic without pulling more weight from the GJP team's technical documentation than is reasonable. The high-level shape: aggregating many probabilistic forecasts can reduce variance, *under specific assumptions about how the forecasters relate to each other.* The two assumptions that carry the most weight are (a) independence between forecasters and (b) errors that aren't too strongly correlated. If both hold, the central limit theorem does most of the work; the average of ten forecasters is a tighter estimate than any one of them. If correlation is tight, you're basically looking at one forecaster ten times, and the noise you wanted to wash out doesn't wash out.
 
-{/* TODO: Fig 6: AggregationFunnel. Three stacked panels showing what happens to a forecast distribution under three conditions. Panel (i): one independent forecaster with bias b and variance σ², wide distribution, off-center. Panel (ii): ten independent forecasters with the same b and σ² aggregated naively, narrower distribution, same off-center bias (variance reduction without bias removal). Panel (iii): ten correlated forecasters with the same b and σ² aggregated, narrower than (i) but wider than (ii); correlation eats the gain. Annotation makes the independence assumption explicit in (ii) and the violation explicit in (iii). Hauenstein-2025 overlay as a small inset on the right: arrow showing the Mellers-2014 training/teaming effect with a "controlled for method variance" overlay showing the effect shrinking or reversing. */}
+<figure>
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+
+<text x="245" y="38" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">AGGREGATION UNDER ASSUMPTIONS</text>
+<text x="245" y="54" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">forecaster estimates of "the event happens"; truth = .50, bias b = +.15</text>
+
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+  <g>
+    <line x1="60" y1="170" x2="460" y2="170" stroke="#8F8578" stroke-width="1"/>
+    <text x="60" y="184">0</text>
+    <text x="160" y="184">.25</text>
+    <text x="260" y="184">.50</text>
+    <text x="360" y="184">.75</text>
+    <text x="460" y="184">1</text>
+  </g>
+  <g>
+    <line x1="60" y1="300" x2="460" y2="300" stroke="#8F8578" stroke-width="1"/>
+    <text x="60" y="314">0</text>
+    <text x="160" y="314">.25</text>
+    <text x="260" y="314">.50</text>
+    <text x="360" y="314">.75</text>
+    <text x="460" y="314">1</text>
+  </g>
+  <g>
+    <line x1="60" y1="430" x2="460" y2="430" stroke="#8F8578" stroke-width="1"/>
+    <text x="60" y="444">0</text>
+    <text x="160" y="444">.25</text>
+    <text x="260" y="444">.50</text>
+    <text x="360" y="444">.75</text>
+    <text x="460" y="444">1</text>
+  </g>
+</g>
+
+<g stroke="#1A1A1A" stroke-width="1" stroke-dasharray="3,3">
+  <line x1="260" y1="80" x2="260" y2="170"/>
+  <line x1="260" y1="210" x2="260" y2="300"/>
+  <line x1="260" y1="340" x2="260" y2="430"/>
+</g>
+<g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">
+  <text x="260" y="74">truth</text>
+  <text x="260" y="204">truth</text>
+  <text x="260" y="334">truth</text>
+</g>
+<g stroke="#92400E" stroke-width="1" stroke-dasharray="2,2">
+  <line x1="320" y1="80" x2="320" y2="170"/>
+  <line x1="320" y1="210" x2="320" y2="300"/>
+  <line x1="320" y1="340" x2="320" y2="430"/>
+</g>
+<g font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle">
+  <text x="320" y="74">bias mean</text>
+  <text x="320" y="204">bias mean</text>
+  <text x="320" y="334">bias mean</text>
+</g>
+
+<text x="60" y="100" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2">PANEL (i)</text>
+<text x="60" y="114" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">n = 1, σ = .15, no aggregation</text>
+<path d="M 140 170 C 200 170 270 95 320 95 C 370 95 440 170 500 170 Z" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" opacity="0.85"/>
+<text x="500" y="130" font-family="serif" font-size="10" font-style="italic" fill="#2563EB">wide,</text>
+<text x="500" y="144" font-family="serif" font-size="10" font-style="italic" fill="#2563EB">off-center</text>
+
+<text x="60" y="232" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2">PANEL (ii)</text>
+<text x="60" y="246" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">n = 10, INDEPENDENT, σ_avg ≈ .047</text>
+<path d="M 295 300 C 305 300 315 220 320 220 C 325 220 335 300 345 300 Z" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" opacity="0.95"/>
+<text x="500" y="260" font-family="serif" font-size="10" font-style="italic" fill="#2563EB">variance shrinks,</text>
+<text x="500" y="274" font-family="serif" font-size="10" font-style="italic" fill="#2563EB">bias unchanged</text>
+
+<rect x="60" y="266" width="180" height="32" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6" rx="3" opacity="0.55"/>
+<text x="68" y="280" font-family="serif" font-size="10" font-style="italic" fill="#92400E">assumption: forecasters</text>
+<text x="68" y="293" font-family="serif" font-size="10" font-style="italic" fill="#92400E">independent.</text>
+
+<text x="60" y="362" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2">PANEL (iii)</text>
+<text x="60" y="376" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">n = 10, ρ = 0.5, σ_avg ≈ .111</text>
+<path d="M 275 430 C 295 430 310 350 320 350 C 330 350 345 430 365 430 Z" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2" opacity="0.85"/>
+<text x="500" y="390" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">narrower than (i),</text>
+<text x="500" y="404" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">wider than (ii)</text>
+
+<rect x="60" y="396" width="180" height="32" fill="#FBE9CE" stroke="#B91C1C" stroke-width="0.6" rx="3" opacity="0.55"/>
+<text x="68" y="410" font-family="serif" font-size="10" font-style="italic" fill="#B91C1C">assumption violated:</text>
+<text x="68" y="423" font-family="serif" font-size="10" font-style="italic" fill="#B91C1C">correlated forecasters.</text>
+
+<line x1="490" y1="80" x2="490" y2="460" stroke="#C9BEAA" stroke-width="0.8" stroke-dasharray="2,3"/>
+
+<rect x="500" y="80" width="160" height="380" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="580" y="100" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">HAUENSTEIN 2025</text>
+<text x="580" y="114" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">a separate question:</text>
+<text x="580" y="126" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">does training cause individual gain?</text>
+
+<text x="520" y="158" font-family="serif" font-size="10" fill="#1A1A1A">Mellers 2014 reported:</text>
+<rect x="520" y="166" width="120" height="14" fill="#2563EB" opacity="0.75" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="580" y="176" font-family="JetBrains Mono" font-size="9" fill="#FFFFFF" text-anchor="middle">positive training effect</text>
+
+<line x1="580" y1="194" x2="580" y2="220" stroke="#6B6258" stroke-width="1"/>
+<polygon points="575,216 580,224 585,216" fill="#6B6258"/>
+<text x="580" y="208" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">control for method variance</text>
+
+<text x="520" y="244" font-family="serif" font-size="10" fill="#1A1A1A">After controls, the effect:</text>
+
+<text x="520" y="266" font-family="serif" font-size="10" fill="#6B6258">·</text>
+<rect x="530" y="258" width="40" height="12" fill="#2563EB" opacity="0.35" stroke="#1A1A1A" stroke-width="0.5" stroke-dasharray="2,2"/>
+<text x="580" y="267" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">shrinks</text>
+
+<text x="520" y="290" font-family="serif" font-size="10" fill="#6B6258">·</text>
+<line x1="530" y1="287" x2="570" y2="287" stroke="#1A1A1A" stroke-width="0.5" stroke-dasharray="2,2"/>
+<text x="580" y="291" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">vanishes</text>
+
+<text x="520" y="316" font-family="serif" font-size="10" fill="#6B6258">·</text>
+<rect x="530" y="308" width="40" height="12" fill="#B91C1C" opacity="0.55" stroke="#1A1A1A" stroke-width="0.5"/>
+<text x="580" y="317" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">reverses</text>
+
+<text x="580" y="410" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">aggregation result (Goldstein)</text>
+<text x="580" y="422" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">holds. Individual-causal-mechanism</text>
+<text x="580" y="434" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">claim is what's contested.</text>
+
+<text x="340" y="494" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">aggregation reduces variance under independence;</text>
+<text x="340" y="510" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">correlation eats the gain. neither moves the bias.</text>
+
+</svg>
+<figcaption><strong>Fig 6.</strong> Three stacked panels showing what happens to a forecast distribution under three conditions. Panel (i): a single forecaster with bias <em>b</em> and standard deviation <em>σ</em> produces a wide, off-centered distribution. Panel (ii): aggregating ten independent forecasters with the same <em>b</em> and <em>σ</em> shrinks the distribution by a factor of <em>√n</em> while leaving the bias untouched. Panel (iii): if the same ten forecasters are correlated, the variance reduction is partial; the curve sits between panels (i) and (ii). Inset: <a href="https://doi.org/10.1177/09567976241266481">Hauenstein et al. 2025</a>'s IRT reanalysis of <a href="https://doi.org/10.1177/0956797614524255">Mellers et al. 2014</a> reports the training-and-teaming effects shrank, vanished, or in some cases reversed once method-variance variables were controlled. The aggregation result (Goldstein) and the individual-causal-mechanism claim are different questions; the inset is the second one, kept separate from the funnel.</figcaption>
+</figure>
 
 Picture it as a funnel. One forecaster's distribution of estimates is wide and possibly off-center. That's panel (i). Ten independent forecasters with the same bias, averaged naively, give a narrower distribution centered on the same off-center mean. Variance shrinks; bias doesn't move. That's panel (ii). Ten *correlated* forecasters with the same bias, averaged the same way, give a distribution that's narrower than panel (i) but wider than panel (ii). Correlation eats the variance reduction. That's panel (iii). The funnel doesn't say "aggregation always beats truth." It says "aggregation can reduce variance under independence; that's the mechanism worth a name."
 
