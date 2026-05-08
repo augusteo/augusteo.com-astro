@@ -273,7 +273,289 @@ In-prose links use root-relative form: `[Title](/blog/<slug>)`. The `## Referenc
 
 ## Outline
 
-*Populates in Phase 3.*
+Phase 3 deliverable, 2026-05-08. Three-act narrative with the three-dial map as the throughline artifact. Each act opens with a dial-map reference and closes by re-pointing at the dial map. 19 numbered sections; 10 figures, all `static-svg` under the static-default rule. Section sizes target 300–800 words each; total target ~10K words / ~35-min read per spec.
+
+### Section list
+
+#### Act 1 — The three dials
+
+##### 1. Why the single ladder breaks
+
+Setup pivot. peterwoods.online's "Claw family" ladder is the framing under test (row 24a-d): one axis from "stateless function" (ZeptoClaw) to "autonomous worker" (NanoClaw). Why it fails: Hermes's distinctive bet is *learning loop*, not "more autonomous"; OpenClaw's distinctive bet is *gateway/control-plane*, not "less than Hermes." The fix: three dials, not one ladder.
+
+- Throughline open: name the three dials by name. Promise to fill the map by the end of Act 1.
+- No figure. The pivot is prose.
+- Reader can now: see why a single-axis ranking hides Hermes's and OpenClaw's distinctive design bets.
+- Matrix rows touched: 24a-d (the framing under test); throughline-only.
+
+##### 2. Lifespan: how long the agent lives
+
+Claim: lifespan is the most familiar dial — one-shot → session → daemon/continuous → scheduled/event-driven.
+
+- Walk the four rungs.
+- Failure case (annotated as author-constructed pedagogical example per spec § "Act 1 failure-case sourcing"): a degenerate one-shot trying to handle a multi-turn workflow.
+- Figure 1: **LifespanDial** — single dial axis with four rungs labeled, one annotation marking a degenerate position.
+- Reader can now: tell when "longer-lived" is a different rung vs an artifact of deployment topology.
+- Matrix rows touched: none load-bearing per-framework yet (this section establishes vocabulary).
+
+##### 3. Surface and control plane: where users reach the agent
+
+Claim: the surface/control-plane dial — CLI/API → gateway → multi-channel assistant.
+
+- Walk the three rungs.
+- Failure case (author-constructed): an agent reachable only by CLI when the user's workflow demands message-channel routing.
+- Figure 2: **SurfaceDial** — single dial axis, three rungs labeled, annotation marking a CLI-only failure case.
+- Reader can now: see why "a single Gateway as control plane" is a specific design decision, not table stakes.
+- Matrix rows touched: row 2 preview (OpenClaw frames the Gateway as "single control plane").
+
+##### 4. Adaptation: whether the agent learns from prior work
+
+Claim: the adaptation dial — stateless → persistent memory → skill creation / self-improvement.
+
+- Walk the three rungs.
+- Failure case (author-constructed): an agent that runs the same task 50 times and gets no smarter at it.
+- Inline link to [the Claude Code plugins I use every day](/blog/claude-code-plugin-stack) — skills/plugins as the adaptation lever in Vic's existing setup. (Per Phase 2 anchor point #1.)
+- Figure 3: **AdaptationDial** — single dial axis, three rungs labeled, annotation marking a stateless-loop failure case.
+- Reader can now: see why "skills" and "memory" sit on different rungs.
+- Matrix rows touched: row 28 preview (Hermes's "closed learning loop").
+
+##### 5. The dial map
+
+Act 1 close. The three dials are orthogonal — they don't reduce to one ladder. Show all three together.
+
+- Figure 4: **ThreeDialMap** — all three dials drawn as orthogonal axes; no frameworks placed yet.
+- Throughline close: "We will now place OpenClaw, the Claw variants, and Hermes on this map. Each tool sits in a different region for a different reason."
+- Reader can now: predict that each architecture's distinctive bet is one specific dial.
+
+#### Act 2 — OpenClaw and the gateway problem
+
+##### 6. OpenClaw frames itself as a personal AI assistant with a control-plane Gateway
+
+Throughline open: "Let's place OpenClaw. Start with how the project frames itself."
+
+- Inline link to [Hand tools, power tools, and the AI coding debate](/blog/hand-tools-power-tools-ai-coding-debate) as the category-setup callback (per Phase 2 anchor point #2 §6 opening).
+- Verbatim quote from README (rows 1, 2): "personal AI assistant you run on your own devices" + "Local-first Gateway — single control plane for sessions, channels, tools, and events."
+- Always-on: "OpenClaw Onboard installs the Gateway daemon (launchd/systemd user service) so it stays running" (row 3).
+- Multi-agent routing (row 4): "route inbound channels/accounts/peers to isolated agents (workspaces + per-agent sessions)."
+- Figure 5: **OpenClawArchitecture** — Gateway as the architectural center; channels feeding in; sessions branching out per channel routing rule; workspaces (per-agent filesystem roots) shown; tools layer below.
+- Reader can now: see why OpenClaw's Gateway is the architectural center, and why "channels" are first-class.
+- Matrix rows touched: 1, 2, 3, 4.
+
+##### 7. Workspaces, sessions, sandboxes — three layered concepts
+
+Claim: OpenClaw organizes execution along three layers, each owning a different decision.
+
+- **Workspaces** = per-agent filesystem roots (default `~/.openclaw/workspace`).
+- **Sessions** = conversation contexts routed by origin (DM, group, cron, etc.). Persisted as JSONL at `~/.openclaw/agents/<agentId>/sessions/<SessionId>.jsonl`.
+- **Sandboxes** = optional execution-isolation backends wrapping non-`main` sessions.
+- Verbatim quotes per row 16 (workspaces / sessions framing) and row 17 (sandbox workspace-access modes none / ro / rw).
+- No figure (the architecture figure carries the visual; this section is naming).
+- Reader can now: tell which decision lives at which layer.
+- Matrix rows touched: 16, 17.
+
+##### 8. The security model: host-by-default for `main`, sandbox tiers for non-`main`
+
+Claim: OpenClaw's security model is "host execution for `main`, sandbox for non-`main`."
+
+- Verbatim quote of README's Security model section (rows 5, 6, 7).
+- Typical sandbox default's allow/deny lists (row 7) shown as a quoted block.
+- Figure 6: **OpenClawSandboxTiers** — three-panel side-by-side: (a) host execution for `main` (full host access); (b) Docker default sandbox (typical allow/deny defaults inset); (c) SSH and OpenShell alternate backends. Workspace-access modes `none` / `ro` / `rw` shown as a small inset table.
+- Reader can now: tell when OpenClaw will sandbox a tool call vs run it on the host.
+- Matrix rows touched: 5, 6, 7.
+
+##### 9. A short note on project history and scale
+
+Brief project context. Useful for situating OpenClaw against the Claw family in §10 — the renames explain why third-party taxonomies (peterwoods.online) had room to fill.
+
+- Naming sequence (rows 10, 11): Warelay → Clawdis → Clawdbot → Moltbot → OpenClaw, with publication dates.
+- Author Peter Steinberger; nationality flagged as inferred (row 12).
+- 2026-02-14 OpenAI / foundation announcement (row 13): announced as forthcoming, not formally established. As of 2026-05-08 no GOVERNANCE.md/FOUNDATION.md exists in the repo; CONTRIBUTING.md still names Steinberger "Benevolent Dictator." Prose must hedge.
+- Star count: live gh API count 369,860 on 2026-05-08 (row 15) is the primary fact. Star History's "passed React, most-starred non-aggregator software project" framing (row 14) is third-party analysis — attributed as such if used.
+- No figure.
+- Reader can now: contextualize OpenClaw's scale without the Star-History laundering.
+- Matrix rows touched: 10, 11, 12, 13, 14, 15.
+
+##### 10. The Claw family as a vacuum-filling taxonomy
+
+Claim: peterwoods.online's "Claw family" ladder is contradicted by 3 of 4 projects' primary self-framing. The ladder is a useful editorial cut, not a sourced taxonomy.
+
+- Walk each variant's primary self-framing:
+  - **NanoClaw** (qwibitai, row 18): container isolation + minimalism. peterwoods's "autonomous worker / continuous lifespan / high agency" → contradicted (row 24a).
+  - **breakcafe/picoclaw** (row 20): name collision; serverless fork of NanoClaw, distinct project from sipeed/picoclaw. Brief disambiguation.
+  - **sipeed/PicoClaw** (row 21): hardware portability (sub-$10 hardware, <10MB RAM, RISC-V/ARM/MIPS/x86, 16+ chat platforms). peterwoods's "session-scoped persistent assistant for interactive coding" → partially-accurate (row 24b).
+  - **ZeroClaw** (zeroclaw-labs, row 22): continuous always-on (systemd / launchctl / Windows Service); supervised-default autonomy. peterwoods's "structured task runner / per-task lifespan / low autonomy" → contradicted (row 24c).
+  - **ZeptoClaw** (qhkm, row 23): full personal-AI-assistant infrastructure (workspace memory, conversation history, agent swarms, multi-channel gateway, sandboxed autonomy). peterwoods's "stateless function / no autonomy" → directly contradicted (row 24d). **Phase 4 must verbatim re-quote** the ZeptoClaw README's actual phrasing of architectural details (row 19 / row 26 paraphrase-pending-verbatim flag).
+  - **Family-coordination question** (row 25): not a coordinated family. Distinct authors / languages; ZeroClaw's README explicitly disclaims "other repositories claiming affiliation are unauthorized"; sipeed/PicoClaw's README disclaims being a fork of any Claw project; ZeptoClaw's COMPARISON.md contrasts against NanoClaw / PicoClaw / OpenClaw / NemoClaw but omits ZeroClaw.
+  - **ZeptoClaw is part of the real coordinated Zepto Stack** (row 26): ZeptoPM, ZeptoCapsule, ZeptoRT — a coordinated sub-family separate from "Claw." Phase 4 must verbatim re-quote.
+- Figure 7: **ClawFamilyOnDials** — three-dial map (reusing #4) with OpenClaw + NanoClaw + sipeed/PicoClaw + ZeroClaw + ZeptoClaw placed by *primary-source self-framing*. Small annotations mark the three contradictions and one partial-accuracy where peterwoods's role-assignments disagree.
+- Reader can now: see how third-party taxonomies fill a vacuum when an ecosystem shares a name pattern but no maintainership; recognize the failure mode.
+- Matrix rows touched: 18, 19, 20, 21, 22, 23, 24a-d, 25, 26.
+
+##### 11. Where OpenClaw and the Claw family land on the dial map
+
+Act 2 close.
+
+- Throughline close: "OpenClaw and the four Claw variants all sit clustered along the surface/control-plane dial. They vary on lifespan and footprint and adaptation, but the dial each was designed around is gateway. Hermes will land somewhere else entirely."
+- No figure. Callback to Figure 7 + the three-dial map.
+- Reader can now: predict that the next act will introduce a different distinctive-dial design.
+
+#### Act 3 — Hermes Agent and the learning-loop problem
+
+##### 12. Hermes's distinctive bet is a closed learning loop
+
+Throughline open: "Now Hermes. The dial Hermes was designed around isn't surface — it's adaptation."
+
+- Verbatim quote from README v0.13.0 / tag v2026.5.7 (rows 27, 28): "A closed learning loop — Agent-curated memory with periodic nudges. Autonomous skill creation after complex tasks. Skills self-improve during use. FTS5 session search with LLM summarization for cross-session recall."
+- "Model of who you are" framing (row 29).
+- Figure 8: **HermesClosedLoop** — circular flow diagram: task → autonomous skill creation → mid-use refinement → FTS5 cross-session recall → Honcho user model → next task. Honcho box annotated as external (Plastic Labs, AGPL-3.0).
+- Reader can now: see the loop's shape; predict that the rest of Act 3 will examine each arc.
+- Matrix rows touched: 27, 28, 29.
+
+##### 13. Skill creation from experience and mid-use self-improvement
+
+Claim: Hermes builds skills from experience and refines them while running.
+
+- Implementation evidence per row 28's quoted README phrasing.
+- agentskills.io compatibility (row 37): originally Anthropic-developed, released as open standard, adopted by multiple agent products. **Drop the "30+ adopters" count** (Gate 0 Run 1 finding) — quote the lineage from agentskills.io's overview/home page (Gate 0 Run 2 finding fixed the source URL).
+- Inline link to [the Claude Code plugins I use every day](/blog/claude-code-plugin-stack) — Vic's existing setup uses the same agentskills.io standard. (Per Phase 2 anchor point #1 §13.)
+- No figure. Mechanism is verbal; the closed-loop figure carries it.
+- Reader can now: see that "skills" in Hermes is the same standard Vic's Claude Code post discusses.
+- Matrix rows touched: 28, 37.
+
+##### 14. Cross-session recall via FTS5 search and LLM summarization
+
+Claim: Hermes recalls past tasks by searching its own session history with FTS5 and summarizing matches with an LLM.
+
+- Quote per row 28. **SQLite-name inference footnoted** — README says "FTS5"; the README does not explicitly write "SQLite," and FTS5 being SQLite's full-text-search v5 module is a well-known fact treated as inference per the matrix annotation.
+- No figure (the closed-loop figure carries the recall arc).
+- Reader can now: see why "session boundaries" are soft in Hermes — recall crosses them.
+- Matrix rows touched: 28 (FTS5 detail; SQLite-name inference footnoted).
+
+##### 15. The user model: Honcho dialectic modeling
+
+Claim: Hermes uses Honcho — an external library by Plastic Labs, AGPL-3.0 — to build a "model of who you are" via the dialectic API.
+
+- Honcho repo + license + version per row 30.
+- License nuance per row 31: Hermes itself is MIT; Honcho is AGPL-3.0; Honcho is packaged as the optional `honcho` extra in `pyproject.toml` (`honcho = ["honcho-ai>=2.0.1,<3"]`), NOT an unconditional core dependency. **However**, aggregate extras `all` and `termux` include `hermes-agent[honcho]` — so install paths using those aggregates pull AGPL-3.0 Honcho along without a separate Honcho-specific opt-in. Footnote.
+- No figure.
+- Reader can now: distinguish Hermes's MIT codebase from the AGPL Honcho dependency tree, and see why aggregate extras matter for licensing.
+- Matrix rows touched: 30, 31.
+
+##### 16. Tools and terminal backends
+
+Claim: Hermes ships a toolset system + seven terminal backends.
+
+- README at v2026.5.7 (row 33): "Seven terminal backends — local, Docker, SSH, Singularity, Modal, Daytona, and Vercel Sandbox."
+- Surface inconsistency note: marketing site says 5; docs index says 6; README says 7. README is authoritative. Footnote.
+- "40+ tools" claim (row 32): treated as marginal — quote the README's exact wording verbatim and footnote the docs-layer 8-category enumeration.
+- Daytona and Modal "serverless persistence" per row 34 verbatim.
+- Figure 9: **HermesTerminalBackends** — 2D layout: cost / portability axis (local → remote) × persistence axis (ephemeral → persistent). Seven backends placed. Daytona + Modal annotated as the unique serverless-persistence cluster.
+- Reader can now: tell which backend they want for which tradeoff.
+- Matrix rows touched: 32, 33, 34.
+
+##### 17. The rest: subagents, Python RPC, install footprint, scale, migration
+
+Claim: a survey of the remaining surface so the reader can ground-truth the adoption + platform claims that float in third-party blogs.
+
+- Subagents (row 35): two distinct mechanisms — `delegate_task` (process / context isolation, within Docker backend) and `hermes -w` (git worktree filesystem isolation, added in v2026.3.12).
+- Python RPC (row 36): README's "zero-context-cost" framing quoted; do not over-extrapolate.
+- Install platforms (row 39a): Linux / macOS / WSL2 / Android via Termux. **Native Windows is NOT in v0.13.0** — README directs Windows users to WSL2.
+- Post-release commit (row 39b): native-Windows installer commit `b7fe7ed7bd` landed 2026-05-08, post-v2026.5.7 release tag of 2026-05-07; not in any tagged release as of pubDate. Attribute precisely if mentioned.
+- Live star count 139,109 on 2026-05-08 (row 40); release scale 864 commits / 588 PRs / 282 issues / 295 contributors (row 43).
+- First-party migration tooling `hermes claw migrate` (row 41); the "migration wave" framing (row 42) is third-party and unsupported. Discuss tooling, not wave.
+- First public release v0.2.0 / tag v2026.3.12 on 2026-03-12 (row 38); pre-public v0.1.0 internal phase preceded.
+- No figure.
+- Reader can now: ground-truth Hermes's adoption + platform claims with primary numbers; recognize the third-party laundering pattern.
+- Matrix rows touched: 35, 36, 38, 39a, 39b, 40, 41, 42, 43.
+
+##### 18. Where Hermes lands on the dial map
+
+Act 3 close.
+
+- Throughline close: "Hermes sits at daemon/continuous lifespan, gateway-with-skills surface, and most importantly the skill-creation/self-improvement adaptation rung. The dial it was designed around is adaptation. That makes Hermes a different question from OpenClaw — not a rung above."
+- No figure. Callback to Figure 8 + the dial map.
+- Reader can now: predict that the closing matrix will place all frameworks on the same map and that the placements will not collapse to a ladder.
+
+#### Closing — The matrix
+
+##### 19. All three frameworks on one map
+
+The reassembly. Reader overlays use case → tool falls out.
+
+- Figure 10: **FinalDialMap** — three-dial map (reusing #4) with **all** frameworks placed: OpenClaw, NanoClaw, sipeed/PicoClaw, ZeroClaw, ZeptoClaw, Hermes. Each placement annotated with the dial that architecture was designed around.
+- Closing italic-line callback: sequel-flavored callback to [Hand tools, power tools, and the AI coding debate](/blog/hand-tools-power-tools-ai-coding-debate). (Per Phase 2 anchor point #2.)
+- Reader can now: overlay their own use case on the map and see which architecture matches the dial they care about.
+- Matrix rows touched: callbacks to all matrix rows; no new claims.
+
+### Figure table
+
+10 figures total. All `static-svg` per the static-default rule (justification below).
+
+| # | Figure | Type | Mechanism | Reader notices | Section |
+|---|---|---|---|---|---|
+| 1 | LifespanDial | static-svg | Single dial axis showing the four lifespan rungs (one-shot → session → daemon/continuous → scheduled/event-driven). One inline annotation marks a degenerate position (author-constructed pedagogical example). | The rungs are qualitatively different deployment topologies, not just "longer-running." | §2 |
+| 2 | SurfaceDial | static-svg | Single dial axis showing the three surface rungs (CLI/API → gateway → multi-channel assistant). Annotation marks a CLI-only failure case. | "A Gateway as control plane" is a specific design decision, not table stakes. | §3 |
+| 3 | AdaptationDial | static-svg | Single dial axis showing the three adaptation rungs (stateless → persistent memory → skill creation/self-improvement). Annotation marks a stateless-loop failure case. | "Skills" and "memory" sit on different rungs. | §4 |
+| 4 | ThreeDialMap | static-svg | All three dials shown together as orthogonal axes; no frameworks placed. | The three dials are orthogonal; this is the post's spine for Acts 2, 3, and the closing. | §5 |
+| 5 | OpenClawArchitecture | static-svg | Gateway as control-plane center, channels feeding in (Discord, Telegram, terminal, web), sessions branching out per channel routing rule, workspaces (per-agent filesystem roots) shown, tools layer below. | OpenClaw's Gateway is the architectural center; channels are first-class; sessions route by origin. | §6 |
+| 6 | OpenClawSandboxTiers | static-svg | Three-panel side-by-side: (a) host execution for `main` session — full host access, allow-everything; (b) Docker default sandbox — typical allow/deny defaults inset; (c) SSH/OpenShell alternate backends. Workspace-access modes `none`/`ro`/`rw` shown as a small inset table. | When OpenClaw will sandbox a tool call vs run it on the host. | §8 |
+| 7 | ClawFamilyOnDials | static-svg | Three-dial map (reuse of #4) with OpenClaw + NanoClaw + sipeed/PicoClaw + ZeroClaw + ZeptoClaw placed by *primary-source self-framing*. Small annotations mark the three contradictions + one partial-accuracy where peterwoods.online's role-assignments disagree. | The four Claw variants cluster along the gateway/control-plane axis, not along a single autonomy ladder; peterwoods's taxonomy diverges from primary self-framings. | §10 |
+| 8 | HermesClosedLoop | static-svg | Circular flow diagram: task → autonomous skill creation → mid-use refinement → FTS5 cross-session recall → Honcho user model → next task. Honcho box annotated as external (Plastic Labs, AGPL-3.0). | The post's spine for Act 3 — Hermes's distinctive bet is the loop's existence. | §12 |
+| 9 | HermesTerminalBackends | static-svg | 2D layout: cost / portability axis (local → remote) × persistence axis (ephemeral → persistent). Seven backends placed (local, Docker, SSH, Singularity, Modal, Daytona, Vercel Sandbox). Daytona + Modal annotated as the serverless-persistence cluster. | The seven backends span a real tradeoff space; Daytona + Modal occupy the unique serverless-persistence niche. | §16 |
+| 10 | FinalDialMap | static-svg | Three-dial map (reuse of #4) with **all** frameworks placed: OpenClaw, NanoClaw, sipeed/PicoClaw, ZeroClaw, ZeptoClaw, Hermes. Each placement annotated with its distinctive dial. | Tool choice falls out of "which dial do you actually need?" | §19 |
+
+### Static-default rule justification
+
+All 10 figures are `static-svg`. None of the four interactive override clauses applies:
+
+- **Continuous parameter sweep:** none of the post's intuition-value figures depends on a continuous parameter — the dials are categorical (rungs), the architectures are static schematics, and the loop diagram is a fixed flow.
+- **Animated time evolution:** the closed-loop diagram is a flow, not a time evolution that needs scrubbing. A reader's mental model of "task → skill creation → refinement → recall" does not need frame-by-frame stepping.
+- **Drag-based spatial reasoning:** none. There is no spatial intuition that requires the reader's hand-eye.
+- **Multi-state toggle across more than 3 states:** the closest candidate is the 7 terminal backends, but they fit cleanly in a single 2D static layout with annotations. The Claw family placements (5 frameworks) similarly fit in a single annotated dial map.
+
+The Phase 1 figure-list sketch tentatively included `DialMapInteractive` (click-to-expand each framework's architecture). On the four-clause check, this is "would feel nicer interactive" rather than "intuition value depends on interactivity" — the same insight is delivered by Figure 7 (Claw family placement) + Figure 5 (OpenClaw architecture) + Figure 8 (Hermes loop) as separate static figures. Static-default wins; interactive carries hidden cost (Svelte wrapper, hydration, playwright check, mobile fallback, accessibility) that the post doesn't need to pay.
+
+### Throughline thread check
+
+Three-dial map is the throughline artifact. Per-act callbacks per `narrative-template.md`'s "Throughline rhythm":
+
+- **Act 1 close** (§5): Figure 4 — first complete render of the empty dial map. Promise to fill it in Acts 2 and 3.
+- **Act 2 open** (§6): "Let's place OpenClaw. Start with how the project frames itself."
+- **Act 2 close** (§11): "OpenClaw and the four Claw variants all sit clustered along the surface/control-plane dial."
+- **Act 3 open** (§12): "Now Hermes. The dial Hermes was designed around isn't surface — it's adaptation."
+- **Act 3 close** (§18): "Hermes sits at daemon/continuous lifespan, gateway-with-skills surface, and most importantly the skill-creation/self-improvement adaptation rung."
+- **Closing** (§19): Figure 10 — full dial map with all frameworks placed. "Tool choice falls out of which dial you actually need."
+
+Each act both opens and closes with an explicit dial-map reference. Throughline rhythm clean.
+
+### Cross-references to existing augusteo.com posts
+
+Per `## Related posts on augusteo.com`:
+
+- **§4** (Adaptation dial setup): inline link to [the Claude Code plugins I use every day](/blog/claude-code-plugin-stack) as a concrete adaptation-axis example.
+- **§13** (agentskills.io callback): inline link to the same post — Vic's plugin stack uses the same agentskills.io standard. Natural callback.
+- **§6 opening** (Act 2 setup): inline link to [Hand tools, power tools, and the AI coding debate](/blog/hand-tools-power-tools-ai-coding-debate) as the category-setup callback.
+- **§19 closing italic line**: sequel-flavored callback to the AI coding debate post.
+
+Phase 4 step 5: References section will list both as the *first* entries using full https URL form (`https://augusteo.com/blog/<slug>`), per the `omni-modal-stack` ↔ `unified-vision-stack` canonical pattern.
+
+### Section-to-matrix-row coverage check
+
+Every load-bearing matrix row is covered by at least one section. Walk:
+
+- Rows 1, 2, 3, 4 → §6.
+- Rows 5, 6, 7 → §8.
+- Rows 10, 11, 12, 13, 14, 15 → §9.
+- Rows 16, 17 → §7.
+- Rows 18, 19, 20, 21, 22, 23, 24a-d, 25, 26 → §10.
+- Rows 27, 28, 29 → §12.
+- Row 28 (FTS5) revisited → §14.
+- Row 28 (skill creation) + row 37 → §13.
+- Rows 30, 31 → §15.
+- Rows 32, 33, 34 → §16.
+- Rows 35, 36, 38, 39a, 39b, 40, 41, 42, 43 → §17.
+
+All 43 matrix rows accounted for. No load-bearing claim in the outline lacks a row; conversely, no row is dropped on the cutting-room floor.
 
 ## Codex research review
 
