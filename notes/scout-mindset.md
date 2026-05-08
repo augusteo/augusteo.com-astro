@@ -548,7 +548,17 @@ Outline now 10 sections (was 8), 10 figures (was 8). Added small-individual-beli
 
 ## Resume here
 
-Last touched: 2026-05-07 (Phase 5 done; 10/10 figures landed, in-line playwright screenshot per figure clean. Phase 6 next is the formal per-figure playwright review).
+Last touched: 2026-05-08 (Phase 6 done; 10/10 figures passed playwright review. Two structural fixes applied during Phase 6 — see Phase 6 fix summary below. Phase 7 next: pre-ship freshness pass + Gate 2 + hero handoff + ship).
+
+### Phase 6 fix summary
+
+Two issues found during the per-figure playwright review and fixed in commit `7a1c184`:
+
+1. **All 10 SVGs had `height="auto"`**, which is invalid (SVG `height` expects a length). Threw 10 console errors per page load. Fix: drop the `height` attribute entirely; `viewBox` + `width="100%"` scales the figure correctly per the `ssl-pretraining-recipes` pattern. Console clean after fix.
+
+2. **Fig 6 AggregationFunnel** — the three right-side bell labels (`wide, off-center` / `variance shrinks, bias unchanged` / `narrower than (i), wider than (ii)`) were placed at `x=500`, exactly the left edge of the HAUENSTEIN 2025 inset rect. The rect's solid fill drew over them in source order; labels were invisible. Fix: moved labels inside each panel (panel (i) at (410, 104/118); panel (ii) at (370, 240/254); panel (iii) at (370, 370/384)) and shortened panel (i) bell right endpoint from x=500 to x=480. Watchlist item resolved.
+
+The remaining Phase-6-watchlist items (Fig 5 hand-placed curve labels; Fig 10 outer-ring label clipping) verified clean — labels sit off the curves with thin connectors; outer-ring right-side labels end at ~x=629 within viewBox right edge x=680.
 
 ### Phase status
 
@@ -559,7 +569,7 @@ Last touched: 2026-05-07 (Phase 5 done; 10/10 figures landed, in-line playwright
 | 3. Outline + figure list | done (Gate 1 Run 1 found 11 STRUCTURAL findings; all fixed in-place; outline now 10 sections with small-case opener and systems-layer section; Run 2 deferred to preserve gate-runner headroom for Gate 2) | `## Outline`, `## Codex outline review` |
 | 4. Draft prose | done (10/10 sections + References + cross-refs woven; voice-check clean apart from act-divider headings + 1 TED-title em-dash) | `src/content/blog/scout-mindset/index.mdx` |
 | 5. Implement figures | done (10/10 static-svg figures committed one-per-commit; voice-check clean apart from act dividers + TED-title em-dash on every commit; one in-line playwright screenshot per figure used during drafting; Fig 6 Hauenstein inset and Fig 10 ring radii were tightened post-screenshot) | `src/content/blog/scout-mindset/index.mdx` |
-| 6. Playwright review | pending | per-figure playwright snapshots reviewed |
+| 6. Playwright review | done (10/10 passed; two structural fixes — SVG `height="auto"` invalid attr removed across all 10 figures; Fig 6 right-side bell labels moved inside panels because Hauenstein inset's rect-fill was painting over them) | per-figure playwright snapshots reviewed; commit `7a1c184` |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
@@ -588,15 +598,21 @@ Last touched: 2026-05-07 (Phase 5 done; 10/10 figures landed, in-line playwright
 
 ### Suggested next batch
 
-Phase 6: per-figure playwright visual review at `http://localhost:4322/blog/scout-mindset` (note: a stale dev server already occupies 4321; the freshly started one will land on 4322). Walk every figure: scroll into view, snapshot, run universal checks plus per-figure-type checks from `playwright-checks.md`. Halt on any figure that fails three review iterations.
+Phase 7 (pre-ship freshness pass + Gate 2 + hero hand-off + ship). Concrete actions in order:
 
-Known-issues watchlist for Phase 6 review:
+1. **Freshness re-check** every row in `## Claim-source matrix`. Specifically, the explicit Phase 7 to-verify list:
+   - Row 18 (Goldstein Brier numbers `.23 / .15` and ex-post-selection caveat): pull from the PDF and confirm verbatim.
+   - Row 21 (Sellier 2020 corrigendum body): pull verbatim corrigendum text.
+   - Galef rows 1-4 (paraphrased): pull verbatim chapter text from the published book and tighten if any wording shifts.
+   - Row 26 (Heerma van Voss 2025): verify exact authors, DOI, abstract numbers.
+   - Trivers row 12, Mercier-Sperber row 13, Baron row 14: surface page locators.
+2. **Force `pubDate := today`** in the MDX frontmatter when shipping.
+3. **Run Gate 2** (final-draft codex pass) per `codex-prompts.md` Gate 2 prompt template. Inputs: full MDX + Spec + Throughline + Research notes + Claim-source matrix + Related posts + all prior Codex review sections.
+4. **Final voice-check** on the full MDX. Confirm the only em-dashes left are the three act-divider headings + one TED-title.
+5. **Hero hand-off** per `../../explainer-shared/hero-handoff.md`. Skill writes the prompt; Vic supplies the hero image; skill saves to `src/assets/blog/scout-mindset/hero.<ext>`, proposes `heroAlt`, edits frontmatter.
+6. **Verify ship-readiness**: `draft: true` (stays true; Vic flips), `essay: true`, real `heroImage`, real `heroAlt`. Walk every figure end-to-end at the post URL. Lighthouse LCP under 2.5s on cold load.
 
-- Fig 5 CalibrationPlot: the `well-calibrated` and `overconfident` curve labels sit near the curves but were placed by hand; verify they don't overlap the curves or the dot markers.
-- Fig 6 AggregationFunnel: the right-side bell labels for panels (i)-(iii) are short serif italic text. Verify they don't collide with the Hauenstein inset's left edge at x=500.
-- Fig 10 DarwinGoldenRuleThreeScales: ring 3 (outer) was reduced from r=240 to r=200 to keep right-edge labels inside viewBox 680. Confirm "contests prior?" and the other right-side outer-ring labels do not clip on a narrower viewport.
-
-After Phase 6: Phase 7 freshness pass + Gate 2 + voice-check final + hero handoff.
+Known issues going into Phase 7: none from Phase 6. Outstanding work is the freshness re-check list above.
 
 ### How to resume from a fresh context
 
