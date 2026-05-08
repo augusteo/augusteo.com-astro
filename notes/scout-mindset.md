@@ -289,53 +289,68 @@ Three-act structure following `narrative-template.md`. Eight sections, ~900-1100
 
 ### Act 1 — The puzzle
 
-#### 1. The result that shouldn't be possible
+#### 1. The smallest interesting case: one belief, two updates
 
-Opens on Goldstein et al.'s GJP-vs-ICPM result. The ICPM (Intelligence Community Prediction Market) Brier was .23 on a 0-to-2 scale; the GJP's best aggregation method ("All Surveys Logit") landed at .15 on the same benchmark. That's an internal IC market populated by analysts with classified-information access getting beaten by an algorithmic combination of public-tournament forecasters' probabilities. Lay out the paradox in one short paragraph; pivot directly to the question the rest of Act 1 answers: why doesn't being smart, well-informed, and professional protect the ICPM analysts from this outcome?
+The post opens at the *individual* scale, per Vic's intuition-ramp principle (smallest interesting case first; each rung motivated by a failure of the rung below). A short worked example: a numerate person learns a single piece of evidence on a topic they have a prior commitment on. Imagine the same evidence reaching their inbox in two different framings — once with their political tribe's labels, once with no labels. They update very differently. This is Kahan's motivated-numeracy effect in miniature, with the framing the post will return to in Section 3.
 
-This section explicitly sets the post's frame: the answer is *not* "scouts beat soldiers". It's "systems that force calibrated probabilistic updating tend to beat unaided institutional judgment". The post earns the reader's trust by walking the careful version of the result.
+This opener does three things at once: it gives the reader a personal stake, it previews the asymmetries Section 2 will catalogue, and it sets up Section 5's aggregation insight (one person's update is noisy; many people's calibrated updates aggregated are tighter).
 
-Also seeds the recurring vignette: a one-paragraph mention of Darwin's golden rule (1887) as the historical case of someone who *built* the kind of system Goldstein measured.
+**Reader can now:** identify a single belief in their own head whose update would change depending on how the evidence is framed; predict the rest of Act 1 will explain the systematic ways the brain does this.
 
-**Reader can now:** restate the GJP-vs-ICPM result in one sentence using the correct framing (algorithmic aggregation, not "elite teams"), and predict what kinds of mechanisms the rest of the post will need to explain.
+**Figure 1** [static-svg]: Two-panel diagram. Same evidence, two framings (one neutral, one identity-loaded). Two prior beliefs and two posterior beliefs are sketched; the priors and posteriors move *toward* each other in the neutral framing and *apart* in the identity-loaded framing. *Mechanism shown:* the same brain runs two different update procedures depending on which framing it sees.
 
-**Figure 1** [static-svg]: Two-bar chart. ICPM .23 vs GJP-best ("All Surveys Logit") .15 on 0-to-2 Brier scale. Annotated with ex-post-selection caveat. Subtitle clarifies the 0-to-2 convention so it doesn't collide with the 0-to-1 individual-forecaster convention used later. *Mechanism shown:* the empirical anchor that motivates the rest of the post.
+#### 2. The result that shouldn't be possible
 
-#### 2. The four asymmetries: why smart professionals still default to soldier mode
+Now the post zooms out from individual updates to the *institutional* result. Goldstein et al.'s GJP-vs-ICPM technical paper: the ICPM (Intelligence Community Prediction Market, populated by U.S. intelligence-community analysts) had a Brier of approximately .23 on a 0-to-2 scale on a one-year unclassified-question benchmark; the GJP's best aggregation method ("All Surveys Logit") landed at approximately .15 on the same benchmark. (The composition of the ICPM and the post's "intelligence analysts with classified-information access" framing comes from Tetlock's public statements on the GJP-vs-ICPM comparison; Phase 7 should pull a verbatim Tetlock or Goldstein passage describing ICPM participant composition. If the framing weakens under verification, the prose narrows.)
 
-The longest section of Act 1. Walks the four mechanisms the empirical literature pins on soldier-mode reasoning. Each mechanism gets ~200 words of prose plus a small figure or panel. Sequence:
+The post explicitly does *not* claim "scouts beat soldiers" or "amateurs beat the CIA". Section 2's frame: the actual finding is that an algorithmic combination of probabilistic forecasts beat a single market run by professionals. Why?
 
-a. **Directional goals bias what your search retrieves** (Kunda 1990). Not just *how* you weight evidence; *which* evidence the brain even surfaces.
+Closes by seeding Darwin's golden rule (1887) as a one-paragraph teaser — the historical case of an individual who built the kind of disciplined-disconfirmation system the rest of the post will catalogue.
+
+**Reader can now:** restate the GJP-vs-ICPM result with the correct framing (algorithmic aggregation comparison, not "elite teams beat the CIA"); recognize that the post is pursuing the question "why does this aggregation help?" rather than "why are amateurs better than experts?".
+
+**Figure 2** [static-svg]: Two-bar chart. ICPM ≈ .23 vs GJP-best ("All Surveys Logit") ≈ .15 on 0-to-2 Brier scale. Annotated with ex-post-selection caveat from the Goldstein paper. Subtitle clarifies the 0-to-2 convention so it doesn't collide with the 0-to-1 individual-forecaster convention used in Act 2. *Mechanism shown:* the empirical anchor that motivates the rest of the post.
+
+#### 3. The three asymmetries (and the contested fourth case)
+
+Walks **three** evidence-processing asymmetries the empirical literature pins on soldier-mode reasoning, then introduces Kahan's identity-protective cognition framework as a *contested fourth case* — distinct in kind from the first three, more recent, more disputed, and more interesting for the post's purposes.
+
+The three asymmetries (each ~200 words + sub-figure):
+
+a. **Directional goals bias what your search retrieves** (Kunda 1990). Not just *how* the brain weights evidence; *which* evidence it even surfaces.
 b. **Identical evidence polarizes rather than converges** (Lord, Ross, Lepper 1979). The capital-punishment study. Same evidence, more polarized priors.
 c. **Preferred conclusions face lower evidentiary thresholds** (Ditto & Lopez 1992). The medical-test-result study; longer scrutiny of unfavorable results, more retesting.
-d. **Identity-protective cognition: more numerate doesn't always mean more accurate** (Kahan et al. 2017, with replication and conceptual caveats). The post is explicit about the contested empirical and mechanistic status: Persson 2021 (preregistered replication, no good evidence under criteria), Connor 2024 (replicated basic effect, did *not* find the high-numeracy amplification), Glüer-Pagin & Spectre 2024-online/2025 (motivation to reason but not motivated reasoning in Kahan's sense). The post does not claim "mechanism real, dose-response contested"; it says the result is influential and the field is still arguing about size and explanation.
 
-These four together are the section's intuition payoff: smart people fail at calibrated judgment because the architecture of cognition is built this way, not because they're careless.
+The contested fourth case (~250 words):
 
-**Reader can now:** name the four asymmetries; explain why a more numerate person can be *less* accurate on identity-loaded data; predict that "just be more rational" is not a plan that survives the literature.
+d. **Identity-protective cognition: a candidate fourth mechanism, contested** (Kahan et al. 2017). The original 2017 study reports that more numerate subjects, on identity-loaded data, polarize *more* not less. This would be the most striking asymmetry of the four if it held up cleanly. It hasn't: Persson 2021 (preregistered replication) found no good evidence under preregistered criteria; Connor 2024 replicated the basic effect but did *not* find the high-numeracy amplification; Glüer-Pagin & Spectre 2024 argue the mechanism Kahan posits doesn't quite fit ("plenty of motivation to reason, but no motivated reasoning"). The post will treat ICT as the candidate mechanism (the broader idea that quantitative skill is deployed in service of identity is plausible and not overturned) while explicitly hedging the specific high-numeracy-amplifies-polarization claim. **The post does NOT call this "the fourth asymmetry" — that flattens the empirical status. It is "the contested fourth case" and is presented as such throughout.**
 
-**Figure 2** [static-svg]: Four-panel composite figure, one panel per asymmetry. Panel a (Kunda): a beam of light illuminating only some items in a memory/evidence pool. Panel b (Lord/Ross/Lepper): two priors and two posteriors moving *further* apart after identical evidence between them. Panel c (Ditto/Lopez): asymmetric gates — wide for preferred, narrow for non-preferred. Panel d (Kahan + caveats): two scatter plots side-by-side (skin-rash framing: numeracy → accuracy monotone up; gun-control framing: numeracy → polarization), with a footnote box pointing at Persson 2021 / Connor 2024 / Glüer-Pagin & Spectre 2024 caveat that the specific high-numeracy effect is contested. *Mechanism shown:* the literature's anatomy of soldier mode in one image.
+The intuition payoff is sharper for being honest: smart people fail at calibrated judgment because the architecture of cognition is built around three robust asymmetries, plus a fourth case the field is still arguing about.
 
-#### 3. The architecture beneath: why the asymmetries are the default
+**Reader can now:** name the three robust asymmetries; explain the contested status of the fourth (Kahan ICT); predict that "just be more rational" doesn't survive the literature; explain what makes the Kahan case different in kind from the first three.
 
-A shorter, more theoretical section. The asymmetries from Section 2 are not bugs; they're features of the social architecture the brain runs on. Two primary frames:
+**Figure 3** [static-svg]: Four-panel composite figure. Panels a-c are the three robust asymmetries; panel d (Kahan ICT) is visually distinguished with a "contested" annotation overlay showing Persson/Connor/Glüer-Pagin & Spectre dissents in a footnote box. *Mechanism shown:* three settled mechanisms plus one contested case the post takes seriously without overclaiming.
+
+#### 4. The architecture beneath: why the asymmetries are the default
+
+A shorter, more theoretical section. The asymmetries from Section 3 are not bugs; they're features of the social architecture the brain runs on. Two primary frames:
 
 - **Reason is built for argument** (Mercier & Sperber 2017, *The Enigma of Reason*). Reasoning evolved for justification and persuasion in argument, not for solo truth-seeking.
 - **Self-deception serves outward deception** (Trivers 2011, *The Folly of Fools*). If the false belief is genuinely held, the deceiver transmits no involuntary tells.
 
-Together: soldier mode isn't a personal failure; it's a social adaptation. The implication for the reader: scout mode is a counter-program that has to be built explicitly. This sets up the historical-precedent question: has anyone done it, and what did they do?
+Together: soldier mode isn't a personal failure; it's a social adaptation. **Implication that ties Act 3 to this section:** scout mode is a counter-program that requires both individual moves *and* a systems layer (precommitment, scoring, outside review, decision architecture) — a single reader running self-tests in their head can only get so far when the architecture is social. Act 3 will return to this implication and prescribe both individual and systems-layer moves explicitly.
 
-Closes on Darwin's golden rule, fully quoted (the only verbatim primary-source long quote in Act 1). The historical seed for what scout mode looks like in practice.
+Closes on Darwin's golden rule, fully quoted (the only verbatim primary-source long quote in Act 1). Darwin's contribution wasn't a self-test; it was an *artifact* — the notebook itself, an external system that survived his own forgetting. This is the bridge from "individual self-tests" to "systems-layer moves" Act 3 will pick up.
 
-**Reader can now:** explain why the asymmetries don't go away with more education; predict that scout mode requires explicit habits, not just better intentions; recognize Darwin's notebook practice as an existence-proof.
+**Reader can now:** explain why the asymmetries don't go away with more education; predict that scout mode requires both individual self-tests AND a systems layer; recognize Darwin's notebook as an artifact-class counter-move.
 
-**Figure 3** [static-svg]: A two-layer diagram. Top layer: the four asymmetries as discrete shapes. Bottom layer: the social architecture (argument/justification + self-deception) as the substrate the asymmetries grow out of. Pull-out box on the right: Darwin's golden rule passage in his own typeface, with a small ink-stained notebook icon. *Mechanism shown:* the asymmetries are surface features of a deeper social-architectural substrate; Darwin's rule is the smallest known counter-move.
+**Figure 4** [static-svg]: A two-layer diagram. Top layer: the three asymmetries + the Kahan contested case. Bottom layer: the social architecture (argument/justification + self-deception) as the substrate. Right side: Darwin's golden rule passage with a sketched notebook artifact, labeled "an external system that survives the individual's own forgetting". *Mechanism shown:* the asymmetries are surface features of a deeper social-architectural substrate; Darwin's notebook is an artifact-class counter-move that the systems layer of Act 3 will generalize.
 
 ### Act 2 — The scout's measurable side
 
-Act 2 stops feeling the problem and starts measuring it. Three sections.
+Act 2 stops feeling the problem and starts measuring it. Two sections.
 
-#### 4. AOMT, Brier, and what calibration actually looks like
+#### 5. AOMT, Brier, and what calibration actually looks like
 
 Two related ideas in one section.
 
@@ -347,87 +362,106 @@ The section ties them together: AOMT is the trait, Brier is how you verify the t
 
 **Reader can now:** define AOMT in one sentence; explain what a Brier-score difference of .08 (ICPM .23 → GJP-best .15 on 0-to-2 scale) means in practical terms; recognize that "I'm well-calibrated" is a claim with a number attached.
 
-**Figure 4** [static-svg]: Calibration plot. X-axis = forecast probability (0 to 1). Y-axis = observed frequency. Diagonal line = perfect calibration. Two curves: well-calibrated forecaster (close to diagonal); overconfident forecaster (steeper than diagonal). Brier-score readouts in the corner. Small inset showing 5-7 sample items from Baron's AOMT scale. *Mechanism shown:* what calibration vs overconfidence looks like in the same coordinate frame.
+**Figure 5** [static-svg]: Calibration plot. X-axis = forecast probability (0 to 1). Y-axis = observed frequency. Diagonal line = perfect calibration. Two curves: well-calibrated forecaster (close to diagonal); overconfident forecaster (steeper than diagonal). Brier-score readouts in the corner. Small inset showing 5-7 sample items from Baron's AOMT scale. *Mechanism shown:* what calibration vs overconfidence looks like in the same coordinate frame.
 
-#### 5. The aggregator beats experts: Goldstein revisited and the Hauenstein open question
+#### 6. The aggregator beats experts: Goldstein revisited and the Hauenstein open question
 
-Returns to the throughline. With Section 4's setup, the reader can now interpret Goldstein's result more carefully.
+Returns to the throughline. With Section 5's setup, the reader can now interpret Goldstein's result more carefully.
 
-The mechanism: aggregating many independently-noisy probabilistic forecasts gives variance reduction; if the individual forecasters are *also* well-calibrated (per Section 4), the aggregate Brier improves further. This is what the GJP's "All Surveys Logit" did: weight individual forecasts by recent accuracy, aggregate, time-discount the older ones. The ICPM, by contrast, was a single market, with all the herding/selection/timing pathologies markets have.
+The mechanism is qualitative, not quantitative — and the post is explicit about that. Aggregating many probabilistic forecasts can reduce variance under specific assumptions (independence between forecasters, comparable calibration, correlated errors not too tight). The post sketches these assumptions in prose; the literature on the GJP's "All Surveys Logit" aggregator says it weighted by recent accuracy and time-discounted older forecasts, but the post does NOT make that a load-bearing primary-source claim — it's a high-level paraphrase of GJP team published descriptions; if Phase 7 verification finds different aggregation mechanics, the prose updates. Comparison to the ICPM is similarly hedged: prediction markets have known pathologies (herding, timing, thin-market noise) but the post will not assert *which* of those drove the ICPM's Brier without primary backing.
 
-Then the open question. Mellers et al. 2014 reported that *training, teaming, and tracking* individually improved Brier; Hauenstein et al. 2025 (*Psychological Science*, online December 2024) reanalyzed the same data with item-response-theory and found those effects shrank, vanished, or in some cases reversed once method-variance variables were controlled. The post does not claim this kills the GJP findings. It says: the *aggregation* result holds (Goldstein); the question of *which causal mechanism* drove the individual-level forecasting gains is still being argued in the literature, with no published Mellers/Tetlock response located as of pubdate. This is itself a scout-mode behavior at the field level — accept the open question rather than pretend it's closed.
+Then the open question. Mellers et al. 2014 reported that *training, teaming, and tracking* individually improved Brier; Hauenstein et al. 2025 (*Psychological Science*, online December 2024) reanalyzed the same data with item-response-theory and found those effects shrank, vanished, or in some cases reversed once method-variance variables were controlled. The post does not claim this kills the GJP findings. It says: the *aggregation* result holds (Goldstein, even if the *why* is partially hand-waved); the question of *which causal mechanism* drove the individual-level forecasting gains is open. No published Mellers/Tetlock response located as of pubdate. This is itself a scout-mode behavior at the field level — accept the open question rather than pretend it's closed.
 
-**Reader can now:** explain why aggregating well-calibrated forecasts helps; explain why the GJP-vs-ICPM gap doesn't translate cleanly to "X intervention causes Y improvement"; recognize an open empirical question in the wild and resist the urge to pick a side prematurely.
+**Reader can now:** explain why aggregation can reduce variance under specific assumptions (and what assumptions are needed); explain why the GJP-vs-ICPM gap doesn't translate cleanly to "X intervention causes Y improvement"; recognize an open empirical question in the wild and resist the urge to pick a side prematurely.
 
-**Figure 5** [static-svg]: Two-panel figure. Panel a: many small noisy probabilistic forecasts (light dots) with their aggregate point (bold) and the truth value; the aggregate is closer to truth than any individual. Panel b: a Mellers-2014 "training/teaming improved Brier" arrow on top, with a Hauenstein-2025 "controlled for method variance" overlay showing the effect shrinking/reversing — explicitly not a conclusion but an open gap. *Mechanism shown:* aggregation reduces variance; whether the individual interventions causally reduced individual Brier is contested.
+**Figure 6** [static-svg, redesigned post-Gate-1]: A static **funnel** diagram, NOT a "dot cloud". Three stacked panels showing what happens to a forecast distribution under three different conditions: (i) one independent forecaster with bias *b* and variance *σ²* (wide distribution, off-center); (ii) ten independent forecasters with the same *b* and *σ²* aggregated naively (narrower distribution, same off-center bias — variance reduction without bias removal); (iii) ten correlated forecasters with the same *b* and *σ²* aggregated (narrower than (i) but wider than (ii) — correlation eats the gain). Annotation makes the assumptions explicit: independence assumed in panel (ii), violated in panel (iii). The figure does NOT claim "aggregation always beats truth" — it shows the *conditional* mechanism. Hauenstein-2025 overlay is a small inset, separate from the funnel: an arrow showing the Mellers 2014 training/teaming effect, with a "controlled for method variance" overlay showing the effect shrinking or reversing. *Mechanism shown:* aggregation can reduce variance under independence; the gain disappears under correlation; the question of whether GJP's interventions actually caused the gain is open.
 
-### Act 3 — Personal scout mode
+### Act 3 — Personal scout mode (with the systems layer)
 
-Act 3 takes the field-level insights and translates to operational moves the reader can run on themselves this week. Three sections.
+Act 3 takes the field-level insights and translates to operational moves at *both* the individual and the systems layer — the diagnosis in Section 4 was that soldier mode is social architecture, so individual moves alone won't fully address it. Three sections (sections 7, 8, 9).
 
-#### 6. Galef's five self-tests
+#### 7. Galef's five self-tests (and what they're for)
 
-The operational core. Run on a real belief the reader holds. Each test is a thought experiment that catches a specific failure mode from Act 1.
+The operational individual-scale core. Run on a real belief the reader holds. Each test is a thought experiment that targets a specific failure mode the post identified in Act 1.
 
-- **Double Standard Test** — would I judge this evidence the same way if it pointed elsewhere? (catches Lord/Ross/Lepper biased assimilation)
-- **Outsider Test** — what would I advise a stranger in this situation? (catches Ditto/Lopez evidentiary asymmetry)
-- **Conformity Test** — would I still hold this if my peers didn't? (catches the Mercier-Sperber argument-driven framing)
-- **Selective Skeptic Test** — would I scrutinize this evidence as harshly if it supported the other side? (catches the Kunda directional-search asymmetry)
-- **Status Quo Bias Test** — if I didn't already hold this position, would I adopt it? (catches the gravitational pull of an existing commitment)
+- **Double Standard Test** — would I judge this evidence the same way if it pointed elsewhere?
+- **Outsider Test** — what would I advise a stranger in this situation?
+- **Conformity Test** — would I still hold this if my peers didn't?
+- **Selective Skeptic Test** — would I scrutinize this evidence as harshly if it supported the other side?
+- **Status Quo Bias Test** — if I didn't already hold this position, would I adopt it?
 
-The post pairs each test with the asymmetry it catches; the reader sees the architecture-to-move mapping explicitly.
+The post offers a mapping from each test to the asymmetry it most plausibly addresses (Double Standard ↔ Lord/Ross/Lepper, Outsider ↔ Ditto/Lopez, etc.). **This mapping is the post's own synthesis, NOT a primary-source claim.** Galef does not formally map the tests to the empirical literature; the asymmetries are not formally mapped to the tests in any matrix-cited paper. The post will explicitly mark the mapping as "the author's reading of how the tests target the asymmetries". This is a teaching move, not a factual one. The Phase-2 disposition for Section 6 in the original outline was to hide this synthesis behind primary sourcing — Gate 1 caught the issue and the post is now upfront about it.
 
-Caveat noted in prose: Galef's terminology is paraphrased from secondary outlines (publisher excerpts, EA Forum, LessWrong); Phase 7 will tighten against the published book. If a name shifts, the prose updates.
+Caveat: Galef's terminology is paraphrased from secondary outlines; Phase 7 will tighten against the published book.
 
-**Reader can now:** name the five tests; pick a real belief and run at least one on it; map each test back to the asymmetry it catches.
+**Reader can now:** name the five tests; pick a real belief and run at least one; recognize the test-to-asymmetry mapping as the post's reading rather than a Galef-stated equivalence.
 
-**Figure 6** [static-svg]: A 5x2 mapping diagram. Left column: the five tests. Right column: the asymmetry each test catches. Arrows from each test to its target asymmetry. Or alternatively, a small flowchart with five entry points and a "did the belief survive?" verdict box. *Mechanism shown:* test-to-asymmetry mapping; the reader sees that the tests are not arbitrary.
+**Figure 7** [static-svg]: 5x2 mapping diagram with explicit "the author's reading" label so the figure doesn't claim sourcing it doesn't have. Left column: the five tests (paraphrased prompts). Right column: the asymmetry each test most plausibly targets. Light-grey "this is a teaching synthesis, not a primary-source mapping" annotation across the top. *Mechanism shown:* the tests are not arbitrary, but the test-to-asymmetry mapping is the post's reading.
 
-#### 7. The trainability picture: small effects, unresolved transfer
+#### 8. The systems layer: scout mode at the institutional scale
 
-The sober counterpart to Section 6. *Can* you actually train scout mode? The literature says: yes, somewhat, with caveats.
+Section 4 diagnosed soldier mode as social architecture. Individual self-tests address part of the problem; they don't address the architecture itself. This section runs the systems-layer moves the post's own diagnosis demands:
+
+- **Precommitment**: write down what evidence would change your mind *before* you see it. The technique recurs in Galef's book and in Tetlock's superforecaster work.
+- **Scoring/calibration tracking**: the GJP's individual-level finding (frequent updating + AOMT predicted Brier per Mellers 2015 *JEP:Applied*) translates personally into "track your forecasts, score them later, look for systematic over- or under-confidence." Brier score, applied to your own predictions over time, is the personal-scale version of the GJP measurement discipline.
+- **Outside review / aggregation at the team level**: the Goldstein result generalizes — a small team that aggregates calibrated probabilistic forecasts and trusts the aggregate over any individual's gut tends to do better than the individual gut. The post will sketch what this looks like in a working team, with the explicit caveat from Section 6 (aggregation requires independence; correlated errors eat the gain).
+- **Adversarial collaboration / hostile review** as the systems-layer analog of Galef's individual self-tests. The Hauenstein-Mellers situation is the textbook case at the literature scale; small organizations can adopt analogous structures (red-team review, independent forecasters, dissenting-view-captured-in-writing).
+
+This is the section that resolves the post's own diagnosis: scout mode at scale isn't five individual tests; it's an architecture.
+
+**Reader can now:** name three systems-layer moves that complement Galef's individual tests; predict that running individual tests without any systems-layer support will leave the social-architectural problem mostly intact; sketch what the scout-mode equivalent of the Goldstein aggregator looks like inside a small team.
+
+**Figure 8** [static-svg]: A two-tier diagram. Top tier: individual moves (the five Galef tests, calibration tracking). Bottom tier: systems-layer moves (precommitment, scoring, aggregation, outside review, adversarial collaboration). Arrows showing how systems-layer moves generalize the individual ones (e.g., calibration-tracking-personal → calibration-tracking-team-aggregated → Goldstein's "All Surveys Logit"). *Mechanism shown:* the diagnosis from Section 4 (soldier mode is social architecture) demands both individual and systems-layer moves; the GJP-aggregator throughline returns explicitly here, not as a closing name-check.
+
+#### 9. The trainability picture: small effects, unresolved transfer (and what this means for the closing move)
+
+The sober counterpart to Sections 7-8. *Can* you actually train scout mode? The literature says: yes, somewhat, with caveats — and the caveats themselves shape the closing move in Section 10.
 
 - **Single-session debiasing training** (Morewedge et al. 2015): game intervention reduced six biases by ≥31.94% immediately, ≥23.57% at 2-month follow-up; video version smaller effect (≥18.60% immediate, ≥19.20% at 2-month). Six biases tested.
 - **Field transfer** (Sellier et al. 2019, with 2020 corrigendum): trained participants 19% (corrected from 29%) less likely to pick the inferior hypothesis-confirming solution on a Shuttle-Challenger-modeled business case.
-- **The 2025 systematic review** (Swaryandini et al., *Nature Human Behaviour*): 54 RCTs / 10,941 participants in scope; meta-analytic subset 41 studies / 160 effects; pooled *g* = 0.26 (95% CI 0.14–0.39); transfer to real-world decision-making remains unresolved.
-- **Heerma van Voss et al. 2025** (*Scientific Reports*): one-shot debiasing intervention with national risk analysts and students reduced confirmation bias. Closer to the post's analyst-debiasing scenario than Morewedge alone.
+- **The 2025 systematic review** (Swaryandini et al., *Nature Human Behaviour*): 54 RCTs / 10,941 participants in scope; meta-analytic subset 41 studies / 160 effects; pooled *g* = 0.26 (95% CI 0.14-0.39); transfer to real-world decision-making remains unresolved.
+- **Heerma van Voss et al. 2025** (*Scientific Reports*): one-shot debiasing intervention with national risk analysts and students reduced confirmation bias. Closer to the post's analyst-debiasing scenario than Morewedge alone. (Phase 7 to verify metadata.)
 
-Honest framing: the effects are small but real; transfer to real-world decision-making is unresolved; no recent RCT specifically validates scout-mindset as a *package*. The reader should expect modest gains, not transformation.
+**The crucial bridge to Section 10:** the trainability picture says debiasing-training-as-package gets you small gains with unresolved transfer. The implication is that the post's closing prescription should NOT promise a transformation; it should be the smallest, most durable habit that survives the literature's actual effect sizes. That habit — write down disconfirming evidence at the moment it appears — is the move Section 10 prescribes, *because* the trainability evidence doesn't support a more ambitious claim. Section 9 is the load-bearing reason Section 10 is modest rather than ambitious; without Section 9 the closing protocol would feel arbitrary.
 
-**Reader can now:** state the realistic expectation for what training in scout-mode-style habits buys you (small but real, transfer unresolved); recognize the difference between in-lab debiasing and real-world decision quality.
+**Reader can now:** state the realistic expectation for what training in scout-mode-style habits buys (small but real, transfer unresolved); see why the post's closing prescription is intentionally a single durable habit rather than a 12-step program.
 
-**Figure 7** [static-svg]: Effect-size landscape. X-axis = effect size (Hedges *g* or % bias reduction). Y-axis = study identifier. Horizontal bars with confidence intervals: Morewedge game (immediate + 2-mo), Morewedge video (immediate + 2-mo), Sellier 19%, Swaryandini meta-analytic *g* = 0.26, Heerma van Voss 2025. Annotation: "transfer to real-world decision-making unresolved" overlay. *Mechanism shown:* the literature's actual estimates, not the marketing version.
+**Figure 9** [static-svg, redesigned post-Gate-1]: Two-panel figure with separate axes per measurement type, NOT mixing Hedges *g* with % bias reduction on a single x-axis. Panel A: % bias-reduction studies (Morewedge game/video immediate + 2-mo, Sellier 19% post-corrigendum) with error bars. Panel B: Hedges *g* meta-analytic effect (Swaryandini 2025, *g* = 0.26 with 95% CI 0.14-0.39). Annotation between panels: "different measures, comparable conclusion: small but real". Heerma van Voss 2025 listed as a footnote with "metadata pending Phase 7" because the post can't honestly plot a study whose exact effect size hasn't been Phase-2-verified. Annotation overlay: "transfer to real-world decision-making remains unresolved". *Mechanism shown:* the literature's actual estimates, with the false-comparability error from the previous draft fixed.
 
-#### 8. Darwin's golden rule, operationalized for 2026
+#### 10. Darwin's golden rule, operationalized for 2026
 
 The closing section. Pulls the whole post into one move: write the disconfirming thing down the moment it shows up.
 
-Why this move and not another: it's the one habit every primary source the post cites would endorse — Darwin (1887), Mellers/Tetlock GJP findings (frequent updating), Galef's self-tests (each is a "notice the contrary thing" prompt), Morewedge debiasing (the games train you to spot specific biases). Across 130 years of field development, this is the move that survives.
+**Why this move, hedged honestly:** the post is *not* claiming "every primary source endorses this exact habit". Codex Gate 1 caught the earlier overclaim. The honest version: the move is the smallest known counter-move to soldier mode that recurs across the post's primary sources — Darwin documents the practice and reports its effect on his work; the GJP individual-level findings include frequent updating as a behavioral predictor of accuracy; Galef's tests are cognitive prompts that ask the reader to notice contrary evidence. None of these sources directly says "write disconfirming evidence in a notebook" as a single endorsed habit, but the move is consistent with what they each prescribe, and the trainability evidence (Section 9) doesn't support a more ambitious prescription. The post will frame the move as "the most durable habit consistent with what the post's sources actually say", not as the universal-endorsed habit.
 
-The post sketches a one-page protocol: a notebook entry per disconfirming observation, dated, with the prior it threatens. The post intentionally does not over-engineer this — Darwin used pen and paper.
+The post sketches a one-page protocol: a notebook entry per disconfirming observation, dated, with the prior it threatens. Pen and paper, or a plain text file. Darwin's tooling was a notebook; yours can be a plain markdown file.
 
-Closes on Hauenstein-Mellers as scout mode at the field level (the literature is still arguing about itself; that's the discipline working).
+The protocol explicitly carries forward the systems-layer moves from Section 8 — the individual notebook is the personal-scale version of the team's outside-review or precommitment register. The reader who runs the notebook habit is running a personal version of what the GJP-aggregator does at scale.
+
+Closes on Hauenstein-Mellers as scout mode at the field level (the literature is still arguing about itself; that's the discipline working). The connection back to the throughline is explicit: the same kind of move (record disconfirming evidence) operates at three scales — Darwin's notebook (1887, individual), the GJP's calibration-tracking + aggregation (2011-2026, institutional), the Hauenstein 2025 critique (the literature itself).
 
 Final paragraph is two sentences. Concrete. No "in summary".
 
-**Reader can now:** write down their first disconfirming-evidence entry by the end of the week; recognize the Darwin → GJP → Galef chain as a single 130-year-old discipline they are now running on themselves.
+**Reader can now:** write down their first disconfirming-evidence entry by the end of the week; recognize Darwin → GJP → Hauenstein as a single 130-year-old discipline running at three scales (individual / institutional / scientific); state the move's hedge (it is the most durable habit consistent with the sources, not the universally endorsed habit).
 
-**Figure 8** [static-svg]: Darwin's-golden-rule diagram. A loop: observation appears → "is this opposed to my general results?" → record at once → re-encounter at review time. Modern note-taking interface analog overlaid on a 1870s notebook page sketch. *Mechanism shown:* the smallest scout-mode habit that survives every primary source.
+**Figure 10** [static-svg]: Darwin's-golden-rule diagram extended for 2026. A loop with three concentric scales: innermost = Darwin's notebook (1887); middle = GJP forecaster's calibration log (2011-2026); outermost = the literature's adversarial-collaboration cycle (Mellers 2014 → Hauenstein 2025 → ongoing). Each scale runs the same operation: observation appears → "is this opposed to the current model?" → record at once → re-encounter at review. *Mechanism shown:* the smallest scout-mode habit operates at three scales; the personal notebook is the personal version of the systems-layer move from Section 8 and the field-level Hauenstein-Mellers situation.
 
-### Phase 5 figure progress (populated by Phase 3 close)
+### Phase 5 figure progress (locked post-Gate-1)
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | GJPvsICPM | static-svg | TODO | |
-| 2 | FourAsymmetries | static-svg | TODO | |
-| 3 | ArchitectureBeneath | static-svg | TODO | |
-| 4 | CalibrationPlot | static-svg | TODO | |
-| 5 | AggregatorAndOpenQuestion | static-svg | TODO | |
-| 6 | FiveSelfTests | static-svg | TODO | |
-| 7 | TrainabilityLandscape | static-svg | TODO | |
-| 8 | DarwinGoldenRule | static-svg | TODO | |
+| 1 | OneBeliefTwoUpdates | static-svg | TODO | |
+| 2 | GJPvsICPM | static-svg | TODO | |
+| 3 | ThreeAsymmetriesPlusContestedFourth | static-svg | TODO | |
+| 4 | ArchitectureBeneath | static-svg | TODO | |
+| 5 | CalibrationPlot | static-svg | TODO | |
+| 6 | AggregationFunnel | static-svg | TODO | |
+| 7 | FiveSelfTestsMapping | static-svg | TODO | |
+| 8 | SystemsLayer | static-svg | TODO | |
+| 9 | TrainabilitySplitPanels | static-svg | TODO | |
+| 10 | DarwinGoldenRuleThreeScales | static-svg | TODO | |
 
-All eight figures are static-svg by default per the static-default rule. None of them currently meet one of the four interactive override clauses (continuous parameter sweep / animated time evolution / drag-based spatial reasoning / multi-state toggle across more states than 3-panel side-by-side can show). Gate 1 may demand re-types via the unlock protocol; the post's preference is to keep all figures static unless the demand is structural.
+All ten figures are static-svg post-Gate-1. The previous Figure 5 (AggregatorAndOpenQuestion) was flagged TYPE-CHANGE STRUCTURAL by Gate 1 (aggregation depends on continuous parameters); per the per-figure-type unlock protocol, the figure was redesigned as a static funnel showing the *conditional* aggregation mechanism (independence assumption explicit; correlation pathology shown) rather than a "dot cloud" implying aggregate is always closer to truth. This redesign satisfies Gate 1's structural concern without triggering the unlock protocol's interactive promotion. The other Gate 1 figure findings (Figure 7 false comparability) were addressed by redesigning Figure 9 (TrainabilitySplitPanels) with separate axes per measurement type.
 
 ## Codex research review
 
@@ -498,7 +532,7 @@ Last touched: 2026-05-07.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 Run 3 closed with 5 of 6 STRUCTURAL fixes + Step-6 override on Galef-rows finding; Phase 7 is the second checkpoint for that override) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` (3 runs documented) |
-| 3. Outline + figure list | in progress (outline + 8-figure table drafted; Gate 1 next) | `## Outline` |
+| 3. Outline + figure list | done (Gate 1 Run 1 found 11 STRUCTURAL findings; all fixed in-place; outline now 10 sections with small-case opener and systems-layer section; Run 2 deferred to preserve gate-runner headroom for Gate 2) | `## Outline`, `## Codex outline review` |
 | 4. Draft prose | pending | `src/content/blog/scout-mindset/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -511,6 +545,7 @@ Last touched: 2026-05-07.
 | 2026-05-07 | 0 (research) Run 1 | structural findings (12); fixes applied | `notes/scout-mindset-codex-research-20260507.md` + `## Codex research review` |
 | 2026-05-07 | 0 (research) Run 2 | structural findings (8); fixes applied | `## Codex research review` (Run 2 disposition table) |
 | 2026-05-07 | 0 (research) Run 3 | structural findings (6 + 2 cosmetic); 5 of 6 fixed; **Step-6 override on Galef-rows-secondary-as-primary finding (documented reasoning)**; Phase 7 is the second checkpoint | `## Codex research review` (Run 3 disposition table) |
+| 2026-05-07 | 1 (outline) Run 1 | 11 STRUCTURAL findings (1 TYPE-CHANGE on Figure 5); all fixed in-place; outline restructured to 10 sections with new small-case opener + systems-layer section. Phase 4 prose drafting next; Gate 1 Run 2 deferred to allow gate-runner headroom for Gate 2. | `notes/scout-mindset-codex-outline-20260507.md` + `## Codex outline review` |
 
 ### Phase 5 figure progress
 
@@ -527,9 +562,13 @@ Last touched: 2026-05-07.
 
 ### Suggested next batch
 
-1. Phase 3: build the three-act outline and figure table per `narrative-template.md` and `figure-recipes.md`. The throughline opens on Goldstein's GJP-aggregator-vs-ICPM result; Act 2 walks the four mechanisms (Kunda + Lord/Ross/Lepper + Ditto/Lopez + Kahan ICT-with-replication-caveats) and the social-architectural roots (Mercier/Sperber + Trivers); Act 3 closes on Hauenstein open question + Darwin's golden rule.
-2. Run codex Gate 1 on the outline + figure table.
-3. Move to Phase 4 (prose drafting) once Gate 1 closes.
+1. Phase 4: draft prose section by section into `src/content/blog/scout-mindset/index.mdx`. Frontmatter with `draft: true`, `essay: true`, placeholder `heroAlt`. One commit per section. Per-section "Reader can now" comment in the MDX.
+2. Voice-check exits clean before each commit (`scripts/voice-check.sh`).
+3. Per the section list (10 sections):
+   - Act 1: §1 small-case opener; §2 GJP-vs-ICPM; §3 three asymmetries + contested fourth; §4 architecture beneath
+   - Act 2: §5 AOMT/Brier/calibration; §6 aggregator + Hauenstein open question
+   - Act 3: §7 Galef five tests; §8 systems layer; §9 trainability picture; §10 Darwin's golden rule operationalized
+4. Once full draft + figures done, run Phase 7 freshness pass + codex Gate 2 + voice-check final + hero handoff.
 
 ### How to resume from a fresh context
 
