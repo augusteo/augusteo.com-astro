@@ -111,7 +111,107 @@ In the Good Judgment Project, AOMT was *a* predictor of individual forecaster ac
 
 A convention note that matters because it bites later. [Glenn Brier's 1950 original paper](https://journals.ametsoc.org/view/journals/mwre/78/1/1520-0493_1950_078_0001_vofeit_2_0_co_2.xml) defines the score on a 0-to-2 range for two-outcome forecasts. The Goldstein-vs-ICPM paper from section 2 reports its numbers on that same 0-to-2 scale; the ICPM ≈ 0.23 and GJP-best ≈ 0.15 sit on that range. Modern individual-forecaster Brier in the Mellers 2014 and 2015 GJP papers is reported on the 0-to-1 scale you get from binary squared error. They're not different metrics; they're two scalings. The post says explicitly which scale is in play whenever a number appears. The 0.08 Brier gap from section 2 is on the 0-to-2 scale. That's a gap big enough to matter and small enough that you wouldn't bet your career on a single forecaster outperforming a single market.
 
-{/* TODO: Fig 5: CalibrationPlot. X-axis = forecast probability (0-1). Y-axis = observed frequency. Diagonal = perfect calibration. Two curves: well-calibrated forecaster (close to diagonal) and overconfident forecaster (steeper slope, sags below diagonal at the high-probability end). Brier-score readouts in the corner for both. Small inset of 5-7 sample items from Baron's AOMT scale. */}
+<figure>
+<svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<text x="240" y="28" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">CALIBRATION PLOT</text>
+
+<g stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3">
+  <line x1="80" y1="255" x2="440" y2="255"/>
+  <line x1="80" y1="190" x2="440" y2="190"/>
+  <line x1="80" y1="125" x2="440" y2="125"/>
+  <line x1="170" y1="60" x2="170" y2="320"/>
+  <line x1="260" y1="60" x2="260" y2="320"/>
+  <line x1="350" y1="60" x2="350" y2="320"/>
+</g>
+
+<line x1="80" y1="320" x2="440" y2="60" stroke="#8F8578" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="160" y="312" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">perfect calibration (y = x)</text>
+
+<path d="M 80 320 L 116 297 L 152 265 L 188 237 L 224 213 L 260 193 L 296 167 L 332 135 L 368 115 L 404 81 L 440 60"
+      fill="none" stroke="#2563EB" stroke-width="2"/>
+<g fill="#2563EB">
+  <circle cx="116" cy="297" r="2.8"/>
+  <circle cx="188" cy="237" r="2.8"/>
+  <circle cx="260" cy="193" r="2.8"/>
+  <circle cx="332" cy="135" r="2.8"/>
+  <circle cx="404" cy="81" r="2.8"/>
+</g>
+
+<path d="M 80 320 L 116 273 L 152 250 L 188 229 L 224 211 L 260 193 L 296 177 L 332 164 L 368 151 L 404 133 L 440 107"
+      fill="none" stroke="#B91C1C" stroke-width="2"/>
+<g fill="#B91C1C">
+  <circle cx="116" cy="273" r="2.8"/>
+  <circle cx="188" cy="229" r="2.8"/>
+  <circle cx="260" cy="193" r="2.8"/>
+  <circle cx="332" cy="164" r="2.8"/>
+  <circle cx="404" cy="133" r="2.8"/>
+</g>
+
+<line x1="80" y1="320" x2="440" y2="320" stroke="#8F8578" stroke-width="1"/>
+<line x1="80" y1="60" x2="80" y2="320" stroke="#8F8578" stroke-width="1"/>
+
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+  <text x="80" y="338">0</text>
+  <text x="170" y="338">0.25</text>
+  <text x="260" y="338">0.50</text>
+  <text x="350" y="338">0.75</text>
+  <text x="440" y="338">1.00</text>
+</g>
+<text x="260" y="358" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">forecast probability</text>
+
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="end">
+  <text x="73" y="324">0</text>
+  <text x="73" y="259">0.25</text>
+  <text x="73" y="194">0.50</text>
+  <text x="73" y="129">0.75</text>
+  <text x="73" y="64">1.00</text>
+</g>
+<text x="38" y="190" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle" transform="rotate(-90 38 190)">observed frequency</text>
+
+<text x="318" y="100" font-family="serif" font-size="12" font-style="italic" fill="#2563EB" text-anchor="middle">well-calibrated</text>
+<line x1="318" y1="106" x2="332" y2="133" stroke="#2563EB" stroke-width="0.8"/>
+
+<text x="338" y="200" font-family="serif" font-size="12" font-style="italic" fill="#B91C1C" text-anchor="middle">overconfident</text>
+<line x1="338" y1="190" x2="332" y2="167" stroke="#B91C1C" stroke-width="0.8"/>
+
+<rect x="92" y="72" width="170" height="62" fill="#F4EEE3" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="100" y="88" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">BRIER (ILLUSTRATIVE)</text>
+<text x="100" y="106" font-family="serif" font-size="11" fill="#2563EB">well-calibrated</text>
+<text x="252" y="106" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="end">0.04</text>
+<text x="100" y="124" font-family="serif" font-size="11" fill="#B91C1C">overconfident</text>
+<text x="252" y="124" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="end">0.18</text>
+
+<rect x="478" y="60" width="184" height="260" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="570" y="84" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">AOMT SCALE</text>
+<text x="570" y="98" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">paraphrased Stanovich–West / Baron items</text>
+
+<g font-family="serif" font-size="10" fill="#1A1A1A">
+  <text x="490" y="124">1.</text>
+  <text x="504" y="124">People should revise beliefs</text>
+  <text x="504" y="138">in light of new evidence.</text>
+
+  <text x="490" y="160">2.</text>
+  <text x="504" y="160">One should consider opposing</text>
+  <text x="504" y="174">arguments seriously.</text>
+
+  <text x="490" y="196">3.</text>
+  <text x="504" y="196">It is best not to commit firmly</text>
+  <text x="504" y="210">in the face of contrary data.</text>
+
+  <text x="490" y="232">4.</text>
+  <text x="504" y="232">I take seriously the views of</text>
+  <text x="504" y="246">people I disagree with.</text>
+
+  <text x="490" y="268">5.</text>
+  <text x="504" y="268" font-style="italic" fill="#6B6258">Changing your mind is a sign</text>
+  <text x="504" y="282" font-style="italic" fill="#6B6258">of weakness.</text>
+  <text x="504" y="296" font-style="italic" fill="#6B6258">(reverse-scored)</text>
+</g>
+
+<text x="570" y="312" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">five-point Likert; higher = more AOMT</text>
+</svg>
+<figcaption><strong>Fig 5.</strong> A calibration plot pools forecasts by the probability assigned and asks what fraction of those events actually happened. The blue curve hugs the diagonal: the forecaster's stated probabilities track observed frequencies. The red curve is the classic overconfidence pattern. When this forecaster says 0.9, the event happens about 0.7 of the time; when they say 0.1, it still happens about 0.18 of the time. Brier score collapses the whole plot to one mean squared error; the calibration plot is what the number comes from. Inset: paraphrased items from the AOMT scale (Stanovich and West 1997; canonical exposition in Baron's <em>Thinking and Deciding</em>).</figcaption>
+</figure>
 
 A calibration plot is the picture that ties AOMT and Brier together. Pool a forecaster's predictions by the probability they assigned (everything in the 0.7-bucket, everything in the 0.8-bucket), then ask what fraction of those events actually happened. A forecaster who said 70 percent and was right 70 percent of the time sits on the diagonal at the 0.7 mark. A forecaster who said 90 percent and was right 60 percent of the time is overconfident; on the plot, their curve sags below the diagonal at the high-probability end. Brier score collapses the whole plot to one number; the calibration plot is what the number comes from. AOMT is a candidate trait that nudges the curve toward the diagonal. [Nassim Taleb's *Fooled by Randomness*](/blog/fooled-by-randomness) made the case fifteen years before the GJP did that the human mind isn't built for sophisticated probability; the calibration plot is the thing you measure when you decide to build the muscle anyway.
 
