@@ -37,7 +37,65 @@ Between 2011 and 2015, the Intelligence Advanced Research Projects Activity (IAR
 
 A subsequent technical paper by [Goldstein, Hartman, Comstock and colleagues](https://goodjudgment.com/wp-content/uploads/2020/11/Goldstein-et-al-GJP-vs-ICPM.pdf) compared GJP aggregation methods to the ICPM on a one-year unclassified-question subset where both populations had answered the same questions. The headline result, scored on Brier (a squared-error metric where lower is better, scaled here on the 0-to-2 range the Goldstein paper uses):
 
-{/* TODO: Fig 2: GJPvsICPM. Two-bar chart, ICPM ≈ 0.23 vs GJP "All Surveys Logit" ≈ 0.15 on 0-to-2 Brier scale; ex-post-selection caveat annotated; subtitle clarifies the 0-to-2 convention. */}
+<figure>
+<svg viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+<text x="340" y="28" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">GOLDSTEIN ET AL., GJP-VS-ICPM</text>
+<text x="340" y="46" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">Brier score on the 0-to-2 scale; lower is better; one-year unclassified-question benchmark</text>
+
+<g stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3">
+  <line x1="220" y1="80" x2="220" y2="280"/>
+  <line x1="280" y1="80" x2="280" y2="280"/>
+  <line x1="340" y1="80" x2="340" y2="280"/>
+  <line x1="400" y1="80" x2="400" y2="280"/>
+  <line x1="460" y1="80" x2="460" y2="280"/>
+  <line x1="520" y1="80" x2="520" y2="280"/>
+  <line x1="580" y1="80" x2="580" y2="280"/>
+</g>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="end">
+  <text x="195" y="106">GJP All Surveys Logit</text>
+  <text x="195" y="120" font-style="italic" fill="#6B6258">"best method"; selected ex post</text>
+  <text x="195" y="156">GJP Prediction Market</text>
+  <text x="195" y="170" font-style="italic" fill="#6B6258">market run inside the tournament</text>
+  <text x="195" y="206">ICPM</text>
+  <text x="195" y="220" font-style="italic" fill="#6B6258">classified-information-access market</text>
+  <text x="195" y="256">GJP ULinOP</text>
+  <text x="195" y="270" font-style="italic" fill="#6B6258">unweighted linear opinion pool</text>
+</g>
+
+<rect x="220" y="94" width="180" height="22" fill="#2563EB" opacity="0.85" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="220" y="144" width="252" height="22" fill="#2563EB" opacity="0.55" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="220" y="194" width="276" height="22" fill="#B91C1C" opacity="0.75" stroke="#1A1A1A" stroke-width="0.5"/>
+<rect x="220" y="244" width="384" height="22" fill="#2563EB" opacity="0.55" stroke="#1A1A1A" stroke-width="0.5"/>
+
+<g font-family="JetBrains Mono" font-size="11" fill="#1A1A1A">
+  <text x="406" y="110">.15</text>
+  <text x="478" y="160">.21</text>
+  <text x="502" y="210">.23</text>
+  <text x="610" y="260">.32</text>
+</g>
+
+<line x1="220" y1="280" x2="600" y2="280" stroke="#8F8578" stroke-width="1"/>
+<g font-family="JetBrains Mono" font-size="10" fill="#6B6258" text-anchor="middle">
+  <text x="220" y="296">0</text>
+  <text x="280" y="296">.05</text>
+  <text x="340" y="296">.10</text>
+  <text x="400" y="296">.15</text>
+  <text x="460" y="296">.20</text>
+  <text x="520" y="296">.25</text>
+  <text x="580" y="296">.30</text>
+</g>
+<text x="400" y="316" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">Brier score (0-to-2 scale)</text>
+
+<line x1="406" y1="116" x2="406" y2="244" stroke="#2563EB" stroke-width="0.8" stroke-dasharray="3,3"/>
+<line x1="496" y1="216" x2="496" y2="80" stroke="#B91C1C" stroke-width="0.8" stroke-dasharray="3,3"/>
+<text x="404" y="76" font-family="serif" font-size="10" font-style="italic" fill="#2563EB" text-anchor="end">GJP-best ↓</text>
+<text x="498" y="76" font-family="serif" font-size="10" font-style="italic" fill="#B91C1C">↑ ICPM</text>
+
+<text x="20" y="346" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">Goldstein et al. note that the "best method" comparison is partly ex-post selection from a candidate set the GJP team built; the GJP Prediction Market is statistically comparable to the ICPM, and GJP ULinOP is worse.</text>
+</svg>
+<figcaption><strong>Fig 2.</strong> Brier scores on the 0-to-2 scale from <a href="https://goodjudgment.com/wp-content/uploads/2020/11/Goldstein-et-al-GJP-vs-ICPM.pdf">Goldstein et al.</a>'s GJP-vs-ICPM technical paper. The "best method" headline number, an All Surveys Logit aggregator, beats the classified-information-access ICPM by 0.08 Brier on a one-year unclassified-question benchmark. The other two GJP methods bracket the ICPM rather than uniformly out-performing it: GJP's internal prediction market sits next to ICPM and GJP's unweighted linear opinion pool is materially worse. The figure visualizes the ex-post-selection caveat the paper itself flags.</figcaption>
+</figure>
 
 ICPM, the classified-information-access market: about 0.23. GJP's best aggregation method, an "All Surveys Logit" weighting that combined open-tournament forecasters' probabilistic estimates: about 0.15.
 
