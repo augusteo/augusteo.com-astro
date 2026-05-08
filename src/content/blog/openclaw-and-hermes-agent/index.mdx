@@ -15,7 +15,33 @@ essay: true
 
 ### 1. Why the single ladder breaks
 
-{/* TODO: §1 prose */}
+There is a tidy story that arranges five open-source agent frameworks on a single autonomy axis, from "stateless function" at one end to "autonomous worker" at the other. The story doesn't survive its own primary sources.
+
+It comes from a February 2026 post on peterwoods.online called *The Claw AI Agent Family*. ZeptoClaw is described as "closer to a stateless function call." NanoClaw is described as an "autonomous worker." OpenClaw, PicoClaw, and ZeroClaw fill the rungs in between. The post does what good taxonomies do: it gives the namespace a name and a shape, so readers reach for it whenever the topic comes up.
+
+It breaks in three places at once.
+
+The first is Hermes Agent, which doesn't appear on the ladder at all but is the framework most engineers are actually evaluating against OpenClaw in 2026. Hermes's README leads with "a closed learning loop": agent-curated memory, autonomous skill creation after complex tasks, mid-use skill self-improvement, FTS5 session search for cross-session recall. The thing that makes Hermes interesting is not that it is "more autonomous" than OpenClaw. It is that the agent rewrites its own toolset between turns. Adaptation is a different axis from autonomy.
+
+The second is OpenClaw itself. Its own README describes it as "a personal AI assistant you run on your own devices" with the Gateway as "a single control plane for sessions, channels, tools, and events." That is a gateway architecture: one always-on process owning every inbound channel, every conversation, every tool route. OpenClaw's distinctive bet is not "less autonomous than Hermes." It is the control plane.
+
+The third is the Claw family itself. Three of the four variants the ladder ranks contradict their own primary sources on the role they are assigned. ZeptoClaw, alleged stateless function, self-frames as full personal-AI-assistant infrastructure with workspace memory, conversation history, agent swarms, plugins, and a multi-channel gateway. ZeroClaw, alleged structured task runner with per-task lifespan, ships as a Rust binary that deploys via systemd, launchctl, or Windows Service. NanoClaw, alleged autonomous worker with continuous lifespan and high agency, is a per-session-database container-isolation project whose README never uses the word *autonomous*. The lone partial match is sipeed/PicoClaw, where the "personal assistant" framing tracks but the rest doesn't: the actual emphasis is hardware portability across RISC-V, ARM, MIPS, and sub-$10 boards.
+
+A single axis can't represent a learning loop. It can't represent a control plane. Applied to the variants, it ranks them backwards from how their authors describe the work.
+
+This post replaces the ladder with three dials.
+
+*Lifespan* is how long the agent's process lives: one-shot CLI invocation, then a sessioned interaction, then a daemon, then a scheduled job.
+
+*Surface and control plane* is how the agent is reached: CLI or API, then a gateway, then a multi-channel assistant.
+
+*Adaptation* is whether and how the agent changes between turns: stateless every time, or persistent memory, or skill creation that compounds.
+
+Three dials, not one ladder. OpenClaw's distinctive bet is the surface dial; Hermes's distinctive bet is the adaptation dial; the four Claw variants scatter across the dials, and several of their distinctive concerns sit off the dials entirely (more on that in §10). Tool choice falls out of which dial matters for your use case.
+
+The next four sections walk a single concrete scenario through each dial in turn. By §5 the map is complete and the rest of the post just places architectures on it.
+
+{/* Reader can now: see why a single-axis ranking hides Hermes's and OpenClaw's distinctive design bets. */}
 
 ### 2. The first failure: lifespan
 
