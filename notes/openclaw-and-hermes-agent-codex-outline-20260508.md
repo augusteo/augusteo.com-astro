@@ -85,3 +85,32 @@ Tokens used: 64,569.
 - **R2-F5 (COSMETIC, §13 cross-reference dropped):** the §13 callback to the Claude Code plugin post removed entirely. The §4 callback (adaptation dial setup) suffices. `## Related posts on augusteo.com` anchor-point list updated to remove §13 from anchor point #1.
 
 Re-running Gate 1 (Run 3, final invocation under cap) per the gate-runner protocol.
+
+## Run 3 — verbatim output
+
+```
+**Findings**
+
+1. **STRUCTURAL — §5 still contains the Run 2 off-axis error.**
+   The §5 throughline close says: "each was designed around a different distinctive dial." That is exactly what Run 2 rejected for the Claw variants. Rows 18, 21, 22, and 23 back off-axis distinctive bets: container minimalism, hardware portability, deploy-anywhere posture, and feature breadth. §10/§11/§18/Figs 4 and 7 now say this correctly, but §5 still primes the reader with the false version. Fix §5 to say the map will place them where it can, while some distinctive bets sit outside the three dials.
+
+2. **STRUCTURAL — `Related posts` still preserves the dropped §13 cross-reference.**
+   In `Related posts on augusteo.com`, the Act 3 anchor still says to link to the Claude Code plugin post when discussing row 37 because "agentskills.io is the same standard Vic's plugin stack uses." That was the unsupported Run 1 finding, then the weakened Run 2 link was dropped. The outline's cross-reference section correctly says §4 is now the only inline Claude Code plugin link, but this older instruction can reintroduce the bad §13 claim during drafting. Delete the Act 3 anchor point from the related-posts section or mark it superseded.
+
+3. **STRUCTURAL — §16/Fig 6 has two residual "tradeoff grid" echoes.**
+   The figure itself is now correctly reduced to rows 33 and 34: README-order backend list plus Daytona/Modal serverless-persistence callout. But §16's "Reader can now" still says the reader can "tell which backend they want for which tradeoff," which implies matrix-backed tradeoff semantics across all seven backends. The Phase 5 figure-progress table also still labels Figure 6 as "execution-surface × persistence axes," resurrecting the exact Run 2 overclaim. Tighten both to "identify the seven README-listed backends and the documented Daytona/Modal serverless-persistence niche."
+
+No **TYPE-CHANGE STRUCTURAL** findings. Static SVG still holds for all seven figures.
+```
+
+Tokens used: 67,150.
+
+## Fixes applied (Run 3 → outline revision)
+
+All three Run 3 findings are direct + inspection-verifiable wording-precision fixes (residual gaps from Run 2's edits — places where Run 2 fixed the new wording but adjacent older wording survived). Per the Gate 0 Run 3 precedent: "the cleanest path is to apply the fix and close the gate rather than burn the Step-6 escape hatch on a wording iteration." Cap-of-3 hit; Gate 1 closes on structural-fixed.
+
+- **R3-F1 (§5 throughline close):** rewrote to "but the placements scatter, and several Claw variants' distinctive bets sit *off* the three dials entirely. We'll annotate those off-axis concerns where they appear; the dial map handles what it can." Replaces the survived "each was designed around a different distinctive dial" wording.
+- **R3-F2 (Related-posts §13 anchor superseded):** the anchor-point #2 line under the Claude Code plugin post entry in `## Related posts on augusteo.com` is now strikethrough'd and explicitly marked **SUPERSEDED**, with a "Drafters: do NOT add a second inline link to the Claude Code plugin post in §13 or anywhere else in Act 3" note. Prevents Phase 4 drafting from reintroducing the bad claim.
+- **R3-F3 (§16 "Reader can now" + figure-progress label):** §16's "Reader can now" rewritten to "identify the seven README-listed backends and the documented Daytona/Modal serverless-persistence niche per row 34" with an explicit footnote on why the prior tradeoff wording was tightened. Phase 5 figure-progress table label for Figure 6 changed from "execution-surface × persistence axes" to "1D README-order list + Daytona/Modal persistence callout." Both echoes closed.
+
+**Cap-of-3 hit. Gate 1 closes on structural-fixed.** Phase 3 is now done; Phase 4 (draft prose) starts next.

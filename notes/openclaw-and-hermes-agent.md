@@ -248,7 +248,7 @@ Phase 2 step 8 corpus scan (2026-05-08) over `src/content/blog/`. The existing c
 
 **Anchor points in the new post:**
 - **Act 1 — adaptation dial setup.** When introducing the *adaptation* axis (stateless → persistent memory → skill creation / self-improvement), inline-link to "[Vic's Claude Code plugin stack](/blog/claude-code-plugin-stack)" as a concrete adaptation-axis example: skills + plugins as the lever for extending agent capability.
-- **Act 3 — Hermes `agentskills.io` callback.** When discussing matrix row 37 (Hermes's Skills Hub compatible with agentskills.io, originally Anthropic-developed), inline-link to the Claude Code plugin post since `agentskills.io` is the same standard Vic's plugin stack uses. Natural callback.
+- ~~**Act 3 — Hermes `agentskills.io` callback.**~~ **SUPERSEDED** — Gate 1 Run 1 finding 7 flagged the "same agentskills.io standard" claim as unsupported by both the matrix and the Claude Code plugin post itself (verified independently — that post does not invoke `agentskills.io` by name). Run 1 weakened the wording; Run 2 finding 5 then dropped the §13 cross-reference entirely. Run 3 finding 2 caught that this anchor-point instruction was still live and could reintroduce the bad claim during Phase 4 drafting. **Drafters: do NOT add a second inline link to the Claude Code plugin post in §13 or anywhere else in Act 3.** The §4 callback (adaptation dial setup) is the only inline link; the post still appears in `## References`.
 
 ### 2. [Hand Tools, Power Tools, and the AI Coding Debate](/blog/hand-tools-power-tools-ai-coding-debate)
 
@@ -325,7 +325,7 @@ Continue the running scenario. **v3 has multi-channel reach: anyone on the team 
 Act 1 close. Combine the three dials into one orthogonal map; annotate the running scenario's path through them.
 
 - Figure 1: **ThreeDialMap** — three orthogonal axes (lifespan, surface, adaptation) drawn together; v1 / v2 / v3 / v4 placed at the failing rung on each axis; small annotations at each rung climb explain "what broke that motivated this rung." Replaces the four-figure stack of LifespanDial / SurfaceDial / AdaptationDial / ThreeDialMap from the pre-Run-1 outline.
-- Throughline close: "We will now place OpenClaw, the Claw variants, and Hermes on this map. None of them sits where v4 does — not because they're worse, but because each was designed around a different distinctive dial."
+- Throughline close (revised per Gate 1 Run 3 finding 1): "We will now place OpenClaw, the Claw variants, and Hermes on this map. None of them sits where v4 does — but the placements scatter, and several Claw variants' distinctive bets sit *off* the three dials entirely. We'll annotate those off-axis concerns where they appear; the dial map handles what it can. Tool choice falls out of which dial — or which off-axis concern — your use case actually needs."
 - Reader can now: predict that each architecture's distinctive bet is one specific dial, not all three.
 - Matrix rows touched: callbacks to 24a-d (peterwoods's ladder shown failing on the multi-axis map).
 
@@ -454,7 +454,7 @@ Claim: Hermes ships a toolset system + seven terminal backends + two subagent-is
 - Daytona and Modal "serverless persistence" per row 34 verbatim.
 - **Subagent isolation** (row 35, folded in from the dropped §17 per Gate 1 Run 1 finding 2): two distinct mechanisms — `delegate_task` (process / context isolation) and `hermes -w` (git worktree filesystem isolation, added in v2026.3.12). Brief paragraph; not a separate section.
 - Figure 6: **HermesTerminalBackends** — simple 1D backend list in README order (per Gate 1 Run 2 finding 2: the prior 2D execution-surface × persistence grid overclaimed the matrix; row 33 backs the 7-backend list, row 34 backs only the Daytona+Modal serverless-persistence semantic, and the matrix doesn't establish per-backend execution-location or persistence categorization for the other five). The figure now lists the seven backends in README order — local, Docker, SSH, Singularity, Modal, Daytona, Vercel Sandbox — with a single annotated callout grouping Daytona + Modal as the matrix-backed serverless-persistence niche per row 34. No editorial 2D axes; no "remote-ephemeral" / "remote-persistent" labels for backends the matrix doesn't characterize that way.
-- Reader can now: tell which backend they want for which tradeoff; recognize the unique serverless-persistence niche.
+- Reader can now (revised per Gate 1 Run 3 finding 3): identify the seven README-listed backends and the documented Daytona/Modal serverless-persistence niche per row 34. (The prior wording "tell which backend they want for which tradeoff" was tightened because the matrix doesn't characterize per-backend execution-location or persistence semantics for the other five backends.)
 - Matrix rows touched: 32, 33, 34, 35.
 
 ##### 17. Where Hermes lands on the dial map
@@ -607,7 +607,24 @@ Run 2 findings (one-line summary each):
 
 Run 2 fixes are precision tightening — none touches the post's spine. Re-running Gate 1 (Run 3, **third and final invocation under the gate-runner cap**) per the protocol.
 
-[full findings: `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` — Run 1 + Run 2 verbatim outputs both archived]
+**Gate 1 Run 3 (2026-05-08).** Re-fired with Run 2 fixes applied. **Findings: 3 STRUCTURAL, 0 COSMETIC, 0 TYPE-CHANGE STRUCTURAL.** All three were residual wording gaps from Run 2 fixes (places where Run 2 fixed the new wording but adjacent older wording survived):
+
+1. **STRUCTURAL §5** — the throughline close still said "each was designed around a different distinctive dial," contradicting the Run-2 off-axis honesty applied in §10/§11/§18/Figs 4 & 7.
+2. **STRUCTURAL Related-posts §13 anchor** — the `## Related posts on augusteo.com` Claude Code plugin entry's anchor point #2 still instructed drafters to link at §13 with the "same agentskills.io standard" framing. That was the unsupported Run 1 finding, weakened in Run 1, dropped in Run 2 — but the related-posts instruction lived on and could reintroduce the bad claim during Phase 4 drafting.
+3. **STRUCTURAL §16/Fig 6 residual grid echoes** — §16's "Reader can now" still said "tell which backend they want for which tradeoff" and the Phase 5 figure-progress table still labeled Figure 6 as "execution-surface × persistence axes" — both resurrecting the Run 2 overclaim.
+
+All 3 STRUCTURAL findings are direct + inspection-verifiable wording-precision fixes (not content disagreements). **Per the Gate 0 Run 3 precedent: the cleanest path is to apply the fixes and close the gate rather than burn the Step-6 escape hatch on a wording iteration.** Run 3 was the third invocation under the gate-runner cap-of-3; re-running for Run 4 would fire the Step-6 escape hatch.
+
+**Run 3 fixes applied** (all 3 STRUCTURAL closed):
+- **R3-F1**: §5 throughline-close rewritten — "the placements scatter, and several Claw variants' distinctive bets sit *off* the three dials entirely. We'll annotate those off-axis concerns where they appear; the dial map handles what it can."
+- **R3-F2**: `## Related posts on augusteo.com` anchor point #2 (the §13 / agentskills.io instruction) struck through and explicitly marked **SUPERSEDED**, with a "do NOT add a second inline link to the Claude Code plugin post in §13 or anywhere else in Act 3" instruction for Phase 4 drafters.
+- **R3-F3**: §16's "Reader can now" rewritten to "identify the seven README-listed backends and the documented Daytona/Modal serverless-persistence niche per row 34" with footnote noting why the prior tradeoff wording was tightened. Phase 5 figure-progress table label for Figure 6 changed from "execution-surface × persistence axes" to "1D README-order list + Daytona/Modal persistence callout."
+
+**Cap-of-3 hit. Gate 1 closes on structural-fixed.** Phase 3 is now complete; Phase 4 (draft prose) starts next.
+
+**Gate 1 final state:** 14 STRUCTURAL findings closed across 3 runs (7 Run 1 + 4 Run 2 + 3 Run 3); 2 COSMETIC findings closed (1 Run 1 + 1 Run 2); 0 TYPE-CHANGE STRUCTURAL — static-svg choice for every figure was reaffirmed in all three runs. The post's spine — three-dial framing with the running-scenario in Act 1, OpenClaw + Claw family in Act 2, Hermes in Act 3, closing matrix — was endorsed structurally by codex. Run 1 fixes substantively reframed the Claw family (scatter, not cluster) and Act 1 (single running scenario, not three separate failure cases); Runs 2 + 3 tightened wording precision around the Run 1 reframings. The outline is locked.
+
+[full findings: `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` — Run 1 + Run 2 + Run 3 verbatim outputs all archived there]
 
 ## Codex final review
 
@@ -615,7 +632,7 @@ Run 2 fixes are precision tightening — none touches the post's spine. Re-runni
 
 ## Resume here
 
-Last touched: 2026-05-08 (Gate 1 Run 2 fired: 4 STRUCTURAL + 1 COSMETIC closed — precision tightening only; Run 3 next as final invocation under cap).
+Last touched: 2026-05-08 (Gate 1 Run 3 fired: 3 STRUCTURAL closed — residual wording gaps from Run 2; cap-of-3 hit; Gate 1 closes on structural-fixed; Phase 3 done; Phase 4 next).
 
 ### Phase status
 
@@ -623,7 +640,7 @@ Last touched: 2026-05-08 (Gate 1 Run 2 fired: 4 STRUCTURAL + 1 COSMETIC closed �
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check + Gate 0 | done (3 runs; 12 STRUCTURAL + 2 COSMETIC closed) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` |
-| 3. Outline + figure list | in progress (Gate 1 Run 1 closed; Run 2 next) | `## Outline`, `## Codex outline review` |
+| 3. Outline + figure list | done (Gate 1 closed at cap-of-3 on structural-fixed; 14 STRUCTURAL + 2 COSMETIC across 3 runs) | `## Outline`, `## Codex outline review` |
 | 4. Draft prose | pending | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -639,6 +656,7 @@ Last touched: 2026-05-08 (Gate 1 Run 2 fired: 4 STRUCTURAL + 1 COSMETIC closed �
 | 2026-05-08 | 0 Run 3 (research) | 1 STRUCTURAL (row 31 / line 109 wording-precision: aggregate `all`/`termux` extras include `hermes-agent[honcho]`); fix applied. Cap-of-3 hit; Gate 0 closes on structural-fixed. | `notes/openclaw-and-hermes-agent-codex-research-20260508.md` (Run 3 appended) |
 | 2026-05-08 | 1 Run 1 (outline) | 7 STRUCTURAL + 1 COSMETIC, 0 TYPE-CHANGE STRUCTURAL; all 7 STRUCTURAL fixes applied (scatter-not-cluster reframing of §10/§11/Figs 4 & 7; §17 dropped + content redistributed; §9 trimmed to naming history; Fig 6 axes resourced; Act 1 collapsed to single running scenario; Fig 2 channel labels matrix-backed; §13 cross-reference weakened); COSMETIC fix applied (Figs 1-3 merged into Fig 4). 19 sections → 18; 10 figures → 7. | `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` |
 | 2026-05-08 | 1 Run 2 (outline) | 4 STRUCTURAL + 1 COSMETIC, 0 TYPE-CHANGE STRUCTURAL; all precision-tightening on Run 1 fixes. R2-F1 off-axis bets honestly named (§10/§11/§18, Figs 4 & 7); R2-F2 Fig 6 simplified to 1D README-order list; R2-F3 "persistent memory" → "persistent sessions" for OpenClaw (§11/§17/Fig 7); R2-F4 "Discord" dropped from Fig 2. COSMETIC R2-F5 §13 cross-reference dropped entirely. Static-svg choice reaffirmed by codex. | `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` (Run 2 appended) |
+| 2026-05-08 | 1 Run 3 (outline) | 3 STRUCTURAL, 0 COSMETIC, 0 TYPE-CHANGE STRUCTURAL; all residual wording gaps from Run 2 fixes. R3-F1 §5 throughline-close rewritten (the off-axis honesty hadn't propagated to §5 from §10/§11/§18); R3-F2 related-posts §13 anchor superseded (drafter instruction still live); R3-F3 §16 "Reader can now" + Phase 5 figure-progress label tightened (residual tradeoff-grid echoes). All direct + inspection-verifiable wording fixes. **Cap-of-3 hit; Gate 1 closes on structural-fixed.** Static-svg choice reaffirmed for all 7 figures. | `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` (Run 3 appended) |
 
 ### Phase 5 figure progress
 
@@ -651,20 +669,38 @@ Figure list locked at end of Phase 3 (2026-05-08), then **revised after Gate 1 R
 | 3 | OpenClawSandboxTiers | static-svg | §8 | pending | — |
 | 4 | ClawFamilyOnDials (scatter, not cluster) | static-svg | §10 | pending | — |
 | 5 | HermesClosedLoop | static-svg | §12 | pending | — |
-| 6 | HermesTerminalBackends (execution-surface × persistence axes) | static-svg | §16 | pending | — |
+| 6 | HermesTerminalBackends (1D README-order list + Daytona/Modal persistence callout) | static-svg | §16 | pending | — |
 | 7 | FinalDialMap (all frameworks placed; scatter) | static-svg | §18 (closing) | pending | — |
 
 Codex Gate 1 Run 1 explicitly endorsed the static-svg choice for every figure: "the static-svg choice is defensible for every listed figure under the stated override rules." No TYPE-CHANGE STRUCTURAL findings; per-figure-type unlock protocol did not fire.
 
 ### Suggested next batch
 
-Gate 1 Run 2 closed (4 STRUCTURAL + 1 COSMETIC, all precision-tightening; all closed). **Run 3 is the third and final invocation under the gate-runner cap.** If Run 3 returns clean / cosmetic-only / structural-fixed-and-inspection-verifiable, Gate 1 closes and Phase 3 is done. If Run 3 surfaces meaningful new STRUCTURAL findings, the Step-6 escape hatch fires and the situation surfaces to Vic.
+Gate 1 closed at cap-of-3 (Run 3 — 3 STRUCTURAL residual-wording-gap findings, all applied as direct + inspection-verifiable fixes per the Gate 0 Run 3 precedent; structural-fixed outcome). **Phase 3 done. Phase 4 (draft prose) starts next.**
 
-1. **Gate 1 Run 3** — re-invoke `codex consult` with the Run-2-fixed outline + figure table + the rest of the unchanged inputs (Spec, Throughline, Research notes, Claim-source matrix, Related posts, prior `## Codex outline review` sections). Apply size policy. Log outcome row to `### Codex history` as "1 Run 3 (outline)."
-2. **Apply Run 3 fixes** if STRUCTURAL findings are direct + inspection-verifiable wording precision (analogous to Gate 0 Run 3 — the cleanest path is to apply the fix and close the gate rather than burn the Step-6 escape hatch on a wording iteration). If Run 3 surfaces a meaningful content disagreement → Step-6 escape hatch (AskUserQuestion: accept-and-proceed / halt / override-on-specific-finding).
-3. **On Gate 1 close** — mark Phase 3 done in `### Phase status`, update tracker, then Phase 4 (draft prose) starts.
+Phase 4 step-by-step:
 
-Phase 4 reminders: the matrix is the contract. Drafting may not introduce a new load-bearing claim without first adding a row. Phase 4 must also re-verify the Phase-2-paraphrased details for rows 19 and 26 (NanoClaw architecture details + Zepto Stack lineup) by quoting the actual READMEs verbatim before any prose claim about those details lands. The Act 1 running scenario (team's coding-agent rollout v1 → v4) is author-constructed-pedagogical per spec; prose must frame it as such ("imagine you're an engineer rolling out…", "consider what happens when…") rather than asserting it as a documented incident. Per the Run 2 R2-F3 fix, prose must use "persistent sessions" rather than "persistent memory" when describing OpenClaw's session-transcripts — to avoid collapsing session-persistence into adaptation-dial memory.
+1. **Phase 4 step 1** — create `src/content/blog/openclaw-and-hermes-agent/index.mdx` with frontmatter per `src/content.config.ts` and `../../explainer-shared/mdx-output-spec.md`: `title`, `description`, `pubDate`, `tags` (suggest: "AI agents", "open source", "infrastructure"), `featured: false`, `draft: true`, `essay: true`, `heroAlt: "TODO: hero image not yet selected"`. Omit `heroImage` (Phase 7 adds it).
+2. **Phase 4 step 2** — draft section by section per the locked 18-section outline. For each section: state the claim, drop a figure placeholder (`{/* TODO: Fig N: <mechanism> */}` for static-svg), tell the reader what to notice, explain the mechanism, then hand off. Section sizes 300-800 words.
+3. **Phase 4 step 3** — per-section "what reader now sees" check via HTML comment (`{/* Reader can now: <one-line> */}`). The outline already has these per section; transcribe.
+4. **Phase 4 step 4** — apply voice rules during drafting. Run `scripts/voice-check.sh` after each section; re-run until clean. Em dashes: zero in prose. Banned words: justify or rewrite.
+5. **Phase 4 step 5** — emit `## References` with related posts as the **first** entries using full https URL form: `[The Claude Code Plugins I Use Every Day](https://augusteo.com/blog/claude-code-plugin-stack). The adaptation-axis counterpart in this post's Act 1, Augusteo 2026.` and `[Hand Tools, Power Tools, and the AI Coding Debate](https://augusteo.com/blog/hand-tools-power-tools-ai-coding-debate). The category-setup callback in this post's Act 2 opening, Augusteo 2026.`
+6. **Phase 4 step 6** — hyperlink inline named-source mentions to the same URLs used in `## References`.
+7. **Phase 4 step 7** — cross-reference per the locked outline: §4 inline link to Claude Code plugin post (root-relative `/blog/<slug>`); §6 opening inline link to AI-coding-debate post; §18 closing italic-line callback to AI-coding-debate post. **Do NOT add a §13 inline link** per Gate 1 Run 1/2/3 findings.
+8. **Phase 4 step 8** — throughline callbacks per `narrative-template.md` rhythm. The outline's throughline thread check section names every per-act callback.
+9. **Phase 4 step 9** — commit per section (one section per commit). Update tracker after each commit.
+
+**Phase 4 hard constraints (carry forward from gates 0 and 1):**
+
+- Matrix is the contract. Drafting may not introduce a new load-bearing claim without first adding a row.
+- Phase 4 must verbatim re-quote rows 19 and 26 (NanoClaw architecture details + Zepto Stack lineup) by reading the actual READMEs before any prose claim lands.
+- The Act 1 running scenario (team's coding-agent rollout v1 → v4) is author-constructed-pedagogical; prose must frame as such ("imagine you're an engineer rolling out…", "consider what happens when…") not as a documented incident.
+- Use "persistent sessions" not "persistent memory" for OpenClaw — per Run 2 R2-F3.
+- Do NOT name "Discord" as a first-class OpenClaw inbound channel adapter — per Run 2 R2-F4. Use only matrix-backed categorical labels (DM, group chat, cron job).
+- Do NOT add a second inline link to the Claude Code plugin post in Act 3 — per Run 2 R2-F5 + Run 3 R3-F2.
+- The "off-axis bet" annotation pattern (Figs 4 and 7) must be honored in §10 and §18 prose — the three-dial map is necessary but not sufficient for the Claw ecosystem; some variants' distinctive concerns live off the map.
+- Honcho License footnote: aggregate `all` and `termux` extras include `hermes-agent[honcho]`, which pulls AGPL-3.0 Honcho without a separate Honcho-specific opt-in (per Gate 0 Run 3).
+- Drop quantitative claims that don't survive matrix backing: "30+ adopters" of agentskills.io, "migration wave," cost / portability ordering of terminal backends.
 
 ### How to resume from a fresh context
 
