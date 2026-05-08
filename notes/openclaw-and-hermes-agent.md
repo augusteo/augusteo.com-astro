@@ -581,7 +581,7 @@ All 43 matrix rows accounted for. No load-bearing claim in the outline lacks a r
 
 ## Resume here
 
-Last touched: 2026-05-08.
+Last touched: 2026-05-08 (Phase 3 outline + figure list locked; Gate 1 next).
 
 ### Phase status
 
@@ -589,7 +589,7 @@ Last touched: 2026-05-08.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check + Gate 0 | done (3 runs; 12 STRUCTURAL + 2 COSMETIC closed) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` |
-| 3. Outline + figure list | pending | `## Outline` |
+| 3. Outline + figure list | done (Gate 1 next) | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -606,34 +606,32 @@ Last touched: 2026-05-08.
 
 ### Phase 5 figure progress
 
-| # | Figure | Type | Status | Commit |
-|---|---|---|---|---|
-| 1 | DialMapOpener (lifespan × adaptation, gateway as tint) | static-svg | pending | — |
-| 2 | LifespanDial (one-shot → session → continuous → scheduled) | static-svg | pending | — |
-| 3 | ControlPlaneDial (CLI → gateway → multi-channel) | static-svg | pending | — |
-| 4 | AdaptationDial (stateless → memory → self-improvement) | static-svg | pending | — |
-| 5 | OpenClawArchitecture (gateway → channels → sessions → tools/sandbox) | static-svg | pending | — |
-| 6 | OpenClawSandboxTiers (host vs Docker/SSH/OpenShell) | static-svg | pending | — |
-| 7 | HermesLoop (task → skill creation → refinement → user model → FTS5 recall) | static-svg | pending | — |
-| 8 | HermesBackendLattice (7 terminal backends, cost/capability) | static-svg | pending | — |
-| 9 | DialMapClosing (all frameworks placed) | static-svg | pending | — |
-| 10 | DialMapInteractive (click-to-expand each framework's architecture) | interactive-canvas (Phase 3 four-clause check) | pending | — |
+Figure list locked at end of Phase 3 (2026-05-08, pre-Gate-1). All 10 are `static-svg`; static-default rule justification appears in `## Outline` → "Static-default rule justification." Section anchors are locked here so figure-implementation commits can land per-figure without re-deriving placement.
 
-Figure list is locked at Phase 3, not now. The above is the Phase 1 sketch — Phase 3 may add, drop, or relabel.
+| # | Figure | Type | Section | Status | Commit |
+|---|---|---|---|---|---|
+| 1 | LifespanDial | static-svg | §2 | pending | — |
+| 2 | SurfaceDial | static-svg | §3 | pending | — |
+| 3 | AdaptationDial | static-svg | §4 | pending | — |
+| 4 | ThreeDialMap | static-svg | §5 (Act 1 close) | pending | — |
+| 5 | OpenClawArchitecture | static-svg | §6 | pending | — |
+| 6 | OpenClawSandboxTiers | static-svg | §8 | pending | — |
+| 7 | ClawFamilyOnDials | static-svg | §10 | pending | — |
+| 8 | HermesClosedLoop | static-svg | §12 | pending | — |
+| 9 | HermesTerminalBackends | static-svg | §16 | pending | — |
+| 10 | FinalDialMap | static-svg | §19 (closing) | pending | — |
+
+The Phase 1 figure-list sketch tentatively included a `DialMapInteractive` candidate (interactive-canvas, click-to-expand). On the four-clause check at Phase 3, none of the four override clauses applies — a series of static figures (Figure 7 + Figure 5 + Figure 8) delivers the same insight without paying the interactive cost. Static-default wins. If Gate 1 demands a re-type, the per-figure-type unlock protocol fires.
 
 ### Suggested next batch
 
-Phase 2 is closed (Gate 0 cap-of-3 hit; structural-fixed outcome). Phase 3 next:
+Phase 3 outline + figure list landed (commit 80cc7c8). Gate 1 next.
 
-1. **Phase 3 step 1** — re-read `narrative-template.md` for the three-act shape, throughline rhythm, per-section rhythm.
-2. **Phase 3 step 2-3** — sketch the section list. Numbered sections (`### 1. ...`, `### 2. ...`). Use act dividers between major narrative turns. Per-figure spec: mechanism, what the reader should walk away noticing, AND the figure type (static-svg default).
-3. **Phase 3 step 4** — verify throughline threads through every act per `narrative-template.md` "Throughline rhythm." Per-act callbacks to the three-dial map.
-4. **Phase 3 step 5** — append outline + figure table to this notes file under `## Outline`.
-5. **Phase 3 step 6** — show Vic the outline; iterate until figure list is locked.
-6. **Phase 3 step 7** — update tracker; populate `### Phase 5 figure progress` table.
-7. **Phase 3 step 8** — run Gate 1 (codex on outline + matrix + throughline).
+1. **Gate 1** — invoke `codex consult` with Spec + Throughline + Research notes + Claim-source matrix + Outline + figure table. Apply size policy (verbatim if ≤8 KB, else findings file at `notes/openclaw-and-hermes-agent-codex-outline-20260508.md`). Append outcome row to `### Codex history`. STRUCTURAL findings → fix. TYPE-CHANGE STRUCTURAL → unlock protocol (AskUserQuestion for re-type approval, halts at unlock-count of 2).
+2. **Apply Gate 1 fixes** if any. Re-run Gate 1. Cap of 3 invocations (initial + 2 re-runs) before Step-6 escape hatch.
+3. **On Gate 1 close** — mark Phase 3 done in `### Phase status`, update tracker, then Phase 4 (draft prose) starts.
 
-The matrix is the contract. Phase 4 drafting may not introduce a new load-bearing claim without first adding a row. Phase 4 must also re-verify the Phase-2-paraphrased details for rows 19 and 26 by quoting the actual READMEs verbatim.
+Phase 4 reminder: the matrix is the contract. Drafting may not introduce a new load-bearing claim without first adding a row. Phase 4 must also re-verify the Phase-2-paraphrased details for rows 19 and 26 (NanoClaw architecture details + Zepto Stack lineup) by quoting the actual READMEs verbatim before any prose claim about those details lands. Drafting also must apply the static-default rule for any new figure that emerges from Gate 1 + the unlock protocol.
 
 ### How to resume from a fresh context
 
