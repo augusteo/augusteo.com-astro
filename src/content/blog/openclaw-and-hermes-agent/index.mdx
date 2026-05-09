@@ -115,6 +115,49 @@ The adaptation dial has three rungs.
 
 *Skill creation and self-improvement* is a different rung from persistent memory. Memory is what the agent has *seen*; skills are what the agent has *learned to do*. A skill is a parameterized procedure the agent can invoke later: "write a test for this function in our codebase's style," or "review this PR for conventions we've discussed." Skills are the unit of practice. An agent on this rung not only remembers, it codifies what it has learned into reusable form. When the user reaches for an agent's recall, they get memory; when the user reaches for an agent's competence, they get skills.
 
+<figure>
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">ADAPTATION DIAL: WHAT CARRIES FORWARD</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">memory is what the agent has seen; skills are what it has learned to do</text>
+
+<rect x="20" y="60" width="150" height="56" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="95" y="84" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SKILL CREATION</text>
+<text x="95" y="100" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">agent codifies what</text>
+<text x="95" y="110" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">it learned to do</text>
+
+<rect x="190" y="60" width="470" height="56" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="200" y="80" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">@write-test-with-explicit-errors</text>
+<text x="200" y="94" font-family="serif" font-size="10" fill="#1A1A1A">→ named procedure the agent invokes without being reminded</text>
+<text x="200" y="108" font-family="serif" font-size="9" font-style="italic" fill="#059669">codified knowledge: what to do</text>
+
+<rect x="20" y="124" width="150" height="56" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="95" y="148" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">PERSISTENT MEMORY</text>
+<text x="95" y="164" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">agent recalls what</text>
+<text x="95" y="174" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">it has seen</text>
+
+<rect x="190" y="124" width="470" height="56" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="200" y="144" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">{"\"the team prefers explicit error types over errors.New\""}</text>
+<text x="200" y="158" font-family="serif" font-size="10" fill="#1A1A1A">→ retrievable observation about prior conversations</text>
+<text x="200" y="172" font-family="serif" font-size="9" font-style="italic" fill="#0E7490">accumulated context: what has been seen</text>
+
+<rect x="20" y="188" width="150" height="56" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="95" y="212" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">STATELESS</text>
+<text x="95" y="228" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">nothing carries</text>
+<text x="95" y="238" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">forward</text>
+
+<rect x="190" y="188" width="470" height="56" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="200" y="208" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">{"\"we use explicit error types, not errors.New\""}</text>
+<text x="200" y="222" font-family="serif" font-size="10" fill="#B91C1C">→ correction lost when the session closes</text>
+<text x="200" y="236" font-family="serif" font-size="9" font-style="italic" fill="#B91C1C">no memory: every session is its own island</text>
+
+<text x="340" y="270" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">v3's persistent failure (week one's correction never reaches week two) lives at the bottom rung;</text>
+<text x="340" y="284" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">v4 climbs to memory + skills.</text>
+
+</svg>
+<figcaption><strong>Fig 1.</strong> The three rungs of the adaptation dial. *Stateless*: every session ends and nothing remains; the same correction has to be repeated next time. *Persistent memory*: observations from prior conversations are retrievable. *Skill creation*: procedures the agent invokes without being reminded. Memory captures what the agent has *seen*; skills capture what it has *learned to do*. The team's running scenario sits at stateless through v3 and climbs to persistent-memory plus skill-creation at v4.</figcaption>
+</figure>
+
 The two rungs share a common lever: the user (or the agent itself) telling the agent something it should not forget. They differ in what is preserved. Persistent memory captures observations like "the team prefers explicit error types." Skill creation captures procedures: a `write-test-with-explicit-errors` skill the agent can invoke without being reminded.
 
 A concrete adaptation-axis example sitting on the skills rung is [the Claude Code plugins I use every day](/blog/claude-code-plugin-stack). Each plugin is a packaged skill: a name, a procedure, and a small amount of glue the agent runs without being prompted. Plugins compound. The agent gets better at the work as more skills accumulate, without the user having to repeat instructions in every session.
