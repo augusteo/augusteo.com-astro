@@ -369,8 +369,8 @@ That switch implies a typology. The trusted session (`main`) runs on the host wi
 <rect x="50" y="118" width="140" height="86" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
 <text x="120" y="136" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">your laptop</text>
 <line x1="60" y1="144" x2="180" y2="144" stroke="#C9BEAA" stroke-width="0.5"/>
-<text x="120" y="160" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">~/code, ~/Documents</text>
-<text x="120" y="176" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">~/.ssh, ~/.aws, ~/.cache</text>
+<text x="120" y="160" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">{"~/code, ~/Documents"}</text>
+<text x="120" y="176" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">{"~/.ssh, ~/.aws, ~/.cache"}</text>
 <text x="120" y="196" font-family="serif" font-size="10" font-style="italic" fill="#059669" text-anchor="middle">unrestricted tool surface</text>
 
 <text x="120" y="234" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A" text-anchor="middle">"the agent is genuinely you"</text>
@@ -417,15 +417,15 @@ That switch implies a typology. The trusted session (`main`) runs on the host wi
 <text x="340" y="320" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">WORKSPACE-ACCESS MODES (orthogonal to backend choice)</text>
 
 <text x="50" y="346" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#1A1A1A">none</text>
-<text x="120" y="346" font-family="serif" font-size="10" fill="#1A1A1A">isolated workspace under <tspan font-family="JetBrains Mono" font-size="9">~/.openclaw/sandboxes/&lt;sessionId&gt;/workspace</tspan></text>
+<text x="120" y="346" font-family="serif" font-size="10" fill="#1A1A1A">isolated workspace under sandboxes/&lt;sessionId&gt;/workspace</text>
 <text x="120" y="358" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">sandbox cannot see your work</text>
 
 <text x="50" y="376" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#1A1A1A">ro</text>
-<text x="120" y="376" font-family="serif" font-size="10" fill="#1A1A1A">workspace mounted read-only at <tspan font-family="JetBrains Mono" font-size="9">/agent</tspan> inside the sandbox</text>
+<text x="120" y="376" font-family="serif" font-size="10" fill="#1A1A1A">workspace mounted read-only at /agent inside the sandbox</text>
 <text x="120" y="388" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">sandbox can read your work, cannot modify it</text>
 
 <text x="380" y="346" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#1A1A1A">rw</text>
-<text x="430" y="346" font-family="serif" font-size="10" fill="#1A1A1A">workspace mounted read-write at <tspan font-family="JetBrains Mono" font-size="9">/workspace</tspan></text>
+<text x="430" y="346" font-family="serif" font-size="10" fill="#1A1A1A">workspace mounted read-write at /workspace</text>
 <text x="430" y="358" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">tool-side writes propagate back to the host</text>
 <text x="430" y="378" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">"the sandbox is essentially the agent"</text>
 
