@@ -693,7 +693,7 @@ Findings: 1 STRUCTURAL, 0 COSMETIC. F2–F7 + C1 confirmed holding.
 
 ## Resume here
 
-Last touched: 2026-05-09 (Phase 6 done; per-figure-type playwright review of all 13 figures completed in one session at 1280×900 viewport on dev port 4322. All 13 passed first-snapshot review against `playwright-checks.md` universal + static-svg checks: no clipped viewBoxes, no overlapping text, contrast within palette, every figcaption matches its figure, palette compliance held. Zero console errors during the pass. No edits required; no MDX touched; working tree stayed clean. Phase 7 (freshness pass + Gate 2 + hero hand-off + ship) starts next).
+Last touched: 2026-05-09 (Phase 7 done. Freshness pass clean (rows 15+40 star-count refresh only; everything else immutable). Gate 2 closed across 3 runs: Run 1 found 7 STRUCTURAL + 1 COSMETIC (all closed across 8 commits); Run 2 caught Run 1's F1 fix overcorrecting (RF1: Hermes IS at gateway per its README, the matrix just lacked a row — added matrix row 33b, restored Fig 13 marker and §17/§18 prose); Run 3 returned **clean** ("no structural issues found"). Voice-check exits clean (3 exempt act-divider em-dashes only). Hero image landed: watercolor + ink composition with three brass dials, lobster anchor for the *Claw* namespace, caduceus + four-arc closed loop for Hermes, crumpled paper ladder for the discarded single-axis framing. heroAlt wired. Post verified end-to-end at `http://localhost:4322/blog/openclaw-and-hermes-agent`: hero card renders, all 13 figures render, console clean. **`draft: true` stays put — Vic flips at ship.**).
 
 ### Phase status
 
@@ -706,7 +706,7 @@ Last touched: 2026-05-09 (Phase 6 done; per-figure-type playwright review of all
 | 5. Implement figures | done (7/7; static-svg only; one figure per commit; visual smoke-test passed; 1 MDX-strikethrough fix + 1 layout polish) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
 | 6.5 Out-of-band quality pass | done (24 commits; 14 STRUCTURAL + 5 COSMETIC findings closed; Pass A 9 commits + Pass B 5 commits + Pass C 9 commits + plan-lock 1 commit; 7 → 13 figures; static-svg choice held for every new figure) | `## Codex Phase 6.5 review`, [findings file](openclaw-and-hermes-agent-codex-phase6_5-20260509.md) |
 | 6. Playwright review | done (13 of 13 passed first-snapshot pass at 1280×900 on dev port 4322; per-figure screenshots saved to `.playwright-screenshots/fig01-…` through `fig13-…`; zero console errors during the pass; no SVG edits required) | per-figure-type playwright checks per `playwright-checks.md` |
-| 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + hero + ship | done (freshness pass clean — rows 15+40 star-count refresh only; pubDate := 2026-05-09; Gate 2 closed across 3 runs with 7 STRUCTURAL + 1 COSMETIC + 1 RF1 (Run 2 caught Run 1's F1 overcorrection) all fixed; voice-check clean; hero image wired; post verified end-to-end on dev port 4322) | `## Phase 7 freshness pass`, `## Codex final review`, `src/assets/blog/openclaw-and-hermes-agent/hero.jpeg` + `heroAlt` in frontmatter |
 
 ### Codex history
 
@@ -748,24 +748,26 @@ Static-default rule held: every new figure was checked against the four interact
 
 ### Suggested next batch
 
-**Phase 6 done. Phase 7 (freshness pass + Gate 2 + hero hand-off + ship) starts next.**
+**Phase 7 done. Post is ready for Vic to ship (single-purpose commit `flip draft to false; ship`).**
 
-Phase 6 outcome: all 13 static-svg figures passed `playwright-checks.md` at first-snapshot (universal + static-svg sub-checklist). Per-figure screenshots in `.playwright-screenshots/fig01-…` through `fig13-…`. Zero console errors during the pass (one harmless Simple Analytics warning about hostname=localhost). No SVG edits required; working tree stayed clean. The static-default rule held end-to-end: 13/13 figures are static-svg, never tempted to interactive.
+Phase 7 outcome:
+- **Freshness pass (step 1):** clean. Most matrix rows pin to immutable artifacts (commits, tags). Mutable surfaces re-checked: OpenClaw + Hermes latest releases unchanged (still v2026.5.7); Hermes Windows commit `b7fe7ed7bd` still post-release; live star counts updated (rows 15: 369,860 → 369,911; row 40: 139,109 → 139,371; neither load-bearing in prose); third-party blogs (Steinberger, peterwoods.online, Star History) unchanged. Matrix preamble bumped to `Today: 2026-05-09`.
+- **pubDate (step 2):** flipped to 2026-05-09 in MDX frontmatter.
+- **Gate 2 (step 3):** closed across 3 runs.
+  - **Run 1:** 7 STRUCTURAL (F1 Hermes Gateway placement; F2 "training data" framing; F3 FTS5 over-specifies storage; F4 skill-creation drift; F5 Honcho "for most deployments"; F6 migration intent inference; F7 SQLite source not in matrix) + 1 COSMETIC (C1 §16 inline links) — **all 8 fixed across 8 commits**.
+  - **Run 2:** 1 STRUCTURAL (RF1: Run 1's F1 fix overcorrected — Hermes README explicitly documents `hermes gateway` running multi-channel; the original placement at gateway was correct, the matrix just lacked a row for it). Fix: added matrix row 33b backing Hermes-as-gateway with verbatim README quotes; restored Hermes marker on Fig 13 to gateway; rewrote §17/§18 to keep "both at gateway" framing with architectural-weight nuance.
+  - **Run 3:** **clean** — "no structural issues found". Gate 2 closes (cap-of-3, clean exit).
+- **Voice-check (step 4):** clean. Three em-dashes flagged are all `## Act` divider headings (exempt per hard rule #8).
+- **Hero hand-off (step 5):** Vic generated a watercolor + ink composition that lands every visual anchor (three brass dials labeled lifespan / surface / adaptation; lobster on the left for the *Claw* namespace; caduceus + four-arc closed loop on the right for Hermes; crumpled paper ladder bottom-right for the discarded single-axis framing). 1999×1116, 16:9, 535KB JPEG saved to `src/assets/blog/openclaw-and-hermes-agent/hero.jpeg`; `heroImage` + `heroAlt` wired in MDX frontmatter.
+- **Verify (step 6):** `bun run dev` on port 4322; navigated to `http://localhost:4322/blog/openclaw-and-hermes-agent`; hero card renders; all 13 figures render; Fig 9 verified post-F3-fix (no SQLite/JSONL/top-K specifics); Fig 13 verified post-RF1 (Hermes at gateway with OpenClaw); zero console errors.
 
-Phase 7 step-by-step:
+**To ship (Vic's action):**
 
-1. **Phase 7 step 1 — freshness re-check.** Walk every row in `## Claim-source matrix` and verify the cited source hasn't moved since Phase 2:
-   - For arxiv: check for v-bumps newer than the cited version (e.g. v2 superseding v1).
-   - For commits / repo state (OpenClaw repo, Hermes Agent repo, ZeptoStack repo, ClaudeKit repo, Honcho repo): check the README / pyproject.toml / version tag for substantive commits since the cited hash.
-   - For blog posts and docs (Vibe Tools, ClaudeKit blog, Honcho docs, etc.): check for edits since the cited access date.
-   - For each row: if a newer version exists AND the claim is affected, halt and update the matrix + prose. If newer-but-irrelevant, just bump the access date in the matrix.
-2. **Phase 7 step 2 — `pubDate := today`** in the frontmatter. This is the publication date of record; it must match reality.
-3. **Phase 7 step 3 — Gate 2 (final-draft pass).** Auto-fire the codex Gate 2 per `codex-prompts.md` "Per-gate runner". Inputs: full MDX + `## Spec` + `## Throughline` + `## Research notes` + `## Claim-source matrix` + `## Related posts on augusteo.com` + all prior `## Codex … review` sections. Focus: drift between prose and matrix; weak arguments; subtly wrong models; References-section completeness + hyperlinking; cross-reference verification (every Related-post entry appears as a real `[Title](/blog/<slug>)` root-relative link in prose AND as `[Title](https://augusteo.com/blog/<slug>)` full-https form in `## References`). Apply STRUCTURAL fixes; cap at 3 re-runs.
-4. **Phase 7 step 4 — final voice-check pass.** Run `scripts/voice-check.sh src/content/blog/openclaw-and-hermes-agent/index.mdx`. Em dashes: zero in prose (act-divider headings exempt). Banned words: justify or rewrite.
-5. **Phase 7 step 5 — hero hand-off.** Follow `.claude/skills/explainer-shared/hero-handoff.md`: compose the prompt with every slot filled in, wait for Vic to paste a path or say "skip", validate, copy to `src/assets/blog/openclaw-and-hermes-agent/hero.<ext>`, view via Read, propose `heroAlt`, edit frontmatter.
-6. **Phase 7 step 6 — verify.** Confirm `draft: true` (stays `true` — Vic flips to `false` himself; hard rule #9), `essay: true`, real `heroImage`, real `heroAlt`. Walk every figure end-to-end at `http://localhost:4321/blog/openclaw-and-hermes-agent`. Lighthouse: LCP under 2.5s on cold load.
-7. **Phase 7 step 7 — final commit.** `final pass — pubDate, hero, voice-check clean; ready for ship`. After Vic flips `draft: false`, that becomes its own commit (`flip draft to false; ship`).
-8. **Phase 7 step 8 — update tracker.** Phase status row 7 → done. Optionally remove the MEMORY.md "in progress" pointer (project memory entry stays as a build record).
+1. Flip `draft: true` → `draft: false` in `src/content/blog/openclaw-and-hermes-agent/index.mdx` (line 8).
+2. Single-purpose commit: `git commit -m "flip draft to false; ship"` (or whatever shape Vic prefers).
+3. Push.
+
+After ship, optionally remove the MEMORY.md "in progress" pointer (project memory entry can stay as a build record).
 
 ### How to resume from a fresh context
 
