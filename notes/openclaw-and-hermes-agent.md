@@ -626,13 +626,21 @@ All 3 STRUCTURAL findings are direct + inspection-verifiable wording-precision f
 
 [full findings: `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` — Run 1 + Run 2 + Run 3 verbatim outputs all archived there]
 
+## Codex Phase 6.5 review
+
+**Out-of-band quality pass invoked 2026-05-09** between Phase 5 and Phase 6 at Vic's request ("review and plan for more illustrations and better narrative and accuracy"). Codex consult fired against the rendered MDX + spec + matrix + Codex history (so it wouldn't re-flag closed findings). **Findings: 3 STRUCTURAL illustration adds + 2 COSMETIC; 3 STRUCTURAL narrative gaps + 2 COSMETIC; 6 STRUCTURAL accuracy regressions + 1 COSMETIC. Output 86 KB; full findings + scope decisions live at [`notes/openclaw-and-hermes-agent-codex-phase6_5-20260509.md`](openclaw-and-hermes-agent-codex-phase6_5-20260509.md).**
+
+Most-load-bearing findings: Fig 5's SVG annotation contradicts row 31's prose rule (resurrects the closed Gate 0 wording bug); Fig 6's SVG subtitles re-introduce the per-backend overclaim Gate 1 closed in Run 2; §10 still has paraphrase where rows 19 + 26 demanded verbatim re-quote.
+
+**Vic's scope decisions:** all 6 figure-add candidates approved (7 → 13 figures); sequence is Pass A accuracy → Pass B narrative → Pass C figures; surface-dial inconsistency fix = define "gateway" rung as architectural bet (not channel count) in §1.
+
 ## Codex final review
 
 *Populates after Gate 2 fires (Phase 7).*
 
 ## Resume here
 
-Last touched: 2026-05-09 (Phase 5 done: all 7 static-svg figures landed; one figure per commit per skill rule #7; voice-check clean apart from the 3 exempt act-divider em-dashes; visual smoke-test via playwright across all figures; one rendering bug fixed mid-Phase-5 — `~/code` paths in Fig 3 were being parsed as GFM strikethrough, fixed via `{"..."}` JSX expression wrap — and one cosmetic fix to Fig 5 — EXTERNAL · PLASTIC LABS · AGPL-3.0 badge moved below Honcho box and tightened so the text fits its width).
+Last touched: 2026-05-09 (Phase 6.5 plan locked: codex consult fired; 14 STRUCTURAL + 5 COSMETIC findings catalogued; Vic approved all 6 figure-add candidates; Pass A accuracy fixes start next. Phase 5 done: all 7 static-svg figures landed; one figure per commit per skill rule #7; voice-check clean apart from the 3 exempt act-divider em-dashes; visual smoke-test via playwright across all figures; one rendering bug fixed mid-Phase-5 — `~/code` paths in Fig 3 were being parsed as GFM strikethrough, fixed via `{"..."}` JSX expression wrap — and one cosmetic fix to Fig 5 — EXTERNAL · PLASTIC LABS · AGPL-3.0 badge moved below Honcho box and tightened so the text fits its width).
 
 ### Phase status
 
@@ -643,7 +651,8 @@ Last touched: 2026-05-09 (Phase 5 done: all 7 static-svg figures landed; one fig
 | 3. Outline + figure list | done (Gate 1 closed at cap-of-3 on structural-fixed; 14 STRUCTURAL + 2 COSMETIC across 3 runs) | `## Outline`, `## Codex outline review` |
 | 4. Draft prose | done (18 sections + References + inline hyperlinks; one section per commit; voice-check clean) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` (~401 lines, 7 figure TODOs awaiting Phase 5) |
 | 5. Implement figures | done (7/7; static-svg only; one figure per commit; visual smoke-test passed; 1 MDX-strikethrough fix + 1 layout polish) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` (~828 lines, 0 figure TODOs) |
-| 6. Playwright review | pending | per-figure-type playwright checks per `playwright-checks.md` |
+| 6.5 Out-of-band quality pass | in progress (Pass A accuracy → Pass B narrative → Pass C figures; 8 + 5 + 7 commits; 7 → 13 figures) | `## Codex Phase 6.5 review`, [findings file](openclaw-and-hermes-agent-codex-phase6_5-20260509.md) |
+| 6. Playwright review | pending (runs after Phase 6.5; covers all 13 figures) | per-figure-type playwright checks per `playwright-checks.md` |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
