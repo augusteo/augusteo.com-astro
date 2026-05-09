@@ -189,7 +189,27 @@ That last decision is the security model, which the next section covers.
 
 ### 8. The security model: host-by-default for `main`, sandbox tiers for non-`main`
 
-{/* TODO: §8 prose + Fig 3 placeholder */}
+OpenClaw's security model has one rule and one switch.
+
+The rule, from the README's Security model section, is the default behavior: "Default: tools run on the host for the `main` session, so the agent has full access when it is just you." A `main` session is the user's own session: the one tied to your account, on your machine, behind your channels. The README's logic is that when the agent is genuinely you, there is no benefit to fencing it off from your own machine.
+
+The switch, when you have other sessions you don't fully trust, is: "set `agents.defaults.sandbox.mode: \"non-main\"` to run non-`main` sessions inside sandboxes. Docker is the default sandbox backend; SSH and OpenShell backends are also available."
+
+That switch implies a typology. The trusted session (`main`) runs on the host with full access. Non-`main` sessions, which arrive when other people, other channels, or scheduled jobs invoke the agent, run inside the configured sandbox backend.
+
+{/* TODO: Fig 3: OpenClawSandboxTiers. Three-panel side-by-side: (a) host execution for `main` (full host access); (b) Docker default sandbox (typical allow/deny defaults inset); (c) SSH and OpenShell alternate backends. Workspace-access modes `none` / `ro` / `rw` shown as a small inset table. */}
+
+The Docker backend has a typical default capability set. The README spells it out:
+
+> Typical sandbox default: allow `bash`, `process`, `read`, `write`, `edit`, `sessions_list`, `sessions_history`, `sessions_send`, `sessions_spawn`; deny `browser`, `canvas`, `nodes`, `cron`, `discord`, `gateway`.
+
+The allow list keeps the agent useful inside the sandbox: it can still run shell commands, manage processes, read and write files, and coordinate with sibling sessions. The deny list cuts off three categories of capability. `browser`, `canvas`, and `discord` are tool categories that would let a sandboxed session interact with external surfaces or third-party services. `cron` is scheduling: a sandboxed session shouldn't get to install recurring jobs that outlive the session. `gateway` and `nodes` are the self-modifying control-plane capabilities. Those would let a sandboxed session reconfigure the very Gateway that holds it. That is the line OpenClaw enforces hardest. A sandboxed session does not get to redraw the boundary that contains it.
+
+The two extremes anchor the security spectrum. A `main` session runs on the host and gets everything the user has. A sandboxed non-`main` session runs in Docker (or SSH, or OpenShell) with a curated allow list and an explicit deny list. SSH and OpenShell exist as alternate backends for environments where Docker isn't available or appropriate.
+
+The three workspace-access modes from §7 are an orthogonal axis: even within "this is sandboxed," you decide whether the sandbox can read your work, write your work, or see none of it.
+
+{/* Reader can now: tell when OpenClaw will sandbox a tool call vs run it on the host. */}
 
 ### 9. A short note on naming history
 
