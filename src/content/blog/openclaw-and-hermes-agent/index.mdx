@@ -620,7 +620,61 @@ The closed loop sits on top of a tool stack. The README's headline claim is "40+
 
 The terminal backends are the more interesting piece. The README at v2026.5.7 lists seven: local, Docker, SSH, Singularity, Modal, Daytona, and Vercel Sandbox. (The marketing landing page still says five; the docs index says six. The README is authoritative for v0.13.0; the surface inconsistencies are legacy framings.)
 
-{/* TODO: Fig 6: HermesTerminalBackends. Simple 1D backend list in README order: local, Docker, SSH, Singularity, Modal, Daytona, Vercel Sandbox. A single annotated callout groups Daytona + Modal as the matrix-backed serverless-persistence niche per row 34. No editorial 2D axes (per Gate 1 Run 2 R2-F2: the prior 2D execution-surface x persistence grid overclaimed the matrix). */}
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">HERMES TERMINAL BACKENDS (v2026.5.7 README ORDER)</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">seven backends; only Daytona and Modal have documented serverless-persistence semantics</text>
+
+<rect x="40" y="70" width="76" height="58" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="78" y="92" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">local</text>
+<text x="78" y="108" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">no isolation,</text>
+<text x="78" y="120" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">runs in process</text>
+
+<rect x="124" y="70" width="76" height="58" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="162" y="92" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">Docker</text>
+<text x="162" y="108" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">container</text>
+<text x="162" y="120" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">isolation</text>
+
+<rect x="208" y="70" width="76" height="58" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="246" y="92" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">SSH</text>
+<text x="246" y="108" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">remote</text>
+<text x="246" y="120" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">host</text>
+
+<rect x="292" y="70" width="76" height="58" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="330" y="92" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A" text-anchor="middle">Singularity</text>
+<text x="330" y="108" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">HPC</text>
+<text x="330" y="120" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">container</text>
+
+<rect x="376" y="70" width="76" height="58" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="4"/>
+<text x="414" y="92" font-family="serif" font-size="11" font-weight="600" fill="#92400E" text-anchor="middle">Modal</text>
+<text x="414" y="108" font-family="serif" font-size="9" font-style="italic" fill="#92400E" text-anchor="middle">serverless</text>
+<text x="414" y="120" font-family="serif" font-size="9" font-style="italic" fill="#92400E" text-anchor="middle">runtime</text>
+
+<rect x="460" y="70" width="76" height="58" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="4"/>
+<text x="498" y="92" font-family="serif" font-size="11" font-weight="600" fill="#92400E" text-anchor="middle">Daytona</text>
+<text x="498" y="108" font-family="serif" font-size="9" font-style="italic" fill="#92400E" text-anchor="middle">cloud dev</text>
+<text x="498" y="120" font-family="serif" font-size="9" font-style="italic" fill="#92400E" text-anchor="middle">env</text>
+
+<rect x="544" y="70" width="96" height="58" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="592" y="92" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">Vercel Sandbox</text>
+<text x="592" y="108" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">serverless</text>
+<text x="592" y="120" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">edge</text>
+
+<path d="M 376 138 L 376 150 L 536 150 L 536 138" fill="none" stroke="#B8651A" stroke-width="1.4"/>
+<line x1="456" y1="150" x2="456" y2="162" stroke="#B8651A" stroke-width="1.4"/>
+
+<rect x="276" y="168" width="360" height="64" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8" rx="4"/>
+<text x="456" y="186" font-family="JetBrains Mono" font-size="10" fill="#92400E" text-anchor="middle" letter-spacing="1.2">SERVERLESS PERSISTENCE</text>
+<text x="456" y="206" font-family="serif" font-size="11" font-style="italic" fill="#92400E" text-anchor="middle">"the agent's environment hibernates when idle</text>
+<text x="456" y="222" font-family="serif" font-size="11" font-style="italic" fill="#92400E" text-anchor="middle">and wakes on demand" (per official docs)</text>
+
+<text x="340" y="262" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">the other backends' execution-location and persistence semantics aren't characterized this way in the docs;</text>
+<text x="340" y="274" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">the figure does not extrapolate them onto a 2D grid.</text>
+
+</svg>
+<figcaption><strong>Fig 6.</strong> The seven terminal backends in v2026.5.7 README order. Only Daytona and Modal carry the documented "serverless persistence" semantics: idle hibernation, on-demand wake. The other backends' per-backend execution-location and persistence semantics are not characterized that way in the docs, so the figure does not extrapolate them onto a 2D grid.</figcaption>
+</figure>
 
 The matrix backs one specific semantic claim about a subset of the backends: per the docs, "Daytona and Modal offer serverless persistence: your agent's environment hibernates when idle and wakes on demand." That is the only documented per-backend behavior of that shape; the others' execution-location and persistence semantics aren't characterized in the same way and the post doesn't infer them.
 
