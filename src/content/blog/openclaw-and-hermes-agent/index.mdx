@@ -612,7 +612,7 @@ ZeptoClaw is part of a real coordinated sub-family, but it isn't *Claw*. The v0.
 <text x="340" y="340" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">contrast with the four `*Claw` projects below: they share a name pattern, not a compose pattern.</text>
 
 </svg>
-<figcaption><strong>Fig 6.</strong> The Zepto Stack at v0.9.2 — four pieces with documented roles. *ZeptoPM* orchestrates and supervises; *ZeptoCapsule* creates the isolated process and runs it; *ZeptoClaw* makes LLM calls and produces artifacts; *ZeptoRT* is the durable-runtime layer for stateful workflows. The first three compose as a pipeline (`create(spec)` + `spawn` then `fork`/`namespace`/`microVM` + `stdio` then `JSON-line IPC` back to PM); ZeptoRT sits orthogonal. This is what a coordinated sub-family looks like: different repositories collaborating on one architectural surface, contrasting with Fig 7's four `*Claw` projects sharing only a name pattern.</figcaption>
+<figcaption><strong>Fig 6.</strong> The Zepto Stack at v0.9.2: four pieces with documented roles. *ZeptoPM* orchestrates and supervises; *ZeptoCapsule* creates the isolated process and runs it; *ZeptoClaw* makes LLM calls and produces artifacts; *ZeptoRT* is the durable-runtime layer for stateful workflows. The first three compose as a pipeline (`create(spec)` + `spawn` then `fork`/`namespace`/`microVM` + `stdio` then `JSON-line IPC` back to PM); ZeptoRT sits orthogonal. This is what a coordinated sub-family looks like: different repositories collaborating on one architectural surface, contrasting with Fig 7's four `*Claw` projects sharing only a name pattern.</figcaption>
 </figure>
 
 <figure>
