@@ -673,239 +673,121 @@ EOF
 
 ---
 
-## Task 9: Figure §1 — two-updates sketch with takeoff belief
+## Tasks 9-15: figures (revised 2026-05-09 after Vic + codex review)
 
-**Files:**
-- Modify: `src/content/blog/scout-mindset/index.mdx` — replace `{/* FIGURE: §1 — ... */}` placeholder with full `<figure>...</figure>` block
+The original figure tasks 9-15 in this plan reused the existing chart aesthetic of the post. Vic flagged on 2026-05-09 that those still felt academic because they charted research data rather than illustrating book concepts. Codex consult re-ran the figure plan; spec doc §"Figure plan" has the locked replacement.
 
-**Source figure:** current Fig 1 (lines 23-129 of original index.mdx, before task 1 removed it). Reusable: SVG layout, color palette, panel structure, marker-arrow defs.
+**Direction summary** (full visual specs in design doc):
 
-**Required visual changes:**
-- **Left panel (NEUTRAL FRAMING).** Caption: "skin cream effect on a rash" → keep as the neutral baseline (don't replace; the neutral case is *intentionally* generic). Layout unchanged.
-- **Right panel (LOADED FRAMING).** Caption: "a gun-control policy's effect on crime" → replace with: "AI-takeoff productivity gain on a $3M commercial bid package." A and B priors stay (.2 vs .8), posteriors stay. This is the same Kahan-shape result, reframed around the running belief.
-- **Updated figcaption.** Drop the Kahan-2017-cite-with-caveats body; replace with a tighter caption that makes the connection to the takeoff belief explicit. Persson/Connor/Glüer-Pagin dissent pointers go here too (link-on-noun-phrase: "the basic effect held in the preregistered replication; the dramatic high-numeracy amplification did not").
+- All figures stay in the chart/diagram visual genre. No cartoons or silhouettes.
+- Each figure illustrates a *book concept* and helps the reader understand it quickly.
+- Three figures are interactive (§1 toggle, §4 sliders, §7 scrubber) using the existing Svelte 5 island + Canvas 2D widget pattern. The other four are static SVG.
+- §1 figure is the post's visual thesis: scout vs. soldier as side-by-side processors.
+- §2 gains a figure (originally none): the evidence pipeline that distorts what reaches attention.
+- §3 reframes the four-panel asymmetry diagram as an *operational* diagnostic map (gates, not academic literature).
+- §4 collapses the two planned figures into one combined two-part systems diagram.
+- §5 worksheet matrix gains a "pressure map" sub-panel.
+- §6 becomes a clean three-layer architecture (personal / team / literature).
+- §7 keeps the three-ring loops but with the takeoff log as the middle ring.
 
-**Voice rule for caption:** sentence-case, no em dashes, no "the post" actor.
+For each figure task below, the executor should:
+1. Read the design doc's "Figure plan" table for the locked visual spec on this section.
+2. Locate the figure placeholder in the post (`{/* FIGURE: §N — ... */}`).
+3. For static figures: read an existing static SVG figure in the post (or in `multi-gpu-training`/`generative-vision-stack`/`ssl-pretraining-recipes`) for color palette, typography, and viewbox conventions. Author the new SVG inline. The captions follow voice rules: sentence-case, no em dashes, no "the post."
+4. For interactive figures: read `notes/multi-gpu-training.md` and the existing interactive-figure islands in `src/components/` (search for `.svelte` files referenced from blog MDX) to learn the pattern. Author a new island with the same conventions.
+5. Verify build (`bun run build`) and dev render (`bun run dev`).
+6. Take a playwright screenshot if browser is available; otherwise rely on Vic's local dev render.
+7. Show Vic, iterate, commit.
 
-- [ ] **Step 1: Read the current §1 placeholder context**
+### Task 9: Figure §1 — scout vs. soldier as the visual thesis (interactive)
 
-Run: `grep -n "FIGURE: §1" src/content/blog/scout-mindset/index.mdx` to locate the placeholder.
+**Concept:** the two orientations toward the same threatening evidence.
 
-- [ ] **Step 2: Read the original Fig 1 SVG from git**
+**Visual:** split-panel diagram, full width. Same input strip on the left side: `missed walls`, `false positives`, `40% faster package`, `slow estimator`. Forks into two processors. Soldier-mode gates: `defend`, `explain away`, `raise burden of proof`. Output: nearly flat credence line near "40% still true." Scout-mode gates: `record`, `separate signal/noise`, `update`. Output: stepped credence line that moves with the evidence. Axes: x = evidence events, y = confidence in the 40% claim.
 
-Run: `git show 5b6480d:src/content/blog/scout-mindset/index.mdx | sed -n '23,129p'`
-(That's HEAD before the rewrite started — the original figure is intact there.)
+**Interaction:** toggle `preferred / dispreferred evidence`. Soldier trace updates asymmetrically (large jumps for preferred, small for dispreferred). Scout trace updates by evidential weight regardless of valence.
 
-- [ ] **Step 3: Adapt the SVG**
+**Implementation notes:** Svelte 5 island. Look at `multi-gpu-training/index.mdx` and `generative-vision-stack/index.mdx` for the existing interactive-figure pattern. Replace the `{/* FIGURE: §1 — ... */}` placeholder with the island import + component invocation.
 
-Change only the right-panel caption text and any belief-specific labels. Layout, color palette, priors, posteriors, marker arrows: unchanged.
+**Steps:** read spec → read existing interactive-figure pattern in repo → author island → wire into MDX → verify build → render → show Vic → commit.
 
-- [ ] **Step 4: Replace the placeholder with the new `<figure>...</figure>` block**
+Commit message: `scout-mindset rewrite: Figure §1 — scout vs. soldier (interactive)`
 
-- [ ] **Step 5: Verify build**
+### Task 10: Figure §2 — evidence pipeline (static, optional interactive)
 
-Run: `bun run build`
-Expected: build succeeds. Then `bun run dev` and check `http://localhost:4321/blog/scout-mindset` renders the figure.
+**Concept:** directional incentives distort which evidence reaches attention.
 
-- [ ] **Step 6: Show Vic the rendered figure**
+**Visual:** evidence pipeline diagram. Left side: world events. Middle filters labeled `demo wins`, `support escalations`, `sales calls`, `failed pilots two layers away`, `investor narrative`. Right side: "my working belief." Filter thickness shows visibility (not truth) — wide for demo wins, narrow for failed pilots two layers away.
 
-Take a browser screenshot via the playwright tool, attach to the message. Iterate on text/layout if needed.
+**Interaction:** ship as static for now. Optional follow-up: slider for `distance from customer failure`; farther failures fade before reaching the belief box.
 
-- [ ] **Step 7: Commit**
+**Steps:** read spec → locate `{/* FIGURE: §2 — ... */}` placeholder (added in Task 2's prose draft) → author static SVG → verify build → render → show Vic → commit.
 
-```bash
-git add src/content/blog/scout-mindset/index.mdx
-git commit -m "$(cat <<'EOF'
-scout-mindset rewrite: Figure §1 — two-updates with takeoff framing
+Commit message: `scout-mindset rewrite: Figure §2 — evidence pipeline (static)`
 
-Right panel reframed around the AI-takeoff productivity belief on a
-$3M commercial bid package. Layout / palette / priors / posteriors
-preserved. Caption reworked for sentence-case voice and link-on-
-noun-phrase dissent pointers.
+### Task 11: Figure §3 — biased assimilation as an operational map (static)
 
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+**Concept:** motivated reasoning as a behavior pattern: same evidence, different operations.
 
----
+**Visual:** four small operational panels. Each panel is a small flow diagram with the takeoff-belief evidence going in and being processed differently depending on whether it's preferred or threatening. Panels: `retrieve examples`, `weigh evidence`, `set acceptance threshold`, `identity alarm`. Author names removed from the graphic body — sources go in the figcaption only.
 
-## Task 10: Figure §3 — three-plus-one asymmetries on takeoff evidence
+**Interaction:** none. Fast diagnostic map.
 
-**Files:**
-- Modify: `src/content/blog/scout-mindset/index.mdx` — replace `{/* FIGURE: §3 — ... */}` placeholder
+**Steps:** read spec → locate `{/* FIGURE: §3 — ... */}` placeholder → author static SVG → verify build → render → show Vic → commit.
 
-**Source figure:** current Fig 3 (lines 231-352 of original).
+Commit message: `scout-mindset rewrite: Figure §3 — biased assimilation operational map`
 
-**Required visual changes:**
-- **Panel (a) Kunda.** "memory pool / retrieved / not retrieved" stays. Anchor caption to: "which estimator-hours studies the brain surfaces depends on the directional goal."
-- **Panel (b) LRL.** "capital-punishment view" → "AI-takeoff productivity view." A/B priors and posteriors stay.
-- **Panel (c) Ditto-Lopez.** "preferred / non-preferred" stays. Anchor caption to: "studies showing AI takeoff fails face a higher evidentiary bar than studies showing it works."
-- **Panel (d) Kahan contested.** Layout stays (dashed border, "contested" label). Body label: "high-numeracy estimators polarize *more*." Dissent block (Persson / Connor / Glüer-Pagin) inside the panel — keep as-is.
-- **Updated figcaption.** Each panel's takeoff anchoring flagged in caption. Dissent sources hyperlinked in caption (already done in current Fig 3 caption — preserve).
+### Task 12: Figure §4 — calibration and aggregation as one systems diagram (interactive)
 
-- [ ] **Step 1: Read placeholder location**
+**Concept:** accuracy requires an external scoring loop plus independent estimates.
 
-Run: `grep -n "FIGURE: §3" src/content/blog/scout-mindset/index.mdx`
+**Visual:** combined two-part systems diagram, side by side. Left: calibration grid, x = forecast probability, y = observed frequency, dots from takeoff forecasts ("40% hours saved by Q4"). Right: aggregation funnel with ten blind estimator estimates entering, correlated estimates shrink less, independent estimates shrink more. Shared bottom label: "one mind is noisy; scored records and independent estimates reduce different errors."
 
-- [ ] **Step 2: Read original Fig 3 from git**
+**Interaction:** sliders for `bias`, `variance`, `correlation`. Aggregate band widens / narrows; calibration dots reposition.
 
-Run: `git show 5b6480d:src/content/blog/scout-mindset/index.mdx | sed -n '231,352p'`
+**Implementation notes:** Svelte 5 island. Combines two concepts in one figure — make sure the components share visual rhythm (same axis style, same dot conventions). The two original §4 figures (calibration plot, aggregation funnel) become one combined widget.
 
-- [ ] **Step 3: Adapt the SVG**
+**Steps:** read spec → locate `{/* FIGURE: §4 — ... */}` placeholder → author island → verify build → render → show Vic → commit.
 
-Update the four panel labels per spec above. Update figcaption.
+Commit message: `scout-mindset rewrite: Figure §4 — calibration + aggregation (interactive)`
 
-- [ ] **Step 4: Replace placeholder**
+### Task 13: Figure §5 — Galef worksheet + pressure map (static, optional click)
 
-- [ ] **Step 5: Verify build, render, screenshot**
+**Concept:** scout questions are instruments for locating where the belief is protected.
 
-- [ ] **Step 6: Show Vic; iterate**
+**Visual:** worksheet matrix. Rows = five Galef tests. Columns = `question asked`, `what it attacks`, `what the 40% claim would have to answer`. Compact cells, not prose blocks. Right-side "pressure map" shows which parts of the belief each test hits: `effect size`, `generalizes`, `non-adopters`, `measurement`. Visual link between row and pressure-map cell.
 
-- [ ] **Step 7: Commit**
+**Interaction:** ship static for now. Optional follow-up: click a test row, highlight the belief component it pressures.
 
-```bash
-git add src/content/blog/scout-mindset/index.mdx
-git commit -m "$(cat <<'EOF'
-scout-mindset rewrite: Figure §3 — asymmetries on takeoff evidence
+**Steps:** read spec → locate `{/* FIGURE: §5 — ... */}` placeholder → author static SVG → verify build → render → show Vic → commit.
 
-Four panels reframed around what each failure mode does to AI-
-takeoff evidence specifically. Kahan dissent block preserved.
+Commit message: `scout-mindset rewrite: Figure §5 — Galef worksheet + pressure map`
 
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
-```
+### Task 14: Figure §6 — three-layer architecture (static)
 
----
+**Concept:** scout mode scales by moving updates out of one person's head.
 
-## Task 11: Figure §4 Fig A — calibration plot with takeoff-forecast inset
+**Visual:** layered architecture diagram. Personal layer at the top: `notebook`, `forecast log`. Team layer in the middle: `blind first-pass estimates`, `outside reviewer`, `precommitment register`. Literature layer at the bottom: `published claim`, `published critique`, `shared record`. Arrows showing evidence becoming harder to silently absorb as it moves outward.
 
-**Files:**
-- Modify: `src/content/blog/scout-mindset/index.mdx` — replace `{/* FIGURE: §4 Fig A — ... */}` placeholder
+**Interaction:** none.
 
-**Source figure:** current Fig 5 (lines 509-608 of original).
+**Steps:** read spec → locate `{/* FIGURE: §6 — ... */}` placeholder → author static SVG → verify build → render → show Vic → commit.
 
-**Required visual changes:**
-- **Calibration plot (left).** Layout stays (well-calibrated curve, overconfident curve, perfect-calibration diagonal). Y-axis "observed frequency", X-axis "forecast probability" stay.
-- **Inset (right).** Currently "AOMT scale" with paraphrased Likert items. Replace with a forecast-log inset: a stylized ledger of takeoff-forecast entries, e.g. `2026-04-01 · pkg #112 · 40% saved · forecast 0.70 · result 0.84` etc. ~5-6 entries. Title the inset "takeoff forecast log."
-- **Updated figcaption.** Sentence-case rewrite. AOMT moves from caption to a "see refs" pointer.
+Commit message: `scout-mindset rewrite: Figure §6 — three-layer architecture`
 
-- [ ] **Step 1: Locate placeholder**
-- [ ] **Step 2: Read original Fig 5**
-- [ ] **Step 3: Adapt SVG (replace AOMT inset with forecast log)**
-- [ ] **Step 4: Replace placeholder**
-- [ ] **Step 5: Verify build, render, screenshot**
-- [ ] **Step 6: Show Vic; iterate**
-- [ ] **Step 7: Commit**
+### Task 15: Figure §7 — concentric loops with takeoff log middle ring (interactive scrubber)
 
-Commit message: `scout-mindset rewrite: Figure §4A — calibration plot + takeoff forecast log`
+**Concept:** the smallest trainable unit is a dated disconfirming-evidence loop.
 
----
+**Visual:** concentric or stacked loops. Four explicit steps run around the loop: `notice` → `judge threat` → `write same day` → `review later`. Inner ring: Darwin (1876). Middle ring: the author's takeoff log (2026). Outer ring: public literature record. Caption explicit that these are analogous records, not identical mechanisms (codex flagged the family-resemblance honesty as a feature).
 
-## Task 12: Figure §4 Fig B — aggregation funnel with ten estimators
+**Interaction:** small. A scrubber that steps through one disconfirming observation entering the loop and becoming a later update. The same observation reappears in the middle and outer rings as it scales.
 
-**Files:**
-- Modify: `src/content/blog/scout-mindset/index.mdx` — replace `{/* FIGURE: §4 Fig B — ... */}` placeholder
+**Implementation notes:** Svelte 5 island. Smaller scope than §1 / §4 — the interaction is a single scrubber. Reuse Canvas 2D widget conventions if applicable.
 
-**Source figure:** current Fig 6 (lines 623-740 of original).
+**Steps:** read spec → locate `{/* FIGURE: §7 — ... */}` placeholder → author island → verify build → render → show Vic → commit.
 
-**Required visual changes:**
-- **Three stacked panels (i, ii, iii).** Layout stays. Re-label "forecaster" → "estimator" throughout. Truth value stays at .50 (or relabel as "true gain rate"); bias mean stays. Panel (i): one estimator, off-center. Panel (ii): ten independent estimators, narrows by √n. Panel (iii): ten correlated estimators, partial reduction.
-- **Hauenstein inset (right).** REMOVE entirely. (Per spec, Hauenstein-vs-Mellers lives in §6, not §4. The inset was the second literature-tour leak codex flagged.)
-- **Updated figcaption.** Three-panel summary, no inset. Sentence-case.
-
-- [ ] **Step 1: Locate placeholder**
-- [ ] **Step 2: Read original Fig 6**
-- [ ] **Step 3: Adapt SVG (relabel estimators; remove right-side Hauenstein inset; widen panels to use the freed space if it improves readability)**
-- [ ] **Step 4: Replace placeholder**
-- [ ] **Step 5: Verify build, render, screenshot**
-- [ ] **Step 6: Show Vic; iterate**
-- [ ] **Step 7: Commit**
-
-Commit message: `scout-mindset rewrite: Figure §4B — aggregation funnel with ten estimators (Hauenstein inset removed)`
-
----
-
-## Task 13: Figure §5 — Galef tests applied to the takeoff belief
-
-**Files:**
-- Modify: `src/content/blog/scout-mindset/index.mdx` — replace `{/* FIGURE: §5 — ... */}` placeholder
-
-**Source figure:** current Fig 7 (lines 775-846 of original).
-
-**Required visual changes:**
-- **Two-column layout stays.** Left column: Galef test name + test prompt. Right column: currently the asymmetry mapping; replace with "what running this on the 40% claim surfaces" — a short concrete consequence per test. The asymmetry mapping moves to the figcaption.
-- **Five rows.** Same five tests, in same order.
-- **The author's-reading caveat banner at top** (current lines 784-786). Keep, slightly rewritten for the new content: "the right-column entries are this author's reading of what running each test surfaces on the 40% belief; the asymmetries each addresses are noted in the caption."
-- **Updated figcaption.** Sentence-case rewrite. Asymmetry mapping moves here.
-
-- [ ] **Step 1: Locate placeholder**
-- [ ] **Step 2: Read original Fig 7**
-- [ ] **Step 3: Adapt SVG (right-column relabels; caveat banner rewrite; figcaption inherits the asymmetry mapping)**
-- [ ] **Step 4: Replace placeholder**
-- [ ] **Step 5: Verify build, render, screenshot**
-- [ ] **Step 6: Show Vic; iterate**
-- [ ] **Step 7: Commit**
-
-Commit message: `scout-mindset rewrite: Figure §5 — Galef tests applied to takeoff belief`
-
----
-
-## Task 14: Figure §6 — two-tier diagram with takeoff-belief tile contents
-
-**Files:**
-- Modify: `src/content/blog/scout-mindset/index.mdx` — replace `{/* FIGURE: §6 — ... */}` placeholder
-
-**Source figure:** current Fig 8 (lines 873-956 of original).
-
-**Required visual changes:**
-- **Top tier "Individual moves (§5)".** Three tiles. Replace tile contents per spec:
-  - Tile 1: "Run Galef's five tests on the 40% belief" (replacing "five Chapter-5 prompts").
-  - Tile 2: "Personal calibration: log takeoff forecasts and Brier them" (the small-N personal regime caveat stays).
-  - Tile 3: "Personal precommitment: write the dated entry into the post body" (replacing "includes Darwin's notebook §4").
-- **Bottom tier "Systems-layer moves (§6)".** Three tiles:
-  - Tile 1: "Outside review: a competitor estimator runs the same package blind."
-  - Tile 2: "Team aggregation: ten estimators, blind first-pass, then discuss."
-  - Tile 3: "Precommitment register: criteria committed before evidence, on the public record."
-- **Bottom row "Literature-scale instance".** Hauenstein 2025 vs Mellers 2014 — keep as-is; this is the literature-scale beat the spine v2 owns in §6.
-
-- [ ] **Step 1: Locate placeholder**
-- [ ] **Step 2: Read original Fig 8**
-- [ ] **Step 3: Adapt SVG (six tile re-labels; literature-scale row preserved)**
-- [ ] **Step 4: Replace placeholder**
-- [ ] **Step 5: Verify build, render, screenshot**
-- [ ] **Step 6: Show Vic; iterate**
-- [ ] **Step 7: Commit**
-
-Commit message: `scout-mindset rewrite: Figure §6 — two-tier diagram with takeoff-belief tiles`
-
----
-
-## Task 15: Figure §7 — three concentric loops with takeoff log middle ring
-
-**Files:**
-- Modify: `src/content/blog/scout-mindset/index.mdx` — replace `{/* FIGURE: §7 — ... */}` placeholder
-
-**Source figure:** current Fig 10 (lines 1089-1169 of original).
-
-**Required visual changes:**
-- **Three concentric rings stay.** Inner blue (Darwin), middle rust (currently "GJP calibration log"), outer muted (literature).
-- **Middle ring re-text.** Replace "a forecast resolves / against the model? / log the Brier delta in the tracker / review at quarterly score" with takeoff-log-specific text:
-  - "a takeoff pilot resolves" / "package undershot the 40% claim?" / "log the entry in the takeoff log" / "review at next quarterly precommitment update."
-- **Middle ring legend tile** (currently `MIDDLE · INSTITUTIONAL` / "GJP calibration log"). Replace with: "MIDDLE · TEAM" / "Boon-style takeoff log" / "2026 onward, a team writing on the public record."
-- **Inner ring (Darwin) and outer ring (Mellers/Hauenstein) stay.**
-- **Updated figcaption.** Rewrite for sentence-case voice. The structural-analog disclaimer ("not literally the same operation") stays — codex flagged that family-resemblance honesty as a feature.
-
-- [ ] **Step 1: Locate placeholder**
-- [ ] **Step 2: Read original Fig 10**
-- [ ] **Step 3: Adapt SVG (middle ring re-text and re-legend)**
-- [ ] **Step 4: Replace placeholder**
-- [ ] **Step 5: Verify build, render, screenshot**
-- [ ] **Step 6: Show Vic; iterate**
-- [ ] **Step 7: Commit**
-
-Commit message: `scout-mindset rewrite: Figure §7 — three rings with takeoff log middle ring`
+Commit message: `scout-mindset rewrite: Figure §7 — concentric loops with takeoff log (interactive scrubber)`
 
 ---
 

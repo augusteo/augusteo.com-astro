@@ -93,25 +93,31 @@ Two beats.
 
 Figure: three concentric loops, captioned around the takeoff log as the middle ring.
 
-## Figure plan
+## Figure plan (locked 2026-05-09 after Vic + codex revision)
 
-10 → 7. Three drop, seven redrawn around the takeoff belief.
+10 → 7. The figures stay in the chart/diagram/graph genre that the rest of the blog uses (no cartoons / silhouettes / illustrative scenes). Each figure illustrates a *book concept* and helps the reader understand it quickly, rather than charting the underlying research data.
 
 **Drop:**
-- Current Fig 2 (GJP/ICPM Brier bar chart) — becomes a sentence in §4.
-- Current Fig 4 (architecture-beneath panel + Darwin notebook) — content moves to §3 prose.
+- Current Fig 1 (two-updates Kahan sketch) — becomes prose only in §1; the §1 figure slot now holds scout-vs-soldier instead.
+- Current Fig 2 (GJP/ICPM Brier bar chart) — becomes a sentence in §4. The aggregation *mechanism* is what §4's figure illustrates.
+- Current Fig 4 (architecture-beneath panel + Darwin notebook) — content moves to §3 prose. Darwin's notebook reappears in §7's three-loop figure.
+- Current Fig 5 (calibration plot + AOMT inset) — collapses into the new combined §4 figure.
+- Current Fig 6 (aggregation funnel + Hauenstein inset) — collapses into the new combined §4 figure; Hauenstein content moves to §6's literature layer.
 - Current Fig 9 (trainability bar chart + Hedges-g forest) — becomes a paragraph in §7.
 
-**Redraw around takeoff belief:**
-| New | Was | Job |
-|---|---|---|
-| §1 Fig | Fig 1 | Two-updates sketch with 40% takeoff claim as loaded framing |
-| §3 Fig | Fig 3 | Three-plus-one asymmetries operating on takeoff evidence |
-| §4 Fig A | Fig 5 | Calibration plot; inset = forecast log instead of AOMT items |
-| §4 Fig B | Fig 6 | Aggregation funnel with "ten estimators" as the worked example |
-| §5 Fig | Fig 7 | Galef tests applied to the 40% belief, with what each surfaces |
-| §6 Fig | Fig 8 | Two-tier diagram with takeoff-belief tile contents |
-| §7 Fig | Fig 10 | Three concentric loops; middle ring = takeoff log |
+**New figure plan (book-concept-anchored, three interactive):**
+
+| Section | Book concept illustrated | Visual | Interactive? |
+|---|---|---|---|
+| §1 | **Scout mode vs. soldier mode** (Galef's central distinction; the visual thesis of the post) | Split-panel diagram. Same input strip on the left (`missed walls`, `false positives`, `40% faster package`, `slow estimator`). Forks into two processors. Soldier-mode gates: `defend`, `explain away`, `raise burden of proof` → flat credence line near "40% still true." Scout-mode gates: `record`, `separate signal/noise`, `update` → stepped credence line that moves with the evidence. Axes: x = evidence events, y = confidence in the 40% claim. | Yes. Toggle `preferred / dispreferred evidence`; soldier trace updates asymmetrically, scout trace updates by evidential weight. |
+| §2 | **Directional incentives distort which evidence reaches attention** (the personal-conflict layer) | Evidence pipeline diagram. Left side: world events. Middle filters labeled `demo wins`, `support escalations`, `sales calls`, `failed pilots two layers away`, `investor narrative`. Right side: "my working belief." Filter thickness shows visibility, not truth. | Optional. Slider for `distance from customer failure`; farther failures fade before reaching the belief box. |
+| §3 | **Motivated reasoning as a behavior pattern: same evidence, different operations** (the §3 mechanism layer) | Four operational panels: `retrieve examples`, `weigh evidence`, `set acceptance threshold`, `identity alarm`. Each panel uses the takeoff claim and shows preferred vs. threatening evidence moving through different gates. Author names removed from graphic body (move to caption). Fast diagnostic map. | No. Static. |
+| §4 | **Accuracy requires an external scoring loop plus independent estimates** (calibration + aggregation as one systems concept) | Two-part systems diagram, side by side. Left: calibration grid, x = forecast probability, y = observed frequency, dots from takeoff forecasts ("40% hours saved by Q4"). Right: aggregation funnel, ten blind estimator estimates entering, correlated estimates shrink less, independent estimates shrink more. Bottom label: "one mind is noisy; scored records and independent estimates reduce different errors." | Yes. Sliders for `bias`, `variance`, `correlation`; aggregate band widens / narrows. |
+| §5 | **Scout questions are instruments for locating where the belief is protected** (Galef's five tests as a worksheet) | Worksheet matrix. Rows = five tests. Columns = `question asked`, `what it attacks`, `what the 40% claim would have to answer`. Compact cells, not prose blocks. Right-side "pressure map" showing which parts of the belief each test hits: `effect size`, `generalizes`, `non-adopters`, `measurement`. | Optional. Click a test row, highlight the belief component it pressures. |
+| §6 | **Scout mode scales by moving updates out of one person's head** (the systems-layer architecture) | Layered architecture diagram. Personal layer: `notebook`, `forecast log`. Team layer: `blind first-pass estimates`, `outside reviewer`, `precommitment register`. Literature layer: `published claim`, `published critique`, `shared record`. Arrows show evidence becoming harder to silently absorb as it moves outward. | No. Static hierarchy is enough. |
+| §7 | **The smallest trainable unit is a dated disconfirming-evidence loop** (the prescription) | Concentric or stacked loops. Four explicit steps: `notice` → `judge threat` → `write same day` → `review later`. Inner ring: Darwin (1876). Middle ring: the author's takeoff log (2026). Outer ring: public literature record. Caption explicit that these are analogous records, not identical mechanisms. | Yes (small). Scrubber steps through one disconfirming observation becoming a later update. |
+
+The visual thesis of the post is the §1 scout-vs-soldier figure; everything else stems from there. The Goldstein research-data chart is replaced by the §4 *aggregation mechanism* (with the GJP-vs-ICPM result preserved as one prose sentence). The Hauenstein-vs-Mellers content lives in §6 as the literature-scale row of the architecture, not as its own data chart. The Hedges-g forest is replaced by §7's "smallest habit" framing.
 
 ## Footnotes and refs strategy
 
