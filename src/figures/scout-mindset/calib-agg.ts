@@ -13,11 +13,20 @@ export const CALIB_AGG_H = 340;
 // Deterministic pseudo-random: LCG seeded on a hash of the data state
 // -------------------------------------------------------------------
 
-function hashData(data: CalibAggData): number {
-  // Map to a small integer for the seed
+function hashCalibData(data: CalibAggData): number {
+  // Calibration grid only depends on bias and variance.
+  // Correlation excluded so adjusting it doesn't reseed the calibration dots.
   const b = Math.round((data.bias + 0.2) * 20);    // 0..8
   const v = Math.round((data.variance - 0.05) * 40); // 0..10
-  const c = Math.round(data.correlation * 10);       // 0..10
+  return b * 11 + v;
+}
+
+function hashFunnelData(data: CalibAggData): number {
+  // Funnel uses all three: bias shifts center, variance widens band, correlation
+  // controls how much aggregation buys you.
+  const b = Math.round((data.bias + 0.2) * 20);
+  const v = Math.round((data.variance - 0.05) * 40);
+  const c = Math.round(data.correlation * 10);
   return b * 110 + v * 11 + c;
 }
 
@@ -496,8 +505,8 @@ export function drawCalibAgg(
   const W = CALIB_AGG_W;
   const H = CALIB_AGG_H;
 
-  const seed = hashData(data);
-  const rng = makeLCG(seed);
+  const calibRng = makeLCG(hashCalibData(data));
+  const funnelRng = makeLCG(hashFunnelData(data));
 
   const margin = 14;
   const gap = 12;
@@ -509,8 +518,8 @@ export function drawCalibAgg(
   const panelY = margin;
 
   // Draw two regions
-  drawCalibGrid(ctx, data, rng, leftX, panelY, halfW, panelH);
-  drawAggFunnel(ctx, data, rng, rightX, panelY, halfW, panelH);
+  drawCalibGrid(ctx, data, calibRng, leftX, panelY, halfW, panelH);
+  drawAggFunnel(ctx, data, funnelRng, rightX, panelY, halfW, panelH);
 
   // Bottom label
   ctx.save();

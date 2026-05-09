@@ -385,7 +385,7 @@ export function drawScoutSoldier(
     margin + panelW * 0.25,
     soldierY,
     margin + panelW * 0.75,
-    soldierY,
+    scoutY,
   );
 
   // Draw soldier panel (top)
