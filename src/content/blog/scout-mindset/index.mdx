@@ -110,111 +110,39 @@ Section 4 gave you a procedural answer: use Brier scores, calibration curves, an
 
 The tests are fast and individual. You can run all five on a single belief before your next meeting. What they can't reach, on their own, is the team-scale architecture where the same motivated-reasoning mechanisms operate across people rather than inside one person's head. Section 6 is the complement: what to do when the individual tests aren't enough because the belief is held collectively and the asymmetries are load-bearing for the whole organization.
 
-### 8. The systems layer: scout mode at the institutional scale
+### 6. Make it social: precommitment, outside review, blinded estimator trials
 
-Section 4 diagnosed soldier mode as social architecture. Section 7 gave you five thought experiments to run on yourself. The two don't fit together cleanly. If the architecture is social and the counter-program is individual, the counter-program doesn't quite address the diagnosis.
+§3 located soldier mode in social architecture: the incentives that reward directional conclusions, the team cultures that treat confident predictions as identity signals, the vendor relationships that create financial stakes in specific forecasts. §5 ran five thought experiments inside one head. That's useful, and it's partial. Most of the failure surface §3 described lives outside any single head. This section is the complement: precommitment, outside review, blinded aggregation, and post-publication critique as structural moves applied to the takeoff belief specifically.
 
-This section sketches the systems-layer moves that complete the diagnosis. None of them is a Galef invention. The post bundles them here because the *combination* with section 7 is what actually matches what section 4 said the problem is. Five thought experiments alone can only do so much. Five thought experiments plus precommitment plus calibration tracking plus aggregation plus literature-scale dispute-and-reanalysis covers more of the failure surface than the individual moves alone do; the post does not claim a specific organizational deployment of these moves is empirically validated, only that the structural moves match the section-4 diagnosis.
+**Precommitment.** The Kunda 1990 directional-goal selection effect from §3 works by making the disconfirming evidence invisible at the moment it arrives. The fix is to name the disconfirming evidence before it arrives. This sounds bureaucratic, and it is. The bureaucracy is the point. Once the criteria are written down, the brain has fewer degrees of freedom to reframe an inconvenient result as "not quite what I had in mind."
 
-**Precommitment.** Before you see the new evidence, write down what evidence *would* change your mind on the belief from section 1. Be specific. Not "evidence to the contrary"; rather "if I learned that intervention X reduced outcome Y by less than Z percent in a registered RCT with N over 1,000, I would update toward the no-effect side." This sounds bureaucratic and is bureaucratic, on purpose. The bureaucracy is the point. The Kunda 1990 directional-goal selection effect from section 3 only has bite when you haven't named the disconfirming evidence in advance. Once you've named it, the brain has fewer degrees of freedom to filter it out as it arrives. The technique recurs in Galef's book and in a long history of decision-research practice; the post calls it precommitment because that's the canonical term.
+Here is what a precommitment artifact looks like for the 40% takeoff-hours claim. This is an *illustrative* example of the kind of thing such a document would say, not a binding commitment by this post's author. The point of showing it in detail is to make visible what these entries actually carry: specific, testable criteria tied to resolution conditions that were set before the evidence was seen.
 
-**Calibration tracking.** Section 5 introduced Brier score and the calibration plot as the GJP's measurement discipline. The personal-scale version of that discipline is the same metric run on yourself. Pick a tracker, any tracker (a plain text file works), and write down your forecasts on questions whose outcome will be checked. Resolution dates close the loop. Score them later. With enough resolved forecasts to silence noise, you can plot your own calibration curve and read your own Brier score against the diagonal. [Mellers 2015](https://doi.org/10.1037/xap0000040) *JEP: Applied* lists "frequency of belief updating" as one of the seven predictors of GJP forecaster accuracy that correlated with higher accuracy in the tournament data. The personal-scale corollary is more modest than a causal claim: scoring yourself converts "I'm well-calibrated" from a self-image into a measurement that tells you what your priors are actually doing. The personal-scale practice is also one place where the open Hauenstein question matters less than the GJP-vs-ICPM result does. Scoring yourself doesn't depend on whether teaming caused the GJP team's gains. It depends on the metric being well-defined, which it is.
+> *Precommitment register entry, 2026-05-08*
+>
+> *Belief held: AI-assisted takeoff reduces estimator hours by approximately 40% on commercial construction packages in the $2M–$20M range, relative to manual takeoff.*
+>
+> *Criteria that would update this belief downward:*
+>
+> *If, across three blinded pilots on packages over $2M with non-volunteer estimators, the median estimator-hours saved comes in below 25%, that is evidence the gain doesn't generalize beyond early adopters.*
+>
+> *If re-takeoff time after revisions for second-year platform users is not statistically distinguishable from first-month users on the same package class, that is evidence the productivity gain is a learning-curve artifact rather than a tool-driven gain.*
+>
+> *If a competitor's tool, run by their estimator on a Boon-pilot package class, achieves comparable hours-saved within ±10%, that is evidence the gain is real but not differentiating to the product.*
+>
+> *Resolution date: when the three pilots referenced above complete.*
 
-**Outside review and aggregation.** Section 6 said aggregation under independence is the mechanism worth a name. The same family of move generalizes downward, to small teams: independent probabilistic estimates, then averaging or logit-pooling. The strength of any gain depends on the same conditions the funnel needed (independence between estimators, comparable calibration, errors that aren't tightly correlated). Those conditions often fail inside a team that talks before forecasting; the conversation correlates the errors. Decision-architecture techniques like blind first-pass forecasts, dissenting-view-captured-in-writing, and red-team review are attempts to preserve some of the independence the funnel from section 6 needed. The post will not claim a specific decision-architecture move is empirically validated for general decision-making; the literature is much smaller and weaker than the GJP's. The structural move is the one with the math story behind it: aggregation works under independence; preserve some of the independence, get some of the variance reduction.
+The specific percentages and package sizes in that example are illustrative. What the format does is make the disconfirmation legible before the outcome is known, which is the structural move. Any precommitment that says only "I'll update if the evidence is against me" has done nothing; the work is in naming which evidence, at which magnitude, with which resolution conditions.
 
-**Post-publication critique and adversarial review.** The systems-layer analog of Galef's individual self-tests. The strictest version is adversarial collaboration: a person with a strong prior and a person with the opposite strong prior agree, in advance, on a research design or a piece of evidence whose outcome they both predict differently, write down their predictions, run the test, and the loser updates publicly. The looser, more common version is post-publication critique: a published reanalysis by a research team that did not pre-commit with the original authors but is willing to put their counter-claim in print. The Hauenstein-vs-Mellers situation from section 6 is the looser version, not adversarial collaboration; it is still a literature-scale instance of the same family of move, because the dispute is now legible in the same shared record. Smaller versions of either pattern can run inside a team or across two teams that disagree. The trick is the explicit prediction in step one; without it, both sides can claim retrospectively that the outcome confirmed their prior.
+**Outside review.** A competitor's estimator, or an independent estimating consultancy, runs the same package blind. The structural point is that "show the customer the AI overlay and ask if they're impressed" is a vendor demo. That's a different test from "give the same input to a reviewer who has no stake in the result, and record what their estimate is." The second test doesn't require the reviewer to be impressed, or to agree about the hours saved, or to say anything positive at all. It requires them to produce an estimate. The comparison of that estimate to the AI-assisted one is the data. The independence of the reviewer is what makes the comparison meaningful.
 
-<figure>
-<svg viewBox="0 0 680 580" xmlns="http://www.w3.org/2000/svg" width="100%">
+**Blinded aggregation.** §4 described how the GJP's funnel structure converted individual probabilistic estimates into an aggregated forecast that outperformed the intelligence-community's analysts. The same structural move works at smaller scales. Ten independent estimators do a first-pass on the same package, blind, before any discussion. Conversation correlates errors; the blind first-pass is what preserves the independence the funnel from §4 needed. Once estimators know what each other think, the estimates are no longer independent draws, and the aggregation loses much of its variance-reduction benefit. The takeoff-belief application: ten estimators, same package, same input documentation, submit their hours-saved estimate before any discussion session, then discuss. The mean or logit-pooled aggregate of the blind estimates is a better estimator of the true figure than any post-discussion consensus, for the same reason §4's funnel worked.
 
-<defs>
-<marker id="f8arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-  <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
-</marker>
-</defs>
+**Post-publication critique as the literature-scale instance.** A 2014 paper made causal claims about training and teaming as the mechanism behind GJP forecaster gains. [The IRT reanalysis](https://doi.org/10.1177/09567976241266481) published in 2025 re-tested those claims under stricter methodological controls. The effects shrank; in some specifications they vanished; in some they reversed sign. The aggregation result (aggregated forecasts beat individual ones) holds. The causal mechanism claim (training and teaming caused the gains) is still being argued in print. That's what the precommitment-plus-publish-the-result move looks like at field scale: a published claim, a published reanalysis, an open shared record where the dispute is legible to anyone who reads both papers. The looser institutional version, short of pre-agreed adversarial collaboration, is still the same family of move because the counter-claim is on record rather than held in private disagreement.
 
-<text x="340" y="32" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">INDIVIDUAL MOVES (§7)</text>
+{/* FIGURE: §6 — three-layer architecture: personal / team / literature; rendered in task 14 */}
 
-<rect x="30" y="50" width="200" height="120" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
-<text x="130" y="70" font-family="JetBrains Mono" font-size="9" fill="#2563EB" letter-spacing="0.8" text-anchor="middle">SELF-TESTS</text>
-<text x="130" y="92" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">five Chapter-5 prompts</text>
-<text x="130" y="106" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">run on a real belief</text>
-<g font-family="serif" font-size="9" fill="#6B6258" font-style="italic">
-  <text x="130" y="128" text-anchor="middle">double standard · outsider · conformity</text>
-  <text x="130" y="142" text-anchor="middle">selective skeptic · status quo</text>
-</g>
-<text x="130" y="162" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">cognitive prompts; help; partial</text>
-
-<rect x="240" y="50" width="200" height="120" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
-<text x="340" y="70" font-family="JetBrains Mono" font-size="9" fill="#2563EB" letter-spacing="0.8" text-anchor="middle">PERSONAL CALIBRATION</text>
-<text x="340" y="92" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">log your forecasts and</text>
-<text x="340" y="106" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">score them later</text>
-<text x="340" y="128" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">predicted prob → observed outcome</text>
-<text x="340" y="142" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">Brier on your own predictions</text>
-<text x="340" y="162" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">small-N personal regime</text>
-
-<rect x="450" y="50" width="200" height="120" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
-<text x="550" y="70" font-family="JetBrains Mono" font-size="9" fill="#2563EB" letter-spacing="0.8" text-anchor="middle">PERSONAL PRECOMMITMENT</text>
-<text x="550" y="92" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">write down what evidence</text>
-<text x="550" y="106" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">would change your mind</text>
-<text x="550" y="128" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">decided in advance, not under fire</text>
-<text x="550" y="142" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">includes Darwin's notebook (§4)</text>
-<text x="550" y="162" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">a personal artifact-class move</text>
-
-<g stroke="#6B6258" stroke-width="1.2" stroke-dasharray="3,3">
-  <line x1="130" y1="170" x2="130" y2="226" marker-end="url(#f8arrow)"/>
-  <line x1="340" y1="170" x2="340" y2="226" marker-end="url(#f8arrow)"/>
-  <line x1="550" y1="170" x2="550" y2="226" marker-end="url(#f8arrow)"/>
-</g>
-<text x="340" y="200" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">generalize at the team / institution scale</text>
-
-<text x="340" y="252" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">SYSTEMS-LAYER MOVES (§8)</text>
-
-<rect x="30" y="270" width="200" height="130" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2" rx="3"/>
-<text x="130" y="290" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">OUTSIDE REVIEW</text>
-<text x="130" y="312" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">red team, dissent register,</text>
-<text x="130" y="326" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">post-publication critique</text>
-<text x="130" y="348" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">scout's self-tests, externalized:</text>
-<text x="130" y="362" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">someone else runs them on you,</text>
-<text x="130" y="376" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">in writing, on the record</text>
-
-<rect x="240" y="270" width="200" height="130" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2" rx="3"/>
-<text x="340" y="290" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">TEAM AGGREGATION + SCORING</text>
-<text x="340" y="312" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">multiple forecasts, scored</text>
-<text x="340" y="326" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">and aggregated</text>
-<text x="340" y="348" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">Goldstein "All Surveys Logit":</text>
-<text x="340" y="362" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the GJP-best aggregator that beat ICPM</text>
-<text x="340" y="376" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">on Brier (ex-post selection caveat noted)</text>
-
-<rect x="450" y="270" width="200" height="130" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2" rx="3"/>
-<text x="550" y="290" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">PRECOMMITMENT REGISTER</text>
-<text x="550" y="312" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">team-wide log of</text>
-<text x="550" y="326" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">change-of-mind triggers</text>
-<text x="550" y="348" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">decision-architecture move:</text>
-<text x="550" y="362" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">criteria committed before evidence,</text>
-<text x="550" y="376" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">visible to everyone on the team</text>
-
-<text x="130" y="394" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.6" text-anchor="middle"></text>
-
-<line x1="30" y1="430" x2="650" y2="430" stroke="#C9BEAA" stroke-width="0.6" stroke-dasharray="2,3"/>
-
-<text x="340" y="450" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">LITERATURE-SCALE INSTANCE</text>
-
-<rect x="30" y="466" width="620" height="74" fill="#F9F5EB" stroke="#8F8578" stroke-width="1" rx="3"/>
-<text x="44" y="486" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="0.8">HAUENSTEIN 2025 vs MELLERS 2014</text>
-<text x="44" y="506" font-family="serif" font-size="11" fill="#1A1A1A">the same architecture, run at field scale: a published study (Mellers 2014), a published reanalysis</text>
-<text x="44" y="520" font-family="serif" font-size="11" fill="#1A1A1A">that contests its causal claim (Hauenstein 2025), an open record. post-publication critique in the</text>
-<text x="44" y="534" font-family="serif" font-size="11" fill="#1A1A1A">literature is what scout mode at the largest scale looks like.</text>
-
-</svg>
-<figcaption><strong>Fig 8.</strong> Two tiers, plus a literature-scale row. Top: the individual moves from §7 (the five Galef tests, personal calibration tracking, personal precommitment in the Darwin-notebook tradition). Bottom: the systems-layer moves the diagnosis from §4 demands. Outside review and post-publication critique externalize the self-tests; team aggregation generalizes personal Brier into Goldstein's "All Surveys Logit"; a team-wide precommitment register generalizes the personal one. The bottom row pulls the structural pattern up to literature scale: Hauenstein 2025's published reanalysis contesting Mellers 2014 is post-publication critique, not pre-agreed adversarial collaboration, but it is the same family of move running at the field-as-system scale.</figcaption>
-</figure>
-
-The diagram in Figure 8 sketches how the individual moves and the systems-layer moves nest. The five Galef tests sit at the personal scale; precommitment and calibration tracking sit at the personal-or-team scale; aggregation, outside review, and post-publication critique sit at the team-or-institutional scale. The throughline from section 2 is what reappears explicitly here. Goldstein's "All Surveys Logit" was the largest-scale instance of an aggregation move. Your two-person team running blind first-pass forecasts before discussion is a smaller instance of the same kind of move. They share a structural shape and a math story; the difference is the scale they run at.
-
-What this section is for: if you read sections 7 and 8 and only ran the five tests, you'd get part of the way. Most of the gap section 4 diagnosed is in the architecture, not in the individual cognitive workout. The systems-layer moves are how you take a piece of social architecture and bend it back toward truth-tracking. They are slower and harder to start than the five tests. They are also the part of the toolkit that structurally matches what the §4 diagnosis says the problem is; the GJP-scale evidence in §6 supports the aggregation-under-independence piece specifically, not the broader toolkit as a deployment.
-
-{/* Reader can now: name three or more systems-layer moves that complement Galef's individual tests; predict that running individual tests without any systems-layer support will leave the social-architectural problem mostly intact; sketch what the scout-mode equivalent of the Goldstein aggregator looks like inside a small team. */}
+§6 is the architecture layer. The moves here are slower to start than the five tests in §5, and they require cooperation from people beyond you. §7 is the smallest version of all of this that survives at the personal scale: one habit, one notebook, one dated line.
 
 ### 9. The trainability picture: small effects, unresolved transfer (and what this means for the closing move)
 
