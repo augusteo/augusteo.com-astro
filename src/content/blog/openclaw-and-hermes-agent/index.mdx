@@ -356,7 +356,82 @@ The switch, when you have other sessions you don't fully trust, is: "set `agents
 
 That switch implies a typology. The trusted session (`main`) runs on the host with full access. Non-`main` sessions, which arrive when other people, other channels, or scheduled jobs invoke the agent, run inside the configured sandbox backend.
 
-{/* TODO: Fig 3: OpenClawSandboxTiers. Three-panel side-by-side: (a) host execution for `main` (full host access); (b) Docker default sandbox (typical allow/deny defaults inset); (c) SSH and OpenShell alternate backends. Workspace-access modes `none` / `ro` / `rw` shown as a small inset table. */}
+<figure>
+<svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SECURITY MODEL: HOST FOR MAIN, SANDBOXES FOR NON-MAIN</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">three execution tiers, plus three workspace-access modes orthogonal to them</text>
+
+<rect x="20" y="60" width="200" height="220" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="120" y="84" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">MAIN SESSION</text>
+<text x="120" y="100" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">runs on host, full access</text>
+
+<rect x="50" y="118" width="140" height="86" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="120" y="136" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">your laptop</text>
+<line x1="60" y1="144" x2="180" y2="144" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="120" y="160" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">~/code, ~/Documents</text>
+<text x="120" y="176" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">~/.ssh, ~/.aws, ~/.cache</text>
+<text x="120" y="196" font-family="serif" font-size="10" font-style="italic" fill="#059669" text-anchor="middle">unrestricted tool surface</text>
+
+<text x="120" y="234" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A" text-anchor="middle">"the agent is genuinely you"</text>
+<text x="120" y="252" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">all tools allowed; no fence</text>
+<text x="120" y="266" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">around your own machine</text>
+
+<rect x="240" y="60" width="200" height="220" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="340" y="84" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">NON-MAIN: DOCKER (DEFAULT)</text>
+<text x="340" y="100" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">curated allow and deny</text>
+
+<rect x="270" y="118" width="140" height="86" fill="#F4EEE3" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="4,2" rx="3"/>
+<text x="340" y="136" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">DOCKER CONTAINER</text>
+<line x1="280" y1="144" x2="400" y2="144" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="282" y="160" font-family="serif" font-size="9" fill="#059669">+ bash, process, read,</text>
+<text x="282" y="172" font-family="serif" font-size="9" fill="#059669">  write, edit, sessions_*</text>
+<text x="282" y="188" font-family="serif" font-size="9" fill="#B91C1C">− browser, canvas, nodes,</text>
+<text x="282" y="200" font-family="serif" font-size="9" fill="#B91C1C">  cron, discord, gateway</text>
+
+<text x="340" y="234" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A" text-anchor="middle">deny list cuts the lines that</text>
+<text x="340" y="252" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">could redraw the boundary</text>
+<text x="340" y="266" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">around the sandbox itself</text>
+
+<rect x="460" y="60" width="200" height="220" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="560" y="84" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">NON-MAIN: SSH / OPENSHELL</text>
+<text x="560" y="100" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">alternate backends</text>
+
+<rect x="488" y="118" width="65" height="86" fill="#F4EEE3" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="4,2" rx="3"/>
+<text x="520" y="138" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">SSH</text>
+<text x="520" y="160" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">remote</text>
+<text x="520" y="174" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">host</text>
+<text x="520" y="194" font-family="serif" font-size="8" font-style="italic" fill="#6B6258" text-anchor="middle">offload</text>
+
+<rect x="563" y="118" width="65" height="86" fill="#F4EEE3" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="4,2" rx="3"/>
+<text x="595" y="138" font-family="JetBrains Mono" font-size="8" fill="#2563EB" text-anchor="middle">OPENSHELL</text>
+<text x="595" y="160" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">light-</text>
+<text x="595" y="174" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">weight</text>
+<text x="595" y="194" font-family="serif" font-size="8" font-style="italic" fill="#6B6258" text-anchor="middle">shell</text>
+
+<text x="560" y="234" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A" text-anchor="middle">where Docker isn't available</text>
+<text x="560" y="252" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">no daemon required, or run</text>
+<text x="560" y="266" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">on a different machine</text>
+
+<rect x="20" y="300" width="640" height="104" fill="#F4EEE3" stroke="#C9BEAA" stroke-width="0.8" rx="3"/>
+<text x="340" y="320" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">WORKSPACE-ACCESS MODES (orthogonal to backend choice)</text>
+
+<text x="50" y="346" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#1A1A1A">none</text>
+<text x="120" y="346" font-family="serif" font-size="10" fill="#1A1A1A">isolated workspace under <tspan font-family="JetBrains Mono" font-size="9">~/.openclaw/sandboxes/&lt;sessionId&gt;/workspace</tspan></text>
+<text x="120" y="358" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">sandbox cannot see your work</text>
+
+<text x="50" y="376" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#1A1A1A">ro</text>
+<text x="120" y="376" font-family="serif" font-size="10" fill="#1A1A1A">workspace mounted read-only at <tspan font-family="JetBrains Mono" font-size="9">/agent</tspan> inside the sandbox</text>
+<text x="120" y="388" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">sandbox can read your work, cannot modify it</text>
+
+<text x="380" y="346" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#1A1A1A">rw</text>
+<text x="430" y="346" font-family="serif" font-size="10" fill="#1A1A1A">workspace mounted read-write at <tspan font-family="JetBrains Mono" font-size="9">/workspace</tspan></text>
+<text x="430" y="358" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">tool-side writes propagate back to the host</text>
+<text x="430" y="378" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">"the sandbox is essentially the agent"</text>
+
+</svg>
+<figcaption><strong>Fig 3.</strong> OpenClaw's security model has one rule and one switch. <em>Rule</em>: a `main` session runs on the host with full access. <em>Switch</em>: setting <code>agents.defaults.sandbox.mode: "non-main"</code> runs all other sessions inside the configured backend (Docker by default; SSH and OpenShell as alternates). The Docker default allows `bash`, `process`, `read`, `write`, `edit`, and the `sessions_*` family; the deny list cuts `browser`, `canvas`, `nodes`, `cron`, `discord`, and `gateway`. The three workspace-access modes are orthogonal to backend choice: even within "this is sandboxed," you decide whether the sandbox sees none of your work, reads it only, or reads and writes it.</figcaption>
+</figure>
 
 The Docker backend has a typical default capability set. The README spells it out:
 
