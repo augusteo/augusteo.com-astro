@@ -1044,6 +1044,72 @@ The matrix backs one specific semantic claim about a subset of the backends: per
 
 Subagent isolation. The README's feature entry is "Spawn isolated subagents for parallel workstreams." Two distinct mechanisms back this claim. The first is `delegate_task`, a tool that spawns process-and-context-isolated subagents inside the existing backend. The second is `hermes -w`, added in the v0.2.0 release as "Git Worktree Isolation": `hermes -w` launches isolated agent sessions in git worktrees, so two subagents working on the same repo don't step on each other's working trees. Process isolation and filesystem isolation: the same word, two different mechanisms.
 
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<defs>
+  <marker id="f12arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+  </marker>
+</defs>
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SUBAGENT ISOLATION: TWO MECHANISMS</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">"isolated subagents" can mean process isolation or filesystem isolation</text>
+
+<rect x="20" y="60" width="310" height="240" fill="#F9F5EB" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="175" y="84" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">PROCESS ISOLATION</text>
+<text x="175" y="100" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">delegate_task tool</text>
+
+<rect x="40" y="116" width="270" height="124" fill="#F4EEE3" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="4,2" rx="3"/>
+<text x="175" y="132" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">SAME BACKEND CONTAINER</text>
+
+<rect x="60" y="142" width="100" height="42" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="110" y="160" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A" text-anchor="middle">parent</text>
+<text x="110" y="174" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">process</text>
+
+<line x1="162" y1="163" x2="188" y2="163" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f12arrow)"/>
+<text x="175" y="156" font-family="JetBrains Mono" font-size="7" fill="#6B6258" text-anchor="middle">delegate</text>
+
+<rect x="190" y="142" width="100" height="42" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="240" y="160" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A" text-anchor="middle">subagent</text>
+<text x="240" y="174" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">process</text>
+
+<rect x="60" y="194" width="230" height="38" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8" rx="2"/>
+<text x="175" y="210" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle">SHARED WORKSPACE</text>
+<text x="175" y="223" font-family="serif" font-size="9" font-style="italic" fill="#92400E" text-anchor="middle">both processes read/write the same files</text>
+
+<text x="175" y="262" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">boundary at the OS-process level;</text>
+<text x="175" y="276" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">contexts isolated, files shared.</text>
+<text x="175" y="290" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">parallel workstreams in one container.</text>
+
+<rect x="350" y="60" width="310" height="240" fill="#F9F5EB" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="505" y="84" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">FILESYSTEM ISOLATION</text>
+<text x="505" y="100" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">hermes -w (git worktree, v0.2.0+)</text>
+
+<rect x="370" y="116" width="130" height="80" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="435" y="134" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">parent worktree</text>
+<text x="435" y="150" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle">{"~/repo/main/"}</text>
+<text x="435" y="170" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">parent agent</text>
+<text x="435" y="184" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">working on main</text>
+
+<rect x="510" y="116" width="130" height="80" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="575" y="134" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">child worktree</text>
+<text x="575" y="150" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle">{"~/repo/feature/"}</text>
+<text x="575" y="170" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">subagent</text>
+<text x="575" y="184" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">working on feature</text>
+
+<rect x="370" y="206" width="270" height="42" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8" stroke-dasharray="3,2" rx="2"/>
+<text x="505" y="222" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle">SAME GIT REPO (.git)</text>
+<text x="505" y="235" font-family="serif" font-size="9" font-style="italic" fill="#92400E" text-anchor="middle">different working directories; no file collision</text>
+
+<text x="505" y="262" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">boundary at the working-directory level;</text>
+<text x="505" y="276" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">two subagents on the same repo</text>
+<text x="505" y="290" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">don't step on each other's edits.</text>
+
+</svg>
+<figcaption><strong>Fig 12.</strong> Two mechanisms hide behind one phrase. *Process isolation* (the `delegate_task` tool) spawns a subagent process inside the same backend container; the parent and child are different OS processes but share the workspace filesystem. The boundary protects the *agent context* (each gets its own working memory and tool history). *Filesystem isolation* (`hermes -w`, added in v0.2.0) launches a subagent in a separate git worktree of the same repo; the boundary protects the *working tree* so two subagents editing the same project don't collide. Different problems, different walls.</figcaption>
+</figure>
+
 The point of the tool stack and the backend list is what the closed loop sits on. Skills run inside one of the seven backends. Subagents run inside a (possibly different) one of the seven. The agent's adaptation surface scales with what the backends allow, and the backends' diversity is the deployment knob.
 
 {/* Reader can now: identify the seven README-listed backends and the documented Daytona/Modal serverless-persistence niche per row 34. */}
