@@ -618,9 +618,9 @@ Run 3 closed F2-F6, F9-F12 directly; F1, F7, F8 are recorded as Step-6 overrides
 
 ## Resume here
 
-Phase 5.5 task 1 — draft §1 prose.
+Phase 6 — playwright per-figure review. The 7 redrawn figures (4 static SVG, 3 interactive Svelte islands) need browser-rendering review, same protocol as the openclaw-and-hermes-agent post's Phase 6.
 
-Last touched: 2026-05-08 (Phase 7 closed; post-cap Vic-mandated codex consult applied 3 STRUCTURAL + 1 ADVISORY findings across commits `ff5f2e1`, `72a5698`, `3099504`, `9d7db16`. All three prior Step-6 overrides reaffirmed. MDX stays `draft: true`; Vic owns the ship. Phase 5.5 rewrite triggered by Vic feedback on 2026-05-08.).
+Last touched: 2026-05-09 (Phase 5.5 narrative rewrite done; 7-section spine around the AI-takeoff running belief landed; 3 interactive figures (Svelte islands) + 4 static SVGs redrawn; in-body author-year stitching demoted; refs reorganized by section. MDX still `draft: true`. Phase 6 playwright review next.).
 
 ### Phase 6 fix summary
 
@@ -657,9 +657,11 @@ The remaining Phase-6-watchlist items (Fig 5 hand-placed curve labels; Fig 10 ou
 | 2026-05-08 | 2 (final) Run 3 | 12 STRUCTURAL findings; gate-runner cap hit; **Step-6 escape fired**; F2-F6, F9-F12 applied as batch E; **F1 (Galef-rows-secondary), F7 (Darwin/GJP/Hauenstein over-connection), F8 (systems-layer-toolkit-unsourced) recorded as Step-6 overrides** (documented reasoning in `## Codex final review` Run 3 disposition). The MDX stays `draft: true` per hard rule #9; Vic's ship commit will carry the override audit trail. | `notes/scout-mindset-codex-final-run3-20260508.md` + `## Codex final review` Run 3 disposition |
 | 2026-05-08 | post-cap codex consult (Vic-mandated extra pass beyond Gate 2 Run 3) | 3 STRUCTURAL + 1 ADVISORY; all 4 applied as commits `ff5f2e1` (F1 Fig 9 geometry fix — Panel A circles were ~10pp visually too high, Panel B CI bounds 2-9px off; recomputed from axis units), `72a5698` (F2 verbatim-quote capitalization restored across Kunda/LRL/Ditto-Lopez/Mellers/Swaryandini), `3099504` (F3 unmatrixed "no published response" line dropped from §10 closing), `9d7db16` (A3 §8 closing line tightened — separated structural-match-to-§4-diagnosis from empirical-GJP-evidence claim). All three Step-6 overrides reaffirmed by codex (A1, A2, A3). MDX still `draft: true`. | this row + commits above |
 
-## Phase 5.5 — narrative rewrite (in flight)
+## Phase 5.5 — narrative rewrite (done 2026-05-09)
 
 Triggered 2026-05-08 by Vic feedback ("too researchy and not enough narrative or intuition"). Spec: `notes/scout-mindset-rewrite-2026-05-08-design.md`. Plan: `notes/scout-mindset-rewrite-2026-05-08-plan.md`. Codex consult chose option B (compress to 7 sections around a running belief); adversarial follow-up integrated as spine v2.
+
+10 sections → 7; 10 figures → 7 redrawn; 3 figures interactive (Svelte 5 islands); refs reorganized by section. Spec at notes/scout-mindset-rewrite-2026-05-08-design.md, plan at notes/scout-mindset-rewrite-2026-05-08-plan.md.
 
 Running belief: "AI-assisted quantity takeoff cuts estimator hours by ~40% on commercial bid packages, and that gain holds across estimators rather than just the early adopters."
 
