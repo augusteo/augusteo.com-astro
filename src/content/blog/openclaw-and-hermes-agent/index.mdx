@@ -129,7 +129,100 @@ Three failures, three dials. The next section places the running scenario on the
 
 Three failures, three dials, one running scenario.
 
-{/* TODO: Fig 1: ThreeDialMap. Three orthogonal axes (lifespan, surface, adaptation) drawn together; v1 / v2 / v3 / v4 placed at the failing rung on each axis; small annotations at each rung climb explain "what broke that motivated this rung." */}
+<figure>
+<svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<defs>
+  <marker id="f1arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+  </marker>
+</defs>
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">THREE DIALS, ONE RUNNING SCENARIO</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">v1 through v4 climb three different dials, one at a time</text>
+
+<rect x="20" y="56" width="200" height="260" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="120" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">LIFESPAN</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="38" y="110">scheduled</text>
+  <text x="38" y="172">daemon</text>
+  <text x="38" y="234">session</text>
+  <text x="38" y="296">one-shot</text>
+</g>
+<line x1="38" y1="116" x2="202" y2="116" stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3"/>
+
+<circle cx="160" cy="166" r="10" fill="#2563EB"/>
+<text x="160" y="170" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v3</text>
+<circle cx="186" cy="166" r="10" fill="#2563EB"/>
+<text x="186" y="170" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v4</text>
+
+<circle cx="173" cy="228" r="10" fill="#2563EB"/>
+<text x="173" y="232" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v2</text>
+
+<circle cx="173" cy="290" r="10" fill="#2563EB"/>
+<text x="173" y="294" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v1</text>
+
+<path d="M 184 280 Q 210 254 184 238" fill="none" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f1arrow)"/>
+<path d="M 184 218 Q 210 192 184 176" fill="none" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f1arrow)"/>
+
+<rect x="240" y="56" width="200" height="260" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="340" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SURFACE</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="258" y="110">multi-channel</text>
+  <text x="258" y="204">gateway</text>
+  <text x="258" y="296">CLI / API</text>
+</g>
+<line x1="258" y1="210" x2="422" y2="210" stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3"/>
+
+<circle cx="380" cy="104" r="10" fill="#2563EB"/>
+<text x="380" y="108" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v3</text>
+<circle cx="406" cy="104" r="10" fill="#2563EB"/>
+<text x="406" y="108" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v4</text>
+
+<circle cx="380" cy="290" r="10" fill="#2563EB"/>
+<text x="380" y="294" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v1</text>
+<circle cx="406" cy="290" r="10" fill="#2563EB"/>
+<text x="406" y="294" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v2</text>
+
+<path d="M 418 280 Q 440 200 418 116" fill="none" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f1arrow)"/>
+
+<rect x="460" y="56" width="200" height="260" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="560" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">ADAPTATION</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="478" y="110">skill creation</text>
+  <text x="478" y="204">persistent memory</text>
+  <text x="478" y="296">stateless</text>
+</g>
+<line x1="478" y1="210" x2="642" y2="210" stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3"/>
+
+<circle cx="613" cy="104" r="10" fill="#2563EB"/>
+<text x="613" y="108" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v4</text>
+
+<circle cx="574" cy="290" r="10" fill="#2563EB"/>
+<text x="574" y="294" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v1</text>
+<circle cx="600" cy="290" r="10" fill="#2563EB"/>
+<text x="600" y="294" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v2</text>
+<circle cx="626" cy="290" r="10" fill="#2563EB"/>
+<text x="626" y="294" font-family="JetBrains Mono" font-size="10" fill="#FFFFFF" text-anchor="middle">v3</text>
+
+<path d="M 638 280 Q 656 200 625 118" fill="none" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f1arrow)"/>
+
+<text x="120" y="338" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">v1→v2: review continuity broke.</text>
+<text x="120" y="351" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">v2→v3: gateway needs always-on host.</text>
+
+<text x="340" y="338" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">v2→v3: engineers don't open</text>
+<text x="340" y="351" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">terminals; the agent must reach</text>
+<text x="340" y="364" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">where the work happens.</text>
+
+<text x="560" y="338" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">v3→v4: conventions never reached</text>
+<text x="560" y="351" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">the agent; codify them as skills.</text>
+
+</svg>
+<figcaption><strong>Fig 1.</strong> The three dials and the running scenario's climb on each. *Lifespan*: v1 at one-shot, v2 at session, v3 and v4 at daemon. *Surface*: v1 and v2 at CLI / API, v3 and v4 at multi-channel. *Adaptation*: v1, v2, and v3 at stateless, v4 at skill creation. No version sits at the top of every dial; each climb is one dial at a time.</figcaption>
+</figure>
 
 Each rung climb in the running scenario is a different dial. v1 to v2 changed lifespan. v2 to v3 changed surface. v3 to v4 changed adaptation. The team didn't have a single agent problem; it had three agent problems, and only after each was named separately did "the right agent shape" stop being a single ranking.
 
