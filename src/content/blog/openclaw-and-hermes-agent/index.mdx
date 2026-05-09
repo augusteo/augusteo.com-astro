@@ -501,7 +501,70 @@ The first highlight is "A closed learning loop." The README defines that loop in
 
 That is the post's spine for Act 3. Each piece names an arc of the loop.
 
-{/* TODO: Fig 5: HermesClosedLoop. Circular flow diagram: task -> autonomous skill creation -> mid-use refinement -> FTS5 cross-session recall -> Honcho user model -> next task. Honcho box annotated as external (Plastic Labs, AGPL-3.0). */}
+<figure>
+<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<defs>
+  <marker id="f5arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+  </marker>
+</defs>
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">HERMES'S CLOSED LEARNING LOOP</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">four arcs running together; experience compounds between turns</text>
+
+<text x="340" y="226" font-family="serif" font-size="12" font-style="italic" fill="#6B6258" text-anchor="middle">closed loop</text>
+<text x="340" y="244" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">runs four arcs in parallel</text>
+
+<rect x="270" y="60" width="140" height="44" fill="#2563EB" opacity="0.88" stroke="#1A1A1A" stroke-width="1" rx="4"/>
+<text x="340" y="80" font-family="JetBrains Mono" font-size="11" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.2">TASK</text>
+<text x="340" y="96" font-family="serif" font-size="10" font-style="italic" fill="#FFFFFF" text-anchor="middle">user prompt arrives</text>
+
+<rect x="413" y="164" width="140" height="44" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="483" y="184" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">skill creation</text>
+<text x="483" y="200" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">codifies the procedure</text>
+
+<rect x="358" y="331" width="140" height="44" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="428" y="351" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">mid-use refinement</text>
+<text x="428" y="367" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">rewrites the skill on the way</text>
+
+<rect x="182" y="331" width="140" height="44" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="252" y="351" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">FTS5 recall</text>
+<text x="252" y="367" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">searches past sessions</text>
+
+<rect x="127" y="164" width="140" height="44" fill="#F9F5EB" stroke="#9333EA" stroke-width="1.5" rx="4"/>
+<text x="197" y="184" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">Honcho user model</text>
+<text x="197" y="200" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">"who is asking" Dialectic API</text>
+
+<rect x="127" y="138" width="140" height="20" fill="#EDE0FC" stroke="#9333EA" stroke-width="0.8" rx="2"/>
+<text x="197" y="152" font-family="JetBrains Mono" font-size="9" fill="#9333EA" text-anchor="middle" letter-spacing="1">EXTERNAL · PLASTIC LABS · AGPL-3.0</text>
+
+<path d="M 410 90 Q 470 100 480 158" fill="none" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f5arrow)"/>
+<path d="M 488 208 Q 510 270 460 326" fill="none" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f5arrow)"/>
+<path d="M 358 354 Q 340 358 322 354" fill="none" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f5arrow)"/>
+<path d="M 220 326 Q 170 270 192 208" fill="none" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f5arrow)"/>
+<path d="M 200 158 Q 210 100 270 90" fill="none" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f5arrow)"/>
+
+<text x="416" y="135" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">after a complex</text>
+<text x="416" y="148" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">task succeeds</text>
+
+<text x="510" y="278" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">during the next</text>
+<text x="510" y="291" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">invocation</text>
+
+<text x="280" y="394" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">recall pulls in</text>
+<text x="280" y="407" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">prior transcripts</text>
+
+<text x="92" y="278" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">peer-keyed</text>
+<text x="92" y="291" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">across all sessions</text>
+
+<text x="186" y="118" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">next task arrives</text>
+<text x="186" y="131" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">in richer context</text>
+
+<text x="340" y="438" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">three arcs are agent-curated; the fourth (Honcho) is an external library, opt-in via Hermes's `[honcho]` extra</text>
+
+</svg>
+<figcaption><strong>Fig 5.</strong> The closed loop runs four arcs in parallel between turns. <em>Skills</em> codify procedures from successful tasks. <em>Mid-use refinement</em> rewrites a skill while it is executing. <em>FTS5 recall</em> searches past session transcripts when the procedure is not yet a skill. The <em>Honcho user model</em> is a peer-keyed Dialectic API maintained as an external library by Plastic Labs (AGPL-3.0). The base Hermes wheel is MIT; Honcho ships only when the install path goes through `hermes-agent[honcho]` or an aggregate extra that includes it.</figcaption>
+</figure>
 
 The arcs sit on three different gradients of "what carries forward." Skill creation says: this task surfaced a procedure worth keeping, codify it. Mid-use refinement says: this skill almost worked, rewrite it on the way. FTS5 recall says: a different conversation knew the answer, find that conversation. The Honcho user model says: separate from any specific task, the agent should know who is asking. The four arcs run together, not as a single algorithm but as a set of practices the agent applies between turns.
 
