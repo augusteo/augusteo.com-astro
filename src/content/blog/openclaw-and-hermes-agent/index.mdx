@@ -33,7 +33,7 @@ This post replaces the ladder with three dials.
 
 *Lifespan* is how long the agent's process lives: one-shot CLI invocation, then a sessioned interaction, then a daemon, then a scheduled job.
 
-*Surface and control plane* is how the agent is reached: CLI or API, then a gateway, then a multi-channel assistant.
+*Surface and control plane* is how the agent is reached: CLI or API, then a gateway (one always-on routing surface as the architectural bet), then a multi-channel assistant (channel breadth itself as the distinguishing feature). A framework with many channel adapters can still sit at the gateway rung if the always-on control plane is what distinguishes it; the rungs label the architectural bet, not the feature checklist.
 
 *Adaptation* is whether and how the agent changes between turns: stateless every time, or persistent memory, or skill creation that compounds.
 
