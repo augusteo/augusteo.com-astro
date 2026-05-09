@@ -246,7 +246,73 @@ Three things follow from that framing.
 
 The agent is not a CLI. The agent is not an SDK. The agent is a process that has been running on your laptop since you logged in this morning, accepting traffic from any of the channels you've configured it to listen on, holding sessions for each of those channels, and routing tool calls through a single point.
 
-{/* TODO: Fig 2: OpenClawArchitecture. Gateway as architectural center; channels feeding in (DM, group chat, cron job; matrix-backed only per row 16); sessions branching out per channel routing rule; workspaces (per-agent filesystem roots) shown; tools layer below. */}
+<figure>
+<svg viewBox="0 0 680 410" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<defs>
+  <marker id="f2arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+  </marker>
+</defs>
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">OPENCLAW ARCHITECTURE</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">channels feed one gateway, gateway routes per agent</text>
+
+<text x="40" y="74" font-family="JetBrains Mono" font-size="9" fill="#6B6258" letter-spacing="1.2">CHANNELS</text>
+
+<rect x="120" y="60" width="120" height="48" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="180" y="80" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">DM</text>
+<text x="180" y="96" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">direct message</text>
+
+<rect x="280" y="60" width="120" height="48" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="340" y="80" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">group chat</text>
+<text x="340" y="96" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">team thread</text>
+
+<rect x="440" y="60" width="120" height="48" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="500" y="80" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A" text-anchor="middle">cron job</text>
+<text x="500" y="96" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">scheduled trigger</text>
+
+<line x1="180" y1="110" x2="240" y2="148" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f2arrow)"/>
+<line x1="340" y1="110" x2="340" y2="148" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f2arrow)"/>
+<line x1="500" y1="110" x2="440" y2="148" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f2arrow)"/>
+
+<rect x="120" y="150" width="440" height="68" fill="#2563EB" opacity="0.88" stroke="#1A1A1A" stroke-width="1" rx="4"/>
+<text x="340" y="174" font-family="JetBrains Mono" font-size="12" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.4">GATEWAY</text>
+<text x="340" y="193" font-family="serif" font-size="11" font-style="italic" fill="#FFFFFF" text-anchor="middle">always-on control plane: sessions, channels, tools, events</text>
+<text x="340" y="209" font-family="serif" font-size="9" fill="#DBEAFE" text-anchor="middle">launchd / systemd user service</text>
+
+<text x="340" y="234" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">routed per channel / account / peer</text>
+
+<line x1="220" y1="220" x2="180" y2="252" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f2arrow)"/>
+<line x1="460" y1="220" x2="500" y2="252" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f2arrow)"/>
+
+<rect x="40" y="254" width="280" height="100" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="180" y="274" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">AGENT: HOME</text>
+<text x="180" y="288" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">~/.openclaw/agents/home/workspace/</text>
+
+<rect x="60" y="300" width="120" height="22" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="120" y="315" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-aaa.jsonl</text>
+<rect x="190" y="300" width="120" height="22" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="250" y="315" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-bbb.jsonl</text>
+<text x="180" y="340" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">sessions persist as JSONL on disk</text>
+
+<rect x="360" y="254" width="280" height="100" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="500" y="274" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">AGENT: WORK</text>
+<text x="500" y="288" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">~/.openclaw/agents/work/workspace/</text>
+
+<rect x="380" y="300" width="120" height="22" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="440" y="315" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-ccc.jsonl</text>
+<rect x="510" y="300" width="120" height="22" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="570" y="315" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-ddd.jsonl</text>
+<text x="500" y="340" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">isolated workspace, separate sessions</text>
+
+<rect x="40" y="368" width="600" height="32" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8" rx="3"/>
+<text x="60" y="388" font-family="JetBrains Mono" font-size="10" fill="#92400E" letter-spacing="1.2">TOOLS</text>
+<text x="350" y="388" font-family="serif" font-size="11" font-style="italic" fill="#92400E" text-anchor="middle">bash · process · read · write · edit · sessions_send · sessions_spawn · cron · ...</text>
+
+</svg>
+<figcaption><strong>Fig 2.</strong> OpenClaw's Gateway sits at the architectural center. Inbound channels (DM, group chat, cron job, per the README's session-routing examples) all land at one always-on process; the Gateway routes each message to one of the agents it hosts, by origin. Each agent has its own filesystem workspace and a JSONL session store. The tool layer is shared but governed at the session boundary.</figcaption>
+</figure>
 
 The second highlight follows directly from the first: multi-agent routing. The README's exact phrasing is "route inbound channels/accounts/peers to isolated agents (workspaces + per-agent sessions)." A single Gateway can host multiple agents, like a `home` agent and a `work` agent, each with its own filesystem root, its own session store, its own bootstrap files. The routing rule binds inbound traffic to one of those agents based on where the message arrived from: which channel, which account, which peer.
 
