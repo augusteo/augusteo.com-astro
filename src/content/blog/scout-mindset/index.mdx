@@ -433,7 +433,211 @@ Section 4 gave you a procedural answer: use Brier scores, calibration curves, an
 
 **Status Quo Bias Test.** If I were starting from scratch in 2026 with the evidence I have now, and not the path-dependent commitment to selling this software, would I still adopt the 40% claim with the confidence I currently hold it? My position on this belief has been compounding for several years. Some of that compounding is genuine learning from customers and deployments. Some of it is sunk cost. The test doesn't decompose those two for you, but it puts the question on the table in a way that staying inside your normal belief-update rhythm doesn't.
 
-{/* FIGURE: §5 — Galef worksheet matrix + pressure map; rendered in task 13 */}
+<figure>
+<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+{/* ── Caveat banner ──────────────────────────────────────── */}
+<text x="340" y="16" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">this is the post's reading of how each test pressures the 40% belief; reasonable readers may pair them differently.</text>
+
+{/* ── Column header row ──────────────────────────────────── */}
+<text x="65" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">TEST</text>
+<text x="188" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">QUESTION ASKED</text>
+<text x="318" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">WHAT IT ATTACKS</text>
+<text x="430" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">40% CLAIM MUST ANSWER</text>
+<line x1="10" y1="41" x2="470" y2="41" stroke="#C9BEAA" stroke-width="1"/>
+
+{/* ── Pressure-map panel header ─────────────────────────── */}
+<text x="580" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">PRESSURE MAP</text>
+<line x1="480" y1="41" x2="670" y2="41" stroke="#C9BEAA" stroke-width="1"/>
+
+{/* ── Row 1: Double Standard Test (blue #2563EB) ─────────── */}
+<rect x="10" y="44" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="44" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="62" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">DOUBLE</text>
+<text x="70" y="75" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">STANDARD</text>
+<text x="70" y="88" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="44" x2="130" y2="118" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="64" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">Would I demand the same</text>
+<text x="188" y="77" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">study design from my own</text>
+<text x="188" y="90" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">pilot that I'd demand</text>
+<text x="188" y="103" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">from a competitor's?</text>
+<line x1="246" y1="44" x2="246" y2="118" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="64" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Asymmetric evidentiary</text>
+<text x="318" y="77" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">thresholds — a stricter bar</text>
+<text x="318" y="90" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">for threatening claims than</text>
+<text x="318" y="103" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">for preferred ones.</text>
+<line x1="390" y1="44" x2="390" y2="118" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="64" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">My own pilot data hasn't</text>
+<text x="430" y="77" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">been held to the design</text>
+<text x="430" y="90" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">standard I'd impose on</text>
+<text x="430" y="103" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">anyone else's 40% claim.</text>
+
+{/* ── Row 2: Outsider Test (green #059669) ────────────────── */}
+<rect x="10" y="120" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="120" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="142" font-family="JetBrains Mono" font-size="9" fill="#059669" text-anchor="middle" letter-spacing="0.8" font-weight="bold">OUTSIDER</text>
+<text x="70" y="155" font-family="JetBrains Mono" font-size="9" fill="#059669" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="120" x2="130" y2="194" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="143" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">What would a stranger</text>
+<text x="188" y="156" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">advise, holding only the</text>
+<text x="188" y="169" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">data — not my years</text>
+<text x="188" y="182" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">of demos?</text>
+<line x1="246" y1="120" x2="246" y2="194" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="143" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Path dependence: the</text>
+<text x="318" y="156" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">conviction feels warranted</text>
+<text x="318" y="169" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">by accumulated experience,</text>
+<text x="318" y="182" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">not just the data.</text>
+<line x1="390" y1="120" x2="390" y2="194" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="143" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">The data alone is</text>
+<text x="430" y="156" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">thinner than my conviction</text>
+<text x="430" y="169" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">implies, and may not</text>
+<text x="430" y="182" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">generalize past early adopters.</text>
+
+{/* ── Row 3: Conformity Test (orange #B8651A) ─────────────── */}
+<rect x="10" y="196" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="196" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="218" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">CONFORMITY</text>
+<text x="70" y="231" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="196" x2="130" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="218" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">Would I still hold the</text>
+<text x="188" y="231" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">claim if my YC peers</text>
+<text x="188" y="244" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">and industry group</text>
+<text x="188" y="257" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">moved off it?</text>
+<line x1="246" y1="196" x2="246" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="218" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Social architecture: peer</text>
+<text x="318" y="231" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">consensus doing evidentiary</text>
+<text x="318" y="244" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">work that the data</text>
+<text x="318" y="257" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">itself should do.</text>
+<line x1="390" y1="196" x2="390" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="218" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">The YC construction-tech</text>
+<text x="430" y="231" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">bubble may not represent</text>
+<text x="430" y="244" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">how non-adopters</text>
+<text x="430" y="257" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">would perform.</text>
+
+{/* ── Row 4: Selective Skeptic Test (rust #92400E) ─────────── */}
+<rect x="10" y="272" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="272" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="294" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">SELECTIVE</text>
+<text x="70" y="307" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">SKEPTIC</text>
+<text x="70" y="320" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="272" x2="130" y2="346" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="294" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">Do I scrutinize an under-</text>
+<text x="188" y="307" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">delivering pilot as harshly</text>
+<text x="188" y="320" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">as I celebrate an</text>
+<text x="188" y="333" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">over-delivering one?</text>
+<line x1="246" y1="272" x2="246" y2="346" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="294" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Asymmetric objection</text>
+<text x="318" y="307" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">generation: more reasons</text>
+<text x="318" y="320" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">to discount bad results</text>
+<text x="318" y="333" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">than good ones.</text>
+<line x1="390" y1="272" x2="390" y2="346" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="294" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">I find methodological</text>
+<text x="430" y="307" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">flaws in fail-pilots</text>
+<text x="430" y="320" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">that I don't generate</text>
+<text x="430" y="333" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">for win-pilots.</text>
+
+{/* ── Row 5: Status Quo Bias Test (violet #6D28D9) ─────────── */}
+<rect x="10" y="348" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="348" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="370" font-family="JetBrains Mono" font-size="9" fill="#6D28D9" text-anchor="middle" letter-spacing="0.8" font-weight="bold">STATUS QUO</text>
+<text x="70" y="383" font-family="JetBrains Mono" font-size="9" fill="#6D28D9" text-anchor="middle" letter-spacing="0.8" font-weight="bold">BIAS</text>
+<text x="70" y="396" font-family="JetBrains Mono" font-size="9" fill="#6D28D9" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="348" x2="130" y2="422" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="370" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">Starting from scratch in</text>
+<text x="188" y="383" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">2026 with this evidence,</text>
+<text x="188" y="396" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">no path-dependent</text>
+<text x="188" y="409" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">commitment — would I adopt?</text>
+<line x1="246" y1="348" x2="246" y2="422" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="370" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Prior anchoring: the sunk</text>
+<text x="318" y="383" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">cost of years of conviction</text>
+<text x="318" y="396" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">inflates confidence beyond</text>
+<text x="318" y="409" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">what the data warrants.</text>
+<line x1="390" y1="348" x2="390" y2="422" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="370" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Years of path-dependent</text>
+<text x="430" y="383" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">commitment inflates the</text>
+<text x="430" y="396" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">headline figure beyond what</text>
+<text x="430" y="409" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">non-adopter data can support.</text>
+
+{/* ── Bottom border of worksheet ─────────────────────────── */}
+<line x1="10" y1="422" x2="470" y2="422" stroke="#C9BEAA" stroke-width="1"/>
+<line x1="10" y1="44" x2="10" y2="422" stroke="#C9BEAA" stroke-width="1"/>
+<line x1="470" y1="44" x2="470" y2="422" stroke="#C9BEAA" stroke-width="1"/>
+
+{/* ── Pressure-map component boxes ──────────────────────── */}
+{/* effect size — y center: 82 */}
+<rect x="484" y="58" width="180" height="46" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="574" y="76" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">EFFECT SIZE</text>
+<text x="574" y="91" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">does it really cut hours by 40%?</text>
+
+{/* generalizes — y center: 158 */}
+<rect x="484" y="134" width="180" height="46" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="574" y="152" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">GENERALIZES</text>
+<text x="574" y="167" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">holds across estimators, not just</text>
+{/* extra line for this one */}
+<text x="574" y="178" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">early adopters?</text>
+
+{/* non-adopters — y center: 248 */}
+<rect x="484" y="224" width="180" height="46" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="574" y="242" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">NON-ADOPTERS</text>
+<text x="574" y="257" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">would they save 40% if forced?</text>
+
+{/* measurement — y center: 338 */}
+<rect x="484" y="314" width="180" height="46" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="574" y="332" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">MEASUREMENT</text>
+<text x="574" y="347" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same definition of "hours" pre</text>
+<text x="574" y="358" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">and post rollout?</text>
+
+{/* ── Pressure lines: test → components ─────────────────── */}
+{/* marker defs for arrow heads */}
+<defs>
+  <marker id="pm-blue" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#2563EB"/>
+  </marker>
+  <marker id="pm-green" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#059669"/>
+  </marker>
+  <marker id="pm-orange" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#B8651A"/>
+  </marker>
+  <marker id="pm-rust" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#92400E"/>
+  </marker>
+  <marker id="pm-violet" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#6D28D9"/>
+  </marker>
+</defs>
+
+{/* Row 1 center y = 44+37 = 81. Double Standard → effect size (y=81) + measurement (y=337) */}
+<path d="M470,81 C476,81 476,81 484,81" stroke="#2563EB" stroke-width="1.5" fill="none" marker-end="url(#pm-blue)"/>
+<path d="M470,81 C476,81 478,337 484,337" stroke="#2563EB" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-blue)"/>
+
+{/* Row 2 center y = 120+37 = 157. Outsider → effect size (y=81) + generalizes (y=157) */}
+<path d="M470,157 C476,157 480,81 484,81" stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-green)"/>
+<path d="M470,157 C476,157 476,157 484,157" stroke="#059669" stroke-width="1.5" fill="none" marker-end="url(#pm-green)"/>
+
+{/* Row 3 center y = 196+37 = 233. Conformity → generalizes (y=157) + non-adopters (y=247) */}
+<path d="M470,233 C476,233 480,157 484,157" stroke="#B8651A" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-orange)"/>
+<path d="M470,233 C476,233 476,247 484,247" stroke="#B8651A" stroke-width="1.5" fill="none" marker-end="url(#pm-orange)"/>
+
+{/* Row 4 center y = 272+37 = 309. Selective Skeptic → effect size (y=81) + measurement (y=337) */}
+<path d="M470,309 C476,309 480,81 484,81" stroke="#92400E" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-rust)"/>
+<path d="M470,309 C476,309 478,337 484,337" stroke="#92400E" stroke-width="1.5" fill="none" marker-end="url(#pm-rust)"/>
+
+{/* Row 5 center y = 348+37 = 385. Status Quo Bias → effect size (y=81) + non-adopters (y=247) */}
+<path d="M470,385 C476,385 480,81 484,81" stroke="#6D28D9" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-violet)"/>
+<path d="M470,385 C476,385 478,247 484,247" stroke="#6D28D9" stroke-width="1.5" fill="none" marker-end="url(#pm-violet)"/>
+
+{/* ── Legend ─────────────────────────────────────────────── */}
+<line x1="484" y1="405" x2="664" y2="405" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="574" y="420" font-family="JetBrains Mono" font-size="8" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">LINE KEY</text>
+<line x1="490" y1="432" x2="524" y2="432" stroke="#6B6258" stroke-width="1.5"/>
+<text x="530" y="436" font-family="serif" font-size="9" fill="#6B6258">primary pressure</text>
+<line x1="490" y1="447" x2="524" y2="447" stroke="#6B6258" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="530" y="451" font-family="serif" font-size="9" fill="#6B6258">secondary pressure</text>
+
+</svg>
+<figcaption><strong>Fig 5.</strong> Galef's five Chapter-5 tests as a worksheet on the 40% takeoff belief, plus a pressure map showing which components of the belief each test most stresses. The five tests in order: Double Standard, Outsider, Conformity, Selective Skeptic, Status Quo Bias. Test names are verbatim from Galef; the right-column entries and the pressure-map mapping are this post's reading. Each test most plausibly addresses a §3 asymmetry: Double Standard and Selective Skeptic operate on the Ditto-Lopez asymmetric-thresholds mechanism; Outsider operates on the Kunda directional-retrieval mechanism; Conformity operates on the social-architecture layer that Mercier-Sperber and Trivers describe; Status Quo Bias operates on the prior-anchored Lord-Ross-Lepper polarization mechanism. The mapping is the author's, not Galef's.</figcaption>
+</figure>
 
 The tests are fast and individual. You can run all five on a single belief before your next meeting. What they can't reach, on their own, is the team-scale architecture where the same motivated-reasoning mechanisms operate across people rather than inside one person's head. Section 6 is the complement: what to do when the individual tests aren't enough because the belief is held collectively and the asymmetries are load-bearing for the whole organization.
 
