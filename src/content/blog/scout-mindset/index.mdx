@@ -10,6 +10,9 @@ draft: true
 essay: true
 ---
 
+import Figure from "@components/figure/Figure.svelte";
+import ScoutSoldier from "@components/figures/scout-mindset/ScoutSoldier.svelte";
+
 *A mechanism-first take on Julia Galef's 2021 book* The Scout Mindset. *Not a book review. The post walks the empirical literature on motivated reasoning, identity-protective cognition, and the Good Judgment Project, then prescribes the smallest durable habit consistent with what the sources actually say. About a 30-minute read.*
 
 ### 1. A Tuesday morning, and the belief I keep losing arguments about
@@ -24,7 +27,10 @@ First version: a contingency table, no labels attached. Two groups of estimators
 
 Second version: the same table, same numbers, same arithmetic. But now the header reads "Boon AI-Assisted Takeoff: Vendor Efficacy Study." And you know I built Boon. The 38% is still 38%. Your update is not the same.
 
-{/* FIGURE: §1 — two-updates sketch with 40% takeoff belief as loaded framing; rendered in task 9 */}
+<figure>
+  <ScoutSoldier client:visible />
+  <figcaption><strong>Fig 1.</strong> Scout mode vs. soldier mode running on the same evidence stream about the 40% takeoff claim. Soldier mode (top) routes inbound events through `defend`, `explain away`, `raise burden of proof` gates that protect the existing credence. Scout mode (bottom) routes through `record`, `separate signal/noise`, `update` and lets the credence move with what the evidence weighs. Toggle the stream between preferred and dispreferred to watch the divergence. The scout trace responds symmetrically to evidential weight; the soldier trace responds asymmetrically to valence. The two architectures are the visual thesis the rest of the post turns on.</figcaption>
+</figure>
 
 The numbers are identical. The conclusion the arithmetic points to is identical. What changed is whether the labels attach the evidence to something you already have a position on, something where agreeing or disagreeing costs you something socially or professionally. The brain applies more scrutiny to inconvenient evidence and less to convenient evidence, and it does this without announcing itself. You don't feel like you're doing motivated reasoning. You feel like you're being careful.
 
