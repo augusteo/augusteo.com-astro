@@ -50,285 +50,33 @@ So: I have a financial stake in the thing I'm trying to assess. I have an inform
 
 Section 6 will say what I'm going to do about it. The rest of this post is what I learned trying to figure out what to do.
 
-### 3. The three asymmetries (and the contested fourth case)
+### 3. What's actually happening inside the head
 
-The puzzle from section 2 has a long empirical pre-history. Three pieces of motivated-reasoning research from the 1970s, 1990s, and 2010s converge on the same picture: the brain handles evidence asymmetrically depending on whether the conclusion the evidence points to is one you'd already prefer. The book that put the case in front of a wide audience, [Michael Lewis's *The Undoing Project*](/blog/undoing-project) on Kahneman and Tversky's bias catalog, is the foundation Galef's frame stacks on. This section reaches behind that catalog to three of the specific empirical findings that make the catalog more than a metaphor, and then adds a fourth case the field is still arguing about.
+Naming the conflict from §2 is not enough. Knowing that I hold a belief I keep losing arguments about doesn't explain why the bias persists after I've identified it. The architecture of cognition makes it survive exactly that kind of awareness. What follows is a walk through what the brain actually does with takeoff-claim evidence: three settled asymmetries, a contested fourth case, and then the deeper frame that explains why knowing all this still leaves the problem mostly unsolved.
 
-**(a) Directional goals bias what your search retrieves.** Ziva Kunda's 1990 review article "[The Case for Motivated Reasoning](https://fbaum.unc.edu/teaching/articles/Psych-Bulletin-1990-Kunda.pdf)" is the canonical statement of the result. In Kunda's formulation: "Directional goals affect reasoning by affecting which information will be considered in the reasoning process." The point is sharper than "smart people rationalize away inconvenient facts." It's that the brain doesn't *find* the inconvenient facts in the first place. Memory retrieval is biased; counterexamples that would surface if the directional goal were different stay below threshold. The reasoning that follows looks careful, careful inferences from a coherent body of evidence, and it is careful; it just operates on a curated input.
+**Directional retrieval.** The first asymmetry is upstream of reasoning altogether. [Kunda's canonical statement of the result](https://fbaum.unc.edu/teaching/articles/Psych-Bulletin-1990-Kunda.pdf) locates the effect at the retrieval stage: "Directional goals affect reasoning by affecting which information will be considered in the reasoning process." The brain doesn't find the inconvenient facts and then explain them away. It doesn't retrieve them in the first place. Counterexamples that would surface if the directional goal were different stay below threshold, and the reasoning that follows looks careful -- and is careful -- but it operates on a curated input. Apply this to the takeoff belief. When I'm thinking about my 40% claim, which case studies does my brain surface? Which estimator-hours papers? Which industry survey numbers? The evidence pool I'm reasoning from is not neutral. The directional goal has already run a filter before I've written down the first consideration. The careful inference that follows is careful reasoning on a biased sample.
 
-**(b) Identical evidence polarizes, not converges.** The 1979 [Lord, Ross, and Lepper study](https://doi.org/10.1037/0022-3514.37.11.2098) put 48 Stanford undergraduates with strong prior beliefs about capital punishment in front of a deliberately balanced packet of two studies, one supporting and one undermining the deterrence hypothesis. Both groups read the same studies. Both groups walked away more confident in their original positions than they had been before the experiment started. In the authors' words: "The result of exposing contending factions in a social dispute to an identical body of relevant empirical evidence may be not a narrowing of disagreement but rather an increase in polarization." Same evidence in. Greater disagreement out.
+**Biased assimilation.** The second asymmetry operates on evidence after it arrives. Imagine two estimators read the same balanced case study: one AI takeoff pilot that won, one that lost, written up with comparable detail and methodological care. The estimator who already trusts the 40% claim walks away more confident in it. The estimator who already doubts it walks away more confident in the opposite. Same packet in. Greater disagreement out. That's the pattern the [1979 Lord, Ross, and Lepper study](https://doi.org/10.1037/0022-3514.37.11.2098) documented: 48 Stanford undergraduates with strong prior beliefs about capital punishment read a deliberately balanced set of two studies, and both groups ended up more confident in their original positions than when they started. The mechanism is not that people ignore the counter-evidence. They engage with it -- and engage with it in ways that reinforce the position they came in with. For the takeoff belief, this means a balanced case-study portfolio is not a path to convergence. It is a path to the believers and the skeptics each feeling more vindicated.
 
-**(c) Preferred conclusions face lower evidentiary thresholds.** [Peter Ditto and David Lopez, in 1992](https://doi.org/10.1037/0022-3514.63.4.568), gave subjects a fake medical test for a fake "TAA enzyme" deficiency. Half the subjects were told the result they got indicated a serious health problem; the other half were told their result indicated they were fine. Subjects in the unfavorable-result condition spent longer scrutinizing the test, were more likely to retest, and were more likely to question the test's validity. In Ditto and Lopez's words: "Information consistent with a preferred conclusion is examined less critically than information inconsistent with a preferred conclusion, and consequently, less information is required to reach the former than the latter." The bar moves with the conclusion.
+**Asymmetric thresholds.** The third asymmetry is about how much evidence is enough. The bar for accepting a conclusion you'd prefer is lower than the bar for accepting one you wouldn't. [Ditto and Lopez's 1992 experiment](https://doi.org/10.1037/0022-3514.63.4.568) gave subjects a fake test result for a fake enzyme deficiency. Subjects who got bad news retested, scrutinized the test longer, and questioned its validity more. Subjects who got good news filed it quickly. In Ditto and Lopez's formulation: "Less information is required to reach the former than the latter." Translate to the takeoff belief: a study showing that AI takeoff fails on a particular package type gets re-read, gets methodological questions, gets "but were the estimators well-trained?" A study showing that AI takeoff succeeds at a comparable scale gets a mental "told you so" and moves to the confirmation pile. The bar isn't fixed. It moves with the conclusion, and it moves automatically, without any conscious choice to apply extra scrutiny to the bad news.
 
-These three are the spine of the motivated-reasoning literature, cited and elaborated in subsequent decades' work. Take them together and the personal-scale failure mode from section 1 looks less like a quirk and more like a default operating procedure: the brain retrieves selectively (Kunda), polarizes under identical evidence (Lord/Ross/Lepper), and applies a lower bar to conclusions you already prefer (Ditto/Lopez).
+**The contested fourth case.** Dan Kahan's research program asks a harder question: does quantitative skill rescue you from the three asymmetries above? His [2017 paper with Peters, Dawson, and Slovic](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2319992) tested numeracy against identity-protective cognition on a politically loaded contingency table. The result the paper reports: more numerate subjects polarized along identity lines *more* than less numerate ones, not less. The frame is *identity-protective cognition*: the brain deploys whatever cognitive equipment it has, including statistical literacy, in service of conclusions consistent with the identity it's defending. Apply this to the takeoff belief: a numerate estimator who is skeptical of AI takeoff doesn't get less polarized when she's better at reading effect-size tables. She may get more polarized, because her statistical literacy lets her construct sharper objections. Being good at the tools doesn't immunize you against deploying them directionally.
 
-<figure>
-<svg viewBox="0 0 680 600" xmlns="http://www.w3.org/2000/svg" width="100%">
+That result, if it held cleanly, would be the most striking of the four. It hasn't held cleanly. Two preregistered replications found the basic effect -- numeracy doesn't rescue you -- but not the dramatic high-numeracy amplification. The dose response, the specific claim that more skill means more polarization, did not survive under preregistered criteria. The dissents from those replications and from a subsequent conceptual critique are detailed in the figure caption below. The take-home from the Kahan literature is the basic finding: quantitative skill is not a defense. It is not the stronger claim that skill actively amplifies the problem.
 
-<defs>
-<marker id="f3arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-  <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
-</marker>
-<marker id="f3arrowB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-  <path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/>
-</marker>
-<marker id="f3arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-  <path d="M0,0 L10,5 L0,10 z" fill="#B8651A"/>
-</marker>
-</defs>
+{/* FIGURE: §3 — biased assimilation as four operational panels: retrieve / weigh / threshold / identity alarm; rendered in task 11 */}
 
-<rect x="20" y="40" width="310" height="240" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
-<text x="34" y="60" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="1.2">(a) DIRECTIONAL RETRIEVAL · KUNDA 1990</text>
+**The architecture that produces these patterns is social.** Mercier and Sperber's argumentative theory of reasoning holds that reasoning evolved primarily to produce and evaluate arguments in social-persuasive contexts, not to help the individual arrive at better private beliefs. If that's the design brief, the three asymmetries above stop looking like flaws. Directional retrieval is what you'd expect from a system optimized to build a case for your side. Biased assimilation is the natural output of a system that's running "win the argument" rather than "converge on truth." Trivers's complementary frame closes the loop on the self-deception side: self-deception evolved as a mechanism that makes outward deception more credible. If the false belief is genuinely held, the deceiver leaks no involuntary tells. The brain has to be its own audience first. Put Mercier and Sperber together with Trivers and the asymmetries stop looking like bugs in an otherwise truth-seeking machine. They look like surface features of a system shaped by a very different design brief. The architecture that produces these patterns is social, which is why the rest of this post can't end with five thought experiments.
 
-<ellipse cx="160" cy="170" rx="120" ry="56" fill="#DBEAFE" stroke="#2563EB" stroke-width="1" opacity="0.6"/>
-<text x="160" y="106" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">memory pool</text>
-
-<g fill="#2563EB">
-  <circle cx="100" cy="160" r="3.5"/>
-  <circle cx="120" cy="180" r="3.5"/>
-  <circle cx="170" cy="155" r="3.5"/>
-  <circle cx="200" cy="180" r="3.5"/>
-  <circle cx="220" cy="160" r="3.5"/>
-</g>
-<g fill="#C9BEAA">
-  <circle cx="80" cy="180" r="3"/>
-  <circle cx="140" cy="190" r="3"/>
-  <circle cx="160" cy="175" r="3"/>
-  <circle cx="180" cy="160" r="3"/>
-  <circle cx="240" cy="180" r="3"/>
-</g>
-
-<text x="120" y="234" font-family="serif" font-size="10" font-style="italic" fill="#2563EB" text-anchor="middle">retrieved</text>
-<circle cx="80" cy="234" r="3" fill="#2563EB"/>
-<text x="220" y="234" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">not retrieved</text>
-<circle cx="180" cy="234" r="2.5" fill="#C9BEAA"/>
-
-<line x1="50" y1="120" x2="100" y2="155" stroke="#92400E" stroke-width="1.5" marker-end="url(#f3arrow)"/>
-<text x="50" y="110" font-family="JetBrains Mono" font-size="9" fill="#92400E">directional</text>
-<text x="50" y="122" font-family="JetBrains Mono" font-size="9" fill="#92400E">goal</text>
-
-<text x="170" y="262" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">which evidence the brain even surfaces</text>
-
-<rect x="350" y="40" width="310" height="240" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
-<text x="364" y="60" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="1.2">(b) BIASED ASSIMILATION · LRL 1979</text>
-
-<line x1="380" y1="170" x2="640" y2="170" stroke="#8F8578" stroke-width="1"/>
-<text x="510" y="186" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">capital-punishment view</text>
-
-<circle cx="430" cy="170" r="6" fill="#2563EB"/>
-<text x="430" y="158" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">A prior</text>
-<circle cx="590" cy="170" r="6" fill="#B8651A"/>
-<text x="590" y="158" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">B prior</text>
-
-<path d="M 430 170 Q 410 110 400 110" fill="none" stroke="#2563EB" stroke-width="1.5" marker-end="url(#f3arrowB)"/>
-<circle cx="395" cy="110" r="5" fill="none" stroke="#2563EB" stroke-width="1.5"/>
-<text x="395" y="98" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">A post</text>
-
-<path d="M 590 170 Q 610 110 620 110" fill="none" stroke="#B8651A" stroke-width="1.5" marker-end="url(#f3arrowR)"/>
-<circle cx="625" cy="110" r="5" fill="none" stroke="#B8651A" stroke-width="1.5"/>
-<text x="625" y="98" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">B post</text>
-
-<rect x="392" y="216" width="236" height="36" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.6" rx="2" opacity="0.55"/>
-<text x="510" y="230" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">same balanced packet of two studies</text>
-<text x="510" y="244" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">(Stanford undergrads, n = 48)</text>
-
-<text x="510" y="270" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">posteriors move apart, not together</text>
-
-<rect x="20" y="300" width="310" height="240" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
-<text x="34" y="320" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="1.2">(c) ASYMMETRIC THRESHOLDS · DITTO &amp; LOPEZ 1992</text>
-
-<line x1="60" y1="490" x2="280" y2="490" stroke="#8F8578" stroke-width="1"/>
-<text x="170" y="510" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">"how much evidence does it take?"</text>
-
-<rect x="80" y="430" width="50" height="60" fill="#DBEAFE" stroke="#2563EB" stroke-width="1"/>
-<text x="105" y="450" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">prefer-</text>
-<text x="105" y="462" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">red</text>
-<text x="105" y="478" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle">low bar</text>
-
-<line x1="65" y1="430" x2="145" y2="430" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="4,3"/>
-<text x="155" y="434" font-family="serif" font-size="10" font-style="italic" fill="#2563EB">accept</text>
-
-<rect x="200" y="380" width="50" height="110" fill="#FBE9CE" stroke="#B8651A" stroke-width="1"/>
-<text x="225" y="412" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">non-</text>
-<text x="225" y="424" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">preferred</text>
-<text x="225" y="442" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle">high bar</text>
-
-<line x1="185" y1="380" x2="265" y2="380" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4,3"/>
-<text x="275" y="384" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">retest,</text>
-<text x="275" y="397" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">scrutinize</text>
-
-<text x="170" y="538" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">less evidence required for the conclusion you'd already prefer</text>
-
-<rect x="350" y="300" width="310" height="240" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4,3" rx="4" opacity="0.6"/>
-<text x="364" y="320" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="1.2">(d) KAHAN 2017 · CONTESTED FOURTH CASE</text>
-
-<line x1="390" y1="450" x2="630" y2="450" stroke="#8F8578" stroke-width="1"/>
-<line x1="390" y1="350" x2="390" y2="450" stroke="#8F8578" stroke-width="1"/>
-<text x="510" y="468" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">numeracy →</text>
-<text x="380" y="400" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="end" transform="rotate(-90 380 400)">polarization →</text>
-
-<path d="M 390 440 Q 470 432 530 412 T 630 360" fill="none" stroke="#92400E" stroke-width="2"/>
-<text x="610" y="356" font-family="serif" font-size="10" font-style="italic" fill="#92400E" text-anchor="end">Kahan 2017</text>
-<text x="610" y="370" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="end">"more polarized"</text>
-
-<rect x="382" y="476" width="246" height="60" fill="#EDE5D4" stroke="#B91C1C" stroke-width="0.8" rx="3"/>
-<text x="394" y="490" font-family="JetBrains Mono" font-size="9" fill="#B91C1C" letter-spacing="0.6">DISSENTS</text>
-<text x="394" y="504" font-family="serif" font-size="9" fill="#1A1A1A">Persson 2021: preregistered replication, no</text>
-<text x="394" y="514" font-family="serif" font-size="9" fill="#1A1A1A">good evidence under the criteria.</text>
-<text x="394" y="524" font-family="serif" font-size="9" fill="#1A1A1A">Connor 2024: basic effect held, high-</text>
-<text x="394" y="534" font-family="serif" font-size="9" fill="#1A1A1A">numeracy amplification did not.</text>
-
-<text x="510" y="566" font-family="serif" font-size="10" font-style="italic" fill="#92400E" text-anchor="middle">Glüer-Pagin &amp; Spectre 2025: motivation to reason, not motivated reasoning</text>
-<text x="510" y="582" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">treated as candidate mechanism, hedged on the dose response</text>
-
-</svg>
-<figcaption><strong>Fig 3.</strong> Three settled asymmetries in panels (a)-(c) plus the contested fourth case in panel (d). Panel (a) sketches Kunda's directional-retrieval point: which memories surface depends on the directional goal, not just on what's available. Panel (b) is the LRL polarization shape: same evidence in, posteriors further apart than priors. Panel (c) is Ditto and Lopez's asymmetric-threshold finding: the bar for accepting a preferred conclusion is lower than the bar for accepting a non-preferred one. Panel (d) is the Kahan ICT result with its dashed-border "contested" frame and the three replication / conceptual dissents ([Persson 2021](https://doi.org/10.1016/j.cognition.2021.104768), [Connor 2024](https://doi.org/10.1017/bpp.2020.32), [Glüer-Pagin and Spectre 2025](https://doi.org/10.1007/s13164-024-00737-w)) that the post takes seriously when citing it.</figcaption>
-</figure>
-
-**(d) The contested fourth case: identity-protective cognition.** Dan Kahan's research program is the most recent addition to this picture. His [2017 paper "Motivated Numeracy and Enlightened Self-Government"](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2319992), with Peters, Dawson, and Slovic, took the Lord/Ross/Lepper-style polarization result and asked whether quantitative skill rescues you from it. The answer the paper reports: no, and worse than no. On a politically loaded contingency table about gun-control policy, more numerate subjects polarized along their existing political identity *more* than less numerate ones did, not less. Kahan's frame for this is *identity-protective cognition*: under the right conditions, the brain deploys whatever cognitive equipment it has, including numeracy, in service of conclusions consistent with the identity it's defending. The default-to-truth adaptation [Malcolm Gladwell describes in *Talking to Strangers*](/blog/talking-to-strangers), where the brain assumes the speaker isn't lying, is one of these sensible-but-narrow adaptations; default-to-defend-identity is another.
-
-If that result held cleanly, it would be the most striking asymmetry of the four. It hasn't held cleanly. The replication-and-interpretation literature accumulated dissents in the years following the original finding. [Persson and colleagues' 2021 preregistered replication](https://doi.org/10.1016/j.cognition.2021.104768) in *Cognition* "did not find good evidence for motivated numeracy" under preregistered criteria. [Connor and colleagues' replication in a Western European sample](https://doi.org/10.1017/bpp.2020.32) "replicate the basic motivated numeracy effect, but...do not find evidence of increased polarization among high-numeracy participants." That is, the small effect survived; the dramatic high-numeracy amplification didn't. [Glüer-Pagin and Spectre's 2024 conceptual critique](https://doi.org/10.1007/s13164-024-00737-w) argues the mechanism Kahan posits doesn't quite fit the data: the effect "involve[s] plenty of motivation to reason, but no motivated reasoning." These are not breaking-news dissents; they are the historical replication and conceptual context that accumulated through the early 2020s. Together they leave the Kahan case as a finding the post takes seriously without taking the strong dose-response form on faith.
-
-So the post takes the broader idea, that quantitative skill can be deployed in service of identity and the architecture of cognition supports this kind of use, as the candidate mechanism. It explicitly hedges the specific high-numeracy-amplifies-polarization dose response. We're calling this the contested fourth case rather than the fourth asymmetry on purpose. It's a different kind of finding than (a) through (c): more recent, more disputed, more central to a particular political-psychology research program. The intuition payoff is sharper for being honest. Smart people fail at calibrated judgment because the architecture of cognition is built around three settled asymmetries, plus a fourth case whose specific dose response the literature has accumulated dissents about.
-
-{/* Reader can now: name the three settled asymmetries; explain the contested status of the fourth (Kahan ICT); predict that "just be more rational" doesn't survive the literature; explain what makes the Kahan case different in kind from the first three. */}
-
-### 4. The architecture beneath: why the asymmetries are the default
-
-The three settled asymmetries from section 3 don't behave like incidental glitches. The original studies report them as outputs of the way reasoning ordinarily works, not as failures of attention or training. Two research programs from the past two decades go further and offer a frame for *why* a normally-functioning brain would produce them.
-
-**Reason is built for argument.** Hugo Mercier and Dan Sperber's [*The Enigma of Reason*](https://www.hup.harvard.edu/books/9780674368309) (Harvard University Press, 2017) is the most-discussed recent statement of the case. Their argumentative theory holds that reasoning evolved primarily to produce and evaluate arguments in social-persuasive contexts, not to help the individual arrive at better beliefs in isolation. If that's the design brief, the asymmetries from section 3 stop looking like flaws. Confirmation bias starts looking like a working feature: it's how you build a strong case for your side. Polarization on identical evidence is what you'd expect from a system that's optimizing for "win the argument," not "converge on truth."
-
-**Self-deception serves outward deception.** Robert Trivers's [*The Folly of Fools*](https://us.macmillan.com/books/9780465085972/thefollyoffools) (Basic Books, 2011) is the older complement. Trivers's central argument is that self-deception evolved as a mechanism that makes outward deception more credible. If the false belief is genuinely held, the deceiver transmits no involuntary tells. The brain has to be its own audience first; the listener is the second audience. The line that recurs in Trivers's interviews about the book is that the primary reason we fool ourselves is to fool others, and the reason we fool others is the same reason any social organism deceives: there's an information advantage on the line.
-
-Mercier-Sperber and Trivers don't *prove* the §3 asymmetries are surface features of the architecture they describe; that's a step neither book attempts and no paper in the matrix establishes. What they offer is a frame in which directional retrieval, biased assimilation, and asymmetric thresholds stop looking like a personal failure and start looking like the kind of pattern you'd expect from a system shaped by the social uses of reasoning. The frame is conceptual, not causal. The §3 asymmetries are real on their own terms; what Act 2's diagnosis adds is a reason to expect them to be sticky.
-
-This has a stronger consequence than "try harder to think well." It says a single reader, sitting alone, running self-tests on themselves, can only get so far against patterns that are likely social in origin. Section 7 will give you five of those self-tests anyway. The trainability literature in §9 will be honest about how strong a claim "self-tests like these reliably move outcomes" can carry; the short answer is "small but real for related interventions, and unstudied for Galef's specific tests in particular." Section 8 will insist that the architecture-shaped problem demands a *systems* layer too. The Mercier-Sperber and Trivers frames are what make that demand non-optional.
-
-<figure>
-<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%">
-
-<defs>
-<marker id="f4dotarrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-  <path d="M0,0 L10,5 L0,10 z" fill="#8F8578"/>
-</marker>
-</defs>
-
-<text x="220" y="32" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">SURFACE: ASYMMETRIES IN HOW EVIDENCE IS PROCESSED</text>
-
-<rect x="20" y="50" width="95" height="92" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
-<text x="67.5" y="68" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="0.8" text-anchor="middle">KUNDA 1990</text>
-<text x="67.5" y="86" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">directional</text>
-<text x="67.5" y="100" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">retrieval bias</text>
-<text x="67.5" y="124" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">which info</text>
-<text x="67.5" y="136" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">surfaces</text>
-
-<rect x="125" y="50" width="95" height="92" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
-<text x="172.5" y="68" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="0.8" text-anchor="middle">LRL 1979</text>
-<text x="172.5" y="86" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">biased</text>
-<text x="172.5" y="100" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">assimilation</text>
-<text x="172.5" y="124" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same evidence</text>
-<text x="172.5" y="136" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">polarizes</text>
-
-<rect x="230" y="50" width="95" height="92" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2" rx="3"/>
-<text x="277.5" y="68" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="0.8" text-anchor="middle">DITTO &amp; LOPEZ 1992</text>
-<text x="277.5" y="86" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">asymmetric</text>
-<text x="277.5" y="100" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">thresholds</text>
-<text x="277.5" y="124" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">lower bar for</text>
-<text x="277.5" y="136" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">preferred</text>
-
-<rect x="335" y="50" width="95" height="92" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2" stroke-dasharray="4,3" rx="3"/>
-<text x="382.5" y="68" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">KAHAN 2017</text>
-<text x="382.5" y="86" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">identity-protective</text>
-<text x="382.5" y="100" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">cognition</text>
-<text x="382.5" y="124" font-family="serif" font-size="9" font-style="italic" fill="#B91C1C" text-anchor="middle">contested</text>
-<text x="382.5" y="136" font-family="serif" font-size="9" font-style="italic" fill="#B91C1C" text-anchor="middle">fourth case</text>
-
-<g stroke="#8F8578" stroke-width="0.8" stroke-dasharray="3,3">
-  <line x1="67.5" y1="142" x2="105" y2="220"/>
-  <line x1="172.5" y1="142" x2="115" y2="220"/>
-  <line x1="277.5" y1="142" x2="320" y2="220"/>
-  <line x1="382.5" y1="142" x2="330" y2="220"/>
-</g>
-<text x="220" y="200" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">surface features of …</text>
-
-<text x="220" y="240" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">SUBSTRATE: SOCIAL ARCHITECTURE THE BRAIN RUNS ON</text>
-
-<rect x="20" y="258" width="200" height="100" fill="#F9F5EB" stroke="#92400E" stroke-width="1.2" rx="3"/>
-<text x="120" y="278" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">MERCIER &amp; SPERBER 2017</text>
-<text x="120" y="298" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">reason is built for argument</text>
-<text x="120" y="324" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">reasoning evolved for justification and</text>
-<text x="120" y="338" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">persuasion in social contexts, not solo</text>
-<text x="120" y="352" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">truth-seeking.</text>
-
-<rect x="230" y="258" width="200" height="100" fill="#F9F5EB" stroke="#92400E" stroke-width="1.2" rx="3"/>
-<text x="330" y="278" font-family="JetBrains Mono" font-size="9" fill="#92400E" letter-spacing="0.8" text-anchor="middle">TRIVERS 2011</text>
-<text x="330" y="298" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">self-deception serves</text>
-<text x="330" y="312" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">outward deception</text>
-<text x="330" y="332" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">if the false belief is genuinely held,</text>
-<text x="330" y="346" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">the deceiver leaks no involuntary tells.</text>
-
-<text x="220" y="386" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">a frame for why these patterns persist (Mercier-Sperber + Trivers)</text>
-<text x="220" y="402" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">for a different design brief than "estimate probabilities"</text>
-
-<line x1="438" y1="40" x2="438" y2="420" stroke="#C9BEAA" stroke-width="0.8" stroke-dasharray="2,3"/>
-
-<rect x="455" y="50" width="210" height="270" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.5" rx="6"/>
-<line x1="475" y1="50" x2="475" y2="320" stroke="#8F8578" stroke-width="1"/>
-<g stroke="#C9BEAA" stroke-width="0.4">
-  <line x1="490" y1="86" x2="650" y2="86"/>
-  <line x1="490" y1="102" x2="650" y2="102"/>
-  <line x1="490" y1="118" x2="650" y2="118"/>
-  <line x1="490" y1="134" x2="650" y2="134"/>
-  <line x1="490" y1="150" x2="650" y2="150"/>
-  <line x1="490" y1="166" x2="650" y2="166"/>
-  <line x1="490" y1="182" x2="650" y2="182"/>
-  <line x1="490" y1="198" x2="650" y2="198"/>
-  <line x1="490" y1="214" x2="650" y2="214"/>
-  <line x1="490" y1="230" x2="650" y2="230"/>
-  <line x1="490" y1="246" x2="650" y2="246"/>
-  <line x1="490" y1="262" x2="650" y2="262"/>
-  <line x1="490" y1="278" x2="650" y2="278"/>
-  <line x1="490" y1="294" x2="650" y2="294"/>
-</g>
-
-<text x="560" y="74" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="1.0" text-anchor="middle">DARWIN, AUTOBIOGRAPHY 1876–1881</text>
-
-<text x="490" y="100" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">a published fact ... opposed</text>
-<text x="490" y="116" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">to my general results, make</text>
-<text x="490" y="132" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">a memorandum of it without</text>
-<text x="490" y="148" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">fail and at once. for I had</text>
-<text x="490" y="164" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">found by experience that</text>
-<text x="490" y="180" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">such facts ... were far more</text>
-<text x="490" y="196" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">apt to escape from memory</text>
-<text x="490" y="212" font-family="serif" font-size="10" fill="#1A1A1A" font-style="italic">than favourable ones.</text>
-
-<text x="560" y="248" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">an external system</text>
-<text x="560" y="262" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">that survives the</text>
-<text x="560" y="276" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle">individual's own forgetting</text>
-
-<text x="560" y="304" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle">→ §8 generalizes the artifact class</text>
-
-<text x="560" y="350" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">Darwin's contribution wasn't a self-test.</text>
-<text x="560" y="364" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">It was an artifact: the notebook itself.</text>
-
-</svg>
-<figcaption><strong>Fig 4.</strong> Two layers, with Darwin's notebook on the right as the artifact-class counter-move. Top: the three settled asymmetries (Kunda, LRL, Ditto and Lopez) plus Kahan's identity-protective-cognition framework, marked as the contested fourth case with a dashed border. Bottom: the conceptual frames <a href="https://www.hup.harvard.edu/books/9780674368309">Mercier and Sperber</a> and <a href="https://us.macmillan.com/books/9780465085972/thefollyoffools">Trivers</a> offer for why patterns like the §3 asymmetries would be sticky in a brain shaped by social uses of reasoning. The dashed connectors mark a conceptual relationship, not a causal pathway from substrate to specific asymmetry. The notebook is what §8 will generalize: a class of moves that store disconfirming evidence outside the brain doing the forgetting.</figcaption>
-</figure>
-
-The historical point of contact is Darwin. In the autobiography he wrote in his last years, [published posthumously in 1887 by his son Francis](https://www.gutenberg.org/cache/epub/2010/pg2010-images.html), Darwin gave one paragraph to a single working habit:
+**Darwin's notebook.** In the autobiography he wrote in his last years, [published posthumously in 1887 by his son Francis](https://www.gutenberg.org/cache/epub/2010/pg2010-images.html), Darwin gave one paragraph to a single working habit:
 
 > "I had, also, during many years, followed a golden rule, namely, that whenever a published fact, a new observation or thought came across me, which was opposed to my general results, to make a memorandum of it without fail and at once; for I had found by experience that such facts and thoughts were far more apt to escape from memory than favourable ones. Owing to this habit, very few objections were raised against my views which I had not at least noticed and attempted to answer."
 
-Read it twice. Darwin's contribution to the scout-mode toolkit isn't a thought experiment. It's an *artifact*. The notebook is an external system that catches the disconfirming observations the directional-goal-biased retrieval mechanism in Kunda's 1990 description would otherwise let drop. Run the architecture as designed, with no countermeasures, and Kunda's selection effect chews through the inconvenient evidence in days. Run the architecture *plus the notebook*, and the inconvenient evidence is on a timestamped line that's still legible six years later, when you're writing chapter twelve. Different game.
-
-Section 8 returns to the artifact idea and generalizes it. The Darwin notebook is the personal-scale instance of a class of moves Galef calls operational habits and the GJP research program calls calibration tracking. Section 10 closes the post on the same notebook.
-
-{/* Reader can now: explain why the §3 asymmetries are likely sticky (Mercier-Sperber and Trivers offer a conceptual frame; the §3 papers establish the patterns themselves); predict that scout mode at scale needs both individual self-tests and a systems layer; recognize Darwin's notebook as the artifact-class counter-move that Section 8 will generalize. */}
+Darwin's contribution here is not a thought experiment or a self-test. It is an *artifact*. The notebook is an external system that catches the disconfirming observations that directional retrieval would otherwise let drop. Run the architecture as designed, with no countermeasures, and the inconvenient evidence disappears in days. Run the architecture plus the notebook, and the inconvenient evidence is on a timestamped line that is still legible six years later, when you are writing chapter twelve. The artifact framing governs every subsequent move in this post: §4's calibration log, §6's precommitment register, §7's takeoff log are all instances of the same class. The notebook is where §3 ends and §4 begins.
 
 ### 5. AOMT, Brier, and what calibration actually looks like
 
-We left section 4 with a diagnosis (the §3 asymmetries are likely sticky for reasons the Mercier-Sperber and Trivers frames make plausible) and a single counter-move (Darwin's notebook, an external system that survives the brain doing the forgetting). Act 2 stops feeling the problem and starts measuring it. Two ideas, one section: the dispositional trait the GJP literature uses to talk about scouts, and the metric that lets "calibrated" be a number rather than a vibe.
+We left §3 with a diagnosis (the three asymmetries are likely sticky for reasons the Mercier-Sperber and Trivers frames make plausible) and a single counter-move (Darwin's notebook, an external system that survives the brain doing the forgetting). Act 2 stops feeling the problem and starts measuring it. Two ideas, one section: the dispositional trait the GJP literature uses to talk about scouts, and the metric that lets "calibrated" be a number rather than a vibe.
 
 **Actively open-minded thinking.** The trait has a name and an instrument. Jonathan Baron's textbook [*Thinking and Deciding*](https://www.cambridge.org/core/books/thinking-and-deciding/9F33EE43D2C3B3076EC4FBC9DF34F213) (4th edition, Cambridge University Press, 2008) defines actively open-minded thinking, AOMT, as the willingness to seek contrary evidence, to weigh new evidence against held beliefs, to tolerate complexity, and to update in proportion to evidence. The first published instrument that operationalizes the construct as a survey scale is [Stanovich and West's 1997 paper](https://doi.org/10.1037/0022-0663.89.2.342) in the *Journal of Educational Psychology*. The construct is a research operationalization of what Galef calls the scout orientation: not a temperamental trait you're born with, not "intellectual humility" as a virtue, but a measurable propensity to do specific things in the presence of disconfirming information.
 
