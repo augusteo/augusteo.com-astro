@@ -48,7 +48,120 @@ When an estimator on one of our accounts tries the new workflow and it goes well
 
 An estimator who goes through our onboarding and finds it doesn't fit her workflow knows that immediately. Her manager may notice the reversion two weeks later. It reaches me, if it reaches me, weeks or months after that, attenuated by layers of interpretation. The demo wins land the same day. The failed pilots land two layers downstream, often without a label that identifies them as failed pilots.
 
-{/* FIGURE: §2 — evidence pipeline: world events filtered by demo wins, support escalations, sales calls, failed pilots two layers away, investor narrative; rendered in task 10 */}
+<figure>
+<svg viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">EVIDENCE PIPELINE: WHAT REACHES MY WORKING BELIEF</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">arrow thickness = visibility to the founder, not truth value of the event</text>
+
+{/* Column headers */}
+<text x="90" y="64" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">WORLD EVENTS</text>
+<text x="350" y="64" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">FILTERS</text>
+<text x="592" y="64" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">WORKING BELIEF</text>
+
+{/* ── World event boxes ─────────────────────────────────── */}
+{/* High-visibility events */}
+<rect x="14" y="76" width="152" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="90" y="90" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">PILOT SUCCEEDS</text>
+<text x="90" y="103" font-family="serif" font-size="9" font-style="italic" fill="#2563EB" text-anchor="middle">high visibility</text>
+
+<rect x="14" y="124" width="152" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="90" y="138" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">REP WINS DEMO</text>
+<text x="90" y="151" font-family="serif" font-size="9" font-style="italic" fill="#2563EB" text-anchor="middle">high visibility</text>
+
+<rect x="14" y="172" width="152" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="90" y="186" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">SUPPORT ESCALATION</text>
+<text x="90" y="199" font-family="serif" font-size="9" font-style="italic" fill="#2563EB" text-anchor="middle">high visibility</text>
+
+<rect x="14" y="220" width="152" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="90" y="234" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">COMPETITOR EVAL</text>
+<text x="90" y="247" font-family="serif" font-size="9" font-style="italic" fill="#2563EB" text-anchor="middle">high visibility</text>
+
+{/* Low-visibility events */}
+<rect x="14" y="280" width="152" height="34" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="90" y="294" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">PILOT FAILS</text>
+<text x="90" y="307" font-family="serif" font-size="9" font-style="italic" fill="#B8651A" text-anchor="middle">low visibility</text>
+
+<rect x="14" y="328" width="152" height="34" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="90" y="342" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">ESTIMATOR REVERTS</text>
+<text x="90" y="355" font-family="serif" font-size="9" font-style="italic" fill="#B8651A" text-anchor="middle">low visibility</text>
+
+<rect x="14" y="376" width="152" height="34" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="90" y="390" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">SLOW ONBOARDING</text>
+<text x="90" y="403" font-family="serif" font-size="9" font-style="italic" fill="#B8651A" text-anchor="middle">low visibility</text>
+
+{/* ── Arrows: thick for high-visibility ─────────────────── */}
+{/* pilot succeeds → working belief (thick, blue) */}
+<line x1="166" y1="93" x2="522" y2="303" stroke="#2563EB" stroke-width="8" stroke-opacity="0.35"/>
+<line x1="166" y1="93" x2="522" y2="303" stroke="#2563EB" stroke-width="2" stroke-opacity="0.8"/>
+
+{/* rep wins demo → working belief (thick, blue) */}
+<line x1="166" y1="141" x2="522" y2="303" stroke="#2563EB" stroke-width="8" stroke-opacity="0.35"/>
+<line x1="166" y1="141" x2="522" y2="303" stroke="#2563EB" stroke-width="2" stroke-opacity="0.8"/>
+
+{/* support escalation → working belief (thick, blue) */}
+<line x1="166" y1="189" x2="522" y2="303" stroke="#2563EB" stroke-width="8" stroke-opacity="0.35"/>
+<line x1="166" y1="189" x2="522" y2="303" stroke="#2563EB" stroke-width="2" stroke-opacity="0.8"/>
+
+{/* competitor eval → working belief (thick, blue) */}
+<line x1="166" y1="237" x2="522" y2="303" stroke="#2563EB" stroke-width="8" stroke-opacity="0.35"/>
+<line x1="166" y1="237" x2="522" y2="303" stroke="#2563EB" stroke-width="2" stroke-opacity="0.8"/>
+
+{/* pilot fails → working belief (thin, orange) */}
+<line x1="166" y1="297" x2="522" y2="313" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.7"/>
+
+{/* estimator reverts → working belief (thin, orange) */}
+<line x1="166" y1="345" x2="522" y2="318" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.7"/>
+
+{/* slow onboarding → working belief (thin, orange) */}
+<line x1="166" y1="393" x2="522" y2="323" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.7"/>
+
+{/* ── Filter zone box ──────────────────────────────────── */}
+<rect x="212" y="76" width="290" height="370" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="357" y="96" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="1">FILTER</text>
+
+{/* Filter labels */}
+<rect x="224" y="106" width="266" height="28" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="116" font-family="serif" font-size="10" fill="#2563EB" text-anchor="middle" font-weight="bold">demo wins channel</text>
+<text x="357" y="128" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same-day signal; lands in Slack</text>
+
+<rect x="224" y="144" width="266" height="28" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="154" font-family="serif" font-size="10" fill="#2563EB" text-anchor="middle" font-weight="bold">sales calls</text>
+<text x="357" y="166" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">wins and prospects dominate the agenda</text>
+
+<rect x="224" y="182" width="266" height="28" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="192" font-family="serif" font-size="10" fill="#2563EB" text-anchor="middle" font-weight="bold">support escalations</text>
+<text x="357" y="204" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">loud by design; reaches founder fast</text>
+
+<rect x="224" y="220" width="266" height="28" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="230" font-family="serif" font-size="10" fill="#B8651A" text-anchor="middle" font-weight="bold">failed pilots two layers away</text>
+<text x="357" y="242" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">surfaced as churn risk, if at all, months later</text>
+
+<rect x="224" y="258" width="266" height="28" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="268" font-family="serif" font-size="10" fill="#B8651A" text-anchor="middle" font-weight="bold">investor narrative</text>
+<text x="357" y="280" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">written to persuade, calibrated to convince</text>
+
+{/* Thickness legend inside filter box */}
+<line x1="224" y1="312" x2="490" y2="312" stroke="#C9BEAA" stroke-width="0.8"/>
+<text x="357" y="328" font-family="JetBrains Mono" font-size="8" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">ARROW KEY</text>
+<line x1="240" y1="342" x2="290" y2="342" stroke="#2563EB" stroke-width="7" stroke-opacity="0.35"/>
+<line x1="240" y1="342" x2="290" y2="342" stroke="#2563EB" stroke-width="2"/>
+<text x="298" y="346" font-family="serif" font-size="9" fill="#2563EB">high-visibility channel</text>
+<line x1="240" y1="362" x2="290" y2="362" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.8"/>
+<text x="298" y="366" font-family="serif" font-size="9" fill="#B8651A">low-visibility channel</text>
+<text x="357" y="390" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">thickness = visibility to founder; dashes = weeks of delay</text>
+<text x="357" y="405" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">not presence or absence of truth</text>
+
+{/* ── Working belief box ────────────────────────────────── */}
+<rect x="520" y="270" width="144" height="70" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.5" rx="4"/>
+<text x="592" y="291" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">MY WORKING</text>
+<text x="592" y="304" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">BELIEF</text>
+<text x="592" y="322" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">"40% faster"</text>
+<text x="592" y="336" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the claim</text>
+
+</svg>
+<figcaption><strong>Fig 2.</strong> The evidence pipeline that decides which world events reach my working belief about the 40% claim. Demo wins, sales calls, support escalations, and the channels I'm closest to are the high-visibility filters; failed pilots two layers away and slow estimator onboarding pass through narrow channels and reach me, if at all, weeks later. Arrow thickness shows visibility, not truth. The asymmetry doesn't disappear because I know about it.</figcaption>
+</figure>
 
 The public-writing problem is the same asymmetry, running in a different channel. When I write a Twitter thread on AI takeoff productivity, my implicit model of the audience is a potential investor, an enterprise decision-maker, or someone considering whether to work at Boon. When I write an investor update, the audience is investors. When I give a conference talk, the audience is prospective customers and peers who will form opinions about the category. None of those audiences are this reader, and none of those writing acts are calibrated to help this reader update accurately. They are calibrated to persuade. I do not think of myself as being dishonest in those contexts; I think of myself as doing communications. That is the problem. The calibration happens below the threshold where I'd notice it as a bias.
 
