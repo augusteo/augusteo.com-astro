@@ -316,7 +316,7 @@ The agent is not a CLI. The agent is not an SDK. The agent is a process that has
 
 The second highlight follows directly from the first: multi-agent routing. The README's exact phrasing is "route inbound channels/accounts/peers to isolated agents (workspaces + per-agent sessions)." A single Gateway can host multiple agents, like a `home` agent and a `work` agent, each with its own filesystem root, its own session store, its own bootstrap files. The routing rule binds inbound traffic to one of those agents based on where the message arrived from: which channel, which account, which peer.
 
-That structure is unusual. Most agent products run as one monolithic process per user, with all conversations sharing the same context. OpenClaw inverts: the *Gateway* is per-user, but multiple *agents* can live behind it, isolated from each other. The control plane is the boundary that decides which agent gets which message.
+That structure is unusual within personal-assistant frameworks: the *Gateway* is per-user, but multiple *agents* live behind it, isolated from each other. The control plane is the boundary that decides which agent gets which message. A single Gateway can host both a `home` agent and a `work` agent, even though they share the same user.
 
 The next section unpacks the three layers OpenClaw uses to keep that structure honest.
 
