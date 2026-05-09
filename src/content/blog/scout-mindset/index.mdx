@@ -671,7 +671,124 @@ The specific percentages and package sizes in that example are illustrative. Wha
 
 **Post-publication critique as the literature-scale instance.** A 2014 paper made causal claims about training and teaming as the mechanism behind GJP forecaster gains. [The IRT reanalysis](https://doi.org/10.1177/09567976241266481) published in 2025 re-tested those claims under stricter methodological controls. The effects shrank; in some specifications they vanished; in some they reversed sign. The aggregation result (aggregated forecasts beat individual ones) holds. The causal mechanism claim (training and teaming caused the gains) is still being argued in print. That's what the precommitment-plus-publish-the-result move looks like at field scale: a published claim, a published reanalysis, an open shared record where the dispute is legible to anyone who reads both papers. The looser institutional version, short of pre-agreed adversarial collaboration, is still the same family of move because the counter-claim is on record rather than held in private disagreement.
 
-{/* FIGURE: §6 — three-layer architecture: personal / team / literature; rendered in task 14 */}
+<figure>
+<svg viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+{/* ── Background ──────────────────────────────────────────── */}
+<rect x="0" y="0" width="680" height="500" fill="#F4EFE6" rx="4"/>
+
+{/* ══════════════════════════════════════════════════════════
+    PERSONAL LAYER (top) — blue #2563EB
+    2 boxes: notebook | forecast log
+    ══════════════════════════════════════════════════════════ */}
+
+{/* Layer label */}
+<text x="340" y="26" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle" letter-spacing="1.2" font-weight="bold">PERSONAL LAYER</text>
+<line x1="130" y1="30" x2="255" y2="30" stroke="#2563EB" stroke-width="0.75" stroke-dasharray="3,2"/>
+<line x1="425" y1="30" x2="550" y2="30" stroke="#2563EB" stroke-width="0.75" stroke-dasharray="3,2"/>
+
+{/* Box: notebook */}
+<rect x="160" y="38" width="148" height="56" fill="#F9F5EB" stroke="#2563EB" stroke-width="1.5" rx="3"/>
+<text x="234" y="60" font-family="JetBrains Mono" font-size="9.5" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">notebook</text>
+<text x="234" y="76" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">timestamped disconfirmation</text>
+<text x="234" y="87" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">entries, one line per belief</text>
+
+{/* Box: forecast log */}
+<rect x="372" y="38" width="148" height="56" fill="#F9F5EB" stroke="#2563EB" stroke-width="1.5" rx="3"/>
+<text x="446" y="60" font-family="JetBrains Mono" font-size="9.5" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">forecast log</text>
+<text x="446" y="76" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">probabilistic forecast +</text>
+<text x="446" y="87" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">resolution date on record</text>
+
+{/* Personal layer caption */}
+<text x="340" y="104" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the smallest version: one person writing the move on themselves.</text>
+
+{/* ── Arrow: personal → team ──────────────────────────────── */}
+<line x1="340" y1="110" x2="340" y2="134" stroke="#C9BEAA" stroke-width="1.5"/>
+<polygon points="334,130 346,130 340,140" fill="#C9BEAA"/>
+
+{/* ══════════════════════════════════════════════════════════
+    TEAM LAYER (middle) — orange #B8651A
+    3 boxes: blind first-pass estimates | outside reviewer | precommitment register
+    ══════════════════════════════════════════════════════════ */}
+
+{/* Layer label */}
+<text x="340" y="156" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="1.2" font-weight="bold">TEAM LAYER</text>
+<line x1="100" y1="160" x2="248" y2="160" stroke="#B8651A" stroke-width="0.75" stroke-dasharray="3,2"/>
+<line x1="432" y1="160" x2="580" y2="160" stroke="#B8651A" stroke-width="0.75" stroke-dasharray="3,2"/>
+
+{/* Box: blind first-pass estimates */}
+<rect x="44" y="168" width="168" height="62" fill="#F9F5EB" stroke="#B8651A" stroke-width="1.5" rx="3"/>
+<text x="128" y="188" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">blind first-pass</text>
+<text x="128" y="200" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">estimates</text>
+<text x="128" y="216" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">independent draws before</text>
+<text x="128" y="227" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">discussion correlates errors</text>
+
+{/* Box: outside reviewer */}
+<rect x="256" y="168" width="168" height="62" fill="#F9F5EB" stroke="#B8651A" stroke-width="1.5" rx="3"/>
+<text x="340" y="191" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">outside reviewer</text>
+<text x="340" y="209" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">no stake in the result;</text>
+<text x="340" y="220" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">independence makes</text>
+<text x="340" y="231" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">comparison meaningful</text>
+
+{/* Box: precommitment register */}
+<rect x="468" y="168" width="168" height="62" fill="#F9F5EB" stroke="#B8651A" stroke-width="1.5" rx="3"/>
+<text x="552" y="188" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">precommitment</text>
+<text x="552" y="200" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">register</text>
+<text x="552" y="216" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">disconfirmation criteria</text>
+<text x="552" y="227" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">named before evidence</text>
+
+{/* Team layer caption */}
+<text x="340" y="244" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the team-scale version: structural moves to preserve independence and lock criteria before the evidence.</text>
+
+{/* ── Arrow: team → literature ─────────────────────────────── */}
+<line x1="340" y1="250" x2="340" y2="274" stroke="#C9BEAA" stroke-width="1.5"/>
+<polygon points="334,270 346,270 340,280" fill="#C9BEAA"/>
+
+{/* ══════════════════════════════════════════════════════════
+    LITERATURE LAYER (bottom) — rust #92400E
+    3 boxes: published claim | published critique | shared record
+    ══════════════════════════════════════════════════════════ */}
+
+{/* Layer label */}
+<text x="340" y="296" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="1.2" font-weight="bold">LITERATURE LAYER</text>
+<line x1="80" y1="300" x2="232" y2="300" stroke="#92400E" stroke-width="0.75" stroke-dasharray="3,2"/>
+<line x1="448" y1="300" x2="600" y2="300" stroke="#92400E" stroke-width="0.75" stroke-dasharray="3,2"/>
+
+{/* Box: published claim */}
+<rect x="44" y="308" width="168" height="62" fill="#F9F5EB" stroke="#92400E" stroke-width="1.5" rx="3"/>
+<text x="128" y="331" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">published claim</text>
+<text x="128" y="349" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">result on the open record;</text>
+<text x="128" y="360" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">not held in private</text>
+
+{/* Box: published critique */}
+<rect x="256" y="308" width="168" height="62" fill="#F9F5EB" stroke="#92400E" stroke-width="1.5" rx="3"/>
+<text x="340" y="331" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">published critique</text>
+<text x="340" y="349" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">counter-claim on the record;</text>
+<text x="340" y="360" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">dispute legible to all</text>
+
+{/* Box: shared record */}
+<rect x="468" y="308" width="168" height="62" fill="#F9F5EB" stroke="#92400E" stroke-width="1.5" rx="3"/>
+<text x="552" y="331" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">shared record</text>
+<text x="552" y="349" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">open history; any reader</text>
+<text x="552" y="360" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">can verify both sides</text>
+
+{/* Literature layer caption */}
+<text x="340" y="381" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the field-scale version: post-publication critique on a shared open record.</text>
+
+{/* Mellers annotation */}
+<text x="340" y="396" font-family="serif" font-size="8.5" font-style="italic" fill="#92400E" text-anchor="middle">instance: Mellers 2014 ↔ 2025 reanalysis — aggregation result holds; causal claim (training + teaming) contested in print.</text>
+
+{/* ── Scaling label on the right side ─────────────────────── */}
+<line x1="640" y1="66" x2="640" y2="370" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="4,3"/>
+<polygon points="634,366 646,366 640,376" fill="#C9BEAA"/>
+<text x="664" y="220" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle" transform="rotate(90,664,220)">evidence harder to silently absorb →</text>
+
+{/* ── Bottom note ──────────────────────────────────────────── */}
+<text x="340" y="420" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">each layer is the same family of move at a wider scale; the shared record is what makes the update legible beyond one head.</text>
+
+</svg>
+<figcaption><strong>Fig 6.</strong> Scout mode scales by moving updates out of one person's head. The personal layer (notebook, forecast log) is the smallest version. The team layer (blind first-pass estimates, outside reviewer, precommitment register) preserves the independence and locks the criteria the funnel from §4 needed. The literature layer (published claim, published critique, shared record) is the same family of move at field scale; the Mellers 2014 / 2025 reanalysis dispute is one instance, where the aggregation result holds while the causal claim about training and teaming is being argued in print. Evidence becomes harder to silently absorb as it moves outward.</figcaption>
+</figure>
 
 §6 is the architecture layer. The moves here are slower to start than the five tests in §5, and they require cooperation from people beyond you. §7 is the smallest version of all of this that survives at the personal scale: one habit, one notebook, one dated line.
 
