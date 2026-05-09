@@ -385,6 +385,49 @@ OpenClaw organizes execution along three layers, each owning a different decisio
 
 The three modes are a spectrum from "the sandbox can't see anything you have" (`none`) through "the sandbox can read but not write your work" (`ro`) to "the sandbox is essentially the agent" (`rw`).
 
+<figure>
+<svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">THREE LAYERED CONCEPTS</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">workspace, session, sandbox: each owns one decision; the layers compose</text>
+
+<rect x="20" y="60" width="640" height="270" fill="#F9F5EB" stroke="#8F8578" stroke-width="1.2" rx="6"/>
+<text x="40" y="84" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" letter-spacing="1.2">WORKSPACE</text>
+<text x="40" y="100" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">per-agent filesystem root, default {"~/.openclaw/workspace"}</text>
+<text x="40" y="118" font-family="serif" font-size="10" fill="#1A1A1A" font-weight="600">decision: which files this agent owns</text>
+
+<rect x="40" y="130" width="600" height="90" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="60" y="150" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2">SESSIONS</text>
+<text x="60" y="164" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">conversation contexts; JSONL transcripts at {"~/.openclaw/agents/<agentId>/sessions/"}</text>
+<text x="60" y="180" font-family="serif" font-size="9" fill="#1A1A1A" font-weight="600">decision: which inbound messages route to this agent's session store</text>
+
+<rect x="60" y="190" width="170" height="22" fill="#F9F5EB" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="145" y="205" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-aaa (DM, main)</text>
+
+<rect x="240" y="190" width="170" height="22" fill="#F9F5EB" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="325" y="205" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-bbb (group chat)</text>
+
+<rect x="420" y="190" width="170" height="22" fill="#F9F5EB" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="505" y="205" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-ccc (cron)</text>
+
+<rect x="60" y="234" width="580" height="86" fill="#F4EEE3" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="4,2" rx="4"/>
+<text x="80" y="254" font-family="JetBrains Mono" font-size="10" fill="#2563EB" letter-spacing="1.2">SANDBOX (OPTIONAL, NON-MAIN ONLY)</text>
+<text x="80" y="268" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">wraps tool execution for non-main sessions: Docker / SSH / OpenShell</text>
+<text x="80" y="282" font-family="serif" font-size="9" fill="#1A1A1A" font-weight="600">decision: what walls go around the tools the session invokes</text>
+
+<text x="80" y="302" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="1">none</text>
+<text x="115" y="302" font-family="serif" font-size="9" fill="#1A1A1A">isolated workspace</text>
+<text x="240" y="302" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="1">ro</text>
+<text x="262" y="302" font-family="serif" font-size="9" fill="#1A1A1A">read-only mount of /agent</text>
+<text x="430" y="302" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" letter-spacing="1">rw</text>
+<text x="452" y="302" font-family="serif" font-size="9" fill="#1A1A1A">read-write at /workspace</text>
+
+<text x="350" y="316" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">main session: runs on host, no sandbox wall</text>
+
+</svg>
+<figcaption><strong>Fig 4.</strong> The three layers compose by nesting. *Workspace* is the per-agent filesystem root and decides which files the agent owns. *Sessions* live inside the workspace as JSONL transcripts and decide which inbound messages land in this agent's store (routed by origin: DM, group chat, cron). *Sandbox* is optional, wraps tool execution for non-main sessions in Docker / SSH / OpenShell, and decides what walls go around the tools the session invokes — with three workspace-access modes (`none`, `ro`, `rw`) governing what the sandbox can see of the workspace itself. Each decision is independent: multiple sessions can share one workspace; some sessions can be sandboxed and others not.</figcaption>
+</figure>
+
 The three layers compose. A workspace is what an agent owns. A session is a conversation pinned to that agent. A sandbox is an optional wall around the tools the session is about to invoke. The decision at each layer is independent: you can have multiple agents with separate workspaces sharing one Gateway; you can have multiple sessions in one agent without sandboxing any of them; you can sandbox some sessions but not others.
 
 That last decision is the security model, which the next section covers.
