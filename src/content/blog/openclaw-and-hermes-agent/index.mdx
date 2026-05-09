@@ -471,7 +471,105 @@ What about the family question itself? Three signals say *not a coordinated fami
 
 ZeptoClaw is part of a real coordinated sub-family, but it isn't *Claw*. The README has a section titled "Zepto Stack" that opens: "ZeptoClaw is part of the Zepto stack." It defines the stack as "a modular local-first system for running on-device AI agents in production." The four members are ZeptoPM (orchestration, supervision, retries, job lifecycle), ZeptoCapsule (capsule creation, process isolation, resource enforcement), ZeptoClaw itself (LLM calls, tool use, artifact production), and ZeptoRT (a durable runtime with journaled effects, snapshot recovery, and OTP-style supervision). That is what coordination looks like: four pieces with documented roles that compose into one system. The Claw namespace does not have anything like that.
 
-{/* TODO: Fig 4: ClawFamilyOnDials. Three-dial map (reuse of #1) with OpenClaw + NanoClaw + sipeed/PicoClaw + ZeroClaw + ZeptoClaw placed at their best-fit lifespan / surface / adaptation positions. Each variant carries a two-tier annotation: in-axis label, plus a small "off-axis bet: <X>" annotation naming the distinctive concern that lives off the map (NanoClaw -> container minimalism; sipeed/PicoClaw -> hardware portability; ZeroClaw -> deploy-anywhere; ZeptoClaw -> feature breadth). Small annotations also mark the three contradictions and the one partial-accuracy where peterwoods's role-assignments disagree with primary sources. */}
+<figure>
+<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">OPENCLAW + FOUR CLAW VARIANTS ON THE DIALS</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">scatter, not cluster; several variants' distinctive bets sit off the map</text>
+
+<rect x="20" y="56" width="210" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="125" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">LIFESPAN</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="38" y="124">scheduled</text>
+  <text x="38" y="188">daemon</text>
+  <text x="38" y="252">session</text>
+  <text x="38" y="316">one-shot</text>
+</g>
+
+<g stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3">
+  <line x1="38" y1="130" x2="222" y2="130"/>
+  <line x1="38" y1="322" x2="222" y2="322"/>
+</g>
+
+<circle cx="140" cy="184" r="6" fill="#2563EB"/>
+<circle cx="182" cy="184" r="6" fill="#B8651A"/>
+<circle cx="203" cy="184" r="6" fill="#0E7490"/>
+<circle cx="224" cy="184" r="6" fill="#9333EA"/>
+
+<circle cx="161" cy="248" r="6" fill="#059669"/>
+
+<rect x="235" y="56" width="210" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="340" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SURFACE</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="253" y="124">multi-channel</text>
+  <text x="253" y="220">gateway</text>
+  <text x="253" y="316">CLI / API</text>
+</g>
+
+<circle cx="397" cy="120" r="6" fill="#B8651A"/>
+<circle cx="439" cy="120" r="6" fill="#9333EA"/>
+
+<circle cx="355" cy="216" r="6" fill="#2563EB"/>
+
+<circle cx="376" cy="312" r="6" fill="#059669"/>
+<circle cx="418" cy="312" r="6" fill="#0E7490"/>
+
+<rect x="450" y="56" width="210" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="555" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">ADAPTATION</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="468" y="124">skill creation</text>
+  <text x="468" y="220">persistent memory</text>
+  <text x="468" y="316">stateless</text>
+</g>
+
+<g stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3">
+  <line x1="468" y1="130" x2="652" y2="130"/>
+</g>
+
+<circle cx="570" cy="216" r="6" fill="#2563EB"/>
+<circle cx="654" cy="216" r="6" fill="#9333EA"/>
+<text x="585" y="232" font-family="serif" font-size="8" font-style="italic" fill="#2563EB">*sessions</text>
+
+<circle cx="591" cy="312" r="6" fill="#059669"/>
+<circle cx="612" cy="312" r="6" fill="#B8651A"/>
+<circle cx="633" cy="312" r="6" fill="#0E7490"/>
+
+<rect x="20" y="354" width="640" height="180" fill="#F4EEE3" stroke="#C9BEAA" stroke-width="0.8" rx="3"/>
+<text x="340" y="374" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">FRAMEWORK LEGEND AND OFF-AXIS BETS</text>
+
+<circle cx="44" cy="396" r="6" fill="#2563EB"/>
+<text x="58" y="400" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">OpenClaw</text>
+<text x="58" y="414" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">on-dial bet: gateway. *adaptation = persistent sessions, not skills.</text>
+
+<circle cx="44" cy="436" r="6" fill="#059669"/>
+<text x="58" y="440" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">NanoClaw</text>
+<text x="58" y="454" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">off-axis bet: container minimalism (per-session-database isolation).</text>
+<text x="58" y="466" font-family="serif" font-size="9" font-style="italic" fill="#B91C1C">peterwoods: "autonomous worker"; README never says autonomous.</text>
+
+<circle cx="44" cy="486" r="6" fill="#B8651A"/>
+<text x="58" y="490" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">sipeed/PicoClaw</text>
+<text x="58" y="504" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">off-axis bet: hardware portability (sub-$10 boards, RISC-V/ARM/MIPS).</text>
+<text x="58" y="516" font-family="serif" font-size="9" font-style="italic" fill="#B8651A">peterwoods: "session-scoped"; actually multi-channel; partial match only.</text>
+
+<circle cx="384" cy="396" r="6" fill="#0E7490"/>
+<text x="398" y="400" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">ZeroClaw</text>
+<text x="398" y="414" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">off-axis bet: deploy-anywhere (systemd / launchctl / Windows Service).</text>
+<text x="398" y="426" font-family="serif" font-size="9" font-style="italic" fill="#B91C1C">peterwoods: "per-task lifespan"; README is fully autonomous, always-on.</text>
+
+<circle cx="384" cy="446" r="6" fill="#9333EA"/>
+<text x="398" y="450" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">ZeptoClaw</text>
+<text x="398" y="464" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">off-axis bet: feature breadth (workspace memory, swarms, plugins, batch).</text>
+<text x="398" y="476" font-family="serif" font-size="9" font-style="italic" fill="#B91C1C">peterwoods: "stateless function call"; README opens with full PA infra.</text>
+
+<text x="398" y="500" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">three contradictions, one partial match: a single ladder can't rank these.</text>
+<text x="398" y="516" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">the four variants scatter on the dials, and four distinctive bets sit off them.</text>
+
+</svg>
+<figcaption><strong>Fig 4.</strong> The five frameworks placed on the three dials. The four Claw variants scatter: they don't share a center on any dial, and four of their distinctive bets (container minimalism, hardware portability, deploy-anywhere posture, feature breadth) sit off the dial map entirely. The legend names each variant's off-axis bet alongside the role peterwoods.online assigns it; three of those role-assignments contradict the variant's own README, and the fourth is a partial match.</figcaption>
+</figure>
 
 The contradictions, the language scatter, and the disavowals all point to the same thing: the shared `*Claw` namespace invites taxonomy that the projects don't actually share. Trying to place the four variants on the three-dial map shows the scatter, and several of their distinctive bets sit off the map entirely. NanoClaw's distinctive concern is container minimalism. sipeed/PicoClaw's is hardware portability. ZeroClaw's is deploy-anywhere posture. ZeptoClaw's is feature breadth: a wide capability set in one binary. Those are footprint and runtime concerns the lifespan / surface / adaptation framework doesn't capture. Where they appear, the figure annotates the off-axis bet alongside the in-axis placement; the dial map handles what it can.
 
