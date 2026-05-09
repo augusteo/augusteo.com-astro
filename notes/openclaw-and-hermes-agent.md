@@ -642,7 +642,7 @@ Most-load-bearing findings: Fig 5's SVG annotation contradicted row 31's prose r
 
 ## Resume here
 
-Last touched: 2026-05-09 (Phase 6.5 done; 24 commits over a single session; 14 STRUCTURAL + 5 COSMETIC codex findings closed; 7 → 13 figures; voice-check clean. Phase 6 (playwright per-figure visual review of all 13) starts next).
+Last touched: 2026-05-09 (Phase 6 done; per-figure-type playwright review of all 13 figures completed in one session at 1280×900 viewport on dev port 4322. All 13 passed first-snapshot review against `playwright-checks.md` universal + static-svg checks: no clipped viewBoxes, no overlapping text, contrast within palette, every figcaption matches its figure, palette compliance held. Zero console errors during the pass. No edits required; no MDX touched; working tree stayed clean. Phase 7 (freshness pass + Gate 2 + hero hand-off + ship) starts next).
 
 ### Phase status
 
@@ -654,7 +654,7 @@ Last touched: 2026-05-09 (Phase 6.5 done; 24 commits over a single session; 14 S
 | 4. Draft prose | done (18 sections + References + inline hyperlinks; one section per commit; voice-check clean) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
 | 5. Implement figures | done (7/7; static-svg only; one figure per commit; visual smoke-test passed; 1 MDX-strikethrough fix + 1 layout polish) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
 | 6.5 Out-of-band quality pass | done (24 commits; 14 STRUCTURAL + 5 COSMETIC findings closed; Pass A 9 commits + Pass B 5 commits + Pass C 9 commits + plan-lock 1 commit; 7 → 13 figures; static-svg choice held for every new figure) | `## Codex Phase 6.5 review`, [findings file](openclaw-and-hermes-agent-codex-phase6_5-20260509.md) |
-| 6. Playwright review | pending (covers all 13 figures) | per-figure-type playwright checks per `playwright-checks.md` |
+| 6. Playwright review | done (13 of 13 passed first-snapshot pass at 1280×900 on dev port 4322; per-figure screenshots saved to `.playwright-screenshots/fig01-…` through `fig13-…`; zero console errors during the pass; no SVG edits required) | per-figure-type playwright checks per `playwright-checks.md` |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
@@ -694,19 +694,24 @@ Static-default rule held: every new figure was checked against the four interact
 
 ### Suggested next batch
 
-**Phase 6.5 done. Phase 6 (playwright per-figure visual review) starts next, now covering 13 figures.**
+**Phase 6 done. Phase 7 (freshness pass + Gate 2 + hero hand-off + ship) starts next.**
 
-All 13 static-svg figures are landed and committed. Visual smoke-test was run during Phase 6.5 as each new figure landed (one playwright snapshot per figure at the post route `http://localhost:4321/blog/openclaw-and-hermes-agent`); each rendered cleanly at first try except where noted in the figure-progress table above. No new rendering bugs caught in Phase 6.5 (the JSX-expression wrap pattern from Phase 5 was reused proactively for paths in Fig 4, so no GFM strikethrough surprises).
+Phase 6 outcome: all 13 static-svg figures passed `playwright-checks.md` at first-snapshot (universal + static-svg sub-checklist). Per-figure screenshots in `.playwright-screenshots/fig01-…` through `fig13-…`. Zero console errors during the pass (one harmless Simple Analytics warning about hostname=localhost). No SVG edits required; working tree stayed clean. The static-default rule held end-to-end: 13/13 figures are static-svg, never tempted to interactive.
 
-Phase 6 step-by-step (revised for 13 figures):
+Phase 7 step-by-step:
 
-1. **Phase 6 step 1** — read `playwright-checks.md` to load the per-figure-type checks (universal + static-svg specific).
-2. **Phase 6 step 2** — `bun run dev` and navigate to `http://localhost:4321/blog/openclaw-and-hermes-agent` via the playwright MCP server.
-3. **Phase 6 step 3** — for each of the 13 figures: scroll into view, snapshot, run universal checks (no overflow, no clipping, labels legible at column width, captions render, no console errors) AND static-svg checks (palette adherence, font stack, viewBox aspect, figcaption shape).
-4. **Phase 6 step 4** — if a figure fails a check, edit the SVG inline in the MDX; re-snapshot. Halt if any single figure fails three times in a row (skill halt rule).
-5. **Phase 6 step 5** — when all 13 pass, mark Phase 6 done; proceed to Phase 7.
-
-Phase 6's incremental value over Phase 6.5's per-figure smoke-tests is per-figure-type rigor (the static-svg checklist in `playwright-checks.md` is more thorough than what was run by eye during Pass C), and a final pass across all 13 figures in one playwright session.
+1. **Phase 7 step 1 — freshness re-check.** Walk every row in `## Claim-source matrix` and verify the cited source hasn't moved since Phase 2:
+   - For arxiv: check for v-bumps newer than the cited version (e.g. v2 superseding v1).
+   - For commits / repo state (OpenClaw repo, Hermes Agent repo, ZeptoStack repo, ClaudeKit repo, Honcho repo): check the README / pyproject.toml / version tag for substantive commits since the cited hash.
+   - For blog posts and docs (Vibe Tools, ClaudeKit blog, Honcho docs, etc.): check for edits since the cited access date.
+   - For each row: if a newer version exists AND the claim is affected, halt and update the matrix + prose. If newer-but-irrelevant, just bump the access date in the matrix.
+2. **Phase 7 step 2 — `pubDate := today`** in the frontmatter. This is the publication date of record; it must match reality.
+3. **Phase 7 step 3 — Gate 2 (final-draft pass).** Auto-fire the codex Gate 2 per `codex-prompts.md` "Per-gate runner". Inputs: full MDX + `## Spec` + `## Throughline` + `## Research notes` + `## Claim-source matrix` + `## Related posts on augusteo.com` + all prior `## Codex … review` sections. Focus: drift between prose and matrix; weak arguments; subtly wrong models; References-section completeness + hyperlinking; cross-reference verification (every Related-post entry appears as a real `[Title](/blog/<slug>)` root-relative link in prose AND as `[Title](https://augusteo.com/blog/<slug>)` full-https form in `## References`). Apply STRUCTURAL fixes; cap at 3 re-runs.
+4. **Phase 7 step 4 — final voice-check pass.** Run `scripts/voice-check.sh src/content/blog/openclaw-and-hermes-agent/index.mdx`. Em dashes: zero in prose (act-divider headings exempt). Banned words: justify or rewrite.
+5. **Phase 7 step 5 — hero hand-off.** Follow `.claude/skills/explainer-shared/hero-handoff.md`: compose the prompt with every slot filled in, wait for Vic to paste a path or say "skip", validate, copy to `src/assets/blog/openclaw-and-hermes-agent/hero.<ext>`, view via Read, propose `heroAlt`, edit frontmatter.
+6. **Phase 7 step 6 — verify.** Confirm `draft: true` (stays `true` — Vic flips to `false` himself; hard rule #9), `essay: true`, real `heroImage`, real `heroAlt`. Walk every figure end-to-end at `http://localhost:4321/blog/openclaw-and-hermes-agent`. Lighthouse: LCP under 2.5s on cold load.
+7. **Phase 7 step 7 — final commit.** `final pass — pubDate, hero, voice-check clean; ready for ship`. After Vic flips `draft: false`, that becomes its own commit (`flip draft to false; ship`).
+8. **Phase 7 step 8 — update tracker.** Phase status row 7 → done. Optionally remove the MEMORY.md "in progress" pointer (project memory entry stays as a build record).
 
 ### How to resume from a fresh context
 
