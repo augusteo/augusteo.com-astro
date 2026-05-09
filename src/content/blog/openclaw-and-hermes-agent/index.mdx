@@ -291,7 +291,17 @@ The next section is the third arc: how the agent's past experience reaches the p
 
 ### 14. Cross-session recall via FTS5 search and LLM summarization
 
-{/* TODO: §14 prose */}
+The third arc of the loop is: when the procedure isn't yet a skill, the agent reaches into its own past for context. The README describes this as "FTS5 session search with LLM summarization for cross-session recall."
+
+FTS5 is the full-text-search module shipped with SQLite. The README doesn't say "SQLite" explicitly, but FTS5 isn't a generic term; it refers specifically to SQLite's version-5 FTS extension, so the session store is implicitly a SQLite database with FTS-indexed transcripts. For any new task, the agent can ask whether something close came up before, get matching session transcripts back, and feed those matches through an LLM that summarizes the relevant pieces into the current context.
+
+The mechanism softens the meaning of "session." In a typical sessioned-only architecture, the boundary between two conversations is hard: when one closes, the next can't see it. In Hermes, that boundary is permeable. A user starting a new session about a topic can still pull from earlier sessions about the same topic, even if the earlier sessions weren't tagged for it. The FTS index is what makes the lookup tractable, and the LLM summarization is what makes the lookup useful (you don't want twenty raw transcripts injected; you want the parts that matter).
+
+Recall is not the same as skills. Skills are *codified procedures*; recall is *uncompressed experience the agent searches through on demand*. Both belong to the adaptation dial, but they earn their rungs differently: skills are explicit knowledge, retrievable by name; recall is implicit knowledge, retrievable by query.
+
+The fourth arc, the user model, sits beside both.
+
+{/* Reader can now: see why "session boundaries" are soft in Hermes; recall crosses them. */}
 
 ### 15. The user model: Honcho dialectic modeling
 
