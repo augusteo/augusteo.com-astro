@@ -21,7 +21,7 @@ It comes from a February 2026 post on peterwoods.online called [*The Claw AI Age
 
 It breaks in three places at once.
 
-The first is Hermes Agent, which doesn't appear on the ladder at all but is the framework most engineers are actually evaluating against OpenClaw in 2026. Hermes's README leads with "a closed learning loop": agent-curated memory, autonomous skill creation after complex tasks, mid-use skill self-improvement, FTS5 session search for cross-session recall. The thing that makes Hermes interesting is not that it is "more autonomous" than OpenClaw. It is that the agent rewrites its own toolset between turns. Adaptation is a different axis from autonomy.
+The first is Hermes Agent, which doesn't appear on the ladder at all. Nous Research, which builds Hermes, ships a first-party `hermes claw migrate` command for importing existing OpenClaw setups (covered in §10) — concrete evidence the two are evaluated against each other. Hermes's README leads with "a closed learning loop": agent-curated memory, autonomous skill creation after complex tasks, mid-use skill self-improvement, FTS5 session search for cross-session recall. The thing that makes Hermes interesting is not that it is "more autonomous" than OpenClaw. It is that the agent rewrites its own toolset between turns. Adaptation is a different axis from autonomy.
 
 The second is OpenClaw itself. Its own README describes it as "a personal AI assistant you run on your own devices" with the Gateway as "a single control plane for sessions, channels, tools, and events." That is a gateway architecture: one always-on process owning every inbound channel, every conversation, every tool route. OpenClaw's distinctive bet is not "less autonomous than Hermes." It is the control plane.
 
