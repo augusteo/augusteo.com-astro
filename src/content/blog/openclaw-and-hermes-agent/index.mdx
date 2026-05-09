@@ -238,7 +238,9 @@ OpenClaw is next.
 
 ### 6. OpenClaw frames itself as a personal AI assistant with a control-plane Gateway
 
-If you accept the [Hand Tools, Power Tools, and the AI Coding Debate](/blog/hand-tools-power-tools-ai-coding-debate) framing (that AI coding is a category change, not a marginal speedup), then the next question is which power tool. Let's place OpenClaw on the dial map. Start with how the project frames itself.
+§5 ended with three architectures to place. Start with OpenClaw. The team's v3 was a gateway-shaped agent in miniature: a Slack bot and a GitHub bot wired into one shared agent context. OpenClaw is the concrete architecture for that bet at full scale, written from the ground up around the gateway as the architectural center.
+
+(See [Hand Tools, Power Tools, and the AI Coding Debate](/blog/hand-tools-power-tools-ai-coding-debate) for the broader framing of AI coding as a category change; OpenClaw is one of the power tools the change is being built around.)
 
 The [OpenClaw README](https://github.com/openclaw/openclaw) opens by calling OpenClaw "a personal AI assistant you run on your own devices." Under the Highlights section, the first bullet introduces the architectural center: "Local-first Gateway," which the README describes as "a single control plane for sessions, channels, tools, and events." The Gateway runs as a daemon on the user's own machine: "OpenClaw Onboard installs the Gateway daemon (launchd/systemd user service) so it stays running."
 
