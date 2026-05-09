@@ -13,6 +13,7 @@ essay: true
 import Figure from "@components/figure/Figure.svelte";
 import ScoutSoldier from "@components/figures/scout-mindset/ScoutSoldier.svelte";
 import CalibAgg from "@components/figures/scout-mindset/CalibAgg.svelte";
+import ConcentricLoops from "@components/figures/scout-mindset/ConcentricLoops.svelte";
 
 *A mechanism-first take on Julia Galef's 2021 book* The Scout Mindset. *Not a book review. The post walks the empirical literature on motivated reasoning, identity-protective cognition, and the Good Judgment Project, then prescribes the smallest durable habit consistent with what the sources actually say. About a 30-minute read.*
 
@@ -812,7 +813,10 @@ Darwin described his version of the same habit in the autobiography [published p
 
 Darwin's notebook is the individual instance: one naturalist writing the move on himself in 1876. Your takeoff log from §4 is your version in 2026, the same move scaled to one running belief. The published literature record is the field's version: Mellers 2014 made a claim, the 2025 reanalysis contested it, both sit on the shared record for anyone to read. A public record prevents silent absorption. Three structural analogs, the same shape at three scales, none of them identical to the others.
 
-{/* FIGURE: §7 — three concentric loops; middle ring = takeoff log; rendered in task 15 */}
+<figure>
+  <ConcentricLoops client:visible />
+  <figcaption><strong>Fig 7.</strong> Three concentric loops showing the same record-disconfirming-evidence move at three scales. Inner ring: Darwin's notebook in 1876, one naturalist writing the move on himself. Middle ring: the takeoff log in 2026, the same move scaled to a single running belief. Outer ring: the published literature record, where Mellers 2014's claim and the 2025 reanalysis sit on a shared open record. The four-step backbone (notice, judge threat, write same day, review later) appears in all three rings. Use the scrubber to watch one disconfirming observation move outward through the three scales. The three are structural analogs, not identical operations — Darwin's notebook does not aggregate forecasts and the literature record is not a calibration log; what they share is the family of "make the failure mode less likely to be silently absorbed."</figcaption>
+</figure>
 
 Pick the belief from §1 and start your version of it this week.
 
