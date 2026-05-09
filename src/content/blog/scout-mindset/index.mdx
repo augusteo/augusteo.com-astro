@@ -12,6 +12,7 @@ essay: true
 
 import Figure from "@components/figure/Figure.svelte";
 import ScoutSoldier from "@components/figures/scout-mindset/ScoutSoldier.svelte";
+import CalibAgg from "@components/figures/scout-mindset/CalibAgg.svelte";
 
 *A mechanism-first take on Julia Galef's 2021 book* The Scout Mindset. *Not a book review. The post walks the empirical literature on motivated reasoning, identity-protective cognition, and the Good Judgment Project, then prescribes the smallest durable habit consistent with what the sources actually say. About a 30-minute read.*
 
@@ -411,7 +412,10 @@ Darwin's contribution here is not a thought experiment or a self-test. It is an 
 
 **The aggregation funnel, walked with ten estimators.** Why does aggregating help? Imagine ten independent estimators each forecast the takeoff savings on the next package, no conversation, no shared spreadsheet. Their estimates form a distribution: some too high, some too low, some near the truth. Average them. Variance shrinks by roughly a factor of the square root of ten. The bias of the average is the same as the bias of any one estimator, but the noise around it is smaller. Now imagine the ten talked first and arrived at a group estimate. Their estimates correlate. The variance reduction is partial. Correlation eats the gain. The funnel is intuitive: independence is what gives aggregation its bite. The operational move "blind first-pass, then discuss" is the structural way to preserve some of that independence. If the ten estimators all read the same account of the last AI takeoff pilot before submitting their number, their errors are correlated, and the funnel closes partway. If they submit blind and discuss afterward, at least some of the independence survives.
 
-{/* FIGURE: §4 — calibration and aggregation as one combined systems diagram (interactive); rendered in task 12 */}
+<figure>
+  <CalibAgg client:visible />
+  <figcaption><strong>Fig 4.</strong> Calibration and aggregation as one systems concept. Left: a calibration grid plotting takeoff forecasts on the diagonal where stated probability matches observed frequency. Right: the aggregation funnel showing ten estimators' forecasts as a density band. Adjust bias to shift the band off the truth value; adjust variance to widen or narrow the per-estimator distribution; adjust correlation to control how much aggregation actually buys you. At zero correlation, ten independent forecasts shrink the band by roughly √10. At correlation 1, the band stays at the per-estimator width: correlation eats the variance reduction. One mind is noisy; scored records and independent estimates reduce different errors.</figcaption>
+</figure>
 
 §6 takes that funnel and operationalizes it: precommitment, outside review, blinded estimator trials. The architecture-shaped problem from §3 is the reason §6 has to exist.
 
