@@ -716,7 +716,7 @@ The user model itself sits beside the other three arcs. Skills compress procedur
 
 ### 16. Tools, terminal backends, and subagent isolation
 
-The closed loop sits on top of a tool stack. The README's headline claim is "40+ tools, toolset system, terminal backends." That's the README's own marketing-flavored summary; the official docs page enumerates eight toolset categories rather than a flat 40-item list (web; terminal and files; browser; media; agent orchestration; memory and recall; automation and delivery; integrations). The 40 number is real but unaudited at the docs layer; readers wanting an inventory should look at the categories and the per-category tool lists in the docs.
+The closed loop has to run somewhere. Skills execute against tools, recall queries hit the session store, subagents fork from the main agent: Hermes's tool stack and backend list are the execution substrates the loop's arcs run on. The README's headline claim is "40+ tools, toolset system, terminal backends." That's the README's own marketing-flavored summary; the official docs page enumerates eight toolset categories rather than a flat 40-item list (web; terminal and files; browser; media; agent orchestration; memory and recall; automation and delivery; integrations). The 40 number is real but unaudited at the docs layer; readers wanting an inventory should look at the categories and the per-category tool lists in the docs.
 
 The terminal backends are the more interesting piece. The README at v2026.5.7 lists seven: local, Docker, SSH, Singularity, Modal, Daytona, and Vercel Sandbox. (The marketing landing page still says five; the docs index says six. The README is authoritative for v0.13.0; the surface inconsistencies are legacy framings.)
 
