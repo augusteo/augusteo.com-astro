@@ -632,7 +632,7 @@ All 3 STRUCTURAL findings are direct + inspection-verifiable wording-precision f
 
 ## Resume here
 
-Last touched: 2026-05-08 (Gate 1 Run 3 fired: 3 STRUCTURAL closed — residual wording gaps from Run 2; cap-of-3 hit; Gate 1 closes on structural-fixed; Phase 3 done; Phase 4 next).
+Last touched: 2026-05-08 (Phase 4 done: 18 sections drafted, References section emitted, inline named-source hyperlinks added; voice-check clean apart from the 3 exempt act-divider em-dashes; one section per commit per skill rule #7; rows 19 and 26 verbatim re-quoted from actual READMEs via gh api per Phase 4 hard constraint).
 
 ### Phase status
 
@@ -641,7 +641,7 @@ Last touched: 2026-05-08 (Gate 1 Run 3 fired: 3 STRUCTURAL closed — residual w
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check + Gate 0 | done (3 runs; 12 STRUCTURAL + 2 COSMETIC closed) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` |
 | 3. Outline + figure list | done (Gate 1 closed at cap-of-3 on structural-fixed; 14 STRUCTURAL + 2 COSMETIC across 3 runs) | `## Outline`, `## Codex outline review` |
-| 4. Draft prose | pending | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
+| 4. Draft prose | done (18 sections + References + inline hyperlinks; one section per commit; voice-check clean) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` (~401 lines, 7 figure TODOs awaiting Phase 5) |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
@@ -676,38 +676,35 @@ Codex Gate 1 Run 1 explicitly endorsed the static-svg choice for every figure: "
 
 ### Suggested next batch
 
-Gate 1 closed at cap-of-3 (Run 3 — 3 STRUCTURAL residual-wording-gap findings, all applied as direct + inspection-verifiable fixes per the Gate 0 Run 3 precedent; structural-fixed outcome). **Phase 3 done. Phase 4 (draft prose) starts next.**
+**Phase 4 done. Phase 5 (figure implementation) starts next.**
 
-Phase 4 step-by-step:
+The 18 sections (Act 1 §§1-5, Act 2 §§6-11, Act 3 §§12-17, Closing §18) plus References are committed one-section-per-commit on `main`; voice-check clean apart from the 3 exempt act-divider em-dashes (skill hard rule #8). The MDX file lives at `src/content/blog/openclaw-and-hermes-agent/index.mdx` with `draft: true`. Hard constraints from Gates 0 and 1 were honored throughout: rows 19 and 26 re-quoted verbatim from the actual READMEs (via `gh api`), Discord never named as an OpenClaw inbound channel, "persistent sessions" used for OpenClaw not "persistent memory," no §13 inline link to claude-code-plugin-stack, off-axis bets honestly named in §10/§11/§17/§18, Honcho aggregate-extra licensing footnoted with the Run 3 wording.
 
-1. **Phase 4 step 1** — create `src/content/blog/openclaw-and-hermes-agent/index.mdx` with frontmatter per `src/content.config.ts` and `../../explainer-shared/mdx-output-spec.md`: `title`, `description`, `pubDate`, `tags` (suggest: "AI agents", "open source", "infrastructure"), `featured: false`, `draft: true`, `essay: true`, `heroAlt: "TODO: hero image not yet selected"`. Omit `heroImage` (Phase 7 adds it).
-2. **Phase 4 step 2** — draft section by section per the locked 18-section outline. For each section: state the claim, drop a figure placeholder (`{/* TODO: Fig N: <mechanism> */}` for static-svg), tell the reader what to notice, explain the mechanism, then hand off. Section sizes 300-800 words.
-3. **Phase 4 step 3** — per-section "what reader now sees" check via HTML comment (`{/* Reader can now: <one-line> */}`). The outline already has these per section; transcribe.
-4. **Phase 4 step 4** — apply voice rules during drafting. Run `scripts/voice-check.sh` after each section; re-run until clean. Em dashes: zero in prose. Banned words: justify or rewrite.
-5. **Phase 4 step 5** — emit `## References` with related posts as the **first** entries using full https URL form: `[The Claude Code Plugins I Use Every Day](https://augusteo.com/blog/claude-code-plugin-stack). The adaptation-axis counterpart in this post's Act 1, Augusteo 2026.` and `[Hand Tools, Power Tools, and the AI Coding Debate](https://augusteo.com/blog/hand-tools-power-tools-ai-coding-debate). The category-setup callback in this post's Act 2 opening, Augusteo 2026.`
-6. **Phase 4 step 6** — hyperlink inline named-source mentions to the same URLs used in `## References`.
-7. **Phase 4 step 7** — cross-reference per the locked outline: §4 inline link to Claude Code plugin post (root-relative `/blog/<slug>`); §6 opening inline link to AI-coding-debate post; §18 closing italic-line callback to AI-coding-debate post. **Do NOT add a §13 inline link** per Gate 1 Run 1/2/3 findings.
-8. **Phase 4 step 8** — throughline callbacks per `narrative-template.md` rhythm. The outline's throughline thread check section names every per-act callback.
-9. **Phase 4 step 9** — commit per section (one section per commit). Update tracker after each commit.
+Phase 5 step-by-step:
 
-**Phase 4 hard constraints (carry forward from gates 0 and 1):**
+1. **Phase 5 step 1** — read `figure-recipes.md` and `illustration-style.md` to lock the static-svg conventions (palette, font stack, viewBox, figcaption shape). Pattern-match against `src/content/blog/scout-mindset/index.mdx` for the latest static-svg precedent.
+2. **Phase 5 step 2** — implement Figure 1 (ThreeDialMap) inline in §5. Three orthogonal axes with v1/v2/v3/v4 placed at the failing rung on each. The figure is reused in Figs 4 and 7 (per the figure progress table); design Figure 1 with the reuse in mind so Figures 4 and 7 can drop the framework placements onto the same axes.
+3. **Phase 5 step 3** — implement Figures 2, 3, 5, 6 in their respective sections (§6, §8, §12, §16) per the per-figure TODO comments already in the MDX. Each is a fresh static-svg.
+4. **Phase 5 step 4** — implement Figures 4 and 7 (§10, §18) by reusing the Figure 1 axis layout and adding framework placements + off-axis annotations (NanoClaw → container minimalism; sipeed/PicoClaw → hardware portability; ZeroClaw → deploy-anywhere; ZeptoClaw → feature breadth).
+5. **Phase 5 step 5** — `bun run dev` and view at `http://localhost:4321/blog/openclaw-and-hermes-agent` after each figure batch. Voice-check after each batch.
+6. **Phase 5 step 6** — commit per figure (skill rule #7). Update the figure-progress table after each commit.
+7. **Phase 5 step 7** — when all 7 figures land, mark Phase 5 done and proceed to Phase 6 (playwright review).
 
-- Matrix is the contract. Drafting may not introduce a new load-bearing claim without first adding a row.
-- Phase 4 must verbatim re-quote rows 19 and 26 (NanoClaw architecture details + Zepto Stack lineup) by reading the actual READMEs before any prose claim lands.
-- The Act 1 running scenario (team's coding-agent rollout v1 → v4) is author-constructed-pedagogical; prose must frame as such ("imagine you're an engineer rolling out…", "consider what happens when…") not as a documented incident.
-- Use "persistent sessions" not "persistent memory" for OpenClaw — per Run 2 R2-F3.
-- Do NOT name "Discord" as a first-class OpenClaw inbound channel adapter — per Run 2 R2-F4. Use only matrix-backed categorical labels (DM, group chat, cron job).
-- Do NOT add a second inline link to the Claude Code plugin post in Act 3 — per Run 2 R2-F5 + Run 3 R3-F2.
-- The "off-axis bet" annotation pattern (Figs 4 and 7) must be honored in §10 and §18 prose — the three-dial map is necessary but not sufficient for the Claw ecosystem; some variants' distinctive concerns live off the map.
-- Honcho License footnote: aggregate `all` and `termux` extras include `hermes-agent[honcho]`, which pulls AGPL-3.0 Honcho without a separate Honcho-specific opt-in (per Gate 0 Run 3).
-- Drop quantitative claims that don't survive matrix backing: "30+ adopters" of agentskills.io, "migration wave," cost / portability ordering of terminal backends.
+**Phase 5 hard constraints:**
+
+- Static-svg only. All 7 figures locked at static-svg by Gate 1 (codex affirmed in all three runs). No interactive override; per-figure-type unlock protocol did not fire.
+- Per Gate 1 Run 2 R2-F2 + Run 3 R3-F3: Figure 6 is a 1D backend list in README order (local, Docker, SSH, Singularity, Modal, Daytona, Vercel Sandbox) with a single annotated callout grouping Daytona + Modal as the matrix-backed serverless-persistence niche. NO 2D execution-surface × persistence grid; the matrix doesn't characterize per-backend execution-location semantics.
+- Per Gate 1 Run 2 R2-F1: Figures 4 and 7 carry two-tier annotations (in-axis label + off-axis-bet annotation for variants whose distinctive concern lives off the map).
+- Per Gate 1 Run 1 F1: Figure 4 placements scatter; do not cluster the four Claw variants.
+- Per Gate 1 Run 2 R2-F4: Figure 2's channel labels are matrix-backed only (DM, group chat, cron job). Discord is NOT a labeled channel in the figure.
+- Match palette and figcaption style of `scout-mindset/index.mdx` (the most recent static-svg precedent on augusteo.com).
 
 ### How to resume from a fresh context
 
 1. Read this file end-to-end. Spec / Throughline / Research notes / Claim-source matrix / Outline / Codex review sections carry every locked-in choice.
 2. Run resume-mode migration if any v2 sections are missing (this file was written under v2 so should be canonical).
 3. `git log --oneline | head -30` to see commits since the spec commit.
-4. `grep -n TODO src/content/blog/openclaw-and-hermes-agent/index.mdx` for remaining placeholders (file does not exist yet — Phase 4 creates it).
+4. `grep -n TODO src/content/blog/openclaw-and-hermes-agent/index.mdx` for remaining placeholders (8 TODOs as of 2026-05-08: 1 hero image in frontmatter awaiting Phase 7, 7 figure placeholders awaiting Phase 5).
 5. Pick the next batch above; implement, voice-check, commit, update this tracker.
 
 ### Hard rules to keep applying
