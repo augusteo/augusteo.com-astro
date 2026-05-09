@@ -349,7 +349,21 @@ The next section is the matrix.
 
 ### 18. All three frameworks on one map
 
-{/* TODO: §18 prose + Fig 7 placeholder + closing italic callback */}
+{/* TODO: Fig 7: FinalDialMap. Three-dial map (reuse of #1) with all frameworks placed: OpenClaw, NanoClaw, sipeed/PicoClaw, ZeroClaw, ZeptoClaw, Hermes. Two-tier annotation per placement (per Gate 1 Run 2 R2-F1): in-axis label naming each framework's lifespan / surface / adaptation position; small "off-axis bet: <X>" annotation for variants whose distinctive concern lives off the map (NanoClaw -> container minimalism; sipeed/PicoClaw -> hardware portability; ZeroClaw -> deploy-anywhere posture; ZeptoClaw -> feature breadth). OpenClaw + Hermes have no off-axis annotation because their distinctive bets are on the three dials (gateway/control-plane and adaptation, respectively). The placements scatter; no ladder collapse. */}
+
+The dial map is finished now. Six architectures, six placements. None of them sit at the v4 corner where all three dials are at the top rung; each picks its own placement, and several of the variants pick at least one off-axis concern the dial map can't represent.
+
+OpenClaw lives where the Gateway-as-control-plane lives. It is the architecture you reach for when reach is the problem: when the agent needs to be addressable from every channel the team already uses, with sessions per channel, agents per workspace, and sandboxing tunable per session.
+
+Hermes Agent lives where adaptation lives. It is the architecture you reach for when *learning* is the problem: when you want skills that compound, recall that crosses sessions, and a user model that accumulates. The closed loop is the bet.
+
+The four Claw variants don't share a center. NanoClaw answers "how thin can you make the agent's blast radius and codebase," sipeed/PicoClaw answers "how cheap a board can run a personal AI assistant," ZeroClaw answers "how to deploy one binary anywhere," ZeptoClaw answers "how much can fit in one Rust binary." Those are real questions, just not the same question the dial map is built around. Where they show up on the map at all, the map captures part of them. The off-axis annotations capture the rest.
+
+Tool choice falls out of which dial your use case actually needs, or which off-axis concern. If reach is the problem, OpenClaw is the answer. If skill creation and cross-session memory are the problem, Hermes is the answer. If you are running a personal agent on a sub-$10 board, sipeed/PicoClaw is the answer the others can't give. The single ladder couldn't represent any of those questions; the dial map gets you most of the way, and the off-axis annotations close the rest.
+
+*Companion to [Hand Tools, Power Tools, and the AI Coding Debate](/blog/hand-tools-power-tools-ai-coding-debate), written May 2026.*
+
+{/* Reader can now: overlay their own use case on the map and see which architecture matches the dial they care about. */}
 
 ## References
 
