@@ -630,9 +630,11 @@ All 3 STRUCTURAL findings are direct + inspection-verifiable wording-precision f
 
 **Out-of-band quality pass invoked 2026-05-09** between Phase 5 and Phase 6 at Vic's request ("review and plan for more illustrations and better narrative and accuracy"). Codex consult fired against the rendered MDX + spec + matrix + Codex history (so it wouldn't re-flag closed findings). **Findings: 3 STRUCTURAL illustration adds + 2 COSMETIC; 3 STRUCTURAL narrative gaps + 2 COSMETIC; 6 STRUCTURAL accuracy regressions + 1 COSMETIC. Output 86 KB; full findings + scope decisions live at [`notes/openclaw-and-hermes-agent-codex-phase6_5-20260509.md`](openclaw-and-hermes-agent-codex-phase6_5-20260509.md).**
 
-Most-load-bearing findings: Fig 5's SVG annotation contradicts row 31's prose rule (resurrects the closed Gate 0 wording bug); Fig 6's SVG subtitles re-introduce the per-backend overclaim Gate 1 closed in Run 2; §10 still has paraphrase where rows 19 + 26 demanded verbatim re-quote.
+Most-load-bearing findings: Fig 5's SVG annotation contradicted row 31's prose rule (resurrected the closed Gate 0 wording bug); Fig 6's SVG subtitles re-introduced the per-backend overclaim Gate 1 closed in Run 2; §10 still had paraphrase where rows 19 + 26 demanded verbatim re-quote.
 
 **Vic's scope decisions:** all 6 figure-add candidates approved (7 → 13 figures); sequence is Pass A accuracy → Pass B narrative → Pass C figures; surface-dial inconsistency fix = define "gateway" rung as architectural bet (not channel count) in §1.
+
+**Outcome (2026-05-09 end of session):** all 14 STRUCTURAL findings closed; 5 COSMETIC findings closed or absorbed into structural fixes. Pass A landed 9 commits (8 accuracy fixes + 1 em-dash fixup); Pass B landed 5 commits (B1 also covered the §6 v4-callback narrative finding); Pass C landed 9 commits (C0 renumber + 6 new figures + 2 em-dash fixups; Fig 6 ↔ Fig 7 swap so post-order matches numerical order). Total Phase 6.5: **24 commits**. Voice-check exits clean apart from the 3 exempt act-divider em-dashes throughout. Final figure count: 7 → 13 figures, all static-svg.
 
 ## Codex final review
 
@@ -640,7 +642,7 @@ Most-load-bearing findings: Fig 5's SVG annotation contradicts row 31's prose ru
 
 ## Resume here
 
-Last touched: 2026-05-09 (Phase 6.5 plan locked: codex consult fired; 14 STRUCTURAL + 5 COSMETIC findings catalogued; Vic approved all 6 figure-add candidates; Pass A accuracy fixes start next. Phase 5 done: all 7 static-svg figures landed; one figure per commit per skill rule #7; voice-check clean apart from the 3 exempt act-divider em-dashes; visual smoke-test via playwright across all figures; one rendering bug fixed mid-Phase-5 — `~/code` paths in Fig 3 were being parsed as GFM strikethrough, fixed via `{"..."}` JSX expression wrap — and one cosmetic fix to Fig 5 — EXTERNAL · PLASTIC LABS · AGPL-3.0 badge moved below Honcho box and tightened so the text fits its width).
+Last touched: 2026-05-09 (Phase 6.5 done; 24 commits over a single session; 14 STRUCTURAL + 5 COSMETIC codex findings closed; 7 → 13 figures; voice-check clean. Phase 6 (playwright per-figure visual review of all 13) starts next).
 
 ### Phase status
 
@@ -649,10 +651,10 @@ Last touched: 2026-05-09 (Phase 6.5 plan locked: codex consult fired; 14 STRUCTU
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check + Gate 0 | done (3 runs; 12 STRUCTURAL + 2 COSMETIC closed) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` |
 | 3. Outline + figure list | done (Gate 1 closed at cap-of-3 on structural-fixed; 14 STRUCTURAL + 2 COSMETIC across 3 runs) | `## Outline`, `## Codex outline review` |
-| 4. Draft prose | done (18 sections + References + inline hyperlinks; one section per commit; voice-check clean) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` (~401 lines, 7 figure TODOs awaiting Phase 5) |
-| 5. Implement figures | done (7/7; static-svg only; one figure per commit; visual smoke-test passed; 1 MDX-strikethrough fix + 1 layout polish) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` (~828 lines, 0 figure TODOs) |
-| 6.5 Out-of-band quality pass | in progress (Pass A accuracy → Pass B narrative → Pass C figures; 8 + 5 + 7 commits; 7 → 13 figures) | `## Codex Phase 6.5 review`, [findings file](openclaw-and-hermes-agent-codex-phase6_5-20260509.md) |
-| 6. Playwright review | pending (runs after Phase 6.5; covers all 13 figures) | per-figure-type playwright checks per `playwright-checks.md` |
+| 4. Draft prose | done (18 sections + References + inline hyperlinks; one section per commit; voice-check clean) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
+| 5. Implement figures | done (7/7; static-svg only; one figure per commit; visual smoke-test passed; 1 MDX-strikethrough fix + 1 layout polish) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` |
+| 6.5 Out-of-band quality pass | done (24 commits; 14 STRUCTURAL + 5 COSMETIC findings closed; Pass A 9 commits + Pass B 5 commits + Pass C 9 commits + plan-lock 1 commit; 7 → 13 figures; static-svg choice held for every new figure) | `## Codex Phase 6.5 review`, [findings file](openclaw-and-hermes-agent-codex-phase6_5-20260509.md) |
+| 6. Playwright review | pending (covers all 13 figures) | per-figure-type playwright checks per `playwright-checks.md` |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
@@ -666,49 +668,45 @@ Last touched: 2026-05-09 (Phase 6.5 plan locked: codex consult fired; 14 STRUCTU
 | 2026-05-08 | 1 Run 1 (outline) | 7 STRUCTURAL + 1 COSMETIC, 0 TYPE-CHANGE STRUCTURAL; all 7 STRUCTURAL fixes applied (scatter-not-cluster reframing of §10/§11/Figs 4 & 7; §17 dropped + content redistributed; §9 trimmed to naming history; Fig 6 axes resourced; Act 1 collapsed to single running scenario; Fig 2 channel labels matrix-backed; §13 cross-reference weakened); COSMETIC fix applied (Figs 1-3 merged into Fig 4). 19 sections → 18; 10 figures → 7. | `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` |
 | 2026-05-08 | 1 Run 2 (outline) | 4 STRUCTURAL + 1 COSMETIC, 0 TYPE-CHANGE STRUCTURAL; all precision-tightening on Run 1 fixes. R2-F1 off-axis bets honestly named (§10/§11/§18, Figs 4 & 7); R2-F2 Fig 6 simplified to 1D README-order list; R2-F3 "persistent memory" → "persistent sessions" for OpenClaw (§11/§17/Fig 7); R2-F4 "Discord" dropped from Fig 2. COSMETIC R2-F5 §13 cross-reference dropped entirely. Static-svg choice reaffirmed by codex. | `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` (Run 2 appended) |
 | 2026-05-08 | 1 Run 3 (outline) | 3 STRUCTURAL, 0 COSMETIC, 0 TYPE-CHANGE STRUCTURAL; all residual wording gaps from Run 2 fixes. R3-F1 §5 throughline-close rewritten (the off-axis honesty hadn't propagated to §5 from §10/§11/§18); R3-F2 related-posts §13 anchor superseded (drafter instruction still live); R3-F3 §16 "Reader can now" + Phase 5 figure-progress label tightened (residual tradeoff-grid echoes). All direct + inspection-verifiable wording fixes. **Cap-of-3 hit; Gate 1 closes on structural-fixed.** Static-svg choice reaffirmed for all 7 figures. | `notes/openclaw-and-hermes-agent-codex-outline-20260508.md` (Run 3 appended) |
+| 2026-05-09 | Phase 6.5 (out-of-band quality pass) | 14 STRUCTURAL + 5 COSMETIC; all closed across 24 commits in 3 passes (A accuracy / B narrative / C figures + renumber). Most-load-bearing fixes: Fig 5 SVG resurrected the closed Honcho "opt-in" wording bug (A7); Fig 6 SVG resurrected the closed per-backend overclaim with subtitles (A8); §10 still had paraphrase where rows 19 + 26 demanded verbatim re-quote (A4 + A5). 6 new figures landed (§4 AdaptationRungs, §7 WorkspaceSessionSandboxStack, §10 ZeptoStackContrast, §14 FTS5RecallPipeline, §15 HonchoInstallPaths, §16 SubagentIsolationPair); 7 → 13 figures, all static-svg. | `notes/openclaw-and-hermes-agent-codex-phase6_5-20260509.md` |
 
-### Phase 5 figure progress
+### Phase 5 + Phase 6.5 figure progress
 
-Figure list locked at end of Phase 3 (2026-05-08), then **revised after Gate 1 Run 1** which collapsed Figures 1-3 into Figure 4 per finding 8 (10 figures → 7) and revised Figure 6 (was 9) axes per finding 4. All 7 are `static-svg`; static-default rule justification appears in `## Outline` → "Static-default rule justification." Section anchors are locked here so figure-implementation commits can land per-figure without re-deriving placement.
+Figure list locked at end of Phase 3 (2026-05-08), then **revised after Gate 1 Run 1** which collapsed Figures 1-3 into Figure 4 per finding 8 (10 figures → 7) and revised Figure 6 (was 9) axes per finding 4. **Then expanded in Phase 6.5 (2026-05-09)**: Vic approved 6 new figures (codex's 3 STRUCTURAL adds + 3 stretch adds), bringing the post to 13 figures total. All 13 are `static-svg`; static-default rule held throughout. Section anchors locked.
 
-| # | Figure | Type | Section | Status | Commit |
+| # | Figure | Type | Section | Status | Commit (Phase) |
 |---|---|---|---|---|---|
-| 1 | ThreeDialMap (with running-scenario annotation) | static-svg | §5 (Act 1 close) | done | 39e328b |
-| 2 | OpenClawArchitecture (matrix-backed channel labels) | static-svg | §6 | done | 291ec8c |
-| 3 | OpenClawSandboxTiers | static-svg | §8 | done | c1a8106 (+ 5cb9048 strikethrough fix) |
-| 4 | ClawFamilyOnDials (scatter, not cluster) | static-svg | §10 | done | f112012 |
-| 5 | HermesClosedLoop | static-svg | §12 | done | 0de57f6 (+ 6bb29cf badge polish) |
-| 6 | HermesTerminalBackends (1D README-order list + Daytona/Modal persistence callout) | static-svg | §16 | done | a34cce9 |
-| 7 | FinalDialMap (all frameworks placed; scatter) | static-svg | §18 (closing) | done | 2b534cb |
+| 1 | AdaptationRungs (NEW; stateless / persistent memory / skill creation rungs with running-scenario examples) | static-svg | §4 | done | 052d960 (Phase 6.5 C1) |
+| 2 | ThreeDialMap (was Fig 1) | static-svg | §5 (Act 1 close) | done | 39e328b (P5) + ab216c4 (P6.5 C0 renumber) |
+| 3 | OpenClawArchitecture (was Fig 2) | static-svg | §6 | done | 291ec8c (P5) + ab216c4 (P6.5 C0 renumber) |
+| 4 | WorkspaceSessionSandboxStack (NEW; nested layered concepts with decision-per-layer) | static-svg | §7 | done | 55eff64 + b24e7a4 fixup (Phase 6.5 C2) |
+| 5 | OpenClawSandboxTiers (was Fig 3) | static-svg | §8 | done | c1a8106 (P5) + 5cb9048 strikethrough fix + ab216c4 (P6.5 C0 renumber) |
+| 6 | ZeptoStackContrast (NEW; "what coordination looks like" pipeline + ZeptoRT side block) | static-svg | §10 | done | f2069a6 + e396570 fixup (Phase 6.5 C3) |
+| 7 | ClawFamilyOnDials (was Fig 4 / Fig 6 mid-pass) | static-svg | §10 | done | f112012 (P5) + ab216c4 + f2069a6 (P6.5 renumbers) |
+| 8 | HermesClosedLoop (was Fig 5) | static-svg | §12 | done | 0de57f6 (P5) + 6bb29cf badge polish + a304d05 (P6.5 A7 Honcho wording) + ab216c4 (renumber) |
+| 9 | FTS5RecallPipeline (NEW; vertical pipeline + matched session highlight + "not a named skill" callout) | static-svg | §14 | done | e07bfa0 (Phase 6.5 C4) |
+| 10 | HonchoInstallPaths (NEW; install-command → license-surface flow, MIT vs MIT+AGPL) | static-svg | §15 | done | 0c19a52 (Phase 6.5 C5) |
+| 11 | HermesTerminalBackends (was Fig 6; per-backend subtitles stripped in A8) | static-svg | §16 | done | a34cce9 (P5) + d0f5f02 (P6.5 A8 subtitle strip) + ab216c4 (renumber) |
+| 12 | SubagentIsolationPair (NEW; process iso + filesystem iso side-by-side) | static-svg | §16 | done | 1c006d7 (Phase 6.5 C6) |
+| 13 | FinalDialMap (was Fig 7) | static-svg | §18 (closing) | done | 2b534cb (P5) + ab216c4 (P6.5 C0 renumber) |
 
-Codex Gate 1 Run 1 explicitly endorsed the static-svg choice for every figure: "the static-svg choice is defensible for every listed figure under the stated override rules." No TYPE-CHANGE STRUCTURAL findings; per-figure-type unlock protocol did not fire.
+Static-default rule held: every new figure was checked against the four interactive override clauses (continuous parameter sweep / animated time evolution / drag-based spatial reasoning / multi-state toggle) and none qualified. Codex Gate 1 Run 1's earlier endorsement still applies; Phase 6.5 added six more static figures consistent with that judgment.
 
 ### Suggested next batch
 
-**Phase 5 done. Phase 6 (playwright per-figure visual review) starts next.**
+**Phase 6.5 done. Phase 6 (playwright per-figure visual review) starts next, now covering 13 figures.**
 
-All 7 static-svg figures are landed and committed. Visual smoke-test via the playwright MCP server passed across all figures at the post route (`http://localhost:4321/blog/openclaw-and-hermes-agent`). Two issues caught and fixed during smoke-test:
-1. Fig 3's `~/code, ~/Documents` and `~/.ssh, ~/.aws, ~/.cache` triggered MDX/GFM strikethrough parsing (single-tilde pairs). Wrapped in `{"..."}` JSX expressions to bypass markdown parsing inside the SVG `<text>` elements.
-2. Fig 5's `EXTERNAL · PLASTIC LABS · AGPL-3.0` badge above the Honcho box overlapped with the "next task arrives" loop annotation, AND the badge text overflowed its 140px width. Moved badge below the Honcho box; widened to 174px; reduced to font-size 8 with no letter-spacing.
+All 13 static-svg figures are landed and committed. Visual smoke-test was run during Phase 6.5 as each new figure landed (one playwright snapshot per figure at the post route `http://localhost:4321/blog/openclaw-and-hermes-agent`); each rendered cleanly at first try except where noted in the figure-progress table above. No new rendering bugs caught in Phase 6.5 (the JSX-expression wrap pattern from Phase 5 was reused proactively for paths in Fig 4, so no GFM strikethrough surprises).
 
-Phase 6 step-by-step:
+Phase 6 step-by-step (revised for 13 figures):
 
 1. **Phase 6 step 1** — read `playwright-checks.md` to load the per-figure-type checks (universal + static-svg specific).
 2. **Phase 6 step 2** — `bun run dev` and navigate to `http://localhost:4321/blog/openclaw-and-hermes-agent` via the playwright MCP server.
-3. **Phase 6 step 3** — for each of the 7 figures: scroll into view, snapshot, run universal checks (no overflow, no clipping, labels legible at column width, captions render, no console errors) AND static-svg checks (palette adherence, font stack, viewBox aspect, figcaption shape).
+3. **Phase 6 step 3** — for each of the 13 figures: scroll into view, snapshot, run universal checks (no overflow, no clipping, labels legible at column width, captions render, no console errors) AND static-svg checks (palette adherence, font stack, viewBox aspect, figcaption shape).
 4. **Phase 6 step 4** — if a figure fails a check, edit the SVG inline in the MDX; re-snapshot. Halt if any single figure fails three times in a row (skill halt rule).
-5. **Phase 6 step 5** — when all 7 pass, mark Phase 6 done; proceed to Phase 7.
+5. **Phase 6 step 5** — when all 13 pass, mark Phase 6 done; proceed to Phase 7.
 
-**Already smoke-tested in Phase 5** (catches above already address the obvious failure modes):
-- Fig 1 ThreeDialMap: v1/v2/v3/v4 markers at correct rungs; arrows point right way; all three columns aligned. ✓
-- Fig 2 OpenClawArchitecture: gateway-as-center renders; channels feed in correctly; agents/sessions/tools layered correctly. ✓
-- Fig 3 OpenClawSandboxTiers: three-panel side-by-side; allow/deny lists legible; workspace-modes inset table renders post-fix. ✓
-- Fig 4 ClawFamilyOnDials: 5 frameworks scatter (no cluster); legend with peterwoods contradictions in red/rust; *sessions footnote on OpenClaw adaptation. ✓
-- Fig 5 HermesClosedLoop: circular flow; 5 nodes; Honcho purple-bordered with EXTERNAL badge below post-fix; 5 arrows clockwise. ✓
-- Fig 6 HermesTerminalBackends: 7 backends in README order; Modal+Daytona highlighted with bracket+callout; no 2D grid. ✓
-- Fig 7 FinalDialMap: 6 frameworks placed; Hermes alone at skill creation; legend with on-dial vs off-axis bets distinguished. ✓
-
-Phase 6's incremental value over Phase 5's smoke-test is per-figure-type rigor (the static-svg checklist in `playwright-checks.md` is more thorough than what I ran by eye), and a final pass across all 7 figures in one playwright session.
+Phase 6's incremental value over Phase 6.5's per-figure smoke-tests is per-figure-type rigor (the static-svg checklist in `playwright-checks.md` is more thorough than what was run by eye during Pass C), and a final pass across all 13 figures in one playwright session.
 
 ### How to resume from a fresh context
 
