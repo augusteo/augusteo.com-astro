@@ -1,4 +1,4 @@
-import { palette, font, drawLabel, clamp } from "@figures/shared";
+import { palette, font, clamp } from "@figures/shared";
 
 export interface CalibAggData {
   bias: number;       // -0.2 to +0.2 — shifts aggregate band off truth
