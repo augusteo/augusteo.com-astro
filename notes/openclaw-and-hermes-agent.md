@@ -632,7 +632,7 @@ All 3 STRUCTURAL findings are direct + inspection-verifiable wording-precision f
 
 ## Resume here
 
-Last touched: 2026-05-08 (Phase 4 done: 18 sections drafted, References section emitted, inline named-source hyperlinks added; voice-check clean apart from the 3 exempt act-divider em-dashes; one section per commit per skill rule #7; rows 19 and 26 verbatim re-quoted from actual READMEs via gh api per Phase 4 hard constraint).
+Last touched: 2026-05-09 (Phase 5 done: all 7 static-svg figures landed; one figure per commit per skill rule #7; voice-check clean apart from the 3 exempt act-divider em-dashes; visual smoke-test via playwright across all figures; one rendering bug fixed mid-Phase-5 — `~/code` paths in Fig 3 were being parsed as GFM strikethrough, fixed via `{"..."}` JSX expression wrap — and one cosmetic fix to Fig 5 — EXTERNAL · PLASTIC LABS · AGPL-3.0 badge moved below Honcho box and tightened so the text fits its width).
 
 ### Phase status
 
@@ -642,8 +642,8 @@ Last touched: 2026-05-08 (Phase 4 done: 18 sections drafted, References section 
 | 2. Research / fact-check + Gate 0 | done (3 runs; 12 STRUCTURAL + 2 COSMETIC closed) | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com`, `## Codex research review` |
 | 3. Outline + figure list | done (Gate 1 closed at cap-of-3 on structural-fixed; 14 STRUCTURAL + 2 COSMETIC across 3 runs) | `## Outline`, `## Codex outline review` |
 | 4. Draft prose | done (18 sections + References + inline hyperlinks; one section per commit; voice-check clean) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` (~401 lines, 7 figure TODOs awaiting Phase 5) |
-| 5. Implement figures | pending | per-figure table below |
-| 6. Playwright review | pending | playwright snapshots reviewed |
+| 5. Implement figures | done (7/7; static-svg only; one figure per commit; visual smoke-test passed; 1 MDX-strikethrough fix + 1 layout polish) | `src/content/blog/openclaw-and-hermes-agent/index.mdx` (~828 lines, 0 figure TODOs) |
+| 6. Playwright review | pending | per-figure-type playwright checks per `playwright-checks.md` |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
@@ -664,40 +664,42 @@ Figure list locked at end of Phase 3 (2026-05-08), then **revised after Gate 1 R
 
 | # | Figure | Type | Section | Status | Commit |
 |---|---|---|---|---|---|
-| 1 | ThreeDialMap (with running-scenario annotation) | static-svg | §5 (Act 1 close) | pending | — |
-| 2 | OpenClawArchitecture (matrix-backed channel labels) | static-svg | §6 | pending | — |
-| 3 | OpenClawSandboxTiers | static-svg | §8 | pending | — |
-| 4 | ClawFamilyOnDials (scatter, not cluster) | static-svg | §10 | pending | — |
-| 5 | HermesClosedLoop | static-svg | §12 | pending | — |
-| 6 | HermesTerminalBackends (1D README-order list + Daytona/Modal persistence callout) | static-svg | §16 | pending | — |
-| 7 | FinalDialMap (all frameworks placed; scatter) | static-svg | §18 (closing) | pending | — |
+| 1 | ThreeDialMap (with running-scenario annotation) | static-svg | §5 (Act 1 close) | done | 39e328b |
+| 2 | OpenClawArchitecture (matrix-backed channel labels) | static-svg | §6 | done | 291ec8c |
+| 3 | OpenClawSandboxTiers | static-svg | §8 | done | c1a8106 (+ 5cb9048 strikethrough fix) |
+| 4 | ClawFamilyOnDials (scatter, not cluster) | static-svg | §10 | done | f112012 |
+| 5 | HermesClosedLoop | static-svg | §12 | done | 0de57f6 (+ 6bb29cf badge polish) |
+| 6 | HermesTerminalBackends (1D README-order list + Daytona/Modal persistence callout) | static-svg | §16 | done | a34cce9 |
+| 7 | FinalDialMap (all frameworks placed; scatter) | static-svg | §18 (closing) | done | 2b534cb |
 
 Codex Gate 1 Run 1 explicitly endorsed the static-svg choice for every figure: "the static-svg choice is defensible for every listed figure under the stated override rules." No TYPE-CHANGE STRUCTURAL findings; per-figure-type unlock protocol did not fire.
 
 ### Suggested next batch
 
-**Phase 4 done. Phase 5 (figure implementation) starts next.**
+**Phase 5 done. Phase 6 (playwright per-figure visual review) starts next.**
 
-The 18 sections (Act 1 §§1-5, Act 2 §§6-11, Act 3 §§12-17, Closing §18) plus References are committed one-section-per-commit on `main`; voice-check clean apart from the 3 exempt act-divider em-dashes (skill hard rule #8). The MDX file lives at `src/content/blog/openclaw-and-hermes-agent/index.mdx` with `draft: true`. Hard constraints from Gates 0 and 1 were honored throughout: rows 19 and 26 re-quoted verbatim from the actual READMEs (via `gh api`), Discord never named as an OpenClaw inbound channel, "persistent sessions" used for OpenClaw not "persistent memory," no §13 inline link to claude-code-plugin-stack, off-axis bets honestly named in §10/§11/§17/§18, Honcho aggregate-extra licensing footnoted with the Run 3 wording.
+All 7 static-svg figures are landed and committed. Visual smoke-test via the playwright MCP server passed across all figures at the post route (`http://localhost:4321/blog/openclaw-and-hermes-agent`). Two issues caught and fixed during smoke-test:
+1. Fig 3's `~/code, ~/Documents` and `~/.ssh, ~/.aws, ~/.cache` triggered MDX/GFM strikethrough parsing (single-tilde pairs). Wrapped in `{"..."}` JSX expressions to bypass markdown parsing inside the SVG `<text>` elements.
+2. Fig 5's `EXTERNAL · PLASTIC LABS · AGPL-3.0` badge above the Honcho box overlapped with the "next task arrives" loop annotation, AND the badge text overflowed its 140px width. Moved badge below the Honcho box; widened to 174px; reduced to font-size 8 with no letter-spacing.
 
-Phase 5 step-by-step:
+Phase 6 step-by-step:
 
-1. **Phase 5 step 1** — read `figure-recipes.md` and `illustration-style.md` to lock the static-svg conventions (palette, font stack, viewBox, figcaption shape). Pattern-match against `src/content/blog/scout-mindset/index.mdx` for the latest static-svg precedent.
-2. **Phase 5 step 2** — implement Figure 1 (ThreeDialMap) inline in §5. Three orthogonal axes with v1/v2/v3/v4 placed at the failing rung on each. The figure is reused in Figs 4 and 7 (per the figure progress table); design Figure 1 with the reuse in mind so Figures 4 and 7 can drop the framework placements onto the same axes.
-3. **Phase 5 step 3** — implement Figures 2, 3, 5, 6 in their respective sections (§6, §8, §12, §16) per the per-figure TODO comments already in the MDX. Each is a fresh static-svg.
-4. **Phase 5 step 4** — implement Figures 4 and 7 (§10, §18) by reusing the Figure 1 axis layout and adding framework placements + off-axis annotations (NanoClaw → container minimalism; sipeed/PicoClaw → hardware portability; ZeroClaw → deploy-anywhere; ZeptoClaw → feature breadth).
-5. **Phase 5 step 5** — `bun run dev` and view at `http://localhost:4321/blog/openclaw-and-hermes-agent` after each figure batch. Voice-check after each batch.
-6. **Phase 5 step 6** — commit per figure (skill rule #7). Update the figure-progress table after each commit.
-7. **Phase 5 step 7** — when all 7 figures land, mark Phase 5 done and proceed to Phase 6 (playwright review).
+1. **Phase 6 step 1** — read `playwright-checks.md` to load the per-figure-type checks (universal + static-svg specific).
+2. **Phase 6 step 2** — `bun run dev` and navigate to `http://localhost:4321/blog/openclaw-and-hermes-agent` via the playwright MCP server.
+3. **Phase 6 step 3** — for each of the 7 figures: scroll into view, snapshot, run universal checks (no overflow, no clipping, labels legible at column width, captions render, no console errors) AND static-svg checks (palette adherence, font stack, viewBox aspect, figcaption shape).
+4. **Phase 6 step 4** — if a figure fails a check, edit the SVG inline in the MDX; re-snapshot. Halt if any single figure fails three times in a row (skill halt rule).
+5. **Phase 6 step 5** — when all 7 pass, mark Phase 6 done; proceed to Phase 7.
 
-**Phase 5 hard constraints:**
+**Already smoke-tested in Phase 5** (catches above already address the obvious failure modes):
+- Fig 1 ThreeDialMap: v1/v2/v3/v4 markers at correct rungs; arrows point right way; all three columns aligned. ✓
+- Fig 2 OpenClawArchitecture: gateway-as-center renders; channels feed in correctly; agents/sessions/tools layered correctly. ✓
+- Fig 3 OpenClawSandboxTiers: three-panel side-by-side; allow/deny lists legible; workspace-modes inset table renders post-fix. ✓
+- Fig 4 ClawFamilyOnDials: 5 frameworks scatter (no cluster); legend with peterwoods contradictions in red/rust; *sessions footnote on OpenClaw adaptation. ✓
+- Fig 5 HermesClosedLoop: circular flow; 5 nodes; Honcho purple-bordered with EXTERNAL badge below post-fix; 5 arrows clockwise. ✓
+- Fig 6 HermesTerminalBackends: 7 backends in README order; Modal+Daytona highlighted with bracket+callout; no 2D grid. ✓
+- Fig 7 FinalDialMap: 6 frameworks placed; Hermes alone at skill creation; legend with on-dial vs off-axis bets distinguished. ✓
 
-- Static-svg only. All 7 figures locked at static-svg by Gate 1 (codex affirmed in all three runs). No interactive override; per-figure-type unlock protocol did not fire.
-- Per Gate 1 Run 2 R2-F2 + Run 3 R3-F3: Figure 6 is a 1D backend list in README order (local, Docker, SSH, Singularity, Modal, Daytona, Vercel Sandbox) with a single annotated callout grouping Daytona + Modal as the matrix-backed serverless-persistence niche. NO 2D execution-surface × persistence grid; the matrix doesn't characterize per-backend execution-location semantics.
-- Per Gate 1 Run 2 R2-F1: Figures 4 and 7 carry two-tier annotations (in-axis label + off-axis-bet annotation for variants whose distinctive concern lives off the map).
-- Per Gate 1 Run 1 F1: Figure 4 placements scatter; do not cluster the four Claw variants.
-- Per Gate 1 Run 2 R2-F4: Figure 2's channel labels are matrix-backed only (DM, group chat, cron job). Discord is NOT a labeled channel in the figure.
-- Match palette and figcaption style of `scout-mindset/index.mdx` (the most recent static-svg precedent on augusteo.com).
+Phase 6's incremental value over Phase 5's smoke-test is per-figure-type rigor (the static-svg checklist in `playwright-checks.md` is more thorough than what I ran by eye), and a final pass across all 7 figures in one playwright session.
 
 ### How to resume from a fresh context
 
