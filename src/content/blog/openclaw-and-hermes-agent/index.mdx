@@ -17,7 +17,7 @@ essay: true
 
 There is a tidy story that arranges five open-source agent frameworks on a single autonomy axis, from "stateless function" at one end to "autonomous worker" at the other. The story doesn't survive its own primary sources.
 
-It comes from a February 2026 post on peterwoods.online called *The Claw AI Agent Family*. ZeptoClaw is described as "closer to a stateless function call." NanoClaw is described as an "autonomous worker." OpenClaw, PicoClaw, and ZeroClaw fill the rungs in between. The post does what good taxonomies do: it gives the namespace a name and a shape, so readers reach for it whenever the topic comes up.
+It comes from a February 2026 post on peterwoods.online called [*The Claw AI Agent Family*](https://peterwoods.online/blog/the-claw-ai-agent-family). ZeptoClaw is described as "closer to a stateless function call." NanoClaw is described as an "autonomous worker." OpenClaw, PicoClaw, and ZeroClaw fill the rungs in between. The post does what good taxonomies do: it gives the namespace a name and a shape, so readers reach for it whenever the topic comes up.
 
 It breaks in three places at once.
 
@@ -147,7 +147,7 @@ OpenClaw is next.
 
 If you accept the [Hand Tools, Power Tools, and the AI Coding Debate](/blog/hand-tools-power-tools-ai-coding-debate) framing (that AI coding is a category change, not a marginal speedup), then the next question is which power tool. Let's place OpenClaw on the dial map. Start with how the project frames itself.
 
-The OpenClaw README opens by calling OpenClaw "a personal AI assistant you run on your own devices." Under the Highlights section, the first bullet introduces the architectural center: "Local-first Gateway," which the README describes as "a single control plane for sessions, channels, tools, and events." The Gateway runs as a daemon on the user's own machine: "OpenClaw Onboard installs the Gateway daemon (launchd/systemd user service) so it stays running."
+The [OpenClaw README](https://github.com/openclaw/openclaw) opens by calling OpenClaw "a personal AI assistant you run on your own devices." Under the Highlights section, the first bullet introduces the architectural center: "Local-first Gateway," which the README describes as "a single control plane for sessions, channels, tools, and events." The Gateway runs as a daemon on the user's own machine: "OpenClaw Onboard installs the Gateway daemon (launchd/systemd user service) so it stays running."
 
 Three things follow from that framing.
 
@@ -221,7 +221,7 @@ The other piece of context is governance. In a February 2026 [blog post](https:/
 
 ### 10. The Claw family as a vacuum-filling taxonomy
 
-§9 ended with a vacuum: a project that had four predecessor names in three months and a governance announcement that hadn't materialized. The vacuum is what gave outside taxonomies room. The most cited of those, peterwoods.online's *The Claw AI Agent Family* from February 2026, ranks five projects on a single autonomy axis. Three of the four ranks contradict their own primary sources.
+§9 ended with a vacuum: a project that had four predecessor names in three months and a governance announcement that hadn't materialized. The vacuum is what gave outside taxonomies room. The most cited of those, peterwoods.online's [*The Claw AI Agent Family*](https://peterwoods.online/blog/the-claw-ai-agent-family) from February 2026, ranks five projects on a single autonomy axis. Three of the four ranks contradict their own primary sources.
 
 **NanoClaw** ([qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw)) is the one peterwoods places at the high-autonomy end as an "autonomous worker" with "continuous lifespan" and "high agency." The README's actual self-framing is the opposite. NanoClaw introduces itself as "An AI assistant that runs agents securely in their own containers. Lightweight, built to be easily understood and completely customized for your needs." The primary architectural claim is isolation, not autonomy: "Agents run in containers...they can only see what's explicitly mounted." The source-code claim is minimalism: "One process, a few source files and no microservices." The execution model is per-session. Messages flow through `inbound.db` to a container running Claude and back through `outbound.db`. The README's own description of recurring work is "Scheduled tasks: recurring jobs that run Claude and can message you back." Sessions plus cron, not continuous lifespan. The word *autonomous* does not appear in NanoClaw's self-description.
 
@@ -261,7 +261,7 @@ Hermes will land somewhere else entirely: on the adaptation axis.
 
 Now Hermes. The dial Hermes was designed around is adaptation.
 
-OpenClaw and Hermes Agent answer different questions. OpenClaw asks how to make an always-available assistant *reachable* across the channels you already use. Hermes asks how to make one *improve* from its own task history. Hermes Agent v0.13.0, the "Tenacity Release" published May 7 2026, opens its README with the answer to that second question.
+OpenClaw and Hermes Agent answer different questions. OpenClaw asks how to make an always-available assistant *reachable* across the channels you already use. Hermes asks how to make one *improve* from its own task history. Hermes Agent v0.13.0, the "Tenacity Release" published May 7 2026, opens its [README](https://github.com/NousResearch/hermes-agent/blob/v2026.5.7/README.md) with the answer to that second question.
 
 The first highlight is "A closed learning loop." The README defines that loop in four sentences: "Agent-curated memory with periodic nudges. Autonomous skill creation after complex tasks. Skills self-improve during use. FTS5 session search with LLM summarization for cross-session recall." The body of the README expands on the same idea: Hermes "creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions."
 
@@ -283,7 +283,7 @@ The second is "skills self-improve during use." The README's phrasing matters he
 
 The two together close the inner shape of the loop: experience produces a skill, the skill is exercised, exercising the skill produces more experience, and the skill rewrites itself as a result.
 
-Skills in Hermes follow an external standard. The README describes Hermes as "Compatible with the agentskills.io open standard." The standard's overview page describes its lineage: "The Agent Skills format was originally developed by Anthropic, released as an open standard, and has been adopted by a growing number of agent products." Compatibility with `agentskills.io` is broad-industry table stakes for agent products in 2026, not a Hermes-specific moat. What is Hermes-specific is the *production* of skills: skills appear because the agent decided to write them, not only because the user authored them.
+Skills in Hermes follow an external standard. The README describes Hermes as "Compatible with the [agentskills.io](https://agentskills.io) open standard." The standard's overview page describes its lineage: "The Agent Skills format was originally developed by Anthropic, released as an open standard, and has been adopted by a growing number of agent products." Compatibility with `agentskills.io` is broad-industry table stakes for agent products in 2026, not a Hermes-specific moat. What is Hermes-specific is the *production* of skills: skills appear because the agent decided to write them, not only because the user authored them.
 
 The next section is the third arc: how the agent's past experience reaches the present even when the procedure for it hasn't been compressed into a skill yet.
 
@@ -367,4 +367,35 @@ Tool choice falls out of which dial your use case actually needs, or which off-a
 
 ## References
 
-{/* TODO: References section, populated after all sections drafted */}
+- [My Claude Code Plugin Stack After Months of Trial and Error](https://augusteo.com/blog/claude-code-plugin-stack). The adaptation-axis counterpart cited in this post's Act 1, Augusteo 2026.
+- [Hand Tools, Power Tools, and the AI Coding Debate](https://augusteo.com/blog/hand-tools-power-tools-ai-coding-debate). The category-setup callback at the opening of this post's Act 2 and the closing line, Augusteo 2026.
+
+**OpenClaw primary sources**
+
+- [openclaw/openclaw on GitHub](https://github.com/openclaw/openclaw). Repository: README, VISION.md, CONTRIBUTING.md, Security model section, Development channels section. README accessed at commit 91ed160 on 2026-05-07.
+- [docs.openclaw.ai](https://docs.openclaw.ai). Official OpenClaw documentation: Gateway, configuration, sandboxing, concepts/agent, concepts/session. Accessed 2026-05-08.
+- [Joining OpenAI / OpenClaw foundation](https://steipete.me/posts/2026/openclaw). Peter Steinberger, blog post, 2026-02-14.
+
+**Claw family primary sources**
+
+- [qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw). NanoClaw repository: README and architecture section. Accessed 2026-05-08.
+- [sipeed/picoclaw](https://github.com/sipeed/picoclaw). PicoClaw (the canonical Sipeed-authored Go rebuild). Release v0.2.8, 2026-04-30.
+- [breakcafe/picoclaw](https://github.com/breakcafe/picoclaw). PicoClaw (the name-collision serverless fork of NanoClaw, distinct project). Release v1.2.23, accessed 2026-05-08.
+- [zeroclaw-labs/zeroclaw](https://github.com/zeroclaw-labs/zeroclaw). ZeroClaw repository: README and repo description, with the unauthorized-affiliation disclaimer. Release v0.7.5, 2026-05-08.
+- [qhkm/zeptoclaw](https://github.com/qhkm/zeptoclaw). ZeptoClaw repository: README, COMPARISON.md, and Zepto Stack section listing ZeptoPM / ZeptoCapsule / ZeptoClaw / ZeptoRT. Release v0.9.2, 2026-04-07.
+
+**Hermes Agent primary sources**
+
+- [NousResearch/hermes-agent on GitHub](https://github.com/NousResearch/hermes-agent). Repository: README, [LICENSE](https://github.com/NousResearch/hermes-agent/blob/v2026.5.7/LICENSE), [pyproject.toml](https://github.com/NousResearch/hermes-agent/blob/v2026.5.7/pyproject.toml), release notes. Tag v2026.5.7 (v0.13.0, "The Tenacity Release"), 2026-05-07.
+- [hermes-agent.nousresearch.com](https://hermes-agent.nousresearch.com). Official Hermes Agent documentation: features/tools, configuration, installation, guides/migrate-from-openclaw. Accessed 2026-05-08.
+- [Hermes Agent v0.2.0 release](https://github.com/NousResearch/hermes-agent/releases/tag/v2026.3.12). First public tagged release; introduced git-worktree isolation. 2026-03-12.
+
+**agentskills.io and Honcho**
+
+- [agentskills.io](https://agentskills.io). Agent Skills open-standard overview/home page: lineage, format, adopter framing. Accessed 2026-05-08.
+- [plastic-labs/honcho](https://github.com/plastic-labs/honcho). Honcho memory library by Plastic Labs. License AGPL-3.0; version 3.0.6 last pushed 2026-05-07.
+
+**Third-party framings discussed**
+
+- [The Claw AI Agent Family](https://peterwoods.online/blog/the-claw-ai-agent-family). Peter Woods, 2026-02-19. The single-axis Claw-family taxonomy this post examines and contradicts.
+- [OpenClaw surpasses React](https://www.star-history.com/blog/openclaw-surpasses-react-most-starred-software). Star History (Bytebase) blog, 2026-03-01. Third-party star-ranking analysis (cited as secondary; not load-bearing in this post).
