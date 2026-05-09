@@ -221,7 +221,7 @@ Three failures, three dials, one running scenario.
 <text x="560" y="351" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">the agent; codify them as skills.</text>
 
 </svg>
-<figcaption><strong>Fig 1.</strong> The three dials and the running scenario's climb on each. *Lifespan*: v1 at one-shot, v2 at session, v3 and v4 at daemon. *Surface*: v1 and v2 at CLI / API, v3 and v4 at multi-channel. *Adaptation*: v1, v2, and v3 at stateless, v4 at skill creation. No version sits at the top of every dial; each climb is one dial at a time.</figcaption>
+<figcaption><strong>Fig 2.</strong> The three dials and the running scenario's climb on each. *Lifespan*: v1 at one-shot, v2 at session, v3 and v4 at daemon. *Surface*: v1 and v2 at CLI / API, v3 and v4 at multi-channel. *Adaptation*: v1, v2, and v3 at stateless, v4 at skill creation. No version sits at the top of every dial; each climb is one dial at a time.</figcaption>
 </figure>
 
 Each rung climb in the running scenario is a different dial. v1 to v2 changed lifespan. v2 to v3 changed surface. v3 to v4 changed adaptation. The team didn't have a single agent problem; it had three agent problems, and only after each was named separately did "the right agent shape" stop being a single ranking.
@@ -313,7 +313,7 @@ The agent is not a CLI. The agent is not an SDK. The agent is a process that has
 <text x="350" y="388" font-family="serif" font-size="11" font-style="italic" fill="#92400E" text-anchor="middle">bash · process · read · write · edit · sessions_send · sessions_spawn · cron · ...</text>
 
 </svg>
-<figcaption><strong>Fig 2.</strong> OpenClaw's Gateway sits at the architectural center. Inbound channels (DM, group chat, cron job, per the README's session-routing examples) all land at one always-on process; the Gateway routes each message to one of the agents it hosts, by origin. Each agent has its own filesystem workspace and a JSONL session store. The tool layer is shared but governed at the session boundary.</figcaption>
+<figcaption><strong>Fig 3.</strong> OpenClaw's Gateway sits at the architectural center. Inbound channels (DM, group chat, cron job, per the README's session-routing examples) all land at one always-on process; the Gateway routes each message to one of the agents it hosts, by origin. Each agent has its own filesystem workspace and a JSONL session store. The tool layer is shared but governed at the session boundary.</figcaption>
 </figure>
 
 The second highlight follows directly from the first: multi-agent routing. The README's exact phrasing is "route inbound channels/accounts/peers to isolated agents (workspaces + per-agent sessions)." A single Gateway can host multiple agents, like a `home` agent and a `work` agent, each with its own filesystem root, its own session store, its own bootstrap files. The routing rule binds inbound traffic to one of those agents based on where the message arrived from: which channel, which account, which peer.
@@ -432,7 +432,7 @@ That switch implies a typology. The trusted session (`main`) runs on the host wi
 <text x="430" y="378" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">"the sandbox is essentially the agent"</text>
 
 </svg>
-<figcaption><strong>Fig 3.</strong> OpenClaw's security model has one rule and one switch. <em>Rule</em>: a `main` session runs on the host with full access. <em>Switch</em>: setting <code>agents.defaults.sandbox.mode: "non-main"</code> runs all other sessions inside the configured backend (Docker by default; SSH and OpenShell as alternates). The Docker default allows `bash`, `process`, `read`, `write`, `edit`, and the `sessions_*` family; the deny list cuts `browser`, `canvas`, `nodes`, `cron`, `discord`, and `gateway`. The three workspace-access modes are orthogonal to backend choice: even within "this is sandboxed," you decide whether the sandbox sees none of your work, reads it only, or reads and writes it.</figcaption>
+<figcaption><strong>Fig 5.</strong> OpenClaw's security model has one rule and one switch. <em>Rule</em>: a `main` session runs on the host with full access. <em>Switch</em>: setting <code>agents.defaults.sandbox.mode: "non-main"</code> runs all other sessions inside the configured backend (Docker by default; SSH and OpenShell as alternates). The Docker default allows `bash`, `process`, `read`, `write`, `edit`, and the `sessions_*` family; the deny list cuts `browser`, `canvas`, `nodes`, `cron`, `discord`, and `gateway`. The three workspace-access modes are orthogonal to backend choice: even within "this is sandboxed," you decide whether the sandbox sees none of your work, reads it only, or reads and writes it.</figcaption>
 </figure>
 
 The Docker backend has a typical default capability set. The README spells it out:
@@ -570,7 +570,7 @@ ZeptoClaw is part of a real coordinated sub-family, but it isn't *Claw*. The v0.
 <text x="398" y="516" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">the four variants scatter on the dials, and four distinctive bets sit off them.</text>
 
 </svg>
-<figcaption><strong>Fig 4.</strong> The five frameworks placed on the three dials. The four Claw variants scatter: they don't share a center on any dial, and four of their distinctive bets (container minimalism, hardware portability, deploy-anywhere posture, feature breadth) sit off the dial map entirely. The legend names each variant's off-axis bet alongside the role peterwoods.online assigns it; three of those role-assignments contradict the variant's own README, and the fourth is a partial match.</figcaption>
+<figcaption><strong>Fig 6.</strong> The five frameworks placed on the three dials. The four Claw variants scatter: they don't share a center on any dial, and four of their distinctive bets (container minimalism, hardware portability, deploy-anywhere posture, feature breadth) sit off the dial map entirely. The legend names each variant's off-axis bet alongside the role peterwoods.online assigns it; three of those role-assignments contradict the variant's own README, and the fourth is a partial match.</figcaption>
 </figure>
 
 The contradictions, the language scatter, and the disavowals all point to the same thing: the shared `*Claw` namespace invites taxonomy that the projects don't actually share. Trying to place the four variants on the three-dial map shows the scatter, and several of their distinctive bets sit off the map entirely. NanoClaw's distinctive concern is container minimalism. sipeed/PicoClaw's is hardware portability. ZeroClaw's is deploy-anywhere posture. ZeptoClaw's is feature breadth: a wide capability set in one binary. Those are footprint and runtime concerns the lifespan / surface / adaptation framework doesn't capture. Where they appear, the figure annotates the off-axis bet alongside the in-axis placement; the dial map handles what it can.
@@ -663,7 +663,7 @@ That is the post's spine for Act 3. Each piece names an arc of the loop.
 <text x="340" y="438" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">three arcs are agent-curated; Honcho is an external library; aggregate extras like `all` and `termux` include it</text>
 
 </svg>
-<figcaption><strong>Fig 5.</strong> The closed loop runs four arcs in parallel between turns. <em>Skills</em> codify procedures from successful tasks. <em>Mid-use refinement</em> rewrites a skill while it is executing. <em>FTS5 recall</em> searches past session transcripts when the procedure is not yet a skill. The <em>Honcho user model</em> is a peer-keyed Dialectic API maintained as an external library by Plastic Labs (AGPL-3.0). The base Hermes wheel is MIT; Honcho ships only when the install path goes through `hermes-agent[honcho]` or an aggregate extra that includes it.</figcaption>
+<figcaption><strong>Fig 8.</strong> The closed loop runs four arcs in parallel between turns. <em>Skills</em> codify procedures from successful tasks. <em>Mid-use refinement</em> rewrites a skill while it is executing. <em>FTS5 recall</em> searches past session transcripts when the procedure is not yet a skill. The <em>Honcho user model</em> is a peer-keyed Dialectic API maintained as an external library by Plastic Labs (AGPL-3.0). The base Hermes wheel is MIT; Honcho ships only when the install path goes through `hermes-agent[honcho]` or an aggregate extra that includes it.</figcaption>
 </figure>
 
 The arcs sit on three different gradients of "what carries forward." Skill creation says: this task surfaced a procedure worth keeping, codify it. Mid-use refinement says: this skill almost worked, rewrite it on the way. FTS5 recall says: a different conversation knew the answer, find that conversation. The Honcho user model says: separate from any specific task, the agent should know who is asking. The four arcs run together, not as a single algorithm but as a set of practices the agent applies between turns.
@@ -759,7 +759,7 @@ The terminal backends are the more interesting piece. The README at v2026.5.7 li
 <text x="340" y="274" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">the figure does not extrapolate them onto a 2D grid.</text>
 
 </svg>
-<figcaption><strong>Fig 6.</strong> The seven terminal backends in v2026.5.7 README order. Only Daytona and Modal carry the documented "serverless persistence" semantics: idle hibernation, on-demand wake. The other backends' per-backend execution-location and persistence semantics are not characterized that way in the docs, so the figure does not extrapolate them onto a 2D grid.</figcaption>
+<figcaption><strong>Fig 11.</strong> The seven terminal backends in v2026.5.7 README order. Only Daytona and Modal carry the documented "serverless persistence" semantics: idle hibernation, on-demand wake. The other backends' per-backend execution-location and persistence semantics are not characterized that way in the docs, so the figure does not extrapolate them onto a 2D grid.</figcaption>
 </figure>
 
 The matrix backs one specific semantic claim about a subset of the backends: per the docs, "Daytona and Modal offer serverless persistence: your agent's environment hibernates when idle and wakes on demand." That is the only documented per-backend behavior of that shape; the others' execution-location and persistence semantics aren't characterized in the same way and the post doesn't infer them.
@@ -884,7 +884,7 @@ The next section is the matrix.
 <text x="398" y="538" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">bets sit on the dials (gateway and adaptation, respectively).</text>
 
 </svg>
-<figcaption><strong>Fig 7.</strong> All six frameworks on the same map. None sits at the v4 corner with all three dials at the top rung; each picks its own placement. OpenClaw owns the gateway rung; Hermes owns the skill-creation rung. The four Claw variants scatter, and four of their distinctive concerns (container minimalism, hardware portability, deploy-anywhere, feature breadth) sit off the map entirely. The dial map captures what it can; the off-axis annotations close the rest.</figcaption>
+<figcaption><strong>Fig 13.</strong> All six frameworks on the same map. None sits at the v4 corner with all three dials at the top rung; each picks its own placement. OpenClaw owns the gateway rung; Hermes owns the skill-creation rung. The four Claw variants scatter, and four of their distinctive concerns (container minimalism, hardware portability, deploy-anywhere, feature breadth) sit off the map entirely. The dial map captures what it can; the off-axis annotations close the rest.</figcaption>
 </figure>
 
 The dial map is finished now. Six architectures, six placements. None of them sit at the v4 corner where all three dials are at the top rung; each picks its own placement, and several of the variants pick at least one off-axis concern the dial map can't represent.
