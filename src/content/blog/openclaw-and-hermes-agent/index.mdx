@@ -1116,11 +1116,11 @@ The point of the tool stack and the backend list is what the closed loop sits on
 
 ### 17. Where Hermes lands on the dial map
 
-Hermes sits at daemon-or-continuous on the lifespan dial, CLI / API on the surface dial (the agent is invoked as a `hermes` command and runs against one of seven terminal backends, not behind a multi-channel router), and skill-creation / self-improvement on the adaptation dial. That last rung is the one the team's coding-agent rollout reached at v4 in Act 1: skills compound, recall reaches across sessions, the user model accumulates, and the agent rewrites its own toolset between turns.
+Hermes sits at daemon-or-continuous on the lifespan dial, gateway on the surface dial (Hermes ships two documented entry points: the `hermes` CLI and `hermes gateway`, which talks to Telegram, Discord, Slack, WhatsApp, Signal, and email "all from a single gateway process"), and skill-creation / self-improvement on the adaptation dial. That last rung is the one the team's coding-agent rollout reached at v4 in Act 1: skills compound, recall reaches across sessions, the user model accumulates, and the agent rewrites its own toolset between turns.
 
-The contrast with §11's OpenClaw placement is the architectural payoff of the post: the two frameworks share *one* dial and split on the other two. *Lifespan*: both daemon-or-continuous; the agent stays running. *Surface*: OpenClaw at gateway, Hermes at CLI / API; OpenClaw routes inbound traffic across multiple channels through one always-on control plane, while Hermes is invoked per task as a CLI process. *Adaptation*: OpenClaw at persistent-sessions, Hermes at skill-creation. Two dials apart, one in common.
+The contrast with §11's OpenClaw placement is sharp at exactly one rung. *Lifespan*: both daemon-or-continuous; the agent stays running. *Surface*: both at gateway; the always-on control plane owns sessions, channels, and tools (with one architectural-weight nuance: OpenClaw's gateway is the architecture, while Hermes's gateway is one of two entry points alongside the CLI). *Adaptation*: OpenClaw at persistent-sessions, Hermes at skill-creation. The two architectures live in the same neighborhood on two dials and split decisively on the third.
 
-That makes Hermes a different question from OpenClaw, not a rung above. OpenClaw asks how to make an always-available assistant *reachable* across the channels you already use. Hermes asks how to make one *improve* from its own task history. Both answered their question; the dial map shows where each answer landed, and the two answers are on different dials.
+That makes Hermes a different question from OpenClaw, not a rung above. OpenClaw asks how to make an always-available assistant *reachable*. Hermes asks how to make one *improve*. Both answered their question; the dial map shows where each answer landed.
 
 The next section is the matrix.
 
@@ -1170,11 +1170,11 @@ The next section is the matrix.
 <circle cx="389" cy="120" r="5" fill="#B8651A"/>
 <circle cx="417" cy="120" r="5" fill="#9333EA"/>
 
-<circle cx="396" cy="216" r="5" fill="#2563EB"/>
+<circle cx="361" cy="216" r="5" fill="#2563EB"/>
+<circle cx="431" cy="216" r="5" fill="#92400E"/>
 
-<circle cx="361" cy="312" r="5" fill="#059669"/>
-<circle cx="389" cy="312" r="5" fill="#0E7490"/>
-<circle cx="417" cy="312" r="5" fill="#92400E"/>
+<circle cx="375" cy="312" r="5" fill="#059669"/>
+<circle cx="403" cy="312" r="5" fill="#0E7490"/>
 
 <rect x="450" y="56" width="210" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
 <text x="555" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">ADAPTATION</text>
