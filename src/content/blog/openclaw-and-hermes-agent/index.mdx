@@ -319,7 +319,19 @@ The user model itself sits beside the other three arcs. Skills compress procedur
 
 ### 16. Tools, terminal backends, and subagent isolation
 
-{/* TODO: §16 prose + Fig 6 placeholder */}
+The closed loop sits on top of a tool stack. The README's headline claim is "40+ tools, toolset system, terminal backends." That's the README's own marketing-flavored summary; the official docs page enumerates eight toolset categories rather than a flat 40-item list (web; terminal and files; browser; media; agent orchestration; memory and recall; automation and delivery; integrations). The 40 number is real but unaudited at the docs layer; readers wanting an inventory should look at the categories and the per-category tool lists in the docs.
+
+The terminal backends are the more interesting piece. The README at v2026.5.7 lists seven: local, Docker, SSH, Singularity, Modal, Daytona, and Vercel Sandbox. (The marketing landing page still says five; the docs index says six. The README is authoritative for v0.13.0; the surface inconsistencies are legacy framings.)
+
+{/* TODO: Fig 6: HermesTerminalBackends. Simple 1D backend list in README order: local, Docker, SSH, Singularity, Modal, Daytona, Vercel Sandbox. A single annotated callout groups Daytona + Modal as the matrix-backed serverless-persistence niche per row 34. No editorial 2D axes (per Gate 1 Run 2 R2-F2: the prior 2D execution-surface x persistence grid overclaimed the matrix). */}
+
+The matrix backs one specific semantic claim about a subset of the backends: per the docs, "Daytona and Modal offer serverless persistence: your agent's environment hibernates when idle and wakes on demand." That is the only documented per-backend behavior of that shape; the others' execution-location and persistence semantics aren't characterized in the same way and the post doesn't infer them.
+
+Subagent isolation. The README's feature entry is "Spawn isolated subagents for parallel workstreams." Two distinct mechanisms back this claim. The first is `delegate_task`, a tool that spawns process-and-context-isolated subagents inside the existing backend. The second is `hermes -w`, added in the v0.2.0 release as "Git Worktree Isolation": `hermes -w` launches isolated agent sessions in git worktrees, so two subagents working on the same repo don't step on each other's working trees. Process isolation and filesystem isolation: the same word, two different mechanisms.
+
+The point of the tool stack and the backend list is what the closed loop sits on. Skills run inside one of the seven backends. Subagents run inside a (possibly different) one of the seven. The agent's adaptation surface scales with what the backends allow, and the backends' diversity is the deployment knob.
+
+{/* Reader can now: identify the seven README-listed backends and the documented Daytona/Modal serverless-persistence niche per row 34. */}
 
 ### 17. Where Hermes lands on the dial map
 
