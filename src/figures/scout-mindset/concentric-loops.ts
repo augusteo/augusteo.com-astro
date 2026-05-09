@@ -123,7 +123,6 @@ function drawRing(
   ring: Ring,
   cx: number,
   cy: number,
-  active: boolean,
   isActiveRing: boolean,
 ): void {
   const color = isActiveRing ? ring.color : ring.colorDim;
@@ -255,7 +254,7 @@ export function drawConcentricLoops(
   for (let i = RINGS.length - 1; i >= 0; i--) {
     const ring = RINGS[i];
     const isActiveRing = i === activeIdx;
-    drawRing(ctx, ring, cx, cy, true, isActiveRing);
+    drawRing(ctx, ring, cx, cy, isActiveRing);
   }
 
   // Draw the moving observation dot on the active ring
