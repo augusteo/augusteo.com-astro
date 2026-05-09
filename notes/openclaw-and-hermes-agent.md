@@ -687,6 +687,10 @@ Findings: 1 STRUCTURAL, 0 COSMETIC. F2–F7 + C1 confirmed holding.
 
 [full findings: notes/openclaw-and-hermes-agent-codex-final-run2-20260509.md]
 
+**Run 3 (2026-05-09).** Verification pass after RF1 fix was committed. **Codex returned "no structural issues found."** All 8 Run 1 findings + 1 Run 2 finding closed; matrix row 33b verified; Fig 13 marker verified at gateway; §17 / §18 prose verified clean. Gate 2 closes on Run 3 (cap-of-3, clean exit).
+
+[full findings: notes/openclaw-and-hermes-agent-codex-final-run3-20260509.md]
+
 ## Resume here
 
 Last touched: 2026-05-09 (Phase 6 done; per-figure-type playwright review of all 13 figures completed in one session at 1280×900 viewport on dev port 4322. All 13 passed first-snapshot review against `playwright-checks.md` universal + static-svg checks: no clipped viewBoxes, no overlapping text, contrast within palette, every figcaption matches its figure, palette compliance held. Zero console errors during the pass. No edits required; no MDX touched; working tree stayed clean. Phase 7 (freshness pass + Gate 2 + hero hand-off + ship) starts next).
@@ -718,6 +722,7 @@ Last touched: 2026-05-09 (Phase 6 done; per-figure-type playwright review of all
 | 2026-05-09 | Phase 6.5 (out-of-band quality pass) | 14 STRUCTURAL + 5 COSMETIC; all closed across 24 commits in 3 passes (A accuracy / B narrative / C figures + renumber). Most-load-bearing fixes: Fig 5 SVG resurrected the closed Honcho "opt-in" wording bug (A7); Fig 6 SVG resurrected the closed per-backend overclaim with subtitles (A8); §10 still had paraphrase where rows 19 + 26 demanded verbatim re-quote (A4 + A5). 6 new figures landed (§4 AdaptationRungs, §7 WorkspaceSessionSandboxStack, §10 ZeptoStackContrast, §14 FTS5RecallPipeline, §15 HonchoInstallPaths, §16 SubagentIsolationPair); 7 → 13 figures, all static-svg. | `notes/openclaw-and-hermes-agent-codex-phase6_5-20260509.md` |
 | 2026-05-09 | 2 Run 1 (final-draft) | 7 STRUCTURAL + 1 COSMETIC; all centred on Act 4 (Hermes) drift past matrix rows + one Act-1 misframing. F1 Hermes Gateway/surface placement unsupported; F2 "training data" framing implies fine-tuning (wrong mental model); F3 FTS5 over-specifies storage with inferred SQLite/JSONL/top-K details; F4 skill-creation prose adds parameters/user-judgment/write-up workflow not in row 28; F5 Honcho deployment-frequency generalization unsupported; F6 migration-tooling sentence infers Nous's intent (row 42 explicitly blocks the wave framing); F7 new SQLite/FTS5 docs source linked but absent from matrix + References; C1 inline named-source mentions in §16 not hyperlinked. **No freshness regression.** All 8 fixed. | `notes/openclaw-and-hermes-agent-codex-final-20260509.md` |
 | 2026-05-09 | 2 Run 2 (final-draft) | 1 STRUCTURAL (RF1: Run 1's F1 fix overcorrected — Hermes README documents `hermes gateway` as a multi-channel control plane, "Telegram, Discord, Slack, WhatsApp, Signal, and CLI — all from a single gateway process"; the gateway placement was correct, the matrix just lacked a row for it). Fix: added matrix row 33b; restored Hermes marker on Fig 13 to gateway; rewrote §17/§18 to keep "both at gateway" framing with architectural-weight nuance. F2–F7 + C1 confirmed holding. | `notes/openclaw-and-hermes-agent-codex-final-run2-20260509.md` |
+| 2026-05-09 | 2 Run 3 (final-draft) | **clean — "no structural issues found"**. RF1 verified at HEAD; matrix row 33b verified; Fig 13 marker verified at gateway; §17/§18 verified clean. Gate 2 closes on Run 3 (cap-of-3, clean exit). | `notes/openclaw-and-hermes-agent-codex-final-run3-20260509.md` |
 
 ### Phase 5 + Phase 6.5 figure progress
 
