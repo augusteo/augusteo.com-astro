@@ -836,6 +836,67 @@ The third arc of the loop is: when the procedure isn't yet a skill, the agent re
 
 The mechanism softens the meaning of "session." In a typical sessioned-only architecture, the boundary between two conversations is hard: when one closes, the next can't see it. In Hermes, that boundary is permeable. A user starting a new session about a topic can still pull from earlier sessions about the same topic, even if the earlier sessions weren't tagged for it. The FTS index is what makes the lookup tractable, and the LLM summarization is what makes the lookup useful (you don't want twenty raw transcripts injected; you want the parts that matter).
 
+<figure>
+<svg viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<defs>
+  <marker id="f9arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+  </marker>
+</defs>
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">FTS5 RECALL: REACHING ACROSS SESSIONS</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">session boundaries become searchable, not erased</text>
+
+<rect x="200" y="60" width="200" height="44" fill="#2563EB" opacity="0.88" stroke="#1A1A1A" stroke-width="1" rx="4"/>
+<text x="300" y="80" font-family="JetBrains Mono" font-size="11" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.2">NEW TASK</text>
+<text x="300" y="96" font-family="serif" font-size="10" font-style="italic" fill="#FFFFFF" text-anchor="middle">"how did we handle X last time?"</text>
+
+<line x1="300" y1="104" x2="300" y2="138" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f9arrow)"/>
+<text x="312" y="125" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">FTS5 query</text>
+
+<rect x="40" y="142" width="520" height="100" fill="#F9F5EB" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="300" y="162" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SESSION STORE: SQLite with FTS5 index</text>
+<text x="300" y="176" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">indexed JSONL transcripts; lookup by similarity, not by tag</text>
+
+<rect x="60" y="190" width="150" height="40" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="135" y="206" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-aaa.jsonl</text>
+<text x="135" y="220" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">3 weeks ago · skipped</text>
+
+<rect x="225" y="190" width="150" height="40" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="2"/>
+<text x="300" y="206" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle">session-bbb.jsonl ✓</text>
+<text x="300" y="220" font-family="serif" font-size="9" font-style="italic" fill="#92400E" text-anchor="middle">1 week ago · MATCHED</text>
+
+<rect x="390" y="190" width="150" height="40" fill="#EDE5D4" stroke="#8F8578" stroke-width="0.8" rx="2"/>
+<text x="465" y="206" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle">session-ccc.jsonl</text>
+<text x="465" y="220" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">today · skipped</text>
+
+<line x1="300" y1="242" x2="300" y2="276" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f9arrow)"/>
+<text x="312" y="263" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">top-K matched snippets</text>
+
+<rect x="200" y="280" width="200" height="44" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="4"/>
+<text x="300" y="300" font-family="JetBrains Mono" font-size="11" fill="#92400E" text-anchor="middle" letter-spacing="1.2">LLM SUMMARIZATION</text>
+<text x="300" y="316" font-family="serif" font-size="10" font-style="italic" fill="#92400E" text-anchor="middle">compresses matches into relevant pieces</text>
+
+<line x1="300" y1="324" x2="300" y2="358" stroke="#6B6258" stroke-width="1.4" marker-end="url(#f9arrow)"/>
+<text x="312" y="345" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">summary, not raw</text>
+
+<rect x="200" y="362" width="200" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="300" y="380" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">CURRENT CONTEXT</text>
+<text x="300" y="392" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">summary lands here; raw transcripts do not</text>
+
+<rect x="430" y="280" width="220" height="116" fill="#F4EEE3" stroke="#9333EA" stroke-width="1.2" stroke-dasharray="3,3" rx="4"/>
+<text x="540" y="300" font-family="JetBrains Mono" font-size="10" fill="#9333EA" text-anchor="middle" letter-spacing="1.2">NOT A NAMED SKILL</text>
+<text x="540" y="324" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">recall is uncompressed</text>
+<text x="540" y="340" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">experience the agent</text>
+<text x="540" y="356" font-family="serif" font-size="10" fill="#1A1A1A" text-anchor="middle">searches by query.</text>
+<text x="540" y="378" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">a skill is invoked by name;</text>
+<text x="540" y="390" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">recall is searched by query.</text>
+
+</svg>
+<figcaption><strong>Fig 9.</strong> The recall pipeline. A new task triggers an FTS5 query against the SQLite-backed session store; matching transcripts (here, last week's session-bbb) come back as top-K snippets; the LLM summarizes those snippets; the summary lands in the current context, while the raw transcripts do not. The mechanism is what makes session boundaries soft: recall reaches across closed sessions on demand, without those sessions ever having been tagged for the topic. Recall is uncompressed experience the agent searches by query, distinct from a named skill the agent invokes.</figcaption>
+</figure>
+
 Recall is not the same as skills. Skills are *codified procedures*; recall is *uncompressed experience the agent searches through on demand*. Both belong to the adaptation dial, but they earn their rungs differently: skills are explicit knowledge, retrievable by name; recall is implicit knowledge, retrievable by query.
 
 The fourth arc, the user model, sits beside both.
