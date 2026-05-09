@@ -798,7 +798,106 @@ The next section is the matrix.
 
 ### 18. All three frameworks on one map
 
-{/* TODO: Fig 7: FinalDialMap. Three-dial map (reuse of #1) with all frameworks placed: OpenClaw, NanoClaw, sipeed/PicoClaw, ZeroClaw, ZeptoClaw, Hermes. Two-tier annotation per placement (per Gate 1 Run 2 R2-F1): in-axis label naming each framework's lifespan / surface / adaptation position; small "off-axis bet: <X>" annotation for variants whose distinctive concern lives off the map (NanoClaw -> container minimalism; sipeed/PicoClaw -> hardware portability; ZeroClaw -> deploy-anywhere posture; ZeptoClaw -> feature breadth). OpenClaw + Hermes have no off-axis annotation because their distinctive bets are on the three dials (gateway/control-plane and adaptation, respectively). The placements scatter; no ladder collapse. */}
+<figure>
+<svg viewBox="0 0 680 560" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SIX FRAMEWORKS, SIX PLACEMENTS</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">no framework sits at the top of every dial; the placements scatter</text>
+
+<rect x="20" y="56" width="210" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="125" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">LIFESPAN</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="38" y="124">scheduled</text>
+  <text x="38" y="188">daemon</text>
+  <text x="38" y="252">session</text>
+  <text x="38" y="316">one-shot</text>
+</g>
+<g stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3">
+  <line x1="38" y1="130" x2="222" y2="130"/>
+  <line x1="38" y1="322" x2="222" y2="322"/>
+</g>
+
+<circle cx="146" cy="184" r="5" fill="#2563EB"/>
+<circle cx="174" cy="184" r="5" fill="#B8651A"/>
+<circle cx="188" cy="184" r="5" fill="#0E7490"/>
+<circle cx="202" cy="184" r="5" fill="#9333EA"/>
+<circle cx="216" cy="184" r="5" fill="#92400E"/>
+
+<circle cx="160" cy="248" r="5" fill="#059669"/>
+
+<rect x="235" y="56" width="210" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="340" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SURFACE</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="253" y="124">multi-channel</text>
+  <text x="253" y="220">gateway</text>
+  <text x="253" y="316">CLI / API</text>
+</g>
+
+<circle cx="389" cy="120" r="5" fill="#B8651A"/>
+<circle cx="417" cy="120" r="5" fill="#9333EA"/>
+
+<circle cx="361" cy="216" r="5" fill="#2563EB"/>
+<circle cx="431" cy="216" r="5" fill="#92400E"/>
+
+<circle cx="375" cy="312" r="5" fill="#059669"/>
+<circle cx="403" cy="312" r="5" fill="#0E7490"/>
+
+<rect x="450" y="56" width="210" height="280" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="555" y="78" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">ADAPTATION</text>
+
+<g font-family="serif" font-size="11" fill="#1A1A1A">
+  <text x="468" y="124">skill creation</text>
+  <text x="468" y="220">persistent memory</text>
+  <text x="468" y="316">stateless</text>
+</g>
+
+<circle cx="646" cy="120" r="5" fill="#92400E"/>
+
+<circle cx="576" cy="216" r="5" fill="#2563EB"/>
+<circle cx="632" cy="216" r="5" fill="#9333EA"/>
+<text x="591" y="232" font-family="serif" font-size="8" font-style="italic" fill="#2563EB">*sessions</text>
+
+<circle cx="590" cy="312" r="5" fill="#059669"/>
+<circle cx="604" cy="312" r="5" fill="#B8651A"/>
+<circle cx="618" cy="312" r="5" fill="#0E7490"/>
+
+<rect x="20" y="354" width="640" height="200" fill="#F4EEE3" stroke="#C9BEAA" stroke-width="0.8" rx="3"/>
+<text x="340" y="374" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">FRAMEWORK LEGEND AND OFF-AXIS BETS</text>
+
+<circle cx="44" cy="396" r="5" fill="#2563EB"/>
+<text x="58" y="400" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">OpenClaw</text>
+<text x="58" y="414" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">on-dial bet: gateway control plane. *adaptation = persistent sessions.</text>
+
+<circle cx="44" cy="436" r="5" fill="#92400E"/>
+<text x="58" y="440" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">Hermes Agent</text>
+<text x="58" y="454" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">on-dial bet: adaptation (skills, mid-use refinement, FTS5 recall, user model).</text>
+
+<circle cx="44" cy="476" r="5" fill="#059669"/>
+<text x="58" y="480" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">NanoClaw</text>
+<text x="58" y="494" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">off-axis bet: container minimalism (per-session-database isolation).</text>
+
+<circle cx="44" cy="516" r="5" fill="#B8651A"/>
+<text x="58" y="520" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">sipeed/PicoClaw</text>
+<text x="58" y="534" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">off-axis bet: hardware portability (sub-$10 boards, RISC-V/ARM/MIPS).</text>
+
+<circle cx="384" cy="396" r="5" fill="#0E7490"/>
+<text x="398" y="400" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">ZeroClaw</text>
+<text x="398" y="414" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">off-axis bet: deploy-anywhere (systemd / launchctl / Windows Service).</text>
+
+<circle cx="384" cy="436" r="5" fill="#9333EA"/>
+<text x="398" y="440" font-family="serif" font-size="11" font-weight="600" fill="#1A1A1A">ZeptoClaw</text>
+<text x="398" y="454" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">off-axis bet: feature breadth (workspace memory, swarms, plugins, batch).</text>
+
+<text x="398" y="492" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A">Tool choice falls out of the dial that matters,</text>
+<text x="398" y="508" font-family="serif" font-size="10" font-weight="600" fill="#1A1A1A">or, for some variants, the off-axis concern.</text>
+<text x="398" y="524" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">OpenClaw and Hermes have no off-axis annotation; their distinctive</text>
+<text x="398" y="538" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">bets sit on the dials (gateway and adaptation, respectively).</text>
+
+</svg>
+<figcaption><strong>Fig 7.</strong> All six frameworks on the same map. None sits at the v4 corner with all three dials at the top rung; each picks its own placement. OpenClaw owns the gateway rung; Hermes owns the skill-creation rung. The four Claw variants scatter, and four of their distinctive concerns (container minimalism, hardware portability, deploy-anywhere, feature breadth) sit off the map entirely. The dial map captures what it can; the off-axis annotations close the rest.</figcaption>
+</figure>
 
 The dial map is finished now. Six architectures, six placements. None of them sit at the v4 corner where all three dials are at the top rung; each picks its own placement, and several of the variants pick at least one off-axis concern the dial map can't represent.
 
