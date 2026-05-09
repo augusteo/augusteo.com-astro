@@ -772,11 +772,11 @@ The point of the tool stack and the backend list is what the closed loop sits on
 
 ### 17. Where Hermes lands on the dial map
 
-Hermes sits at daemon-or-continuous on the lifespan dial, gateway-with-skills on the surface dial, and skill-creation/self-improvement on the adaptation dial. The adaptation rung is the one the team's coding-agent rollout reached at v4 in Act 1. Skills compound; recall reaches across sessions; the user model accumulates; the agent rewrites its own toolset between turns.
+Hermes sits at daemon-or-continuous on the lifespan dial, gateway on the surface dial (the always-on control plane is the architectural bet, the same as OpenClaw's), and skill-creation / self-improvement on the adaptation dial. That last rung is the one the team's coding-agent rollout reached at v4 in Act 1: skills compound, recall reaches across sessions, the user model accumulates, and the agent rewrites its own toolset between turns.
 
-OpenClaw, by contrast, sits at continuous lifespan with a gateway surface and persistent sessions, not adaptation memory in the skill-creation sense. The session store is the ground floor of conversation persistence; the agent's behavior between turns is not what those sessions are for.
+The contrast with §11's OpenClaw placement is sharp at exactly one rung. *Lifespan*: both daemon-or-continuous; the agent stays running. *Surface*: both gateway; the always-on control plane owns sessions, channels, and tools. *Adaptation*: OpenClaw at persistent-sessions, Hermes at skill-creation. The two architectures live in the same neighborhood on two dials and split decisively on the third.
 
-The dial Hermes was designed around is adaptation. That makes Hermes a different question from OpenClaw, not a rung above. They asked different questions, and they answered them.
+That makes Hermes a different question from OpenClaw, not a rung above. OpenClaw asks how to make an always-available assistant *reachable*. Hermes asks how to make one *improve*. Both answered their question; the dial map shows where each answer landed.
 
 The next section is the matrix.
 
