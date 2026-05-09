@@ -92,103 +92,23 @@ Darwin's contribution here is not a thought experiment or a self-test. It is an 
 
 §6 takes that funnel and operationalizes it: precommitment, outside review, blinded estimator trials. The architecture-shaped problem from §3 is the reason §6 has to exist.
 
-### 7. Galef's five self-tests (and what they're for)
+### 5. Galef's five tests, run on the takeoff belief
 
-Pick the belief from section 1. The one you'd defend with numbers if pressed. We're going to run thought experiments on it.
+Section 4 gave you a procedural answer: use Brier scores, calibration curves, and aggregation to tell whether a belief is tracking evidence over time. That's the measurement layer. Section 5 is the diagnostic layer: five thought experiments from Galef's Chapter 5 that you can run on a single belief in five minutes on a Tuesday. Pick the belief from §1. We're going to put it through five passes.
 
-Galef's *The Scout Mindset* (2021) gives a working catalog of five thought experiments in Chapter 5, "Noticing Bias": the Double Standard Test, the Outsider Test, the Conformity Test, the Selective Skeptic Test, and the Status Quo Bias Test. The names are exact; the prompts below are paraphrased to fit the post's voice. Each is a specific question you can ask yourself about a specific belief.
+**Double Standard Test.** Would I judge a competitor's 40% claim with the same scrutiny I'd apply to Boon's? What study design would I demand from a competitor's pilot that I haven't demanded from my own? Running this on the takeoff belief surfaces something specific: I'm applying a generous evidentiary standard to data my own team collected and a stringent one to everyone else's. That's not a rare thinking error. It's a patterned one, and the test's value is that it makes the gap visible rather than leaving it implicit in which objections I raise and which I don't.
 
-- **Double Standard Test.** Would I judge this evidence the same way if it pointed to a different conclusion? If the same study, with the same effect size, supported the opposite political position, would I cite it?
-- **Outsider Test.** If a stranger were in this situation, holding only the evidence I currently hold and not my history with the topic, what would I advise them?
-- **Conformity Test.** If the people I respect, whose opinions I'd defer to in conversation, no longer held this view, would I still hold it on the strength of the evidence alone?
-- **Selective Skeptic Test.** Would I scrutinize this piece of evidence with the same energy if it argued for the other side of the disagreement?
-- **Status Quo Bias Test.** If I didn't already hold this position, if I were starting from scratch with the same evidence, would I adopt it now?
+**Outsider Test.** If a stranger were in this position, holding only the evidence I currently hold and not my years of demos and customer conversations, what would I advise them about the 40% claim? The test surfaces something uncomfortable: most of what makes my conviction feel reasonable is path dependence, not evidence. The stranger hasn't seen the demos I've run a hundred times. She sees the data, and the data alone is thinner than my conviction implies. That gap between "what the data supports" and "what my conviction implies" is exactly what the test is designed to expose.
 
-Each test is an attempt to give you a way to detach a single belief from the directional goal that's currently shaping how you process evidence about it. The tests aren't novel as a category. Decision-making research has used cousin thought experiments for decades; what Galef contributes is a small operational set you can actually run in five minutes on a Tuesday.
+**Conformity Test.** If my YC batch and my construction-tech peer group moved off the 40% claim, would I still hold it on the strength of the evidence alone? Running this reveals that a chunk of my conviction is downstream of who's in the room with me. That's not automatically wrong; peer expertise carries real information. But peer consensus shouldn't be doing the evidentiary work I'm currently letting it do, and the test forces me to separate those two loads.
 
-<figure>
-<svg viewBox="0 0 680 540" xmlns="http://www.w3.org/2000/svg" width="100%">
+**Selective Skeptic Test.** Do I scrutinize a pilot that under-delivered as harshly as I celebrate one that over-delivered? Running this on the takeoff belief surfaces a longer list of methodological objections to under-performing pilots than to over-performing ones. I find methodological reasons to discount a bad result that I don't find when the result is good. That gap is the asymmetric threshold from §3, running on me in real time, not as an abstract cognitive pattern but as a specific accounting of which objections I generated and which I didn't.
 
-<defs>
-<marker id="f7arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-  <path d="M0,0 L10,5 L0,10 z" fill="#8F8578"/>
-</marker>
-</defs>
+**Status Quo Bias Test.** If I were starting from scratch in 2026 with the evidence I have now, and not the path-dependent commitment to selling this software, would I still adopt the 40% claim with the confidence I currently hold it? My position on this belief has been compounding for several years. Some of that compounding is genuine learning from customers and deployments. Some of it is sunk cost. The test doesn't decompose those two for you, but it puts the question on the table in a way that staying inside your normal belief-update rhythm doesn't.
 
-<rect x="20" y="20" width="640" height="50" fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8" rx="3" opacity="0.55"/>
-<text x="340" y="40" font-family="JetBrains Mono" font-size="10" fill="#92400E" letter-spacing="1.2" text-anchor="middle">THE AUTHOR'S READING · NOT A GALEF-STATED MAPPING</text>
-<text x="340" y="56" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">Galef does not formally map her tests to the empirical literature; the asymmetries are not formally mapped to tests in any matrix-cited paper.</text>
+{/* FIGURE: §5 — Galef worksheet matrix + pressure map; rendered in task 13 */}
 
-<text x="160" y="92" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">GALEF, CHAPTER 5 ("NOTICING BIAS")</text>
-<text x="520" y="92" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.2" text-anchor="middle">ASYMMETRY MOST PLAUSIBLY ADDRESSED</text>
-
-<rect x="20" y="106" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="34" y="124" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.0">DOUBLE STANDARD TEST</text>
-<text x="34" y="142" font-family="serif" font-size="11" fill="#1A1A1A">would I judge this evidence the same way</text>
-<text x="34" y="156" font-family="serif" font-size="11" fill="#1A1A1A">if it pointed to a different conclusion?</text>
-<rect x="380" y="106" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="394" y="124" font-family="JetBrains Mono" font-size="10" fill="#0E7490" letter-spacing="1.0">ASYMMETRIC THRESHOLDS</text>
-<text x="394" y="142" font-family="serif" font-size="11" fill="#1A1A1A">preferred conclusions face a lower</text>
-<text x="394" y="156" font-family="serif" font-size="11" fill="#1A1A1A">evidentiary bar (Ditto &amp; Lopez 1992)</text>
-<line x1="300" y1="137" x2="380" y2="137" stroke="#8F8578" stroke-width="1" marker-end="url(#f7arrow)"/>
-
-<rect x="20" y="178" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="34" y="196" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.0">OUTSIDER TEST</text>
-<text x="34" y="214" font-family="serif" font-size="11" fill="#1A1A1A">if a stranger were in this situation,</text>
-<text x="34" y="228" font-family="serif" font-size="11" fill="#1A1A1A">what would I advise them?</text>
-<rect x="380" y="178" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="394" y="196" font-family="JetBrains Mono" font-size="10" fill="#0E7490" letter-spacing="1.0">DIRECTIONAL-GOAL RETRIEVAL BIAS</text>
-<text x="394" y="214" font-family="serif" font-size="11" fill="#1A1A1A">memory surfaces evidence consistent</text>
-<text x="394" y="228" font-family="serif" font-size="11" fill="#1A1A1A">with the directional goal (Kunda 1990)</text>
-<line x1="300" y1="209" x2="380" y2="209" stroke="#8F8578" stroke-width="1" marker-end="url(#f7arrow)"/>
-
-<rect x="20" y="250" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="34" y="268" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.0">CONFORMITY TEST</text>
-<text x="34" y="286" font-family="serif" font-size="11" fill="#1A1A1A">if other people no longer held this view,</text>
-<text x="34" y="300" font-family="serif" font-size="11" fill="#1A1A1A">would I still hold it?</text>
-<rect x="380" y="250" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="394" y="268" font-family="JetBrains Mono" font-size="10" fill="#0E7490" letter-spacing="1.0">SOCIAL-ARGUMENT LAYER</text>
-<text x="394" y="286" font-family="serif" font-size="11" fill="#1A1A1A">reason is built for justification in</text>
-<text x="394" y="300" font-family="serif" font-size="11" fill="#1A1A1A">argument (Mercier &amp; Sperber 2017)</text>
-<line x1="300" y1="281" x2="380" y2="281" stroke="#8F8578" stroke-width="1" marker-end="url(#f7arrow)"/>
-
-<rect x="20" y="322" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="34" y="340" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.0">SELECTIVE SKEPTIC TEST</text>
-<text x="34" y="358" font-family="serif" font-size="11" fill="#1A1A1A">would I scrutinize this evidence as</text>
-<text x="34" y="372" font-family="serif" font-size="11" fill="#1A1A1A">harshly if it supported the other side?</text>
-<rect x="380" y="322" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="394" y="340" font-family="JetBrains Mono" font-size="10" fill="#0E7490" letter-spacing="1.0">ASYMMETRIC THRESHOLDS</text>
-<text x="394" y="358" font-family="serif" font-size="11" fill="#1A1A1A">same mechanism as Double Standard:</text>
-<text x="394" y="372" font-family="serif" font-size="11" fill="#1A1A1A">retesting only one side (Ditto &amp; Lopez)</text>
-<line x1="300" y1="353" x2="380" y2="353" stroke="#8F8578" stroke-width="1" marker-end="url(#f7arrow)"/>
-
-<rect x="20" y="394" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="34" y="412" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" letter-spacing="1.0">STATUS QUO BIAS TEST</text>
-<text x="34" y="430" font-family="serif" font-size="11" fill="#1A1A1A">if I didn't already hold this position,</text>
-<text x="34" y="444" font-family="serif" font-size="11" fill="#1A1A1A">would I adopt it now?</text>
-<rect x="380" y="394" width="280" height="62" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
-<text x="394" y="412" font-family="JetBrains Mono" font-size="10" fill="#0E7490" letter-spacing="1.0">PRIOR-COMMITMENT POLARIZATION</text>
-<text x="394" y="430" font-family="serif" font-size="11" fill="#1A1A1A">retrieval anchored on existing prior</text>
-<text x="394" y="444" font-family="serif" font-size="11" fill="#1A1A1A">(Kunda 1990 + Lord, Ross, Lepper 1979)</text>
-<line x1="300" y1="425" x2="380" y2="425" stroke="#8F8578" stroke-width="1" marker-end="url(#f7arrow)"/>
-
-<text x="340" y="488" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">two tests target the same asymmetry; that's a feature, not a bug.</text>
-<text x="340" y="504" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">a single belief gets multiple looks at the same failure mode.</text>
-<text x="340" y="524" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">test names verbatim from Galef; prompts paraphrased to the post's voice</text>
-
-</svg>
-<figcaption><strong>Fig 7.</strong> The post's reading of how each of <a href="https://juliagalef.com/the-scout-mindset/">Galef's five Chapter-5 tests</a> targets a specific failure mode the empirical literature catalogues. This is a teaching synthesis. Galef does not formally map the tests to the empirical literature in <em>The Scout Mindset</em>, and the asymmetries are not formally mapped to tests in any source the post cites. The mapping is what the author finds useful when running the tests on a real belief; reasonable readers may pair them differently. Two tests landing on Ditto and Lopez is intentional: one belief gets several distinct prompts to surface the same kind of failure mode.</figcaption>
-</figure>
-
-There's a temptation, when you have five tests on one side and a list of asymmetries on the other, to draw arrows. Section 3 had Kunda, Lord/Ross/Lepper, Ditto/Lopez, and the contested Kahan case; section 7 has five thought experiments. Wouldn't it be nice if test (a) targeted asymmetry (a) and so on? It would. But here's the careful framing: the mapping below is the post's reading of how the tests relate to the empirical literature, not a Galef-stated equivalence and not a primary-source claim from any paper in the matrix. Galef's tests are framed in cognitive-prompt terms, not in motivated-reasoning-research terms. The asymmetries are framed in experimental-paradigm terms, not in self-help-prompt terms. The arrows are a teaching device.
-
-With that caveat, here's the reading. The Outsider Test is a Kunda counter-move: imagining a stranger in your position changes which information your brain decides to retrieve, partly washing out the directional-goal selection effect. The Selective Skeptic Test is a Ditto-Lopez counter-move: an explicit attempt to apply the same scrutiny budget to evidence that supports your conclusion as you do to evidence that doesn't. The Double Standard Test points at the same Ditto-Lopez asymmetry from the other direction. The Conformity Test pulls against the Mercier-Sperber social-justification mechanism: what if the audience your reasoning is building a case for didn't exist? The Status Quo Bias Test pulls against the Lord-Ross-Lepper polarization-by-prior mechanism by asking the brain to start the inference fresh. All of those are reasonable hypotheses about why the tests might work; none of them is established by a primary source the post can cite.
-
-Why insist on the caveat at this length? Because you're about to take five tests into your daily decision-making, and the post owes you the honest level of confidence to attach to "this test fixes that bias." The honest level is narrower than common write-ups of Galef's framework imply: the tests are coherent prompts that map onto failure modes the empirical literature catalogues; the §9 trainability evidence is small-but-real for *related* debiasing interventions and silent on Galef's five specifically; the post's recommendation to run them on a belief is a "reasonable, cheap to try" call rather than a "the data says this works" call. Section 7 doesn't claim more than that.
-
-Now, run one. Pick the test that maps most cleanly to the kind of belief you picked in section 1. If your belief is one your peer group strongly agrees on, the Conformity Test is the natural first move. If it's one where you've collected supporting evidence over years, the Selective Skeptic Test does the most work. Spend five minutes. Write down what shifts. Section 8 will tell you what to do with what you wrote.
-
-{/* Reader can now: name the five tests; pick a real belief and run at least one of them in five minutes; recognize the test-to-asymmetry mapping as the post's synthesis, not a Galef claim; understand that the trainability evidence in §9 caps how strong a claim section 7 can make. */}
+The tests are fast and individual. You can run all five on a single belief before your next meeting. What they can't reach, on their own, is the team-scale architecture where the same motivated-reasoning mechanisms operate across people rather than inside one person's head. Section 6 is the complement: what to do when the individual tests aren't enough because the belief is held collectively and the asymmetries are load-bearing for the whole organization.
 
 ### 8. The systems layer: scout mode at the institutional scale
 
