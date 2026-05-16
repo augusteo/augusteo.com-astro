@@ -27,20 +27,18 @@
 </div>
 
 <script>
-  // Single global init flag — guards against double-init via view transitions.
+  // Initialize the lightbox. Idempotent — safe to call multiple times via
+  // Astro view transitions. Uses document-level event delegation so we never
+  // need to re-bind per-tile click handlers across soft navigations.
   function initPhotoLightbox() {
     const overlay = document.getElementById("photo-lightbox");
     if (!overlay) return;
     // Portal the overlay to <body> so setInertOnPage can mark every other top-level
-    // child inert without trapping the dialog inside an inert ancestor. Idempotent.
+    // child inert without trapping the dialog inside an inert ancestor.
     if (overlay.parentElement !== document.body) {
       document.body.appendChild(overlay);
     }
-    if (overlay.dataset.inited === "true") {
-      // Re-attach tile click handlers (new tiles after navigation).
-      bindTileClicks();
-      return;
-    }
+    if (overlay.dataset.inited === "true") return;
     overlay.dataset.inited = "true";
 
     const img = overlay.querySelector<HTMLImageElement>(".lb-image")!;
@@ -243,21 +241,26 @@
       }
     }, { passive: true });
 
-    function bindTileClicks() {
-      const tiles = document.querySelectorAll<HTMLAnchorElement>(
-        ".photo-tile[data-gallery]",
-      );
-      tiles.forEach((tile) => {
-        if (tile.dataset.lbBound === "true") return;
-        tile.dataset.lbBound = "true";
-        tile.addEventListener("click", (e) => {
-          e.preventDefault();
-          open(tile);
-        });
-      });
-    }
-
-    bindTileClicks();
+    // Document-level event delegation in CAPTURE phase: a single listener handles
+    // clicks on any current or future .photo-tile[data-gallery] anchor. Capture
+    // phase ensures we beat Astro's ClientRouter, which would otherwise treat the
+    // anchor's href as a same-origin navigation and route to the image URL.
+    // Also stops propagation so ClientRouter never sees the event.
+    document.addEventListener(
+      "click",
+      (e) => {
+        const target = e.target as Element | null;
+        if (!target) return;
+        const tile = target.closest<HTMLAnchorElement>(
+          ".photo-tile[data-gallery]",
+        );
+        if (!tile) return;
+        e.preventDefault();
+        e.stopPropagation();
+        open(tile);
+      },
+      { capture: true },
+    );
   }
 
   if (document.readyState === "loading") {
