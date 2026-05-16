@@ -31,6 +31,11 @@
   function initPhotoLightbox() {
     const overlay = document.getElementById("photo-lightbox");
     if (!overlay) return;
+    // Portal the overlay to <body> so setInertOnPage can mark every other top-level
+    // child inert without trapping the dialog inside an inert ancestor. Idempotent.
+    if (overlay.parentElement !== document.body) {
+      document.body.appendChild(overlay);
+    }
     if (overlay.dataset.inited === "true") {
       // Re-attach tile click handlers (new tiles after navigation).
       bindTileClicks();
@@ -157,8 +162,11 @@
       });
       preloaders.length = 0;
       if (openerEl) {
-        openerEl.focus();
+        // Defer focus restoration to the next frame so the browser has time to
+        // process the `inert` removal before we focus the previously-inert tile.
+        const target = openerEl;
         openerEl = null;
+        requestAnimationFrame(() => target.focus({ preventScroll: false }));
       }
       currentGallery = [];
       currentIndex = -1;

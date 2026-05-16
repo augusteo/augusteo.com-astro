@@ -34,8 +34,10 @@ const ALBUMS_FILTER = (() => {
 
 const IGNORE_FILES = new Set(["_page.html", "_urls.txt", "download.sh", ".DS_Store"]);
 
-// Renames "001_<uuid>.jpg" -> "001.jpg"; otherwise lowercases extension.
-const UUID_RENAME = /^(\d+)_[a-f0-9-]{8,}.*\.(jpg|jpeg)$/i;
+// Renames "001_<anything>.jpg" -> "001.jpg". Adobe Portfolio uses several suffix
+// patterns: "001_<uuid>.jpg", "001_cover_<uuid>.jpg", etc. Match the leading number
+// and drop anything between the underscore and the extension.
+const UUID_RENAME = /^(\d+)_.+\.(jpg|jpeg)$/i;
 
 type CacheEntry = { hash: string; size: number; mtime: number };
 type Cache = Record<string, CacheEntry>;
