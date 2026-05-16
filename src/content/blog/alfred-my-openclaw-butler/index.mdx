@@ -1,0 +1,158 @@
+---
+title: "Alfred, my personal OpenClaw butler"
+description: "What I actually use OpenClaw for at home: workout tracking, reminders, blood-test second opinions, my Plex stack, and the time my 9-year-old voice-noted with Alfred to plan her own birthday."
+pubDate: 2026-05-09
+heroImage: "@assets/blog/alfred-my-openclaw-butler/alfred-discord-insight-hormozi.png"
+heroAlt: "Discord screenshot of Alfred (an OpenClaw bot with a butler avatar) surfacing an Alex Hormozi learning summary."
+tags: ["Tech", "AI"]
+featured: false
+draft: true
+---
+
+I run my own personal AI assistant. I call him Alfred (after Michael Caine's Alfred from the Batman movies, still my favorite). He lives on a Mac Mini M4 in my house, and he's been there about three months.
+
+Alfred listens on Telegram and Discord. He logs my workouts, files my blood test results in my Obsidian Vault, reminds me to take my nasal spray, downloads movies for our Plex, summarizes podcasts into the same Vault, and helped my 9-year-old plan her own birthday party. We don't really use ChatGPT at home anymore.
+
+Here's what he actually does, why I built him, and what he gets wrong.
+
+## Telegram is my inbox
+
+Anything I want to remember (articles, podcast links, YouTube interviews, TikToks) I send to Alfred on Telegram. He fetches the page, summarizes the argument, extracts the actual learning, and files it in my Obsidian Vault. The Vault syncs to all my devices via iCloud.
+
+The summary lives where I'll look for it next time. The link doesn't rot in a "read later" app I never open.
+
+## The workout tracker (my favorite)
+
+Most weekdays I don't have time for a full session. I work a lot, so I'll do a set of bench press between meetings, lateral raises an hour later, kettlebell swings or kettlebell halos during meetings that don't need my hands. After each set I go back to work.
+
+Tracking that in a normal workout app is miserable. You have to keep the app open and remember which set you're in.
+
+In Alfred's health channel I just type:
+
+> 40 lb kettlebell swing 60 reps
+
+He writes a row in the workout markdown file. Next time I say:
+
+> 30 cossack squats with the same kettlebell
+
+He knows the kettlebell is still 40 lbs. The third time I can just type "60 more swings" and he infers the rest.
+
+This sounds small. It isn't. Open-ended natural-language activity tracking is the killer feature for the kind of workouts I actually do, and no fitness app I tried before came close.
+
+## Health champion
+
+I tell Alfred when I take my medications and vitamins (creatine, fluticasone nasal spray, the rest). He logs them in a markdown file with timestamps.
+
+He also schedules in plain language. "Remind me to bring my fluticasone to work at 8am every Wednesday and Thursday." Done. I don't open a calendar app, I don't pick a frequency from a dropdown, I don't fill in a notification time. He just does it.
+
+Same pattern for blood tests and doctor visits. After each one, I dump the results into the health channel as plain text. Alfred files them in a health folder in my Obsidian Vault, keyed by date. Over time, I can see the history instead of guessing.
+
+When something on a panel looks off, I can also ask Alfred for a second opinion or the latest research on whatever's flagged. He pulls the recent literature, summarizes it back, and writes the references to the same Vault.
+
+It doesn't replace a doctor. It does replace the cold start: he remembers the old panels, pulls current papers, and gives me a better first pass before I talk to a human.
+
+## Movies and TV via the *arr stack
+
+The Mac Mini is also running Sonarr, Radarr, Bazarr, and the rest. Alfred is the natural-language interface to all of it.
+
+> I want to watch The Boys
+
+He looks it up, downloads it, drops it in the Plex library. I open Apple TV, and it's there.
+
+I don't think about download clients anymore.
+
+## Insight surfacing
+
+I have a "learning" channel where I paste the links I think are worth keeping. Alfred indexes the summaries he's already written. Several times a day, an "insight" channel wakes up and pings me with a learning he's surfaced from the backlog.
+
+![Discord screenshot of Alfred surfacing an Alex Hormozi learning titled "5 Reasons People Don't Do What You Want," with section headers "1. The Communication Gap Is the #1 Failure" and "2. Motivation Is the Last Resort Diagnosis."](@assets/blog/alfred-my-openclaw-butler/alfred-discord-insight-hormozi.png)
+
+That's an Alex Hormozi clip on the five reasons people don't do what you want. The "Diagnostic for when your AI eng team drops a ball" framing on the second line is Alfred's, not Hormozi's. He's pretty good at pitching the surfaced learning to whichever life context the channel is for.
+
+## The household
+
+My wife uses Alfred about as much as I do. Household scheduling, kid logistics, the general "hey, what's the difference between X and Y" questions she used to ask ChatGPT. He drives email replies and handles the kind of admin work that used to fill the cracks of a weekend.
+
+We don't really use ChatGPT at home anymore.
+
+## Grace's 9th birthday
+
+This is the one that surprised me the most.
+
+We were talking about my daughter's 9th birthday last month. She had ideas, but they were scattered. I half-jokingly said: "Why don't you just talk to Alfred about it?"
+
+So I sent Alfred a voice note over Discord and asked him to open a thread for Grace and help her plan her birthday.
+
+![Discord screenshot showing Vic's voice note, then Alfred opening a thread titled "Grace's 9th Birthday Planning," then Alfred's reply that the thread is open and ready for Miss Grace.](@assets/blog/alfred-my-openclaw-butler/alfred-grace-thread-created.png)
+
+> Done, sir. Thread's open and ready for Miss Grace.
+
+Grace then voice-noted with Alfred herself. He greeted her, asked what kind of birthday she wanted, and gave her four things to think about (party with friends, a theme, an activity, at home or somewhere fun).
+
+![Discord screenshot of Alfred greeting Grace inside the new thread, addressing her by name and offering to help plan her birthday. Grace replies with a voice note. Alfred follows up with prompts for whether she'd like a party with friends, a theme, an activity, or somewhere specific to celebrate.](@assets/blog/alfred-my-openclaw-butler/alfred-grace-greeting.png)
+
+She walked him through what she wanted. He came back with vendor options, prices, and durations.
+
+![Discord screenshot of Alfred recommending Immersive Gamebox at Valley Fair as a birthday party option (6 kids, 2 games, priced around $300-480 with weekdays cheaper, food at the mall after) and then computing the venue duration: each game is a 60-minute experience, two games + food = 3-3.5 hour party.](@assets/blog/alfred-my-openclaw-butler/alfred-grace-gamebox-options.png)
+
+The Immersive Gamebox option above is the one she landed on. Alfred priced it (~$300-480, cheaper on weekdays), checked the venue's website to figure out that each game is a 60-minute experience, and worked out that two games back-to-back plus food after would put us at a solid 3-3.5 hour party.
+
+He then wrote the whole plan to my Obsidian Vault so my wife and I could review it later.
+
+At one point Grace asked me, "How does Alfred give this information to you guys?" I told her: don't worry about it. Alfred has access to my Obsidian Vault.
+
+It's still wild to me that the most useful thing my AI butler did this month was let my 9-year-old run her own party-planning meeting.
+
+## Finance, but only the long-horizon stuff
+
+Stock research, market commentary, long-term buy ideas. Alfred follows the news (the Iran war was an active example for a stretch), and recommends positions with reasoning I can actually audit.
+
+I don't day trade. I don't have the mental capacity to babysit positions. Alfred does the watching; I make the calls on a much slower clock.
+
+## Why I built him
+
+Before [OpenClaw](https://github.com/openclaw/openclaw), I couldn't make this work. ChatGPT and Claude could talk *about* my Obsidian Vault. They couldn't *touch* it, because neither of them actually hooked into my file system. Same with Notion.
+
+Claude Code can do something close now, if I point it at a folder it'll read and write inside that folder. But it only works in that one folder, and only while I'm sitting in front of the cloud app. That isn't what I wanted. I wanted a thing that runs in the background, listens on the channels I already use, and writes to my Vault from any of them.
+
+Plain language for everything. "Remind me to bring my fluticasone to work at 8am on Wednesdays and Thursdays." "When I send you this link, summarize it and put the learning in the right Obsidian folder." Easy to wire up to channels I already use. Easy to extend.
+
+OpenClaw was the first project that fit. The Hermes Agent and the other Claw variants weren't out yet, so I didn't shop around. I installed OpenClaw, wired it up, and that was Alfred.
+
+## The hardware
+
+A Mac Mini M4 with 16 GB of RAM and 256 GB of storage. I bought it specifically for Alfred and the [media server](https://wiki.servarr.com/) (Sonarr, Radarr, Bazarr, the rest of the *arr stack). Both run on the same box. 16 GB is plenty.
+
+I exposed the Mac Mini through [Tailscale](https://tailscale.com/) so I can hit it from my phone or my laptops without ever touching the public internet. The same Mac Mini hosts a few small homebrew web services (a workout viewer, an internal dashboard or two). Tailscale routes them all.
+
+Inbound to Alfred goes through OpenClaw's Telegram and Discord channel adapters. No port forwarding, no public exposure. Only my devices can talk to him.
+
+## The model
+
+Alfred runs on Claude Opus 4.6, calling out to the Anthropic API. I haven't checked the monthly bill in a while, which probably tells you it's not bad.
+
+Setup time from unboxing the Mac Mini to "Alfred is doing useful things": hours, not days.
+
+## What Alfred gets wrong
+
+He's not perfect.
+
+The most common failure: he writes to the wrong file. Or forgets a piece of context I'd given him earlier in the same channel. The context engineering, especially around remembering long-running threads of state, isn't quite there yet.
+
+This is what's been pushing me to look at the Hermes Agent and the other Claw variants. Hermes bets on a closed learning loop: skills the agent rewrites between turns, cross-session recall, a persistent user model. Hermes may be better at exactly the thing Alfred is weak at: remembering and correcting himself.
+
+For now, I correct Alfred when he drifts. The work he saves me is still worth correcting him.
+
+## A note on Boon
+
+We also run an OpenClaw instance at [Boon](https://getboon.ai). That one is a separate instance, not the same Alfred. It acts like an independent employee that runs 24/7, and we've been leaning on it heavily for a couple of months.
+
+That's a different post. This one is about Alfred at home.
+
+## If you're getting started
+
+OpenClaw is worth the afternoon. Buy a Mac Mini (or use whatever box you already have running), install OpenClaw, point it at the channels you actually use, and give it your Obsidian Vault.
+
+If you want the architectural deep dive on how OpenClaw works (gateways, sessions, sandboxes, and where it sits relative to Hermes Agent and the four Claw lookalikes) that's [the companion post](/blog/openclaw-and-hermes-agent).
+
+I'll write up the Boon side separately.

@@ -10,7 +10,7 @@ draft: true
 essay: true
 ---
 
-*A walk through the open-source AI agent ecosystem along three architectural dials (lifespan, surface, and adaptation), placing OpenClaw, Hermes Agent, and the Claw family variants on the same map. About a 35-minute read.*
+*A survey of open-source AI agent frameworks along three architectural dials (lifespan, surface, and adaptation), placing OpenClaw, Hermes Agent, and the Claw family variants on the same map. About a 35-minute read.*
 
 ## Act 1 — The three dials
 
@@ -114,7 +114,7 @@ The adaptation dial has three rungs.
 
 *Persistent memory* means information survives between sessions. The agent can recall the previous conversation, look up past decisions, retrieve documents the user wrote earlier, and build a personal context that grows with use. The agent gets better at understanding *who* is asking and *what* has been said before.
 
-*Skill creation and self-improvement* is a different rung from persistent memory. Memory is what the agent has *seen*; skills are what the agent has *learned to do*. A skill is a parameterized procedure the agent can invoke later: "write a test for this function in our codebase's style," or "review this PR for conventions we've discussed." Skills are the unit of practice. An agent on this rung not only remembers, it codifies what it has learned into reusable form. When the user reaches for an agent's recall, they get memory; when the user reaches for an agent's competence, they get skills.
+*Skill creation and self-improvement* is a different rung from persistent memory. Memory is what the agent has *seen*; skills are what the agent has *learned to do*. A skill is a parameterized procedure the agent can invoke later: "write a test for this function in our codebase's style," or "review this PR for conventions we've discussed." Skills are the unit of practice. An agent on this rung remembers, then codifies what it has learned into reusable form. When the user reaches for an agent's recall, they get memory; when the user reaches for an agent's competence, they get skills.
 
 <figure>
 <svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%">
@@ -716,11 +716,11 @@ ZeptoClaw is part of a real coordinated sub-family, but it isn't *Claw*. The v0.
 <figcaption><strong>Fig 7.</strong> The five frameworks placed on the three dials. The four Claw variants scatter: they don't share a center on any dial, and four of their distinctive bets (container minimalism, hardware portability, deploy-anywhere posture, feature breadth) sit off the dial map entirely. The legend names each variant's off-axis bet alongside the role peterwoods.online assigns it; three of those role-assignments contradict the variant's own README, and the fourth is a partial match.</figcaption>
 </figure>
 
-The contradictions, the language scatter, and the disavowals all point to the same thing: the shared `*Claw` namespace invites taxonomy that the projects don't actually share. Trying to place the four variants on the three-dial map shows the scatter, and several of their distinctive bets sit off the map entirely. NanoClaw's distinctive concern is container minimalism. sipeed/PicoClaw's is hardware portability. ZeroClaw's is deploy-anywhere posture. ZeptoClaw's is feature breadth: a wide capability set in one binary. Those are footprint and runtime concerns the lifespan / surface / adaptation framework doesn't capture. Where they appear, the figure annotates the off-axis bet alongside the in-axis placement; the dial map handles what it can.
+The contradictions and the disavowals point to the same thing: the shared `*Claw` namespace invites taxonomy that the projects don't actually share. Trying to place the four variants on the three-dial map shows the scatter, and several of their distinctive bets sit off the map entirely. NanoClaw's distinctive concern is container minimalism. sipeed/PicoClaw's is hardware portability. ZeroClaw's is deploy-anywhere posture. ZeptoClaw's is feature breadth: a wide capability set in one binary. Those are footprint and runtime concerns the lifespan / surface / adaptation framework doesn't capture. Where they appear, the figure annotates the off-axis bet alongside the in-axis placement; the dial map handles what it can.
 
 Migration tooling lands here too. Hermes Agent, Act 3's subject, ships a first-party `hermes claw migrate` command that imports OpenClaw setups (settings, memories, skills, API keys), and detects the legacy `~/.clawdbot/` and `~/.moltbot/` directories from earlier names automatically. The tooling is real; the *amount* of migration that flows through it isn't disclosed.
 
-{/* Reader can now: see how third-party taxonomies fill a vacuum when an ecosystem shares a name pattern but no maintainership; recognize that the three-dial framework itself doesn't explain every variant's distinctive bet (and that's part of the taxonomy-failure story). */}
+{/* Reader can now: see how third-party taxonomies fill a vacuum when projects share a name pattern but no maintainership; recognize that the three-dial framework itself doesn't explain every variant's distinctive bet (and that's part of the taxonomy-failure story). */}
 
 ### 11. Where OpenClaw and the Claw family land on the dial map
 
@@ -806,10 +806,10 @@ That is the post's spine for Act 3. Each piece names an arc of the loop.
 <text x="340" y="438" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">three arcs are agent-curated; Honcho is an external library; aggregate extras like `all` and `termux` include it</text>
 
 </svg>
-<figcaption><strong>Fig 8.</strong> The closed loop runs four arcs in parallel between turns. <em>Skills</em> codify procedures from successful tasks. <em>Mid-use refinement</em> rewrites a skill while it is executing. <em>FTS5 recall</em> searches past session transcripts when the procedure is not yet a skill. The <em>Honcho user model</em> is a peer-keyed Dialectic API maintained as an external library by Plastic Labs (AGPL-3.0). The base Hermes wheel is MIT; Honcho ships only when the install path goes through `hermes-agent[honcho]` or an aggregate extra that includes it.</figcaption>
+<figcaption><strong>Fig 8.</strong> The closed loop runs four arcs in parallel between turns. <em>Skills</em> codify procedures from successful tasks. <em>Mid-use refinement</em> rewrites a skill while it is executing. <em>FTS5 recall</em> searches past session transcripts when the procedure is not yet a skill. The <em>Honcho user model</em> is a peer-keyed Dialectic API maintained as an external library by Plastic Labs (AGPL-3.0). Install-path licensing surface is unpacked separately in §15 / Fig 10.</figcaption>
 </figure>
 
-The arcs sit on three different gradients of "what carries forward." Skill creation says: this task surfaced a procedure worth keeping, codify it. Mid-use refinement says: this skill almost worked, rewrite it on the way. FTS5 recall says: a different conversation knew the answer, find that conversation. The Honcho user model says: separate from any specific task, the agent should know who is asking. The four arcs run together, not as a single algorithm but as a set of practices the agent applies between turns.
+The arcs sit on three different gradients of "what carries forward." Skill creation says: this task surfaced a procedure worth keeping, codify it. Mid-use refinement says: this skill almost worked, rewrite it on the way. FTS5 recall says: a different conversation knew the answer, find that conversation. The Honcho user model says: separate from any specific task, the agent should know who is asking. The four arcs run together as a set of practices the agent applies between turns, rather than as one algorithm.
 
 The next four sections walk each arc.
 
@@ -1111,7 +1111,7 @@ Subagent isolation. The README's feature entry is "Spawn isolated subagents for 
 <figcaption><strong>Fig 12.</strong> Two mechanisms hide behind one phrase. *Process isolation* (the `delegate_task` tool) spawns a subagent process inside the same backend container; the parent and child are different OS processes but share the workspace filesystem. The boundary protects the *agent context* (each gets its own working memory and tool history). *Filesystem isolation* (`hermes -w`, added in v0.2.0) launches a subagent in a separate git worktree of the same repo; the boundary protects the *working tree* so two subagents editing the same project don't collide. Different problems, different walls.</figcaption>
 </figure>
 
-The point of the tool stack and the backend list is what the closed loop sits on. Skills run inside one of the seven backends. Subagents run inside a (possibly different) one of the seven. The agent's adaptation surface scales with what the backends allow, and the backends' diversity is the deployment knob.
+The tool stack and the backend list are what the closed loop sits on. Skills run inside one of the seven backends. Subagents run inside a (possibly different) one of the seven. The agent's adaptation surface scales with what the backends allow, and the backends' diversity is the deployment knob.
 
 {/* Reader can now: identify the seven README-listed backends and the documented Daytona/Modal serverless-persistence niche per row 34. */}
 
@@ -1229,7 +1229,7 @@ The next section is the matrix.
 <text x="398" y="538" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">bets sit on the dials (gateway and adaptation, respectively).</text>
 
 </svg>
-<figcaption><strong>Fig 13.</strong> All six frameworks on the same map. None sits at the v4 corner with all three dials at the top rung; each picks its own placement. OpenClaw owns the gateway rung; Hermes owns the skill-creation rung. The four Claw variants scatter, and four of their distinctive concerns (container minimalism, hardware portability, deploy-anywhere, feature breadth) sit off the map entirely. The dial map captures what it can; the off-axis annotations close the rest.</figcaption>
+<figcaption><strong>Fig 13.</strong> All six frameworks on the same map. None sits at the v4 corner with all three dials at the top rung; each picks its own placement. OpenClaw anchors the gateway rung; Hermes anchors the skill-creation rung. The four Claw variants scatter, and four of their distinctive concerns (container minimalism, hardware portability, deploy-anywhere, feature breadth) sit off the map entirely. The dial map captures what it can; the off-axis annotations close the rest.</figcaption>
 </figure>
 
 The dial map is finished now. Six architectures, six placements. None of them sit at the v4 corner where all three dials are at the top rung; each picks its own placement, and several of the variants pick at least one off-axis concern the dial map can't represent.
@@ -1240,7 +1240,7 @@ Hermes Agent lives where adaptation lives. It is the architecture you reach for 
 
 The four Claw variants don't share a center. NanoClaw answers "how thin can you make the agent's blast radius and codebase," sipeed/PicoClaw answers "how cheap a board can run a personal AI assistant," ZeroClaw answers "how to deploy one binary anywhere," ZeptoClaw answers "how much can fit in one Rust binary." Those are real questions, just not the same question the dial map is built around. Where they show up on the map at all, the map captures part of them. The off-axis annotations capture the rest.
 
-Tool choice falls out of which dial your use case actually needs, or which off-axis concern. If reach is the problem, OpenClaw is the answer. If skill creation and cross-session memory are the problem, Hermes is the answer. If you are running a personal agent on a sub-$10 board, sipeed/PicoClaw is the answer the others can't give. The single ladder couldn't represent any of those questions; the dial map gets you most of the way, and the off-axis annotations close the rest.
+Tool choice falls out of which dial your use case actually needs, or which off-axis concern. If reach is the problem, OpenClaw is the answer. If skill creation and cross-session memory are the problem, Hermes is the answer. If you are running a personal agent on a sub-$10 board, sipeed/PicoClaw is the answer the others can't give. The single ladder couldn't represent any of those questions; the dial map gets you most of the way, and the off-axis annotations keep the rest visible.
 
 *Companion to [Hand Tools, Power Tools, and the AI Coding Debate](/blog/hand-tools-power-tools-ai-coding-debate), written May 2026.*
 
@@ -1261,7 +1261,7 @@ Tool choice falls out of which dial your use case actually needs, or which off-a
 
 - [qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw). NanoClaw repository: README and architecture section. Accessed 2026-05-08.
 - [sipeed/picoclaw](https://github.com/sipeed/picoclaw). PicoClaw (the canonical Sipeed-authored Go rebuild). Release v0.2.8, 2026-04-30.
-- [breakcafe/picoclaw](https://github.com/breakcafe/picoclaw). PicoClaw (the name-collision serverless fork of NanoClaw, distinct project). Release v1.2.23, accessed 2026-05-08.
+- [breakcafe/picoclaw](https://github.com/breakcafe/picoclaw). PicoClaw (the name-collision serverless fork of NanoClaw, distinct project). package.json v1.2.23 (no GitHub release), accessed 2026-05-08.
 - [zeroclaw-labs/zeroclaw](https://github.com/zeroclaw-labs/zeroclaw). ZeroClaw repository: README and repo description, with the unauthorized-affiliation disclaimer. Release v0.7.5, 2026-05-08.
 - [qhkm/zeptoclaw](https://github.com/qhkm/zeptoclaw). ZeptoClaw repository: README, COMPARISON.md, and Zepto Stack section listing ZeptoPM / ZeptoCapsule / ZeptoClaw / ZeptoRT. Release v0.9.2, 2026-04-07.
 
