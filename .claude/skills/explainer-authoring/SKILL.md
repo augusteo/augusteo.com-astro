@@ -1,6 +1,6 @@
 ---
 name: explainer-authoring
-description: Long-form research-and-write blog post on augusteo.com. Drives a seven-phase pipeline (lock-in, research + claim-source matrix, outline, draft, figures, playwright, ship) with three auto-firing codex gates (research truthfulness, outline structure, final draft). Handles three entry modes: topic-from-scratch, HTML-import, and resume. Triggers include "narrative post on X", "deep prose post on X", "interactive explainer", "ciechanow.ski-style", "post with sliders / scrubbers / drag", "research X and write a post", "let's plan a new flagship", "continue the X explainer", "pick up the X post", "convert this html to a post", "import this explainer", or any path to a `*_explainer.html` / `vision_*.html` file. For short Obsidian-vault posts, use `bun run sync` instead.
+description: Long-form research-and-write blog post on augusteo.com for research topics (NOT books — see routing). Drives a seven-phase pipeline (lock-in, research + claim-source matrix, outline, draft, figures, playwright, ship) with three auto-firing codex gates (research truthfulness, outline structure, final draft). Handles three entry modes: topic-from-scratch, HTML-import, and resume. Triggers include "narrative post on X", "deep prose post on X" (X = research topic, not a book title), "interactive explainer", "ciechanow.ski-style", "post with sliders / scrubbers / drag", "research X and write a post", "let's plan a new flagship", "continue the X explainer", "pick up the X post", "convert this html to a post", "import this explainer", or any path to a `*_explainer.html` / `vision_*.html` file. **For book-based posts (EPUB / PDF / MOBI input, or any request to explain / summarize / fact-check a specific book), use `book-explainer-authoring` instead.** For short Obsidian-vault posts, use `bun run sync`.
 ---
 
 # Explainer authoring pipeline
@@ -25,7 +25,9 @@ This goal statement gets quoted into all three codex gate prompts so adversarial
 
 ## Mode detection (precedence)
 
-Detect the entry mode from Vic's first message using **this precedence; the first rule that matches wins:**
+**Pre-rule (route to a different skill):** if Vic's message contains a path to a `*.epub`, `*.pdf`, or `*.mobi` file, OR explicitly asks to explain / summarize / fact-check a specific book by title, route to `book-explainer-authoring` instead. The book skill enforces faithfulness to source via a book-source ledger; this skill optimizes for narrative arc and would drift on book content (the Scout Mindset failure). Halt this skill and invoke the book skill.
+
+Otherwise, detect the entry mode from Vic's first message using **this precedence; the first rule that matches wins:**
 
 ```
 1. Vic's message contains a filesystem path matching `*.html` (anywhere in
@@ -70,16 +72,16 @@ Tie cases (e.g. "write a post about this HTML explainer" with no path): treat as
 
 ## Companions to read
 
-Read these in order before starting any phase:
+Read these in order before starting any phase. Files marked **(shared)** live in `.claude/explainer-shared/` and are referenced via `../../explainer-shared/<file>`; the rest are local to this skill.
 
-- `voice-rules.md` — the full "Write Like a Human, Not an AI" guide. Apply during drafting, not as cleanup.
+- `../../explainer-shared/voice-rules.md` **(shared)** — the full "Write Like a Human, Not an AI" guide. Apply during drafting, not as cleanup.
 - `research-protocol.md` — primary-source decision tree, per-claim recency rule, throughline ladder, fact-check mode, Phase 7 freshness pass.
 - `narrative-template.md` — three-act section scaffold, throughline rhythm, section-connection check.
-- `illustration-style.md` — inline SVG conventions for static figures (palette, typography, figcaption shape, viewBox).
-- `figure-kit.md` — the seven Svelte primitives, palette tokens, when to use Canvas2D vs SVG vs Plot.
-- `figure-recipes.md` — cookbook patterns + the static-default rule + per-figure-type unlock protocol.
-- `codex-prompts.md` — exact prompts for the three codex gates.
-- `playwright-checks.md` — per-figure-type failure modes for the visual review phase.
+- `../../explainer-shared/illustration-style.md` **(shared)** — inline SVG conventions for static figures (palette, typography, figcaption shape, viewBox).
+- `../../explainer-shared/figure-kit.md` **(shared)** — the seven Svelte primitives, palette tokens, when to use Canvas2D vs SVG vs Plot.
+- `../../explainer-shared/figure-recipes.md` **(shared)** — cookbook patterns + the static-default rule + per-figure-type unlock protocol.
+- `codex-prompts.md` — explainer-specific gate prompts. Uses `../../explainer-shared/codex-runner.md` for the shared runner mechanics.
+- `../../explainer-shared/playwright-checks.md` **(shared)** — per-figure-type failure modes for the visual review phase.
 - `html-import.md` — HTML-to-MDX conversion playbook (HTML-import mode only).
 
 ## The seven phases
@@ -150,7 +152,7 @@ Goal: a `notes/<post-slug>.md` file exists with `## Spec`, `## Throughline`, `##
    - Throughline pick (lead candidate + one alternate per the fallback ladder in `research-protocol.md`).
    - Target length (default ~30-min read; override only if research suggests it).
    - Title sketch.
-   - Figure-style mix (default 100% static; only flag interactive candidates that meet one of the four override clauses in `figure-recipes.md`).
+   - Figure-style mix (default 100% static; only flag interactive candidates that meet one of the four override clauses in `../../explainer-shared/figure-recipes.md`).
    - Top 5-8 starter sources with arxiv IDs / dates.
 
 4. **Approval gate.** Present the candidate spec to Vic as a single `AskUserQuestion` with options: "approve as-is", "approve with edits" (Vic's edit text comes back as one structured response and is applied wholesale), "redirect" (back to step 1), "I'll seed sources" (Vic provides sources, restart at step 2 with those as inputs).
@@ -304,7 +306,7 @@ Goal: a section structure plus a numbered figure table where every figure carrie
 2. Sketch the section list. Number sections (`### 1. ...`, `### 2. ...`). Use act dividers between major narrative turns.
 3. For each section, list the figures it needs. Per-figure spec: mechanism, what the reader should walk away noticing, **and the figure type:**
    - `static-svg` — inline `<svg>` in MDX, no JavaScript. **Default.**
-   - `interactive-canvas` — Canvas2D wrapper with kit primitives. Use only if one of the four override clauses applies (see `figure-recipes.md`).
+   - `interactive-canvas` — Canvas2D wrapper with kit primitives. Use only if one of the four override clauses applies (see `../../explainer-shared/figure-recipes.md`).
    - `plot` — multi-curve line chart via the kit's `<Plot>` primitive. Use for comparisons across time/iterations/scale.
    - `imported-interactive` — HTML-import mode only; preserved as-is.
 4. Verify the throughline threads through every act (see `narrative-template.md`'s "Throughline rhythm").
@@ -327,7 +329,7 @@ Goal: a working MDX file with section prose and figure placeholders.
    - Omit `heroImage` (Phase 7 adds it).
 2. Draft section by section. For each section: state the claim, drop a figure placeholder (`{/* TODO: Fig N: <mechanism> */}` for static, `{/* TODO: <FigureName /> */}` for interactive), tell the reader what to notice, then explain the mechanism, then hand off.
 3. **Per-section "what reader now sees" check.** After each section, write a one-line HTML comment in the MDX: `{/* Reader can now: <one-line description of what they can predict/see/do that they couldn't before> */}`. If the line can't be written, halt and rework before the next section.
-4. **Apply voice rules during drafting** (see `voice-rules.md`). After each section, run `scripts/voice-check.sh src/content/blog/<post-slug>/index.mdx`. Re-run until clean.
+4. **Apply voice rules during drafting** (see `../../explainer-shared/voice-rules.md`). After each section, run `scripts/voice-check.sh src/content/blog/<post-slug>/index.mdx`. Re-run until clean.
 5. **Emit a `## References` section** at the end of the post by transcribing every quoted primary source from the matrix. One Markdown link per source: title, authors (or org), year, arxiv ID or URL. Every entry must be a real `[title](url)` hyperlink — never a bare title-and-author string. **Also include the related posts** identified in Phase 2's `## Related posts on augusteo.com` subsection — list each as the FIRST entry / entries in `## References` using the form `[Title](https://augusteo.com/blog/<slug>). <one-line role>, Augusteo <year>.` (full https URL, matching the canonical `omni-modal-stack` ↔ `unified-vision-stack` pattern at `src/content/blog/omni-modal-stack/index.mdx:1431`: `## References` always uses absolute https URLs because the section is a bibliography that may be consumed off-site; in-post prose links use root-relative `/blog/<slug>` per step 7). Prequel/sequel/companion entries appear at the top of References alongside primary sources, not in a separate block.
 6. **Hyperlink inline named-source mentions.** Whenever the prose names a specific external writeup, paper, post, postmortem, or report, wrap the named phrase in a markdown link to the same URL used in the References section.
 7. **Cross-reference related augusteo.com posts in prose.** From the `## Related posts on augusteo.com` notes-file section, weave links at the anchor points identified in Phase 2. Pattern (per `omni-modal-stack`): if the new post is a sequel/follow-up, lead with an italic dek line under the H1 (`*A sequel to [The Title](/blog/slug). <one-line setup of what's picked up>. About a <N>-minute read.*`); add at least one inline link in the opening setup of Act 1 that names the prior post and what it established; close with an optional italic line at the very end (`*Sequel to [The Title](/blog/slug), written <Month Year>.*`). For non-sequel topical overlaps, just inline-link at the anchor point — no dek framing. Use root-relative paths (`/blog/<slug>`) for in-post links; full `https://augusteo.com/...` URLs only inside `## References`.
@@ -343,17 +345,17 @@ The implementation path forks by figure type.
 
 ### For NEW figures (topic mode + HTML-import mode where Gate 1 demanded a new figure)
 
-Apply the **static-default rule** from `figure-recipes.md`. Default to `static-svg`; switch to `interactive-canvas` or `plot` only if one of the four override clauses applies.
+Apply the **static-default rule** from `../../explainer-shared/figure-recipes.md`. Default to `static-svg`; switch to `interactive-canvas` or `plot` only if one of the four override clauses applies.
 
 #### Static-SVG figures
 
-1. Read `illustration-style.md` for palette, typography, figcaption shape, viewBox conventions.
+1. Read `../../explainer-shared/illustration-style.md` for palette, typography, figcaption shape, viewBox conventions.
 2. Replace the placeholder with `<figure><svg viewBox="0 0 680 ...">...</svg><figcaption>...</figcaption></figure>` directly in the MDX.
 3. Mirror the existing post's design language (palette, font stack, stroke widths, figcaption shape). No new design language without proposing it to Vic first.
 
 #### Interactive-canvas / plot figures
 
-A reactive figure is **two files plus an MDX import**: a pure draw function in TS, a per-figure Svelte wrapper that owns reactive state, and an MDX import that places the wrapper inside `<Figure>`. Read `figure-kit.md`'s "Astro hydration" section before starting your first interactive figure of the post.
+A reactive figure is **two files plus an MDX import**: a pure draw function in TS, a per-figure Svelte wrapper that owns reactive state, and an MDX import that places the wrapper inside `<Figure>`. Read `../../explainer-shared/figure-kit.md`'s "Astro hydration" section before starting your first interactive figure of the post.
 
 1. **Draw function** at `src/figures/<post-slug>/<figure-name>.ts`. Pure `draw(ctx, data, t)`. Pull palette from `@figures/shared`.
 2. **Wrapper component** at `src/components/figures/<post-slug>/<FigureName>.svelte`. Owns `$state`, renders `<Canvas2D>` or `<Plot>` plus `<div class="controls">`.
@@ -362,7 +364,7 @@ A reactive figure is **two files plus an MDX import**: a pure draw function in T
 
 ### For IMPORTED figures (HTML-import mode)
 
-`imported-interactive` figures are kept as-is. Phase 5 is light: spot-check imported SVG against `illustration-style.md` rules (palette, font swaps, viewBox); fix violations.
+`imported-interactive` figures are kept as-is. Phase 5 is light: spot-check imported SVG against `../../explainer-shared/illustration-style.md` rules (palette, font swaps, viewBox); fix violations.
 
 ### For all figures
 
@@ -376,7 +378,7 @@ Goal: every figure renders cleanly at the actual post route.
 
 1. Start `bun run dev` in the background.
 2. Use the playwright MCP server (`mcp__plugin_playwright_playwright__*`) to navigate to `http://localhost:4321/blog/<post-slug>`.
-3. For each figure: scroll into view, snapshot, read the screenshot back. Run universal checks plus type-specific checks from `playwright-checks.md`.
+3. For each figure: scroll into view, snapshot, read the screenshot back. Run universal checks plus type-specific checks from `../../explainer-shared/playwright-checks.md`.
 4. If a figure fails: edit the SVG or wrapper, re-snapshot. Stop when it passes.
 5. **Halt rule.** If a single figure fails review three times in a row, halt and surface to Vic.
 6. Update the `## Resume here` tracker as figures pass.
@@ -400,48 +402,9 @@ Goal: the post ships with current sources, no claim drift, and a real hero image
 
 ## Three codex gates (auto-firing)
 
-All gates invoke the project-local `codex` skill. They auto-fire at phase boundaries; Vic does not need to type `/codex`. The full per-gate runner (exact prompt inputs, output handling, size policy, halt rules) lives in `codex-prompts.md` under "Per-gate runner". Each phase that has a gate calls it with these concrete steps:
+All gates invoke the project-local `codex` skill. They auto-fire at phase boundaries; Vic does not need to type `/codex`. Per-gate inputs (prompt template, embedded notes sections, gate label, halt rule, notes-section name) live in [`codex-prompts.md`](codex-prompts.md). Shared runner mechanics (build-prompt → invoke-codex → size-policy → Codex history row → parse findings → 3-rerun cap → Step-6a override safeguard → proof-of-fire) live in [`../../explainer-shared/codex-runner.md`](../../explainer-shared/codex-runner.md).
 
-**Per-gate runner steps (executed by the phase that owns the gate):**
-
-```
-1. Build prompt: take the template from codex-prompts.md for the specific
-   gate; substitute [QUOTE THE GOAL STATEMENT] with the literal Goal text;
-   embed the relevant notes-file sections per the gate's "What you provide
-   to codex" section (Gate 0: Spec + Throughline + Research notes + Matrix;
-   Gate 1: + Outline + figure table; Gate 2: + full MDX + Related posts on
-   augusteo.com + all prior Codex review sections).
-
-2. Invoke codex skill via Skill tool:
-     skill: codex
-     args: consult <full prompt>
-
-3. Capture verbatim output. Apply size policy:
-   - If output ≤ 8KB: paste verbatim into notes/<slug>.md under
-     ## Codex <gate-name> review.
-   - If output > 8KB: write the full output to
-     notes/<slug>-codex-<gate>-<YYYYMMDD>.md, then paste into the notes
-     file's ## Codex <gate-name> review section ONLY a one-paragraph
-     summary + a relative link to the findings file
-     ([full findings: <path>]).
-
-4. Append a row to ### Codex history:
-   | <today> | <N> (<gate-name>) | <structural | cosmetic | clean> | <findings file or notes section> |
-
-5. Parse findings:
-   - Any STRUCTURAL: apply fixes (edit matrix / outline / prose / figure
-     table per finding). Re-run gate from step 1 with the fixed inputs.
-     Cap at 3 re-runs per gate — if a 4th run still surfaces STRUCTURAL,
-     halt and surface to Vic with the loop count + last codex output.
-   - TYPE-CHANGE STRUCTURAL (Gate 1 only): fire per-figure-type unlock
-     protocol; do not just re-run the gate.
-   - Only COSMETIC or "no structural issues found": gate passes.
-
-6. Proof-of-fire: a gate is only marked done in the tracker if step 4's
-   row was actually appended to ### Codex history. The phase-transition
-   status print (printed to chat at end of every phase) is the audit
-   trail Vic uses to verify gates fired.
-```
+Each phase that has a gate calls the runner with the gate's per-gate inputs. The runner's Step-5 fork for `TYPE-CHANGE STRUCTURAL` (Gate 1 only) routes to the per-figure-type unlock protocol below.
 
 ### Gate 0: research-notes + claim-source matrix truthfulness pass
 
@@ -531,7 +494,7 @@ Three to five lines naming the next concrete action. Order from low complexity t
 5. **Static is the figure default for new figures.** Interactive requires one of the four override clauses (continuous sweep / animation / drag / multi-state toggle). Imported figures preserved as auto-classified (static-svg or imported-interactive).
 6. **Per-figure type is locked at Phase 3, unlock only via Gate 1 STRUCTURAL finding + Vic approval.**
 7. **One section per commit, one figure per commit, one migration per commit.** Safe revert points.
-8. **Sentence-case headings.** Numbered sections (`### 3. The all-reduce sub-problem`) match `unified-vision-stack`. Em-dashes (U+2014) are forbidden in prose (voice-rules.md) BUT permitted in act-divider headings (`## Act 1 — The Lens`); voice-check exempts heading-line em-dashes when the line starts with `## Act `. **En-dashes (U+2013) are allowed everywhere** — use them for numeric ranges (`5–10 GPUs`), date ranges (`2023–2024`), and other span notations. Voice-check does not flag en-dashes; do not auto-repair them.
+8. **Sentence-case headings.** Numbered sections (`### 3. The all-reduce sub-problem`) match `unified-vision-stack`. Em-dashes (U+2014) are forbidden in prose (`../../explainer-shared/voice-rules.md`) BUT permitted in act-divider headings (`## Act 1 — The Lens`); voice-check exempts heading-line em-dashes when the line starts with `## Act `. **En-dashes (U+2013) are allowed everywhere** — use them for numeric ranges (`5–10 GPUs`), date ranges (`2023–2024`), and other span notations. Voice-check does not flag en-dashes; do not auto-repair them.
 9. **`draft: true` from creation through ship; Vic flips to `draft: false` explicitly.** Both modes write the MDX with `draft: true` at creation (topic mode in Phase 4, HTML-import mode in Phase 1) and the flag stays `true` for every commit the skill makes. The skill never auto-flips to `draft: false` — not on Gate 0 acceptance, not after the freshness pass, not at "ship." Vic owns the flip as an explicit, separate action (a single-purpose commit `flip draft to false; ship` is the canonical shape). Do not toggle the flag between figure / section commits during development; it stays `true` until Vic's explicit ship action.
 10. **Project-memory pointer + MEMORY.md entry are required and verified at end of Phase 1.** Schema, format, and failure-repair procedure in `research-protocol.md` "Project-memory schema". Halt if missing or malformed and repair fails. (Intentional coupling to the discovery mechanism for fresh-context resume.)
 11. **The blog is interconnected; newer posts link to older relevant posts.** Phase 2 scans `src/content/blog/` for topic-adjacent posts and records anchor points in the notes file under `## Related posts on augusteo.com`. Phase 4 weaves inline links at those anchor points and adds the related posts as top entries in `## References` (matching the `omni-modal-stack` ↔ `unified-vision-stack` pattern). Older posts are NOT retroactively edited — only the newer post does the linking. If the related-posts scan returns zero candidates that meet the bar, that's fine; the rule is "search and link if relevant", not "force a link".
@@ -548,7 +511,7 @@ The skill must explicitly halt and surface the issue when:
 - Gate 0 finds any of: fabricated quote, misattributed source, unsupported load-bearing claim, secondary-as-primary, stale unannotated row, omitted contradicting source.
 - Gate 1 finds an issue that implies rescoping the post.
 - Gate 1 demands a figure-type re-type (triggers unlock protocol → AskUserQuestion to Vic).
-- Phase 5 needs a figure type or palette color not covered by `unified-vision-stack` / `illustration-style.md` / the kit.
+- Phase 5 needs a figure type or palette color not covered by `unified-vision-stack` / `../../explainer-shared/illustration-style.md` / the kit.
 - Phase 6 a single figure fails playwright review three times in a row.
 - Phase 7 freshness re-check finds a newer source version that changes a claim.
 - Gate 2 finds a claim with no matrix row, OR a matrix row whose source has gone stale since Phase 2.
@@ -580,7 +543,7 @@ This applies in both topic mode and HTML-import mode. The cap exists because thr
 
 ### Interaction with the gate-runner loop cap
 
-The unlock protocol and the codex-prompts.md Step 6 gate-runner cap interact as follows:
+The unlock protocol and the shared runner's Step-6 cap (in `../../explainer-shared/codex-runner.md`) interact as follows:
 
 **Each unlock-protocol fire counts as one Gate 1 invocation against the gate-runner cap of 3** (initial + 2 re-runs). After Vic approves a re-type via unlock protocol, Gate 1 MUST be re-run from Step 1 (build prompt with the updated figure table) to verify the re-type closed the structural gap and to surface any other findings the re-type may have triggered. The re-run is not optional; the matrix may have shifted because the figure's role in the post may have changed.
 

@@ -156,7 +156,7 @@ Record the chosen throughline + how it was found ("extracted from imported prose
 
 ## Voice-check auto-repair (HTML mode skips Phase 4 drafting)
 
-HTML-import mode does not draft prose; the imported MDX is the draft. But `voice-rules.md` still applies, and `scripts/voice-check.sh` runs before any commit. When voice-check fails on imported prose, the skill auto-repairs it. Vic does not.
+HTML-import mode does not draft prose; the imported MDX is the draft. But `../../explainer-shared/voice-rules.md` still applies, and `scripts/voice-check.sh` runs before any commit. When voice-check fails on imported prose, the skill auto-repairs it. Vic does not.
 
 ### Em-dash repairs (zero tolerance in prose; one allowed location)
 
@@ -191,7 +191,7 @@ For each em-dash hit in the imported MDX:
 
 ### Banned-word repairs
 
-Voice-check flags every word in the banned-word list defined in `voice-rules.md`. For each hit:
+Voice-check flags every word in the banned-word list defined in `../../explainer-shared/voice-rules.md`. For each hit:
 
 ```
 1. Read the surrounding sentence. Is the banned word being used as a
@@ -218,7 +218,7 @@ Voice-check flags every word in the banned-word list defined in `voice-rules.md`
 
 3. If the use is NOT justified-technical:
    - Rewrite the sentence with a plain-English substitute. Use the
-     suggestions in voice-rules.md's banned-word table.
+     suggestions in `../../explainer-shared/voice-rules.md`'s banned-word table.
    - Do not introduce a different banned word in the rewrite. Re-run
      voice-check after each rewrite.
 

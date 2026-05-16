@@ -1,12 +1,22 @@
-# Codex prompts
+# Codex prompts (explainer-authoring)
 
-Exact prompts for the three codex gates in the `explainer-authoring` pipeline. All gates invoke the project-local `codex` skill in consult mode (multi-doc context that's awkward to pass via diff).
+Exact prompts for the three codex gates in the `explainer-authoring` pipeline. All gates invoke the project-local `codex` skill in consult mode.
 
 All three gates apply regardless of figure type or entry mode (topic vs HTML-import). They auto-fire at phase boundaries; Vic does not need to type `/codex`.
 
-Operating principle: **codex is doing a hostile, truth-seeking pass.** It is not here to validate. It is here to find what is wrong. Treat its findings as adversarial signal: if codex says "this claim is unsupported," default to assuming codex is right and re-check the source.
+The **shared runner mechanics** (build-prompt → invoke-codex → size-policy → history-table → parse-findings → 3-rerun cap → override safeguard → proof-of-fire) live in `../../explainer-shared/codex-runner.md`. This file is just the per-gate inputs: prompt template, what to embed, gate label, gate-key, halt rule, and notes-section name.
 
-Stop iterating when codex's last critique is **cosmetic, not structural**. Cosmetic = "the figcaption could be tighter." Structural = "section 3's main claim cites a paper that doesn't say that," or "claim X has no row in the matrix."
+Per-gate inputs at a glance:
+
+| Gate | When | Inputs embedded | Gate label | `<gate-key>` | Notes section |
+|---|---|---|---|---|---|
+| 0 | end of Phase 2 | Spec + Throughline + Research notes + Matrix + topic-evolution | `0 (research)` | `research` | `## Codex research review` |
+| 1 | end of Phase 3 | above + Outline + figure table | `1 (outline)` | `outline` | `## Codex outline review` |
+| 2 | Phase 7 | above + full MDX + Related posts + all prior `## Codex … review` | `2 (final)` | `final` | `## Codex final review` |
+
+Skill-specific subtypes the runner forks to:
+
+- **Gate 1** may return `TYPE-CHANGE STRUCTURAL` → fires the per-figure-type unlock protocol (see `SKILL.md`).
 
 The Goal statement gets quoted into every gate prompt so codex's review pulls in the same direction:
 
@@ -257,124 +267,8 @@ found" and stop. Otherwise, keep finding things.
 - For STRUCTURAL findings: fix the prose, fix the matrix, fix the freshness annotations. If a fix requires new research, do it. Re-run Gate 2 if substantial.
 - Stop when only cosmetic findings remain.
 
-## A note on tone
+## Runner mechanics
 
-Codex is doing the hostile pass so the post can ship clean. The pipeline expects codex to find things; that's the point. Don't argue with codex on structural findings without checking the source. The cost of fixing is low; the cost of shipping a wrong claim is high.
+All three gates use the shared runner in `../../explainer-shared/codex-runner.md` (build-prompt → invoke-codex → size-policy → Codex history row → parse findings → 3-rerun cap → Step-6a override safeguard → proof-of-fire). The gate-specific inputs above plug into the runner's Step 1 (prompt + embedded sections), Step 4 (gate label), and Step 5 (the TYPE-CHANGE fork for Gate 1).
 
-If you genuinely think codex is wrong on a structural finding (it misread a source, it claimed a section was missing context that's actually present), say so explicitly in the notes file under the relevant `## Codex … review` section, with the reasoning. Don't silently dismiss.
-
-## Per-gate runner (executable contract)
-
-Each gate is invoked from the SKILL.md pipeline using this runner. The runner is the same code path for all three gates; the per-gate inputs (prompt template, notes-file sections to embed) are the only thing that differ.
-
-### Step 1: Build the prompt
-
-For Gate <N>:
-
-1. Take the prompt template from this file's "Gate <N>" section verbatim.
-2. Substitute `[QUOTE THE GOAL STATEMENT]` with the literal Goal text from `SKILL.md`'s Goal section.
-3. Append the gate's "What you provide to codex" content as inline embedded sections:
-   - Gate 0: `## Spec` + `## Throughline` + `## Research notes` + `## Claim-source matrix` + topic-evolution classification.
-   - Gate 1: above + `## Outline` + figure table.
-   - Gate 2: above + full MDX content + `## Related posts on augusteo.com` + all prior `## Codex … review` sections.
-4. The result is a single string ready to pass to the codex skill.
-
-### Step 2: Invoke the codex skill
-
-```
-Skill tool call:
-  skill: codex
-  args: consult <full prompt string built in Step 1>
-```
-
-The codex skill's `consult` mode handles the heavy lifting (boundary instructions, prompt safety, output capture). Do not attempt to invoke `codex exec` directly from this skill; route through the codex skill.
-
-### Step 3: Apply size policy to codex's output
-
-Capture codex's verbatim output (let `OUTPUT_BYTES` = its byte length).
-
-```
-If OUTPUT_BYTES <= 8192 (≈ 8 KB):
-  Paste the output verbatim into notes/<slug>.md under
-  ## Codex <gate-name> review.
-
-If OUTPUT_BYTES > 8192:
-  Write the full output to a findings file:
-    notes/<slug>-codex-<gate-key>-<YYYYMMDD>.md
-  where <gate-key> is one of: research / outline / final.
-  
-  In notes/<slug>.md under ## Codex <gate-name> review, paste:
-  - A one-paragraph summary (you write this; ≤ 6 sentences).
-  - A relative-link line: `[full findings: notes/<slug>-codex-<gate-key>-<YYYYMMDD>.md]`.
-  - The labeled finding count: `Findings: N STRUCTURAL, M COSMETIC.`
-```
-
-This keeps `notes/<slug>.md` browsable (the file is meant to be read end-to-end on resume); large gate outputs go to dated findings files where they're still discoverable but don't bloat the resume tracker.
-
-### Step 4: Append a row to the Codex history table
-
-Inside `## Resume here` → `### Codex history`:
-
-```
-| <YYYY-MM-DD> | <N> (<gate-name>) | <outcome> | <findings ref> |
-```
-
-Where:
-- `<outcome>`: `clean` (no findings) / `cosmetic-only` / `structural-fixed` (after re-run loop closed) / `halted` (loop limit hit or halt-rule fired).
-- `<findings ref>`: either `## Codex <gate-name> review` (notes-file section) or the relative path to the findings file.
-
-### Step 5: Parse findings and act
-
-Walk codex's output. For each finding labeled STRUCTURAL or TYPE-CHANGE STRUCTURAL:
-
-```
-For each STRUCTURAL finding:
-  Apply the fix as described by codex (edit matrix / outline / prose /
-  figure table / freshness annotation). Commit the fix per the "one
-  thing per commit" rule. Annotate the commit message with the gate
-  number and the finding label.
-
-For each TYPE-CHANGE STRUCTURAL (Gate 1 only):
-  Fire the per-figure-type unlock protocol from SKILL.md. This is NOT
-  a regular re-run; it requires Vic AskUserQuestion approval. Do not
-  silently re-type the figure.
-
-After fixes are committed, re-run from Step 1 with the fixed inputs.
-```
-
-### Step 6: Re-run loop limit
-
-A gate may re-run up to **3 times** (initial + 2 re-runs). On the 4th invocation:
-
-```
-Halt the gate.
-Surface to Vic:
-- "Gate <N> on <slug> has not closed after 3 re-runs."
-- The full codex output from the latest run.
-- A summary of fixes attempted across the 3 runs.
-- An AskUserQuestion: "(a) accept current state and proceed (codex
-  override; recorded in notes); (b) halt the post and surface the
-  blockers as next steps; (c) override codex on a specific finding
-  only and continue (you specify which)."
-```
-
-This cap exists because if codex has surfaced STRUCTURAL findings 4 times in a row, either codex is wrong (and Vic has to override) or the post itself is in fundamental trouble (and a re-run won't fix it). Don't loop forever.
-
-**Gate 1 unlock-protocol fires count against this cap.** Each TYPE-CHANGE STRUCTURAL → unlock protocol → re-run cycle uses one of the 3 invocation slots. See SKILL.md "Per-figure-type unlock protocol → Interaction with the gate-runner loop cap" for the concrete invocation sequence.
-
-### Step 6a: Override never auto-ships; Vic owns the draft flip
-
-**Critical safeguard.** Per hard rule #9, the MDX is `draft: true` from creation through ship in both modes — neither Gate 0 acceptance nor a Step-6 override flips it. The skill never writes `draft: false`. What Step 6 controls is whether the gate-runner proceeds to the next phase, not whether the post is shippable.
-
-Recording requirements when Vic picks `accept-and-proceed` or `override-on-specific-finding`:
-
-1. The Step-6 outcome is recorded in `## Codex research review` (Gate 0), `## Codex outline review` (Gate 1), or `## Codex final review` (Gate 2) AND in the Codex history table.
-2. For overrides specifically, annotate the entry as `Step-6 override` and list the unresolved findings being overridden. For clean acceptance, annotate as `accepted (no STRUCTURAL findings)` or `accepted (all STRUCTURAL findings fixed)`.
-3. The MDX stays `draft: true` regardless.
-4. When Vic is ready to ship, Vic flips the flag himself in a single-purpose commit. If the ship is happening with unresolved STRUCTURAL findings (Step-6 override on Gate 0 or Gate 2), the commit message must include the literal phrase `Step-6 override on Gate <N> — overridden findings:` followed by the list, so the audit trail is searchable in `git log`. A clean ship needs no special commit-message annotation.
-
-This safeguard exists because Step 6 is the gate-runner's escape hatch from infinite re-runs; it is NOT a truthfulness override. "Truthfulness first" (hard rule #1) means publishing with unresolved STRUCTURAL findings requires a deliberate, separate action by Vic — never a single AskUserQuestion answer that the skill silently turns into a publish. The two-step structure (override now + Vic's explicit ship commit later) is the friction that catches a tired agent's "Vic said proceed → publish" misread.
-
-### Step 7: Proof-of-fire
-
-A gate is only marked `done` in `## Resume here` → `### Phase status` if Step 4's row was actually appended to the Codex history table. The phase-transition status print (printed to chat at end of every phase) is the audit trail Vic uses to verify gates fired. If a phase status says "done" but no Codex history row exists for that phase's gate, the phase is not actually done — re-run from Step 1.
+The per-figure-type unlock protocol for Gate 1 lives in `SKILL.md` under "Per-figure-type unlock protocol"; its re-invocations count against the runner's Step-6 3-rerun cap.
