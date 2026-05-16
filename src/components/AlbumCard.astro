@@ -1,0 +1,92 @@
+---
+import OrganicCard from "./OrganicCard.astro";
+import { getAlbumCover, getAlbumPhotos } from "../utils/photo-album";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  album: CollectionEntry<"photos">;
+}
+
+const { album } = Astro.props;
+const cover = getAlbumCover(album.id, album.data.cover);
+const photoCount = getAlbumPhotos(album.id).length;
+
+const dateStr = album.data.date
+  ? album.data.date.toLocaleDateString("en-US", { year: "numeric", month: "short" })
+  : null;
+---
+
+<div class="album-card-wrapper">
+  {cover ? (
+    <OrganicCard
+      href={`/photos/${album.id}`}
+      image={cover}
+      alt={`${album.data.title} — album cover`}
+      widths={[400, 600, 800]}
+      sizes="(max-width: 900px) 100vw, 33vw"
+      aspectRatio="4/3"
+      fadeOverlay={true}
+      class="album-card"
+    >
+      <h3>{album.data.title}</h3>
+      <p class="subtitle">
+        {photoCount} photo{photoCount === 1 ? "" : "s"}
+        {dateStr ? ` · ${dateStr}` : ""}
+      </p>
+      {album.data.description && (
+        <p class="description">{album.data.description}</p>
+      )}
+    </OrganicCard>
+  ) : (
+    <div class="album-card-missing">
+      <p>
+        Cover image <code>{album.data.cover}</code> not found for album <strong>{album.id}</strong>.
+        Run <code>bun run sync:photos --albums={album.id}</code>.
+      </p>
+    </div>
+  )}
+</div>
+
+<style>
+  .album-card-wrapper {
+    display: contents;
+  }
+
+  .album-card-wrapper h3 {
+    font-family: var(--font-hand);
+    font-size: 1.8rem;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-bottom: 0.3rem;
+    color: var(--color-ink);
+  }
+
+  .album-card-wrapper .subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-ink-light);
+    margin-bottom: 0.5rem;
+  }
+
+  .album-card-wrapper .description {
+    font-size: 0.9rem;
+    color: var(--color-ink-light);
+    line-height: 1.5;
+  }
+
+  .album-card-missing {
+    border: 1px dashed var(--color-ink-faint);
+    padding: 1rem;
+    color: var(--color-ink-light);
+    font-size: 0.85rem;
+  }
+
+  .album-card-missing code {
+    font-family: var(--font-mono);
+    background: var(--color-paper-warm);
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
+  }
+</style>

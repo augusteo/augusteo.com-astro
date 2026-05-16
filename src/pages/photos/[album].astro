@@ -1,0 +1,206 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PhotosMasonry from "../../components/PhotosMasonry.astro";
+import PhotoLightbox from "../../components/PhotoLightbox.astro";
+import { getAlbumPhotos, washColorFor } from "../../utils/photo-album";
+
+export async function getStaticPaths() {
+  const albums = await getCollection("photos");
+  return albums.map((album) => ({
+    params: { album: album.id },
+    props: { album },
+  }));
+}
+
+const { album } = Astro.props;
+const photos = getAlbumPhotos(album.id, album.data.order);
+
+const dateStr = album.data.date
+  ? album.data.date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+    })
+  : null;
+
+const washColor = washColorFor(album.id);
+---
+
+<BaseLayout
+  title={`${album.data.title} | Photographs | Victor Augusteo`}
+  description={album.data.description ?? `Photographs from ${album.data.title}`}
+>
+  <header class="album-header">
+    <a href="/photos" class="back-link">← All photographs</a>
+    <h1>{album.data.title}</h1>
+    {album.data.description && <p class="album-desc">{album.data.description}</p>}
+    <div class="album-meta">
+      {album.data.location && album.data.location.length > 0 && (
+        <ul class="album-locations">
+          {album.data.location.map((loc) => (
+            <li class="loc">
+              <span class="loc-dot" style={`background: ${washColor};`}></span>
+              {loc}
+            </li>
+          ))}
+        </ul>
+      )}
+      {dateStr && <span class="album-date">{dateStr}</span>}
+      <span class="album-count">{photos.length} photo{photos.length === 1 ? "" : "s"}</span>
+    </div>
+    <div class="album-divider" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 12" preserveAspectRatio="none">
+        <path
+          d="M0,6 Q40,2 80,7 T160,4 T240,8 T320,4 T400,7 T480,3 T560,7 T600,5"
+          stroke="var(--color-ink-faint)"
+          stroke-width="1.5"
+          fill="none"
+          opacity="0.6"
+        />
+      </svg>
+    </div>
+  </header>
+
+  {photos.length > 0 ? (
+    <PhotosMasonry
+      photos={photos}
+      albumId={album.id}
+      albumTitle={album.data.title}
+      captions={album.data.captions ?? {}}
+    />
+  ) : (
+    <div class="album-empty">
+      <p>
+        No photos found for this album. Run{" "}
+        <code>bun run sync:photos --albums={album.id}</code>.
+      </p>
+    </div>
+  )}
+
+  <PhotoLightbox />
+</BaseLayout>
+
+<style>
+  .album-header {
+    max-width: var(--wide-width);
+    margin: 0 auto;
+    padding: 2rem 2rem 1rem;
+    position: relative;
+  }
+
+  .back-link {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-ink-light);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover {
+    color: var(--color-ink);
+  }
+
+  .album-header h1 {
+    font-family: var(--font-hand);
+    font-size: 3.5rem;
+    line-height: 1.05;
+    margin: 0.5rem 0 0.25rem;
+    color: var(--color-ink);
+    position: relative;
+    display: inline-block;
+  }
+
+  .album-header h1::after {
+    content: "";
+    position: absolute;
+    bottom: -0.15rem;
+    left: -0.25rem;
+    right: -0.25rem;
+    height: 10px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10'%3E%3Cpath d='M0,5 Q20,2 50,6 T100,3 T150,6 T200,4' stroke='%23daa520' stroke-width='6' fill='none' opacity='0.4'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  .album-desc {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--color-ink-light);
+    max-width: 56ch;
+    margin: 0.75rem 0;
+  }
+
+  .album-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-ink-light);
+    margin-top: 0.75rem;
+  }
+
+  .album-locations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .album-locations .loc {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .album-locations .loc-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+
+  .album-divider {
+    width: 100%;
+    height: 12px;
+    margin: 1.5rem 0 0.25rem;
+  }
+
+  .album-divider svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .album-empty {
+    max-width: var(--wide-width);
+    margin: 2rem auto;
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-ink-light);
+    border: 1px dashed var(--color-ink-faint);
+  }
+
+  .album-empty code {
+    font-family: var(--font-mono);
+    background: var(--color-paper-warm);
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .album-header {
+      padding: 1.5rem 1rem 0.75rem;
+    }
+    .album-header h1 {
+      font-size: 2.5rem;
+    }
+  }
+</style>

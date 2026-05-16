@@ -8,6 +8,7 @@
     "preview": "astro preview",
     "sync": "bun scripts/sync-content.ts",
     "sync:force": "bun scripts/sync-content.ts --force",
+    "sync:photos": "bun scripts/sync-photos.ts",
     "watch:content": "bun scripts/watch.ts",
     "astro": "astro"
   },

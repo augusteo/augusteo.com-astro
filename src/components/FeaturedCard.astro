@@ -1,5 +1,5 @@
 ---
-import { Image } from "astro:assets";
+import OrganicCard from "./OrganicCard.astro";
 import type { ImageMetadata } from "astro";
 
 interface Props {
@@ -15,101 +15,27 @@ interface Props {
 const { title, description, heroImage, heroAlt, category, slug, isDraft = false } = Astro.props;
 ---
 
-<a
-  href={`/blog/${slug}`}
-  class="featured-card"
-  data-category={category}
->
-  <div class="featured-card-image">
-    <Image
-      src={heroImage}
-      alt={heroAlt}
-      widths={[400, 600, 800]}
-      sizes="(max-width: 900px) 100vw, 50vw"
-    />
-  </div>
-
-  <div class="featured-card-content">
+<div class="featured-card-wrapper" data-category={category}>
+  <OrganicCard
+    href={`/blog/${slug}`}
+    image={heroImage}
+    alt={heroAlt}
+    widths={[400, 600, 800]}
+    sizes="(max-width: 900px) 100vw, 50vw"
+    aspectRatio="16/10"
+    fadeOverlay={true}
+    class="featured-card"
+  >
     {isDraft && <div class="draft-chip">Draft</div>}
     {category && <div class="category">{category}</div>}
     <h3>{title}</h3>
     <p class="excerpt">{description}</p>
-  </div>
-</a>
+  </OrganicCard>
+</div>
 
 <style>
-  .featured-card {
-    position: relative;
-    background: var(--color-paper);
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.3s;
-    display: flex;
-    flex-direction: column;
-    overflow: visible;
-  }
-
-  /* Organic border around card */
-  .featured-card::before {
-    content: "";
-    position: absolute;
-    inset: -4px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 350' preserveAspectRatio='none'%3E%3Cpath d='M5,15 Q8,5 25,6 T80,4 T150,6 T220,4 T273,6 T293,15 Q296,40 294,100 T296,175 T294,250 T296,318 T293,333 Q278,343 220,342 T150,344 T80,342 T25,344 T5,333 Q3,298 4,250 T3,175 T4,100 T3,40 Z' stroke='%23b2bec3' stroke-width='1' fill='none'/%3E%3C/svg%3E");
-    background-size: 100% 100%;
-    opacity: 0.6;
-    transition: opacity 0.3s;
-  }
-
-  .featured-card:hover {
-    transform: translate(-3px, -3px);
-  }
-
-  .featured-card:hover::before {
-    opacity: 1;
-  }
-
-  .featured-card-image {
-    aspect-ratio: 16/10;
-    overflow: visible;
-    position: relative;
-    margin: -4px -4px 0 -4px;
-    /* Clip image to organic shape matching the border */
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 190' preserveAspectRatio='none'%3E%3Cpath d='M5,12 Q8,4 25,5 T80,3 T150,5 T220,3 T275,5 T295,12 Q298,35 296,95 T298,180 L298,190 L2,190 L2,180 Q0,95 2,35 Z' fill='black'/%3E%3C/svg%3E");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 190' preserveAspectRatio='none'%3E%3Cpath d='M5,12 Q8,4 25,5 T80,3 T150,5 T220,3 T275,5 T295,12 Q298,35 296,95 T298,180 L298,190 L2,190 L2,180 Q0,95 2,35 Z' fill='black'/%3E%3C/svg%3E");
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-  }
-
-  .featured-card-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s;
-  }
-
-  .featured-card:hover .featured-card-image img {
-    transform: scale(1.03);
-  }
-
-  /* Watercolor wash overlay on image */
-  .featured-card-image::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 40%;
-    background: linear-gradient(to top, var(--color-paper) 0%, transparent 100%);
-    pointer-events: none;
-  }
-
-  .featured-card-content {
-    padding: 1rem 1.25rem 1.5rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+  .featured-card-wrapper {
+    display: contents;
   }
 
   .draft-chip {
@@ -153,19 +79,19 @@ const { title, description, heroImage, heroAlt, category, slug, isDraft = false 
     background: rgba(135, 206, 235, 0.5);
   }
 
-  .featured-card[data-category="tech"] .category::before {
+  .featured-card-wrapper[data-category="tech"] .category::before {
     background: rgba(143, 188, 143, 0.6);
   }
 
-  .featured-card[data-category="books"] .category::before {
+  .featured-card-wrapper[data-category="books"] .category::before {
     background: rgba(205, 133, 63, 0.5);
   }
 
-  .featured-card[data-category="philosophy"] .category::before {
+  .featured-card-wrapper[data-category="philosophy"] .category::before {
     background: rgba(222, 184, 135, 0.6);
   }
 
-  .featured-card h3 {
+  h3 {
     font-family: var(--font-hand);
     font-size: 1.6rem;
     font-weight: 500;

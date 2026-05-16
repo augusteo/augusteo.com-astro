@@ -1,0 +1,95 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AlbumCard from "../../components/AlbumCard.astro";
+
+const albums = await getCollection("photos");
+
+// Sort by date desc; albums with no date drop to the bottom in alphabetical order.
+const sorted = albums.slice().sort((a, b) => {
+  const ad = a.data.date?.valueOf();
+  const bd = b.data.date?.valueOf();
+  if (ad != null && bd != null) return bd - ad;
+  if (ad != null) return -1;
+  if (bd != null) return 1;
+  return a.data.title.localeCompare(b.data.title);
+});
+---
+
+<BaseLayout
+  title="Photographs | Victor Augusteo"
+  description="A travel log and hobby portfolio — photographs from places visited and subjects observed."
+>
+  <header class="photos-header">
+    <h1>Photographs</h1>
+    <p class="lead">A travel log and hobby gallery — places visited, subjects observed.</p>
+  </header>
+
+  <div class="photos-index-grid">
+    {sorted.map((album) => <AlbumCard album={album} />)}
+  </div>
+</BaseLayout>
+
+<style>
+  .photos-header {
+    max-width: var(--wide-width);
+    margin: 0 auto;
+    padding: 3rem 2rem 1.5rem;
+    position: relative;
+  }
+
+  .photos-header h1 {
+    font-family: var(--font-hand);
+    font-size: 3.25rem;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+    color: var(--color-ink);
+    position: relative;
+    display: inline-block;
+  }
+
+  .photos-header h1::after {
+    content: "";
+    position: absolute;
+    bottom: -0.25rem;
+    left: -0.25rem;
+    right: -0.25rem;
+    height: 10px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10'%3E%3Cpath d='M0,5 Q20,2 50,6 T100,3 T150,6 T200,4' stroke='%23daa520' stroke-width='6' fill='none' opacity='0.4'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  .photos-header .lead {
+    font-family: var(--font-body);
+    font-size: 1.15rem;
+    color: var(--color-ink-light);
+    margin-top: 0.5rem;
+    max-width: 56ch;
+  }
+
+  .photos-index-grid {
+    max-width: var(--wide-width);
+    margin: 0 auto;
+    padding: 1rem 2rem 4rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  @media (max-width: 1099px) {
+    .photos-index-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 700px) {
+    .photos-index-grid {
+      grid-template-columns: 1fr;
+    }
+    .photos-header h1 {
+      font-size: 2.5rem;
+    }
+  }
+</style>

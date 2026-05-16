@@ -1,0 +1,215 @@
+---
+import { Image, getImage } from "astro:assets";
+import type { AlbumPhoto } from "../utils/photo-album";
+
+interface Props {
+  photos: AlbumPhoto[];
+  albumId: string;
+  albumTitle: string;
+  captions?: Record<string, string>;
+}
+
+const { photos, albumId, albumTitle, captions = {} } = Astro.props;
+
+const tiles = await Promise.all(
+  photos.map(async (p, i) => {
+    const full = await getImage({
+      src: p.image,
+      width: Math.min(p.image.width, 1920),
+    });
+    const caption = captions[p.file] ?? "";
+    return {
+      ...p,
+      index: i,
+      fullsizeUrl: full.src,
+      alt: caption || `${albumTitle} — photo ${i + 1} of ${photos.length}`,
+      caption,
+    };
+  }),
+);
+
+// SSR partitions into 3 columns (most common viewport).
+// Client-side script repartitions to 1 or 2 cols on smaller viewports.
+const SSR_COLS = 3;
+const cols: (typeof tiles)[] = Array.from({ length: SSR_COLS }, () => []);
+tiles.forEach((t, i) => {
+  cols[i % SSR_COLS].push(t);
+});
+---
+
+<div class="photos-masonry" data-album={albumId} data-photo-count={tiles.length}>
+  {cols.map((col) => (
+    <div class="col">
+      {col.map((t) => (
+        <a
+          class="photo-tile"
+          href={t.fullsizeUrl}
+          data-fullsize={t.fullsizeUrl}
+          data-caption={t.caption}
+          data-gallery={albumId}
+          data-index={t.index}
+          aria-label={t.alt}
+        >
+          <Image
+            src={t.image}
+            alt={t.alt}
+            widths={[400, 800, 1200]}
+            sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 33vw"
+            loading="lazy"
+            style={`aspect-ratio: ${t.image.width}/${t.image.height};`}
+          />
+        </a>
+      ))}
+    </div>
+  ))}
+</div>
+
+<style>
+  .photos-masonry {
+    display: flex;
+    gap: 1.5rem;
+    margin: 2rem auto 4rem;
+    max-width: var(--wide-width);
+    padding: 0 2rem;
+  }
+
+  .photos-masonry .col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  .photo-tile {
+    position: relative;
+    display: block;
+    overflow: visible;
+    text-decoration: none;
+    transition: transform 0.3s;
+    cursor: zoom-in;
+  }
+
+  .photo-tile::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 350' preserveAspectRatio='none'%3E%3Cpath d='M5,15 Q8,5 25,6 T80,4 T150,6 T220,4 T273,6 T293,15 Q296,40 294,100 T296,175 T294,250 T296,318 T293,333 Q278,343 220,342 T150,344 T80,342 T25,344 T5,333 Q3,298 4,250 T3,175 T4,100 T3,40 Z' stroke='%23b2bec3' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    opacity: 0.4;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .photo-tile:hover {
+    transform: translate(-2px, -2px);
+  }
+
+  .photo-tile:hover::before {
+    opacity: 0.9;
+  }
+
+  .photo-tile img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.4s;
+    box-shadow: 0 2px 8px rgba(45, 52, 54, 0.08);
+  }
+
+  .photo-tile:hover img {
+    transform: scale(1.015);
+  }
+
+  .photo-tile:focus-visible {
+    outline: 2px solid var(--color-accent-blue);
+    outline-offset: 4px;
+  }
+
+  /* Watercolor drop-shadow rotation per tile, matching prose images */
+  .photo-tile:nth-of-type(6n + 1) img { box-shadow: 4px 4px 12px oklch(0.7 0.1 140 / 0.18); }
+  .photo-tile:nth-of-type(6n + 2) img { box-shadow: 4px 4px 12px oklch(0.7 0.12 60 / 0.18); }
+  .photo-tile:nth-of-type(6n + 3) img { box-shadow: 4px 4px 12px oklch(0.65 0.08 200 / 0.18); }
+  .photo-tile:nth-of-type(6n + 4) img { box-shadow: 4px 4px 12px oklch(0.7 0.1 280 / 0.18); }
+  .photo-tile:nth-of-type(6n + 5) img { box-shadow: 4px 4px 12px oklch(0.8 0.1 80 / 0.18); }
+  .photo-tile:nth-of-type(6n + 6) img { box-shadow: 4px 4px 12px oklch(0.65 0.1 180 / 0.18); }
+
+  @media (max-width: 1199px) {
+    .photos-masonry { gap: 1rem; }
+  }
+
+  @media (max-width: 767px) {
+    .photos-masonry {
+      flex-direction: column;
+      gap: 1rem;
+      padding: 0 1rem;
+    }
+    .photos-masonry .col { gap: 1rem; }
+  }
+</style>
+
+<script>
+  // Repartition tiles into N columns so that visual row-major reading order matches
+  // filename order. SSR renders the 3-col case; this script adjusts for 1- and 2-col.
+  function repartitionMasonry(container: HTMLElement) {
+    const w = window.innerWidth;
+    const targetCols = w <= 767 ? 1 : w <= 1199 ? 2 : 3;
+
+    // Gather all tiles in source order via data-index.
+    const allTiles = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>(".photo-tile"),
+    ).sort(
+      (a, b) =>
+        Number(a.dataset.index ?? 0) - Number(b.dataset.index ?? 0),
+    );
+
+    // Skip if already correctly partitioned.
+    const existingCols = Array.from(
+      container.querySelectorAll<HTMLElement>(":scope > .col"),
+    );
+    if (existingCols.length === targetCols) {
+      const ok = existingCols.every((col, ci) => {
+        const tiles = Array.from(
+          col.querySelectorAll<HTMLElement>(".photo-tile"),
+        );
+        return tiles.every(
+          (t, ti) => Number(t.dataset.index) === ci + ti * targetCols,
+        );
+      });
+      if (ok) return;
+    }
+
+    // Rebuild columns.
+    existingCols.forEach((c) => c.remove());
+    const colEls: HTMLElement[] = [];
+    for (let c = 0; c < targetCols; c++) {
+      const div = document.createElement("div");
+      div.className = "col";
+      colEls.push(div);
+      container.appendChild(div);
+    }
+    allTiles.forEach((tile, i) => {
+      colEls[i % targetCols].appendChild(tile);
+    });
+  }
+
+  function repartitionAll() {
+    document
+      .querySelectorAll<HTMLElement>(".photos-masonry")
+      .forEach((m) => repartitionMasonry(m));
+  }
+
+  let resizeTimer: number | null = null;
+  window.addEventListener("resize", () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(repartitionAll, 150);
+  });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", repartitionAll);
+  } else {
+    repartitionAll();
+  }
+  document.addEventListener("astro:after-swap", repartitionAll);
+</script>

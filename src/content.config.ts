@@ -19,6 +19,25 @@ const blogCollection = defineCollection({
     }),
 });
 
+const photosCollection = defineCollection({
+  loader: glob({
+    pattern: "**/index.yaml",
+    base: "./src/content/photos",
+    generateId: ({ entry }) => entry.replace(/\/index\.yaml$/, ""),
+  }),
+  schema: () =>
+    z.object({
+      title: z.string(),
+      description: z.string().optional(),
+      date: z.coerce.date().optional(),
+      cover: z.string(),
+      location: z.array(z.string()).optional(),
+      captions: z.record(z.string(), z.string()).optional(),
+      order: z.array(z.string()).optional(),
+    }),
+});
+
 export const collections = {
   blog: blogCollection,
+  photos: photosCollection,
 };
