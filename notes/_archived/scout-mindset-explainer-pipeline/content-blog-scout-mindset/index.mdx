@@ -1,0 +1,872 @@
+---
+title: "The scout mindset, applied"
+description: "A mechanism-first take on Julia Galef's The Scout Mindset. Walks the empirical literature on motivated reasoning, identity-protective cognition, and the Good Judgment Project, then prescribes the smallest durable habit consistent with what the sources actually say."
+pubDate: 2026-05-08
+heroImage: "@assets/blog/scout-mindset/hero.jpeg"
+heroAlt: "A watercolor field sheet on a wooden desk, four quadrants: motivated reasoning, scout mindset, Brier calibration, and Darwin's notebook habit."
+tags: ["Philosophy"]
+featured: false
+draft: true
+essay: true
+---
+
+import Figure from "@components/figure/Figure.svelte";
+import ScoutSoldier from "@components/figures/scout-mindset/ScoutSoldier.svelte";
+import CalibAgg from "@components/figures/scout-mindset/CalibAgg.svelte";
+import ConcentricLoops from "@components/figures/scout-mindset/ConcentricLoops.svelte";
+
+*A mechanism-first take on Julia Galef's 2021 book* The Scout Mindset. *Not a book review. I walk the empirical literature on motivated reasoning, identity-protective cognition, and the Good Judgment Project, and end with the smallest durable habit the literature can defend. The running example is a belief I have a stake in: AI-assisted construction takeoff productivity. About a 30-minute read.*
+
+### 1. A Tuesday morning, and the belief I keep losing arguments about
+
+Picture the demo I've shown a hundred times. A PDF viewer, a commercial floor plan, an AI overlay drawing red rectangles over walls. An estimator sitting next to me, clicking through the count, comparing the AI's tally to her manual takeoff from last week. Six walls flagged wrong: two missed, four false positives on an HVAC shaft wall that isn't structural. She looks at me. I look at the screen.
+
+That scene is a demo construct. I have run it enough times that I know where the friction lands, which product decisions made it worse, which made it better. I am also the person selling the software. That is the conflict I want to name before naming the belief, because the belief is directionally convenient for me: AI-assisted quantity takeoff cuts estimator hours by roughly 40% on commercial bid packages, and that gain holds across estimators rather than just the early adopters. I have said a version of that sentence in sales calls, in investor updates, in Slack messages to my own team. I believe it. I also have a financial stake in believing it.
+
+Take that belief. Now imagine the same piece of evidence reaching your inbox twice.
+
+First version: a contingency table, no labels attached. Two groups of estimators. Group A used the new workflow; Group B used the old one. The table shows hours logged and packages completed. You run the arithmetic. The productivity difference is 38%. You note it, update a little, file it under "promising but small sample."
+
+Second version: the same table, same numbers, same arithmetic. But now the header reads "Boon AI-Assisted Takeoff: Vendor Efficacy Study." And you know I built Boon. The 38% is still 38%. Your update is not the same.
+
+<figure>
+  <ScoutSoldier client:visible />
+  <figcaption><strong>Fig 1.</strong> Scout mode vs. soldier mode running on the same evidence stream about the 40% takeoff claim. Soldier mode (top) routes inbound events through `defend`, `explain away`, `raise burden of proof` gates that protect the existing credence. Scout mode (bottom) routes through `record`, `separate signal/noise`, `update` and lets the credence move with what the evidence weighs. Toggle the stream between preferred and dispreferred to watch the divergence. The scout trace responds symmetrically to evidential weight; the soldier trace responds asymmetrically to valence. The two architectures are the visual thesis the rest of the post turns on.</figcaption>
+</figure>
+
+The numbers are identical. The conclusion the arithmetic points to is identical. What changed is whether the labels attach the evidence to something you already have a position on, something where agreeing or disagreeing costs you something socially or professionally. The brain applies more scrutiny to inconvenient evidence and less to convenient evidence, and it does this without announcing itself. You don't feel like you're doing motivated reasoning. You feel like you're being careful.
+
+This is the small case everything else hangs on. Not a political controversy, not a hot-button policy debate. A vendor productivity claim, with an author who has a known stake. Small enough to hold in your head, live enough that the asymmetry actually bites.
+
+One person's read on this is a noisy estimate. The interesting question is what a less-noisy procedure even looks like, and that question gets its own section: §4.
+
+### 2. Why I am not a neutral observer
+
+I am the founder of Boon. Boon sells AI-assisted quantity takeoff to commercial estimating teams. My compensation moves with whether that product works at the scale I've been claiming it works. That is a conflict of interest in the plain sense, and it doesn't disappear because I'm aware of it.
+
+But the conflict runs deeper than a direct financial stake. It also lives in the information pipeline.
+
+When an estimator on one of our accounts tries the new workflow and it goes well, someone in sales knows by the end of that week. The customer success note lands in a Slack channel I'm in. Sometimes I get a screenshot. The signal travels fast. When a pilot fails, or when an estimator quietly reverts to the old workflow two weeks after training, the signal travels differently. It may surface in a quarterly support review. It may surface as a churn risk flag four months later. In several cases I found out about a failed pilot when I asked about it directly, not because it escalated to me. The information pipeline between what happens in the field and what reaches my attention is not symmetric. It is filtered by who has an incentive to tell me.
+
+An estimator who goes through our onboarding and finds it doesn't fit her workflow knows that immediately. Her manager may notice the reversion two weeks later. It reaches me, if it reaches me, weeks or months after that, attenuated by layers of interpretation. The demo wins land the same day. The failed pilots land two layers downstream, often without a label that identifies them as failed pilots.
+
+<figure>
+<svg viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">EVIDENCE PIPELINE: WHAT REACHES MY WORKING BELIEF</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">arrow thickness = visibility to the founder, not truth value of the event</text>
+
+{/* Column headers */}
+<text x="90" y="64" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">WORLD EVENTS</text>
+<text x="350" y="64" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">FILTERS</text>
+<text x="592" y="64" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">WORKING BELIEF</text>
+
+{/* ── World event boxes ─────────────────────────────────── */}
+{/* High-visibility events */}
+<rect x="14" y="76" width="152" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="90" y="90" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">PILOT SUCCEEDS</text>
+<text x="90" y="103" font-family="serif" font-size="9" font-style="italic" fill="#2563EB" text-anchor="middle">high visibility</text>
+
+<rect x="14" y="124" width="152" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="90" y="138" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">REP WINS DEMO</text>
+<text x="90" y="151" font-family="serif" font-size="9" font-style="italic" fill="#2563EB" text-anchor="middle">high visibility</text>
+
+<rect x="14" y="172" width="152" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="90" y="186" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">SUPPORT ESCALATION</text>
+<text x="90" y="199" font-family="serif" font-size="9" font-style="italic" fill="#2563EB" text-anchor="middle">high visibility</text>
+
+<rect x="14" y="220" width="152" height="34" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="3"/>
+<text x="90" y="234" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">COMPETITOR EVAL</text>
+<text x="90" y="247" font-family="serif" font-size="9" font-style="italic" fill="#2563EB" text-anchor="middle">high visibility</text>
+
+{/* Low-visibility events */}
+<rect x="14" y="280" width="152" height="34" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="90" y="294" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">PILOT FAILS</text>
+<text x="90" y="307" font-family="serif" font-size="9" font-style="italic" fill="#B8651A" text-anchor="middle">low visibility</text>
+
+<rect x="14" y="328" width="152" height="34" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="90" y="342" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">ESTIMATOR REVERTS</text>
+<text x="90" y="355" font-family="serif" font-size="9" font-style="italic" fill="#B8651A" text-anchor="middle">low visibility</text>
+
+<rect x="14" y="376" width="152" height="34" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="90" y="390" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">SLOW ONBOARDING</text>
+<text x="90" y="403" font-family="serif" font-size="9" font-style="italic" fill="#B8651A" text-anchor="middle">low visibility</text>
+
+{/* ── Arrows: thick for high-visibility ─────────────────── */}
+{/* pilot succeeds → working belief (thick, blue) */}
+<line x1="166" y1="93" x2="522" y2="303" stroke="#2563EB" stroke-width="8" stroke-opacity="0.35"/>
+<line x1="166" y1="93" x2="522" y2="303" stroke="#2563EB" stroke-width="2" stroke-opacity="0.8"/>
+
+{/* rep wins demo → working belief (thick, blue) */}
+<line x1="166" y1="141" x2="522" y2="303" stroke="#2563EB" stroke-width="8" stroke-opacity="0.35"/>
+<line x1="166" y1="141" x2="522" y2="303" stroke="#2563EB" stroke-width="2" stroke-opacity="0.8"/>
+
+{/* support escalation → working belief (thick, blue) */}
+<line x1="166" y1="189" x2="522" y2="303" stroke="#2563EB" stroke-width="8" stroke-opacity="0.35"/>
+<line x1="166" y1="189" x2="522" y2="303" stroke="#2563EB" stroke-width="2" stroke-opacity="0.8"/>
+
+{/* competitor eval → working belief (thick, blue) */}
+<line x1="166" y1="237" x2="522" y2="303" stroke="#2563EB" stroke-width="8" stroke-opacity="0.35"/>
+<line x1="166" y1="237" x2="522" y2="303" stroke="#2563EB" stroke-width="2" stroke-opacity="0.8"/>
+
+{/* pilot fails → working belief (thin, orange) */}
+<line x1="166" y1="297" x2="522" y2="313" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.7"/>
+
+{/* estimator reverts → working belief (thin, orange) */}
+<line x1="166" y1="345" x2="522" y2="318" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.7"/>
+
+{/* slow onboarding → working belief (thin, orange) */}
+<line x1="166" y1="393" x2="522" y2="323" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.7"/>
+
+{/* ── Filter zone box ──────────────────────────────────── */}
+<rect x="212" y="76" width="290" height="370" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="357" y="96" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="1">FILTER</text>
+
+{/* Filter labels */}
+<rect x="224" y="106" width="266" height="28" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="116" font-family="serif" font-size="10" fill="#2563EB" text-anchor="middle" font-weight="bold">demo wins channel</text>
+<text x="357" y="128" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same-day signal; lands in Slack</text>
+
+<rect x="224" y="144" width="266" height="28" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="154" font-family="serif" font-size="10" fill="#2563EB" text-anchor="middle" font-weight="bold">sales calls</text>
+<text x="357" y="166" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">wins and prospects dominate the agenda</text>
+
+<rect x="224" y="182" width="266" height="28" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="192" font-family="serif" font-size="10" fill="#2563EB" text-anchor="middle" font-weight="bold">support escalations</text>
+<text x="357" y="204" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">loud by design; reaches founder fast</text>
+
+<rect x="224" y="220" width="266" height="28" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="230" font-family="serif" font-size="10" fill="#B8651A" text-anchor="middle" font-weight="bold">failed pilots two layers away</text>
+<text x="357" y="242" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">surfaced as churn risk, if at all, months later</text>
+
+<rect x="224" y="258" width="266" height="28" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="357" y="268" font-family="serif" font-size="10" fill="#B8651A" text-anchor="middle" font-weight="bold">investor narrative</text>
+<text x="357" y="280" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">written to persuade, calibrated to convince</text>
+
+{/* Thickness legend inside filter box */}
+<line x1="224" y1="312" x2="490" y2="312" stroke="#C9BEAA" stroke-width="0.8"/>
+<text x="357" y="328" font-family="JetBrains Mono" font-size="8" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">ARROW KEY</text>
+<line x1="240" y1="342" x2="290" y2="342" stroke="#2563EB" stroke-width="7" stroke-opacity="0.35"/>
+<line x1="240" y1="342" x2="290" y2="342" stroke="#2563EB" stroke-width="2"/>
+<text x="298" y="346" font-family="serif" font-size="9" fill="#2563EB">high-visibility channel</text>
+<line x1="240" y1="362" x2="290" y2="362" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="4 3" stroke-opacity="0.8"/>
+<text x="298" y="366" font-family="serif" font-size="9" fill="#B8651A">low-visibility channel</text>
+<text x="357" y="390" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">thickness = visibility to founder; dashes = weeks of delay</text>
+<text x="357" y="405" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">not presence or absence of truth</text>
+
+{/* ── Working belief box ────────────────────────────────── */}
+<rect x="520" y="270" width="144" height="70" fill="#EDE5D4" stroke="#8F8578" stroke-width="1.5" rx="4"/>
+<text x="592" y="291" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">MY WORKING</text>
+<text x="592" y="304" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">BELIEF</text>
+<text x="592" y="322" font-family="serif" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">"40% faster"</text>
+<text x="592" y="336" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the claim</text>
+
+</svg>
+<figcaption><strong>Fig 2.</strong> The evidence pipeline that decides which world events reach my working belief about the 40% claim. Demo wins, sales calls, support escalations, and the channels I'm closest to are the high-visibility filters; failed pilots two layers away and slow estimator onboarding pass through narrow channels and reach me, if at all, weeks later. Arrow thickness shows visibility, not truth. The asymmetry doesn't disappear because I know about it.</figcaption>
+</figure>
+
+The public-writing problem is the same asymmetry, running in a different channel. When I write a Twitter thread on AI takeoff productivity, my implicit model of the audience is a potential investor, an enterprise decision-maker, or someone considering whether to work at Boon. When I write an investor update, the audience is investors. When I give a conference talk, the audience is prospective customers and peers who will form opinions about the category. None of those audiences are this reader, and none of those writing acts are calibrated to help this reader update accurately. They are calibrated to persuade. I do not think of myself as being dishonest in those contexts; I think of myself as doing communications. That is the problem. The calibration happens below the threshold where I'd notice it as a bias.
+
+So: I have a financial stake in the thing I'm trying to assess. I have an information pipeline that over-delivers evidence in favor of it. I have public-writing habits calibrated to convince audiences who share my directional interest. Three separate mechanisms, all pulling the same direction.
+
+Section 6 will say what I'm going to do about it. The rest of this post is what I learned trying to figure out what to do.
+
+### 3. What's actually happening inside the head
+
+Naming the conflict from §2 is not enough. Knowing that I hold a belief I keep losing arguments about doesn't explain why the bias persists after I've identified it. The architecture of cognition makes it survive exactly that kind of awareness. What follows is a walk through what the brain actually does with takeoff-claim evidence: three settled asymmetries, a contested fourth case, and then the deeper frame that explains why knowing all this still leaves the problem mostly unsolved.
+
+**Directional retrieval.** The first asymmetry is upstream of reasoning altogether. [Kunda's canonical statement of the result](https://fbaum.unc.edu/teaching/articles/Psych-Bulletin-1990-Kunda.pdf) locates the effect at the retrieval stage: "Directional goals affect reasoning by affecting which information will be considered in the reasoning process." The brain doesn't find the inconvenient facts and then explain them away. It doesn't retrieve them in the first place. Counterexamples that would surface if the directional goal were different stay below threshold, and the reasoning that follows looks careful, and is careful, but it operates on a curated input. Apply this to the takeoff belief. When I'm thinking about my 40% claim, which case studies does my brain surface? Which estimator-hours papers? Which industry survey numbers? The evidence pool I'm reasoning from is not neutral. The directional goal has already run a filter before I've written down the first consideration. The careful inference that follows is careful reasoning on a biased sample.
+
+**Biased assimilation.** The second asymmetry operates on evidence after it arrives. Imagine two estimators read the same balanced case study: one AI takeoff pilot that won, one that lost, written up with comparable detail and methodological care. The estimator who already trusts the 40% claim walks away more confident in it. The estimator who already doubts it walks away more confident in the opposite. Same packet in. Greater disagreement out. That's the pattern the [1979 Lord, Ross, and Lepper study](https://doi.org/10.1037/0022-3514.37.11.2098) documented: 48 Stanford undergraduates with strong prior beliefs about capital punishment read a deliberately balanced set of two studies, and both groups ended up more confident in their original positions than when they started. The mechanism is not that people ignore the counter-evidence. They engage with it, and engage with it in ways that reinforce the position they came in with. For the takeoff belief, this means a balanced case-study portfolio is not a path to convergence. It is a path to the believers and the skeptics each feeling more vindicated.
+
+**Asymmetric thresholds.** The third asymmetry is about how much evidence is enough. The bar for accepting a conclusion you'd prefer is lower than the bar for accepting one you wouldn't. [Ditto and Lopez's 1992 experiment](https://doi.org/10.1037/0022-3514.63.4.568) gave subjects a fake test result for a fake enzyme deficiency. Subjects who got bad news retested, scrutinized the test longer, and questioned its validity more. Subjects who got good news filed it quickly. In Ditto and Lopez's formulation: "Less information is required to reach the former than the latter." Translate to the takeoff belief: a study showing that AI takeoff fails on a particular package type gets re-read, gets methodological questions, gets "but were the estimators well-trained?" A study showing that AI takeoff succeeds at a comparable scale gets a mental "told you so" and moves to the confirmation pile. The bar isn't fixed. It moves with the conclusion, and it moves automatically, without any conscious choice to apply extra scrutiny to the bad news.
+
+**The contested fourth case.** Dan Kahan's research program asks a harder question: does quantitative skill rescue you from the three asymmetries above? His [2017 paper with Peters, Dawson, and Slovic](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2319992) tested numeracy against identity-protective cognition on a politically loaded contingency table. The result the paper reports: more numerate subjects polarized along identity lines *more* than less numerate ones, not less. The frame is *identity-protective cognition*: the brain deploys whatever cognitive equipment it has, including statistical literacy, in service of conclusions consistent with the identity it's defending. Apply this to the takeoff belief: a numerate estimator who is skeptical of AI takeoff doesn't get less polarized when she's better at reading effect-size tables. She may get more polarized, because her statistical literacy lets her construct sharper objections. Being good at the tools doesn't immunize you against deploying them directionally.
+
+That result, if it held cleanly, would be the most striking of the four. It hasn't held cleanly. Two preregistered replications found the basic effect (numeracy doesn't rescue you) but not the dramatic high-numeracy amplification. The dose response, the specific claim that more skill means more polarization, did not survive under preregistered criteria. The dissents from those replications and from a subsequent conceptual critique are detailed in the figure caption below. The take-home from the Kahan literature is the basic finding: quantitative skill is not a defense. It is not the stronger claim that skill actively amplifies the problem.
+
+<figure>
+<svg viewBox="0 0 680 560" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+<defs>
+  <marker id="f3arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/>
+  </marker>
+  <marker id="f3arrowblue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/>
+  </marker>
+  <marker id="f3arroworange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M0,0 L10,5 L0,10 z" fill="#B8651A"/>
+  </marker>
+</defs>
+
+{/* ── Title ──────────────────────────────────────────────── */}
+<text x="340" y="22" font-family="JetBrains Mono" font-size="11" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">FOUR OPERATIONS ON TAKEOFF-CLAIM EVIDENCE</text>
+<text x="340" y="40" font-family="serif" font-size="11" font-style="italic" fill="#6B6258" text-anchor="middle">same evidence in; different downstream effect out</text>
+
+{/* ════════════════════════════════════════════════════════ */}
+{/* PANEL 1: RETRIEVE EXAMPLES (top-left) */}
+{/* ════════════════════════════════════════════════════════ */}
+<rect x="20" y="54" width="308" height="228" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1.5" rx="5"/>
+<text x="174" y="74" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">RETRIEVE EXAMPLES</text>
+<text x="174" y="89" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">which past observations the brain surfaces</text>
+
+{/* Memory pool — cluster of dots */}
+<rect x="36" y="100" width="130" height="110" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="4"/>
+<text x="101" y="115" font-family="JetBrains Mono" font-size="8" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">MEMORY POOL</text>
+
+{/* Supporting obs — bright blue dots */}
+<circle cx="60" cy="135" r="7" fill="#2563EB" opacity="0.85"/>
+<circle cx="82" cy="128" r="6" fill="#2563EB" opacity="0.85"/>
+<circle cx="74" cy="152" r="7" fill="#2563EB" opacity="0.85"/>
+<circle cx="98" cy="140" r="5" fill="#2563EB" opacity="0.85"/>
+
+{/* Threatening obs — dimmed orange dots */}
+<circle cx="120" cy="130" r="6" fill="#B8651A" opacity="0.25"/>
+<circle cx="136" cy="148" r="7" fill="#B8651A" opacity="0.25"/>
+<circle cx="118" cy="163" r="5" fill="#B8651A" opacity="0.25"/>
+<circle cx="146" cy="133" r="4" fill="#B8651A" opacity="0.25"/>
+<circle cx="56" cy="168" r="4" fill="#B8651A" opacity="0.2"/>
+
+{/* "below threshold" label for threatening */}
+<text x="138" y="178" font-family="serif" font-size="8" font-style="italic" fill="#B8651A" opacity="0.7" text-anchor="middle">below threshold</text>
+
+{/* Retrieval arrow from blue dots out */}
+<line x1="166" y1="145" x2="218" y2="145" stroke="#2563EB" stroke-width="2" marker-end="url(#f3arrowblue)"/>
+
+{/* Retrieved box */}
+<rect x="220" y="126" width="92" height="38" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" rx="3"/>
+<text x="266" y="141" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.7">RETRIEVED</text>
+<text x="266" y="155" font-family="serif" font-size="8" fill="#2563EB" text-anchor="middle">supporting obs.</text>
+
+{/* Directional goal arrow label on the side */}
+<rect x="220" y="174" width="92" height="36" fill="#FBE9CE" stroke="#B8651A" stroke-width="1" rx="3"/>
+<text x="266" y="187" font-family="JetBrains Mono" font-size="7.5" fill="#92400E" text-anchor="middle" letter-spacing="0.6">DIRECTIONAL</text>
+<text x="266" y="199" font-family="JetBrains Mono" font-size="7.5" fill="#92400E" text-anchor="middle" letter-spacing="0.6">GOAL</text>
+<text x="266" y="210" font-family="serif" font-size="7.5" font-style="italic" fill="#92400E" text-anchor="middle">pulling the filter</text>
+
+<line x1="266" y1="173" x2="266" y2="165" stroke="#B8651A" stroke-width="1.5" marker-end="url(#f3arroworange)"/>
+
+{/* Legend dots */}
+<circle cx="36" cy="247" r="5" fill="#2563EB" opacity="0.85"/>
+<text x="46" y="251" font-family="serif" font-size="8" fill="#2563EB">retrieved (supporting)</text>
+<circle cx="184" cy="247" r="5" fill="#B8651A" opacity="0.4"/>
+<text x="194" y="251" font-family="serif" font-size="8" fill="#B8651A">left below threshold</text>
+
+{/* ════════════════════════════════════════════════════════ */}
+{/* PANEL 2: WEIGH EVIDENCE (top-right) */}
+{/* ════════════════════════════════════════════════════════ */}
+<rect x="352" y="54" width="308" height="228" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1.5" rx="5"/>
+<text x="506" y="74" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">WEIGH EVIDENCE</text>
+<text x="506" y="89" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same packet in; priors move further apart</text>
+
+{/* Input packet */}
+<rect x="368" y="100" width="88" height="70" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="412" y="118" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.7">CASE-STUDY</text>
+<text x="412" y="129" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.7">PACKET</text>
+<text x="412" y="143" font-family="serif" font-size="8.5" font-style="italic" fill="#6B6258" text-anchor="middle">1 win + 1 loss,</text>
+<text x="412" y="155" font-family="serif" font-size="8.5" font-style="italic" fill="#6B6258" text-anchor="middle">matched detail</text>
+
+{/* Fork arrows to two estimators */}
+<line x1="456" y1="120" x2="508" y2="108" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f3arrow)"/>
+<line x1="456" y1="148" x2="508" y2="160" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f3arrow)"/>
+
+{/* Estimator A — prior moves up */}
+<rect x="512" y="90" width="118" height="52" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" rx="4"/>
+<text x="571" y="106" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.7">ESTIMATOR A</text>
+<text x="571" y="117" font-family="serif" font-size="8" font-style="italic" fill="#6B6258" text-anchor="middle">prior: trusts 40% claim</text>
+<text x="571" y="131" font-family="serif" font-size="9" font-weight="bold" fill="#2563EB" text-anchor="middle">posterior +</text>
+<text x="571" y="140" font-family="JetBrains Mono" font-size="8" fill="#2563EB" text-anchor="middle">more confident</text>
+
+{/* Estimator B — prior moves down */}
+<rect x="512" y="150" width="118" height="52" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="4"/>
+<text x="571" y="166" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.7">ESTIMATOR B</text>
+<text x="571" y="177" font-family="serif" font-size="8" font-style="italic" fill="#6B6258" text-anchor="middle">prior: doubts 40% claim</text>
+<text x="571" y="191" font-family="serif" font-size="9" font-weight="bold" fill="#B8651A" text-anchor="middle">posterior -</text>
+<text x="571" y="200" font-family="JetBrains Mono" font-size="8" fill="#B8651A" text-anchor="middle">more skeptical</text>
+
+{/* Divergence note */}
+<text x="506" y="225" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same packet in; greater disagreement out</text>
+<text x="506" y="238" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">POLARIZATION, NOT CONVERGENCE</text>
+
+{/* ════════════════════════════════════════════════════════ */}
+{/* PANEL 3: SET ACCEPTANCE THRESHOLD (bottom-left) */}
+{/* ════════════════════════════════════════════════════════ */}
+<rect x="20" y="298" width="308" height="248" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1.5" rx="5"/>
+<text x="174" y="317" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">SET ACCEPTANCE THRESHOLD</text>
+<text x="174" y="332" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the bar moves with the conclusion</text>
+
+{/* Supporting evidence path — low bar */}
+<rect x="34" y="344" width="110" height="42" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" rx="4"/>
+<text x="89" y="360" font-family="JetBrains Mono" font-size="8.5" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.7">SUPPORTING</text>
+<text x="89" y="372" font-family="serif" font-size="8.5" font-style="italic" fill="#2563EB" text-anchor="middle">evidence box</text>
+<text x="89" y="382" font-family="serif" font-size="8" fill="#6B6258" text-anchor="middle">40% pilot won</text>
+
+{/* Low threshold line for supporting */}
+<line x1="152" y1="365" x2="198" y2="365" stroke="#2563EB" stroke-width="1.5" marker-end="url(#f3arrowblue)"/>
+<line x1="160" y1="355" x2="192" y2="355" stroke="#2563EB" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+<text x="175" y="350" font-family="JetBrains Mono" font-size="7.5" fill="#2563EB" text-anchor="middle">low bar</text>
+
+{/* Check / accepted box */}
+<rect x="200" y="344" width="88" height="42" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" rx="4"/>
+<text x="244" y="360" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.7">ACCEPTED</text>
+<text x="244" y="375" font-family="serif" font-size="13" fill="#2563EB" text-anchor="middle">✓</text>
+
+{/* Threatening evidence path — high bar */}
+<rect x="34" y="408" width="110" height="42" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="4"/>
+<text x="89" y="424" font-family="JetBrains Mono" font-size="8.5" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.7">THREATENING</text>
+<text x="89" y="436" font-family="serif" font-size="8.5" font-style="italic" fill="#B8651A" text-anchor="middle">evidence box</text>
+<text x="89" y="446" font-family="serif" font-size="8" fill="#6B6258" text-anchor="middle">40% pilot failed</text>
+
+{/* High threshold line + back-arrow for threatening */}
+<line x1="152" y1="429" x2="198" y2="429" stroke="#B8651A" stroke-width="1.5" marker-end="url(#f3arroworange)"/>
+<line x1="160" y1="415" x2="192" y2="415" stroke="#B8651A" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+<text x="175" y="410" font-family="JetBrains Mono" font-size="7.5" fill="#B8651A" text-anchor="middle">high bar</text>
+
+{/* Retesting box */}
+<rect x="200" y="408" width="88" height="42" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5" rx="4"/>
+<text x="244" y="424" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.6">SENT BACK</text>
+<text x="244" y="436" font-family="serif" font-size="8.5" font-style="italic" fill="#B8651A" text-anchor="middle">retest / recheck</text>
+<text x="244" y="448" font-family="serif" font-size="8.5" fill="#B8651A" text-anchor="middle">"but were they</text>
+<text x="244" y="458" font-family="serif" font-size="8.5" fill="#B8651A" text-anchor="middle">well-trained?"</text>
+
+{/* Threshold gap visual */}
+<line x1="34" y1="475" x2="296" y2="475" stroke="#C9BEAA" stroke-width="0.8"/>
+<text x="174" y="489" font-family="serif" font-size="8.5" font-style="italic" fill="#6B6258" text-anchor="middle">bar is not fixed; it moves with the preferred conclusion</text>
+<text x="174" y="500" font-family="serif" font-size="8.5" font-style="italic" fill="#6B6258" text-anchor="middle">no conscious decision to apply extra scrutiny</text>
+<text x="174" y="511" font-family="serif" font-size="8.5" font-style="italic" fill="#6B6258" text-anchor="middle">to the threatening result</text>
+
+{/* ════════════════════════════════════════════════════════ */}
+{/* PANEL 4: IDENTITY ALARM (bottom-right, contested) */}
+{/* ════════════════════════════════════════════════════════ */}
+<rect x="352" y="298" width="308" height="248" fill="#F9F5EB" stroke="#92400E" stroke-width="1.5" stroke-dasharray="5 3" rx="5"/>
+<text x="506" y="317" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle" letter-spacing="1.2">IDENTITY ALARM</text>
+<rect x="576" y="303" width="64" height="16" fill="#FBE9CE" stroke="#92400E" stroke-width="1" rx="2"/>
+<text x="608" y="315" font-family="JetBrains Mono" font-size="7.5" fill="#92400E" text-anchor="middle" letter-spacing="0.6">CONTESTED</text>
+<text x="506" y="332" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">quantitative skill deployed directionally</text>
+
+{/* Numerate estimator avatar */}
+<rect x="368" y="344" width="96" height="64" fill="#EDE5D4" stroke="#8F8578" stroke-width="1" rx="4"/>
+<text x="416" y="358" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.6">NUMERATE</text>
+<text x="416" y="368" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.6">ESTIMATOR</text>
+{/* Calculator icon */}
+<rect x="396" y="376" width="20" height="22" fill="#C9BEAA" stroke="#6B6258" stroke-width="0.8" rx="2"/>
+<rect x="398" y="378" width="16" height="6" fill="#6B6258" rx="1"/>
+<circle cx="401" cy="390" r="1.5" fill="#6B6258"/>
+<circle cx="406" cy="390" r="1.5" fill="#6B6258"/>
+<circle cx="411" cy="390" r="1.5" fill="#6B6258"/>
+<circle cx="401" cy="395" r="1.5" fill="#6B6258"/>
+<circle cx="406" cy="395" r="1.5" fill="#6B6258"/>
+<circle cx="411" cy="395" r="1.5" fill="#6B6258"/>
+<text x="430" y="388" font-family="serif" font-size="8" font-style="italic" fill="#6B6258">stat-literate</text>
+<text x="430" y="398" font-family="serif" font-size="8" font-style="italic" fill="#6B6258">reads tables well</text>
+
+{/* Threatening evidence arrow in */}
+<rect x="368" y="424" width="96" height="36" fill="#FBE9CE" stroke="#B8651A" stroke-width="1" rx="4"/>
+<text x="416" y="438" font-family="JetBrains Mono" font-size="8" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.6">THREATENING</text>
+<text x="416" y="449" font-family="serif" font-size="8" font-style="italic" fill="#B8651A" text-anchor="middle">evidence arrives</text>
+
+<line x1="416" y1="422" x2="416" y2="410" stroke="#B8651A" stroke-width="1.5" marker-end="url(#f3arroworange)"/>
+
+{/* Identity alarm signal */}
+<line x1="464" y1="371" x2="500" y2="355" stroke="#92400E" stroke-width="1.5" marker-end="url(#f3arrow)"/>
+
+<rect x="502" y="336" width="128" height="58" fill="#FBE9CE" stroke="#92400E" stroke-width="1.5" rx="4"/>
+<text x="566" y="352" font-family="JetBrains Mono" font-size="8" fill="#92400E" text-anchor="middle" letter-spacing="0.8">IDENTITY ALARM</text>
+{/* Alert symbol */}
+<text x="566" y="368" font-family="serif" font-size="14" fill="#92400E" text-anchor="middle">!</text>
+<text x="566" y="382" font-family="serif" font-size="8" font-style="italic" fill="#92400E" text-anchor="middle">skill + identity = sharper</text>
+<text x="566" y="392" font-family="serif" font-size="8" font-style="italic" fill="#92400E" text-anchor="middle">directional objection</text>
+
+{/* Skill deployed against threatening evidence */}
+<line x1="502" y1="380" x2="480" y2="420" stroke="#92400E" stroke-width="1.5" stroke-dasharray="3 2" marker-end="url(#f3arrow)"/>
+
+{/* Contested note */}
+<line x1="368" y1="474" x2="648" y2="474" stroke="#C9BEAA" stroke-width="0.8"/>
+<text x="508" y="488" font-family="serif" font-size="8.5" font-style="italic" fill="#6B6258" text-anchor="middle">basic effect held across two preregistered replications;</text>
+<text x="508" y="499" font-family="serif" font-size="8.5" font-style="italic" fill="#6B6258" text-anchor="middle">dose-response (more skill = more polarization) did not.</text>
+<text x="508" y="510" font-family="JetBrains Mono" font-size="7.5" fill="#92400E" text-anchor="middle" letter-spacing="0.6">dashed border = contested status</text>
+
+</svg>
+<figcaption><strong>Fig 3.</strong> Four operations the brain runs on takeoff-claim evidence, each producing a different downstream effect. Panel 1 (retrieve examples): which past observations the brain even surfaces depends on the directional goal. Panel 2 (weigh evidence): the same case-study packet moves two estimator priors further apart, not closer. Panel 3 (set acceptance threshold): supporting evidence clears a lower bar than threatening evidence does. Panel 4 (identity alarm, contested): in the Kahan literature, identity-protective cognition deploys whatever cognitive skill is available against threatening evidence; the basic effect held in two preregistered replications, the dramatic dose-response did not. The four operations together are the architecture from which §6 derives the structural counter-moves.</figcaption>
+</figure>
+
+**The architecture that produces these patterns is social.** Mercier and Sperber's argumentative theory of reasoning holds that reasoning evolved primarily to produce and evaluate arguments in social-persuasive contexts, not to help the individual arrive at better private beliefs. If that's the design brief, the three asymmetries above stop looking like flaws. Directional retrieval is what you'd expect from a system optimized to build a case for your side. Biased assimilation is the natural output of a system that's running "win the argument" rather than "converge on truth." Trivers's complementary frame closes the loop on the self-deception side: self-deception evolved as a mechanism that makes outward deception more credible. If the false belief is genuinely held, the deceiver leaks no involuntary tells. The brain has to be its own audience first. Put Mercier and Sperber together with Trivers and the asymmetries stop looking like bugs in an otherwise truth-seeking machine. They look like surface features of a system shaped by a very different design brief. The architecture that produces these patterns is social, which is why the rest of this post can't end with five thought experiments.
+
+**Darwin's notebook.** In the autobiography he wrote in his last years, [published posthumously in 1887 by his son Francis](https://www.gutenberg.org/cache/epub/2010/pg2010-images.html), Darwin gave one paragraph to a single working habit:
+
+> "I had, also, during many years, followed a golden rule, namely, that whenever a published fact, a new observation or thought came across me, which was opposed to my general results, to make a memorandum of it without fail and at once; for I had found by experience that such facts and thoughts were far more apt to escape from memory than favourable ones. Owing to this habit, very few objections were raised against my views which I had not at least noticed and attempted to answer."
+
+Darwin's contribution here is not a thought experiment or a self-test. It is an *artifact*. The notebook is an external system that catches the disconfirming observations that directional retrieval would otherwise let drop. Run the architecture as designed, with no countermeasures, and the inconvenient evidence disappears in days. Run the architecture plus the notebook, and the inconvenient evidence is on a timestamped line that is still legible six years later, when you are writing chapter twelve. The artifact framing governs every subsequent move here: §4's calibration log, §6's precommitment register, §7's takeoff log are all instances of the same class. The notebook is where §3 ends and §4 begins.
+
+### 4. How would I know if my belief is getting more accurate?
+
+§3 ended on Darwin's notebook as the artifact-class counter-move: not a thought experiment, but an external system that catches what directional retrieval would otherwise drop. The natural follow-up is the question §4 takes seriously: if a single mind is biased in the ways §3 documented, what is a less-noisy procedure for assessing whether the 40% takeoff claim is actually supported? The rest of this section walks that procedure.
+
+**Brier score: a metric for "was I right about the 40% claim."** For a binary forecast (the event happens or it doesn't), Brier score is the mean squared error between the probability you assigned and the outcome. Worked example: I forecast 0.7 that this estimator saves 40% on the next package and they save 32%, so the "saved 40%" event didn't happen. My error on that forecast is $(0.7 - 0)^2 = 0.49$. If they had saved 40%, the event would have happened and my error would be $(0.7 - 1)^2 = 0.09$. Average those squared errors over many forecasts and you have your Brier score. Lower is better. Zero is perfect. The metric matters because "I'm well-calibrated about AI takeoff" stops being a claim about character once you can score it. It becomes a number, defined on a finite range, reproducible from the same forecasts and outcomes by anyone who cares to check.
+
+**The calibration plot.** Pool forecasts by the probability you assigned (everything in the 0.7-bucket, everything in the 0.8-bucket), then ask what fraction of those events actually happened. A forecaster who said 70 percent and was right 70 percent of the time sits on the diagonal at the 0.7 mark. A forecaster who said 90 percent and was right 60 percent of the time is overconfident; their curve sags below the diagonal at the high-probability end. The plot is the picture; the Brier score is its summary number. Two forecasters can have the same calibration curve and different Brier scores, because the score also captures resolution (how far your stated probabilities are from 0.5), not just calibration. The figure below shows both patterns on one set of axes.
+
+**AOMT, one predictor among seven.** The trait has a name and a survey-instrument operationalization: actively open-minded thinking (AOMT), defined by Jonathan Baron and operationalized in a scale by Stanovich and West as the propensity to seek contrary evidence, weigh it against held beliefs, and update in proportion to it. In the Good Judgment Project (GJP), run by Tetlock and Mellers, AOMT was a predictor of individual forecaster accuracy. It was one of seven the GJP team identified: cognitive ability, political knowledge, open-mindedness, training in probabilistic reasoning, team participation, deliberation time, and frequency of belief updating. It is not the strongest predictor; it is not single-handedly responsible for the GJP results. What AOMT is: the disposition you'd want if you're trying to honestly assess the takeoff claim. It doesn't tell you the claim is right; it tells you your approach to evidence is at least disposed toward updating in proportion to it.
+
+**The GJP-vs-ICPM result.** An IARPA tournament let calibrated aggregation procedures and a CIA-run prediction market (ICPM) answer the same questions for a year. The aggregation procedure won, on Brier, by a clear margin. In [the technical comparison paper](https://goodjudgment.com/wp-content/uploads/2020/11/Goldstein-et-al-GJP-vs-ICPM.pdf) by Goldstein and colleagues, the ICPM scored about 0.23 and the GJP's best aggregation method scored about 0.15, both on the 0-to-2 scale used in that paper. The paper itself flags that the "best method" comparison was partly an ex-post selection from a candidate aggregator family the GJP team built; that caveat belongs here, in one sentence. The point is the proof of concept: a calibrated aggregation procedure can beat a market on shared questions. That's a procedural result, not a personality-trait result.
+
+**The aggregation funnel, walked with ten estimators.** Why does aggregating help? Imagine ten independent estimators each forecast the takeoff savings on the next package, no conversation, no shared spreadsheet. Their estimates form a distribution: some too high, some too low, some near the truth. Average them. Variance shrinks by roughly a factor of the square root of ten. The bias of the average is the same as the bias of any one estimator, but the noise around it is smaller. Now imagine the ten talked first and arrived at a group estimate. Their estimates correlate. The variance reduction is partial. Correlation eats the gain. The funnel is intuitive: independence is what gives aggregation its bite. The operational move "blind first-pass, then discuss" is the structural way to preserve some of that independence. If the ten estimators all read the same account of the last AI takeoff pilot before submitting their number, their errors are correlated, and the funnel closes partway. If they submit blind and discuss afterward, at least some of the independence survives.
+
+<figure>
+  <CalibAgg client:visible />
+  <figcaption><strong>Fig 4.</strong> Calibration and aggregation as one systems concept. Left: a calibration grid plotting takeoff forecasts on the diagonal where stated probability matches observed frequency. Right: the aggregation funnel showing ten estimators' forecasts as a density band. Adjust bias to shift the band off the truth value; adjust variance to widen or narrow the per-estimator distribution; adjust correlation to control how much aggregation actually buys you. At zero correlation, ten independent forecasts shrink the band by roughly √10. At correlation 1, the band stays at the per-estimator width: correlation eats the variance reduction. One mind is noisy; scored records and independent estimates reduce different errors.</figcaption>
+</figure>
+
+§6 takes that funnel and operationalizes it: precommitment, outside review, blinded estimator trials. The architecture-shaped problem from §3 is the reason §6 has to exist.
+
+### 5. Galef's five tests, run on the takeoff belief
+
+Section 4 gave you a procedural answer: use Brier scores, calibration curves, and aggregation to tell whether a belief is tracking evidence over time. That's the measurement layer. Section 5 is the diagnostic layer: five thought experiments from Galef's Chapter 5 that you can run on a single belief in five minutes on a Tuesday. Pick the belief from §1. We're going to put it through five passes.
+
+**Double Standard Test.** Would I judge a competitor's 40% claim with the same scrutiny I'd apply to Boon's? What study design would I demand from a competitor's pilot that I haven't demanded from my own? Running this on the takeoff belief surfaces something specific: I'm applying a generous evidentiary standard to data my own team collected and a stringent one to everyone else's. That's not a rare thinking error. It's a patterned one, and the test's value is that it makes the gap visible rather than leaving it implicit in which objections I raise and which I don't.
+
+**Outsider Test.** If a stranger were in this position, holding only the evidence I currently hold and not my years of demos and customer conversations, what would I advise them about the 40% claim? The test surfaces something uncomfortable: most of what makes my conviction feel reasonable is path dependence, not evidence. The stranger hasn't seen the demos I've run a hundred times. She sees the data, and the data alone is thinner than my conviction implies. That gap between "what the data supports" and "what my conviction implies" is exactly what the test is designed to expose.
+
+**Conformity Test.** If my YC batch and my construction-tech peer group moved off the 40% claim, would I still hold it on the strength of the evidence alone? Running this reveals that a chunk of my conviction is downstream of who's in the room with me. That's not automatically wrong; peer expertise carries real information. But peer consensus shouldn't be doing the evidentiary work I'm currently letting it do, and the test forces me to separate those two loads.
+
+**Selective Skeptic Test.** Do I scrutinize a pilot that under-delivered as harshly as I celebrate one that over-delivered? Running this on the takeoff belief surfaces a longer list of methodological objections to under-performing pilots than to over-performing ones. I find methodological reasons to discount a bad result that I don't find when the result is good. That gap is the asymmetric threshold from §3, running on me in real time, not as an abstract cognitive pattern but as a specific accounting of which objections I generated and which I didn't.
+
+**Status Quo Bias Test.** If I were starting from scratch in 2026 with the evidence I have now, and not the path-dependent commitment to selling this software, would I still adopt the 40% claim with the confidence I currently hold it? My position on this belief has been compounding for several years. Some of that compounding is genuine learning from customers and deployments. Some of it is sunk cost. The test doesn't decompose those two for you, but it puts the question on the table in a way that staying inside your normal belief-update rhythm doesn't.
+
+<figure>
+<svg viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+{/* ── Caveat banner ──────────────────────────────────────── */}
+<text x="340" y="16" font-family="serif" font-size="10" font-style="italic" fill="#6B6258" text-anchor="middle">this is the post's reading of how each test pressures the 40% belief; reasonable readers may pair them differently.</text>
+
+{/* ── Column header row ──────────────────────────────────── */}
+<text x="65" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">TEST</text>
+<text x="188" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">QUESTION ASKED</text>
+<text x="318" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">WHAT IT ATTACKS</text>
+<text x="430" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">40% CLAIM MUST ANSWER</text>
+<line x1="10" y1="41" x2="470" y2="41" stroke="#C9BEAA" stroke-width="1"/>
+
+{/* ── Pressure-map panel header ─────────────────────────── */}
+<text x="580" y="36" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle" letter-spacing="1">PRESSURE MAP</text>
+<line x1="480" y1="41" x2="670" y2="41" stroke="#C9BEAA" stroke-width="1"/>
+
+{/* ── Row 1: Double Standard Test (blue #2563EB) ─────────── */}
+<rect x="10" y="44" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="44" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="62" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">DOUBLE</text>
+<text x="70" y="75" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">STANDARD</text>
+<text x="70" y="88" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="44" x2="130" y2="118" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="64" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">Would I demand the same</text>
+<text x="188" y="77" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">study design from my own</text>
+<text x="188" y="90" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">pilot that I'd demand</text>
+<text x="188" y="103" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">from a competitor's?</text>
+<line x1="246" y1="44" x2="246" y2="118" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="64" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Asymmetric evidentiary</text>
+<text x="318" y="77" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">thresholds — a stricter bar</text>
+<text x="318" y="90" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">for threatening claims than</text>
+<text x="318" y="103" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">for preferred ones.</text>
+<line x1="390" y1="44" x2="390" y2="118" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="64" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">My own pilot data hasn't</text>
+<text x="430" y="77" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">been held to the design</text>
+<text x="430" y="90" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">standard I'd impose on</text>
+<text x="430" y="103" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">anyone else's 40% claim.</text>
+
+{/* ── Row 2: Outsider Test (green #059669) ────────────────── */}
+<rect x="10" y="120" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="120" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="142" font-family="JetBrains Mono" font-size="9" fill="#059669" text-anchor="middle" letter-spacing="0.8" font-weight="bold">OUTSIDER</text>
+<text x="70" y="155" font-family="JetBrains Mono" font-size="9" fill="#059669" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="120" x2="130" y2="194" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="143" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">What would a stranger</text>
+<text x="188" y="156" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">advise, holding only the</text>
+<text x="188" y="169" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">data — not my years</text>
+<text x="188" y="182" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">of demos?</text>
+<line x1="246" y1="120" x2="246" y2="194" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="143" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Path dependence: the</text>
+<text x="318" y="156" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">conviction feels warranted</text>
+<text x="318" y="169" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">by accumulated experience,</text>
+<text x="318" y="182" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">not just the data.</text>
+<line x1="390" y1="120" x2="390" y2="194" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="143" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">The data alone is</text>
+<text x="430" y="156" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">thinner than my conviction</text>
+<text x="430" y="169" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">implies, and may not</text>
+<text x="430" y="182" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">generalize past early adopters.</text>
+
+{/* ── Row 3: Conformity Test (orange #B8651A) ─────────────── */}
+<rect x="10" y="196" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="196" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="218" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">CONFORMITY</text>
+<text x="70" y="231" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="196" x2="130" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="218" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">Would I still hold the</text>
+<text x="188" y="231" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">claim if my YC peers</text>
+<text x="188" y="244" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">and industry group</text>
+<text x="188" y="257" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">moved off it?</text>
+<line x1="246" y1="196" x2="246" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="218" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Social architecture: peer</text>
+<text x="318" y="231" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">consensus doing evidentiary</text>
+<text x="318" y="244" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">work that the data</text>
+<text x="318" y="257" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">itself should do.</text>
+<line x1="390" y1="196" x2="390" y2="270" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="218" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">The YC construction-tech</text>
+<text x="430" y="231" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">bubble may not represent</text>
+<text x="430" y="244" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">how non-adopters</text>
+<text x="430" y="257" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">would perform.</text>
+
+{/* ── Row 4: Selective Skeptic Test (rust #92400E) ─────────── */}
+<rect x="10" y="272" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="272" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="294" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">SELECTIVE</text>
+<text x="70" y="307" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">SKEPTIC</text>
+<text x="70" y="320" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="272" x2="130" y2="346" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="294" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">Do I scrutinize an under-</text>
+<text x="188" y="307" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">delivering pilot as harshly</text>
+<text x="188" y="320" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">as I celebrate an</text>
+<text x="188" y="333" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">over-delivering one?</text>
+<line x1="246" y1="272" x2="246" y2="346" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="294" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Asymmetric objection</text>
+<text x="318" y="307" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">generation: more reasons</text>
+<text x="318" y="320" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">to discount bad results</text>
+<text x="318" y="333" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">than good ones.</text>
+<line x1="390" y1="272" x2="390" y2="346" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="294" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">I find methodological</text>
+<text x="430" y="307" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">flaws in fail-pilots</text>
+<text x="430" y="320" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">that I don't generate</text>
+<text x="430" y="333" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">for win-pilots.</text>
+
+{/* ── Row 5: Status Quo Bias Test (violet #6D28D9) ─────────── */}
+<rect x="10" y="348" width="460" height="74" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1" rx="2"/>
+<rect x="10" y="348" width="120" height="74" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="0" rx="2"/>
+<text x="70" y="370" font-family="JetBrains Mono" font-size="9" fill="#6D28D9" text-anchor="middle" letter-spacing="0.8" font-weight="bold">STATUS QUO</text>
+<text x="70" y="383" font-family="JetBrains Mono" font-size="9" fill="#6D28D9" text-anchor="middle" letter-spacing="0.8" font-weight="bold">BIAS</text>
+<text x="70" y="396" font-family="JetBrains Mono" font-size="9" fill="#6D28D9" text-anchor="middle" letter-spacing="0.8" font-weight="bold">TEST</text>
+<line x1="130" y1="348" x2="130" y2="422" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="188" y="370" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">Starting from scratch in</text>
+<text x="188" y="383" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">2026 with this evidence,</text>
+<text x="188" y="396" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">no path-dependent</text>
+<text x="188" y="409" font-family="serif" font-size="9.5" font-style="italic" fill="#1A1A1A" text-anchor="middle">commitment — would I adopt?</text>
+<line x1="246" y1="348" x2="246" y2="422" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="318" y="370" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Prior anchoring: the sunk</text>
+<text x="318" y="383" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">cost of years of conviction</text>
+<text x="318" y="396" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">inflates confidence beyond</text>
+<text x="318" y="409" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">what the data warrants.</text>
+<line x1="390" y1="348" x2="390" y2="422" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="430" y="370" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">Years of path-dependent</text>
+<text x="430" y="383" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">commitment inflates the</text>
+<text x="430" y="396" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">headline figure beyond what</text>
+<text x="430" y="409" font-family="serif" font-size="9.5" fill="#1A1A1A" text-anchor="middle">non-adopter data can support.</text>
+
+{/* ── Bottom border of worksheet ─────────────────────────── */}
+<line x1="10" y1="422" x2="470" y2="422" stroke="#C9BEAA" stroke-width="1"/>
+<line x1="10" y1="44" x2="10" y2="422" stroke="#C9BEAA" stroke-width="1"/>
+<line x1="470" y1="44" x2="470" y2="422" stroke="#C9BEAA" stroke-width="1"/>
+
+{/* ── Pressure-map component boxes ──────────────────────── */}
+{/* effect size — y center: 82 */}
+<rect x="484" y="58" width="180" height="46" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="574" y="76" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">EFFECT SIZE</text>
+<text x="574" y="91" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">does it really cut hours by 40%?</text>
+
+{/* generalizes — y center: 158 */}
+<rect x="484" y="134" width="180" height="46" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="574" y="152" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">GENERALIZES</text>
+<text x="574" y="167" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">holds across estimators, not just</text>
+{/* extra line for this one */}
+<text x="574" y="178" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">early adopters?</text>
+
+{/* non-adopters — y center: 248 */}
+<rect x="484" y="224" width="180" height="46" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="574" y="242" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">NON-ADOPTERS</text>
+<text x="574" y="257" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">would they save 40% if forced?</text>
+
+{/* measurement — y center: 338 */}
+<rect x="484" y="314" width="180" height="46" fill="#EDE5D4" stroke="#C9BEAA" stroke-width="1" rx="3"/>
+<text x="574" y="332" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A" text-anchor="middle" letter-spacing="0.8">MEASUREMENT</text>
+<text x="574" y="347" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">same definition of "hours" pre</text>
+<text x="574" y="358" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">and post rollout?</text>
+
+{/* ── Pressure lines: test → components ─────────────────── */}
+{/* marker defs for arrow heads */}
+<defs>
+  <marker id="pm-blue" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#2563EB"/>
+  </marker>
+  <marker id="pm-green" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#059669"/>
+  </marker>
+  <marker id="pm-orange" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#B8651A"/>
+  </marker>
+  <marker id="pm-rust" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#92400E"/>
+  </marker>
+  <marker id="pm-violet" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#6D28D9"/>
+  </marker>
+</defs>
+
+{/* Row 1 center y = 44+37 = 81. Double Standard → effect size (y=81) + measurement (y=337) */}
+<path d="M470,81 C476,81 476,81 484,81" stroke="#2563EB" stroke-width="1.5" fill="none" marker-end="url(#pm-blue)"/>
+<path d="M470,81 C476,81 478,337 484,337" stroke="#2563EB" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-blue)"/>
+
+{/* Row 2 center y = 120+37 = 157. Outsider → effect size (y=81) + generalizes (y=157) */}
+<path d="M470,157 C476,157 480,81 484,81" stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-green)"/>
+<path d="M470,157 C476,157 476,157 484,157" stroke="#059669" stroke-width="1.5" fill="none" marker-end="url(#pm-green)"/>
+
+{/* Row 3 center y = 196+37 = 233. Conformity → generalizes (y=157) + non-adopters (y=247) */}
+<path d="M470,233 C476,233 480,157 484,157" stroke="#B8651A" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-orange)"/>
+<path d="M470,233 C476,233 476,247 484,247" stroke="#B8651A" stroke-width="1.5" fill="none" marker-end="url(#pm-orange)"/>
+
+{/* Row 4 center y = 272+37 = 309. Selective Skeptic → effect size (y=81) + measurement (y=337) */}
+<path d="M470,309 C476,309 480,81 484,81" stroke="#92400E" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-rust)"/>
+<path d="M470,309 C476,309 478,337 484,337" stroke="#92400E" stroke-width="1.5" fill="none" marker-end="url(#pm-rust)"/>
+
+{/* Row 5 center y = 348+37 = 385. Status Quo Bias → effect size (y=81) + non-adopters (y=247) */}
+<path d="M470,385 C476,385 480,81 484,81" stroke="#6D28D9" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#pm-violet)"/>
+<path d="M470,385 C476,385 478,247 484,247" stroke="#6D28D9" stroke-width="1.5" fill="none" marker-end="url(#pm-violet)"/>
+
+{/* ── Legend ─────────────────────────────────────────────── */}
+<line x1="484" y1="405" x2="664" y2="405" stroke="#C9BEAA" stroke-width="0.5"/>
+<text x="574" y="420" font-family="JetBrains Mono" font-size="8" fill="#6B6258" text-anchor="middle" letter-spacing="0.8">LINE KEY</text>
+<line x1="490" y1="432" x2="524" y2="432" stroke="#6B6258" stroke-width="1.5"/>
+<text x="530" y="436" font-family="serif" font-size="9" fill="#6B6258">primary pressure</text>
+<line x1="490" y1="447" x2="524" y2="447" stroke="#6B6258" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="530" y="451" font-family="serif" font-size="9" fill="#6B6258">secondary pressure</text>
+
+</svg>
+<figcaption><strong>Fig 5.</strong> Galef's five Chapter-5 tests as a worksheet on the 40% takeoff belief, plus a pressure map showing which components of the belief each test most stresses. The five tests in order: Double Standard, Outsider, Conformity, Selective Skeptic, Status Quo Bias. Test names are verbatim from Galef; the right-column entries and the pressure-map mapping are this post's reading. Each test most plausibly addresses a §3 asymmetry: Double Standard and Selective Skeptic operate on the Ditto-Lopez asymmetric-thresholds mechanism; Outsider operates on the Kunda directional-retrieval mechanism; Conformity operates on the social-architecture layer that Mercier-Sperber and Trivers describe; Status Quo Bias operates on the prior-anchored Lord-Ross-Lepper polarization mechanism. The mapping is the author's, not Galef's.</figcaption>
+</figure>
+
+The tests are fast and individual. You can run all five on a single belief before your next meeting. What they can't reach, on their own, is the team-scale architecture where the same motivated-reasoning mechanisms operate across people rather than inside one person's head. Section 6 is the complement: what to do when the individual tests aren't enough because the belief is held collectively and the asymmetries are load-bearing for the whole organization.
+
+### 6. Make it social: precommitment, outside review, blinded estimator trials
+
+§3 located soldier mode in social architecture: the incentives that reward directional conclusions, the team cultures that treat confident predictions as identity signals, the vendor relationships that create financial stakes in specific forecasts. §5 ran five thought experiments inside one head. That's useful, and it's partial. Most of the failure surface §3 described lives outside any single head. This section is the complement: precommitment, outside review, blinded aggregation, and post-publication critique as structural moves applied to the takeoff belief specifically.
+
+**Precommitment.** The directional-goal selection effect from §3 works by making the disconfirming evidence invisible at the moment it arrives. The fix is to name the disconfirming evidence before it arrives. This sounds bureaucratic, and it is. The bureaucracy is the point. Once the criteria are written down, the brain has fewer degrees of freedom to reframe an inconvenient result as "not quite what I had in mind."
+
+Here is what a precommitment artifact looks like for the 40% takeoff-hours claim. This is an *illustrative* example of the kind of thing such a document would say, not a binding commitment by this post's author. The point of showing it in detail is to make visible what these entries actually carry: specific, testable criteria tied to resolution conditions that were set before the evidence was seen.
+
+> *Precommitment register entry, 2026-05-08*
+>
+> *Belief held: AI-assisted takeoff reduces estimator hours by approximately 40% on commercial construction packages in the $2M–$20M range, relative to manual takeoff.*
+>
+> *Criteria that would update this belief downward:*
+>
+> *If, across three blinded pilots on packages over $2M with non-volunteer estimators, the median estimator-hours saved comes in below 25%, that is evidence the gain doesn't generalize beyond early adopters.*
+>
+> *If re-takeoff time after revisions for second-year platform users is not statistically distinguishable from first-month users on the same package class, that is evidence the productivity gain is a learning-curve artifact rather than a tool-driven gain.*
+>
+> *If a competitor's tool, run by their estimator on a Boon-pilot package class, achieves comparable hours-saved within ±10%, that is evidence the gain is real but not differentiating to the product.*
+>
+> *Resolution date: when the three pilots referenced above complete.*
+
+The specific percentages and package sizes in that example are illustrative. What the format does is make the disconfirmation legible before the outcome is known, which is the structural move. Any precommitment that says only "I'll update if the evidence is against me" has done nothing; the work is in naming which evidence, at which magnitude, with which resolution conditions.
+
+**Outside review.** A competitor's estimator, or an independent estimating consultancy, runs the same package blind. The structural point is that "show the customer the AI overlay and ask if they're impressed" is a vendor demo. That's a different test from "give the same input to a reviewer who has no stake in the result, and record what their estimate is." The second test doesn't require the reviewer to be impressed, or to agree about the hours saved, or to say anything positive at all. It requires them to produce an estimate. The comparison of that estimate to the AI-assisted one is the data. The independence of the reviewer is what makes the comparison meaningful.
+
+**Blinded aggregation.** §4 described how the GJP's funnel structure converted individual probabilistic estimates into an aggregated forecast that outperformed the intelligence-community's analysts. The same structural move works at smaller scales. Ten independent estimators do a first-pass on the same package, blind, before any discussion. Conversation correlates errors; the blind first-pass is what preserves the independence the funnel from §4 needed. Once estimators know what each other think, the estimates are no longer independent draws, and the aggregation loses much of its variance-reduction benefit. The takeoff-belief application: ten estimators, same package, same input documentation, submit their hours-saved estimate before any discussion session, then discuss. The mean or logit-pooled aggregate of the blind estimates is a better estimator of the true figure than any post-discussion consensus, for the same reason §4's funnel worked.
+
+**Post-publication critique as the literature-scale instance.** A 2014 paper made causal claims about training and teaming as the mechanism behind GJP forecaster gains. [The IRT reanalysis](https://doi.org/10.1177/09567976241266481) published in 2025 re-tested those claims under stricter methodological controls. The effects shrank; in some specifications they vanished; in some they reversed sign. The aggregation result (aggregated forecasts beat individual ones) holds. The causal mechanism claim (training and teaming caused the gains) is still being argued in print. That's what the precommitment-plus-publish-the-result move looks like at field scale: a published claim, a published reanalysis, an open shared record where the dispute is legible to anyone who reads both papers. The looser institutional version, short of pre-agreed adversarial collaboration, is still the same family of move because the counter-claim is on record rather than held in private disagreement.
+
+<figure>
+<svg viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg" width="100%">
+
+{/* ── Background ──────────────────────────────────────────── */}
+<rect x="0" y="0" width="680" height="500" fill="#F4EFE6" rx="4"/>
+
+{/* ══════════════════════════════════════════════════════════
+    PERSONAL LAYER (top) — blue #2563EB
+    2 boxes: notebook | forecast log
+    ══════════════════════════════════════════════════════════ */}
+
+{/* Layer label */}
+<text x="340" y="26" font-family="JetBrains Mono" font-size="9" fill="#2563EB" text-anchor="middle" letter-spacing="1.2" font-weight="bold">PERSONAL LAYER</text>
+<line x1="130" y1="30" x2="255" y2="30" stroke="#2563EB" stroke-width="0.75" stroke-dasharray="3,2"/>
+<line x1="425" y1="30" x2="550" y2="30" stroke="#2563EB" stroke-width="0.75" stroke-dasharray="3,2"/>
+
+{/* Box: notebook */}
+<rect x="160" y="38" width="148" height="56" fill="#F9F5EB" stroke="#2563EB" stroke-width="1.5" rx="3"/>
+<text x="234" y="60" font-family="JetBrains Mono" font-size="9.5" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">notebook</text>
+<text x="234" y="76" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">timestamped disconfirmation</text>
+<text x="234" y="87" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">entries, one line per belief</text>
+
+{/* Box: forecast log */}
+<rect x="372" y="38" width="148" height="56" fill="#F9F5EB" stroke="#2563EB" stroke-width="1.5" rx="3"/>
+<text x="446" y="60" font-family="JetBrains Mono" font-size="9.5" fill="#2563EB" text-anchor="middle" letter-spacing="0.8" font-weight="bold">forecast log</text>
+<text x="446" y="76" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">probabilistic forecast +</text>
+<text x="446" y="87" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">resolution date on record</text>
+
+{/* Personal layer caption */}
+<text x="340" y="104" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the smallest version: one person writing the move on themselves.</text>
+
+{/* ── Arrow: personal → team ──────────────────────────────── */}
+<line x1="340" y1="110" x2="340" y2="134" stroke="#C9BEAA" stroke-width="1.5"/>
+<polygon points="334,130 346,130 340,140" fill="#C9BEAA"/>
+
+{/* ══════════════════════════════════════════════════════════
+    TEAM LAYER (middle) — orange #B8651A
+    3 boxes: blind first-pass estimates | outside reviewer | precommitment register
+    ══════════════════════════════════════════════════════════ */}
+
+{/* Layer label */}
+<text x="340" y="156" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="1.2" font-weight="bold">TEAM LAYER</text>
+<line x1="100" y1="160" x2="248" y2="160" stroke="#B8651A" stroke-width="0.75" stroke-dasharray="3,2"/>
+<line x1="432" y1="160" x2="580" y2="160" stroke="#B8651A" stroke-width="0.75" stroke-dasharray="3,2"/>
+
+{/* Box: blind first-pass estimates */}
+<rect x="44" y="168" width="168" height="62" fill="#F9F5EB" stroke="#B8651A" stroke-width="1.5" rx="3"/>
+<text x="128" y="188" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">blind first-pass</text>
+<text x="128" y="200" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">estimates</text>
+<text x="128" y="216" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">independent draws before</text>
+<text x="128" y="227" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">discussion correlates errors</text>
+
+{/* Box: outside reviewer */}
+<rect x="256" y="168" width="168" height="62" fill="#F9F5EB" stroke="#B8651A" stroke-width="1.5" rx="3"/>
+<text x="340" y="191" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">outside reviewer</text>
+<text x="340" y="209" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">no stake in the result;</text>
+<text x="340" y="220" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">independence makes</text>
+<text x="340" y="231" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">comparison meaningful</text>
+
+{/* Box: precommitment register */}
+<rect x="468" y="168" width="168" height="62" fill="#F9F5EB" stroke="#B8651A" stroke-width="1.5" rx="3"/>
+<text x="552" y="188" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">precommitment</text>
+<text x="552" y="200" font-family="JetBrains Mono" font-size="9" fill="#B8651A" text-anchor="middle" letter-spacing="0.8" font-weight="bold">register</text>
+<text x="552" y="216" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">disconfirmation criteria</text>
+<text x="552" y="227" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">named before evidence</text>
+
+{/* Team layer caption */}
+<text x="340" y="244" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the team-scale version: structural moves to preserve independence and lock criteria before the evidence.</text>
+
+{/* ── Arrow: team → literature ─────────────────────────────── */}
+<line x1="340" y1="250" x2="340" y2="274" stroke="#C9BEAA" stroke-width="1.5"/>
+<polygon points="334,270 346,270 340,280" fill="#C9BEAA"/>
+
+{/* ══════════════════════════════════════════════════════════
+    LITERATURE LAYER (bottom) — rust #92400E
+    3 boxes: published claim | published critique | shared record
+    ══════════════════════════════════════════════════════════ */}
+
+{/* Layer label */}
+<text x="340" y="296" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="1.2" font-weight="bold">LITERATURE LAYER</text>
+<line x1="80" y1="300" x2="232" y2="300" stroke="#92400E" stroke-width="0.75" stroke-dasharray="3,2"/>
+<line x1="448" y1="300" x2="600" y2="300" stroke="#92400E" stroke-width="0.75" stroke-dasharray="3,2"/>
+
+{/* Box: published claim */}
+<rect x="44" y="308" width="168" height="62" fill="#F9F5EB" stroke="#92400E" stroke-width="1.5" rx="3"/>
+<text x="128" y="331" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">published claim</text>
+<text x="128" y="349" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">result on the open record;</text>
+<text x="128" y="360" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">not held in private</text>
+
+{/* Box: published critique */}
+<rect x="256" y="308" width="168" height="62" fill="#F9F5EB" stroke="#92400E" stroke-width="1.5" rx="3"/>
+<text x="340" y="331" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">published critique</text>
+<text x="340" y="349" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">counter-claim on the record;</text>
+<text x="340" y="360" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">dispute legible to all</text>
+
+{/* Box: shared record */}
+<rect x="468" y="308" width="168" height="62" fill="#F9F5EB" stroke="#92400E" stroke-width="1.5" rx="3"/>
+<text x="552" y="331" font-family="JetBrains Mono" font-size="9" fill="#92400E" text-anchor="middle" letter-spacing="0.8" font-weight="bold">shared record</text>
+<text x="552" y="349" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">open history; any reader</text>
+<text x="552" y="360" font-family="serif" font-size="9" fill="#1A1A1A" text-anchor="middle">can verify both sides</text>
+
+{/* Literature layer caption */}
+<text x="340" y="381" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">the field-scale version: post-publication critique on a shared open record.</text>
+
+{/* Mellers annotation */}
+<text x="340" y="396" font-family="serif" font-size="8.5" font-style="italic" fill="#92400E" text-anchor="middle">instance: Mellers 2014 ↔ 2025 reanalysis — aggregation result holds; causal claim (training + teaming) contested in print.</text>
+
+{/* ── Scaling label on the right side ─────────────────────── */}
+<line x1="640" y1="66" x2="640" y2="370" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="4,3"/>
+<polygon points="634,366 646,366 640,376" fill="#C9BEAA"/>
+<text x="664" y="220" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle" transform="rotate(90,664,220)">evidence harder to silently absorb →</text>
+
+{/* ── Bottom note ──────────────────────────────────────────── */}
+<text x="340" y="420" font-family="serif" font-size="9" font-style="italic" fill="#6B6258" text-anchor="middle">each layer is the same family of move at a wider scale; the shared record is what makes the update legible beyond one head.</text>
+
+</svg>
+<figcaption><strong>Fig 6.</strong> Scout mode scales by moving updates out of one person's head. The personal layer (notebook, forecast log) is the smallest version. The team layer (blind first-pass estimates, outside reviewer, precommitment register) preserves the independence and locks the criteria the funnel from §4 needed. The literature layer (published claim, published critique, shared record) is the same family of move at field scale; the Mellers 2014 / 2025 reanalysis dispute is one instance, where the aggregation result holds while the causal claim about training and teaming is being argued in print. Evidence becomes harder to silently absorb as it moves outward.</figcaption>
+</figure>
+
+§6 is the architecture layer. The moves here are slower to start than the five tests in §5, and they require cooperation from people beyond you. §7 is the smallest version of all of this that survives at the personal scale: one habit, one notebook, one dated line.
+
+### 7. The smallest habit that survives the evidence
+
+Can you actually train scout mode? The question runs through everything since §3, and the trainability literature has now accumulated enough data to give a real answer. [A single-session debiasing-training study](https://doi.org/10.1177/2372732215600886) found that an interactive-game intervention with personalized feedback and practice reduced six measured biases by around 30 percent immediately and around 20 percent at two-month follow-up; the video intervention scored lower on both time points. Training has a modality effect. [The field-transfer study](https://doi.org/10.1177/0956797619861429) tested whether bench effects survived a real business-case decision under hypothesis-confirmation pressure. The original headline number was 29 percent; [its 2020 corrigendum](https://doi.org/10.1177/0956797620930211) corrects to 19 percent, shrinking the magnitude without erasing the qualitative effect. Repeating 29 percent in 2026 is reading the paper without the correction. [The meta-analysis in Nature Human Behaviour](https://doi.org/10.1038/s41562-025-02253-y), covering 41 studies and 160 effect sizes, settled on a small but real pooled effect; the limitation the authors flag explicitly is that real-world transfer outside classroom settings remains unresolved. [The risk-analyst study](https://doi.org/10.1038/s41598-025-28794-w) narrows the population to working national-level risk analysts, runs a 40-minute Carter Racing intervention, and finds that confirmation bias on the post-test dropped in analysts and students equally. That answers the narrower question (a structured session works on a professional population) without resolving the long-run-transfer question the meta-analysis left open. Taken together: the effect is real across multiple designs, the magnitude is modest on every honest reading of the corrected figures, and transfer beyond the training context is the part nobody has nailed down. Small but real, transfer unresolved.
+
+That finding is load-bearing. If the trainability evidence supported a curriculum-level transformation, the closing move here could be a twelve-step program. It doesn't, so it can't. The smallest habit consistent with what the literature actually supports is the honest closing move; anything more ambitious would promise more than the evidence delivers.
+
+The protocol is three steps.
+
+1. When evidence arrives that argues against a belief you hold, write it down the same day.
+2. Date it. Name the belief it threatens. One sentence is enough.
+3. Re-read what you've written every few months. The retrieval-bias mechanism from §3 would otherwise erase it; the timestamped line on the page resists that.
+
+That's the move. §6's systems-layer artifacts (precommitment registers, calibration logs, post-publication critique) are larger, more specialized cousins of this personal step; the notebook is the smallest version that survives the brain doing the forgetting. If you later want a calibration log, that is a different artifact built from timestamped probabilistic forecasts and their resolutions, not the same thing. The notebook is not all of those at once. It's the one most likely to get used, and it's the one the trainability evidence can actually defend.
+
+Darwin described his version of the same habit in the autobiography [published posthumously in 1887](https://www.gutenberg.org/cache/epub/2010/pg2010-images.html):
+
+> "I had, also, during many years, followed a golden rule, namely, that whenever a published fact, a new observation or thought came across me, which was opposed to my general results, to make a memorandum of it without fail and at once; for I had found by experience that such facts and thoughts were far more apt to escape from memory than favourable ones. Owing to this habit, very few objections were raised against my views which I had not at least noticed and attempted to answer."
+
+Darwin's notebook is the individual instance: one naturalist writing the move on himself in 1876. Your takeoff log from §4 is your version in 2026, the same move scaled to one running belief. The published literature record is the field's version: Mellers 2014 made a claim, the 2025 reanalysis contested it, both sit on the shared record for anyone to read. A public record prevents silent absorption. Three structural analogs, the same shape at three scales, none of them identical to the others.
+
+<figure>
+  <ConcentricLoops client:visible />
+  <figcaption><strong>Fig 7.</strong> Three concentric loops showing the same record-disconfirming-evidence move at three scales. Inner ring: Darwin's notebook in 1876, one naturalist writing the move on himself. Middle ring: the takeoff log in 2026, the same move scaled to a single running belief. Outer ring: the published literature record, where Mellers 2014's claim and the 2025 reanalysis sit on a shared open record. The four-step backbone (notice, judge threat, write same day, review later) appears in all three rings. Use the scrubber to watch one disconfirming observation move outward through the three scales. The three are structural analogs, not identical operations — Darwin's notebook does not aggregate forecasts and the literature record is not a calibration log; what they share is the family of "make the failure mode less likely to be silently absorbed."</figcaption>
+</figure>
+
+Pick the belief from §1 and start your version of it this week.
+
+## References
+
+### §1, §3 - Motivated reasoning, soldier mode, and the asymmetry literature
+
+- ["The Case for Motivated Reasoning"](https://fbaum.unc.edu/teaching/articles/Psych-Bulletin-1990-Kunda.pdf). Kunda, Z. *Psychological Bulletin* 108(3): 480-498 (1990).
+- ["Biased Assimilation and Attitude Polarization"](https://doi.org/10.1037/0022-3514.37.11.2098). Lord, C. G., Ross, L., Lepper, M. R. *JPSP* 37(11): 2098-2109 (1979).
+- ["Motivated Skepticism: Use of Differential Decision Criteria for Preferred and Nonpreferred Conclusions"](https://doi.org/10.1037/0022-3514.63.4.568). Ditto, P. H., Lopez, D. F. *JPSP* 63(4): 568-584 (1992).
+- ["Motivated Numeracy and Enlightened Self-Government"](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2319992). Kahan, D. M., Peters, E., Dawson, E., Slovic, P. *Behavioural Public Policy* 1(1): 54-86 (2017). SSRN 2319992.
+- ["A preregistered replication of motivated numeracy"](https://doi.org/10.1016/j.cognition.2021.104768). Persson, E., Andersson, D., Koppel, L., et al. *Cognition* 214: 104768 (2021). PMID 34051421.
+- ["Motivated numeracy and active reasoning in a Western European sample"](https://doi.org/10.1017/bpp.2020.32). Connor, P., Sullivan, E., Alfano, M., Tintarev, N. *Behavioural Public Policy* (online 2020-09; published 2024).
+- ["Where is the motivation in motivated numeracy?"](https://doi.org/10.1007/s13164-024-00737-w). Glüer-Pagin, K., Spectre, L. *Review of Philosophy and Psychology* (online 2024-05-30; volume 2025).
+
+### §3 - The architecture beneath
+
+- [*The Folly of Fools: The Logic of Deceit and Self-Deception in Human Life*](https://us.macmillan.com/books/9780465085972/thefollyoffools). Trivers, R. Basic Books 2011. The post cites the book at the level of its central thesis (self-deception serves outward deception) without a page-locator-anchored quote; this is consistent with how Trivers's argument is invoked in the secondary literature.
+- [*The Enigma of Reason*](https://www.hup.harvard.edu/books/9780674368309). Mercier, H., Sperber, D. Harvard University Press 2017. Cited at thesis level (reasoning evolved primarily for argument and persuasion) without a page-locator-anchored quote.
+- [*The Autobiography of Charles Darwin, 1809-1882*](https://www.gutenberg.org/cache/epub/2010/pg2010-images.html). Darwin, C., ed. Nora Barlow (Collins, 1958). Originally written 1876-1881; published posthumously 1887. Project Gutenberg eText #2010.
+
+### §4 - Calibration, Brier, AOMT, and aggregation
+
+- [*Thinking and Deciding*](https://www.cambridge.org/core/books/thinking-and-deciding/9F33EE43D2C3B3076EC4FBC9DF34F213). Baron, J. 4th edition, Cambridge University Press 2008. Source for the AOMT definition the post paraphrases; cited at the textbook level.
+- ["Reasoning Independently of Prior Belief and Individual Differences in Actively Open-Minded Thinking"](https://doi.org/10.1037/0022-0663.89.2.342). Stanovich, K. E., West, R. F. *Journal of Educational Psychology* 89(2): 342-357 (1997). The first published AOMT instrument.
+- ["Verification of Forecasts Expressed in Terms of Probability"](https://journals.ametsoc.org/view/journals/mwre/78/1/1520-0493_1950_078_0001_vofeit_2_0_co_2.xml). Brier, G. W. *Monthly Weather Review* 78(1): 1-3 (1950).
+- ["Psychological Strategies for Winning a Geopolitical Forecasting Tournament"](https://doi.org/10.1177/0956797614524255). Mellers, B., Ungar, L., Baron, J., et al. *Psychological Science* 25(5): 1106-1115 (2014).
+- ["The psychology of intelligence analysis: drivers of prediction accuracy in world politics"](https://doi.org/10.1037/xap0000040). Mellers, B., Stone, E., Atanasov, P., et al. *Journal of Experimental Psychology: Applied* 21(1): 1-14 (2015). PMID 25581088.
+- [GJP-vs-ICPM technical paper](https://goodjudgment.com/wp-content/uploads/2020/11/Goldstein-et-al-GJP-vs-ICPM.pdf). Goldstein, D. G., Hartman, R., Comstock, J., et al. Good Judgment Inc. *(Brier scores cited at 0-to-2 scale; the "best method" comparison is partly an ex-post selection per the paper.)*
+
+### §5 - Galef's tests
+
+- [*The Scout Mindset: Why Some People See Things Clearly and Others Don't*](https://juliagalef.com/the-scout-mindset/). Galef, J. Portfolio / Penguin Random House 2021. *(Phase 7 verified five Ch 5 test names and chapter title against the secondary outlines listed below; prompts in the post are paraphrased.)*
+- Secondary verification corpus for Galef's Chapter 5 self-tests: [EA Forum: "Outline of Galef's *Scout Mindset*"](https://forum.effectivealtruism.org/posts/HDAXztEbjJsyHLKP7/outline-of-galef-s-scout-mindset); [LessWrong mirror](https://www.lesswrong.com/posts/yFJ7vCjefBxnTchmG/outline-of-galef-s-scout-mindset); [Quillette: "Five Lessons From Julia Galef's *The Scout Mindset*"](https://quillette.com/2022/02/04/five-lessons-from-julia-galefs-the-scout-mindset/); [McLatchie review](https://jonathanmclatchie.com/why-apologists-need-a-scout-mindset-lessons-to-be-learned-from-julia-galef/). Test names and chapter title verbatim across these outlines; the post's paraphrased prompts are consistent with how the tests are summarized in each source.
+- ["Why you think you're right — even if you're wrong"](https://www.ted.com/talks/julia_galef_why_you_think_you_re_right_even_if_you_re_wrong). Galef, J. TED2016 (the Dreyfus Affair framing of soldier vs scout).
+
+### §6 - Hauenstein–Mellers and the literature-scale critique pattern
+
+- ["Rethinking the Role of Teams and Training in Geopolitical Forecasting: The Effect of Uncontrolled Method Variance on Statistical Conclusions"](https://doi.org/10.1177/09567976241266481). Hauenstein, C. E., Thomas, R. P., Illingworth, D. A., Dougherty, M. R. *Psychological Science* 36(1): 3-18 (2025; online 2024-12-04).
+
+### §7 - Trainability literature
+
+- ["Debiasing Decisions: Improved Decision Making With a Single Training Intervention"](https://doi.org/10.1177/2372732215600886). Morewedge, C. K., Yoon, H., Scopelliti, I., Symborski, C. W., Korris, J. H., Kassam, K. S. *Policy Insights from the Behavioral and Brain Sciences* 2(1): 129-140 (2015).
+- ["Debiasing Training Improves Decision Making in the Field"](https://doi.org/10.1177/0956797619861429). Sellier, A.-L., Scopelliti, I., Morewedge, C. K. *Psychological Science* 30(9): 1371-1379 (2019). [Corrigendum 2020](https://doi.org/10.1177/0956797620930211) corrects the headline figure from 29% to 19%.
+- ["Systematic review and meta-analysis of educational approaches to reduce cognitive biases among students"](https://doi.org/10.1038/s41562-025-02253-y). Swaryandini, G., Graham, J., Griffith, S., Grilo, V., et al. *Nature Human Behaviour* (2025).
+- ["Debiasing training reduces confirmation bias in national risk analysts"](https://doi.org/10.1038/s41598-025-28794-w). Heerma van Voss, B., Yoon, H., Scopelliti, I., Zweet, R., Helsloot, I., Morewedge, C. K. *Scientific Reports* 15: 42529 (2025).
+
+### Background and prior posts on this blog
+
+- [The Undoing Project](https://augusteo.com/blog/undoing-project). Lewis on Kahneman/Tversky and the bias catalog Galef's frame stacks on, Augusteo 2018.
+- [Fooled by Randomness](https://augusteo.com/blog/fooled-by-randomness). Taleb on probability and what calibration is for, Augusteo 2018.
+- [Talking to Strangers](https://augusteo.com/blog/talking-to-strangers). Gladwell on default-to-truth, the structurally similar adaptation, Augusteo 2020.
+

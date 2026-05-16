@@ -1,5 +1,5 @@
 import { defineCollection } from "astro:content";
-import { glob } from "astro/loaders";
+import { glob, file } from "astro/loaders";
 import { z } from "astro/zod";
 
 const blogCollection = defineCollection({
@@ -37,7 +37,17 @@ const photosCollection = defineCollection({
     }),
 });
 
+const photosIndexCollection = defineCollection({
+  loader: file("./src/content/photos-index.yaml"),
+  schema: z.object({
+    name: z.string(),
+    order: z.number(),
+    albums: z.array(z.string()).min(1),
+  }),
+});
+
 export const collections = {
   blog: blogCollection,
   photos: photosCollection,
+  photosIndex: photosIndexCollection,
 };

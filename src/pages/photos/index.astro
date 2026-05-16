@@ -3,17 +3,66 @@ import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import AlbumCard from "../../components/AlbumCard.astro";
 
-const albums = await getCollection("photos");
+const allAlbums = await getCollection("photos");
+const albumById = new Map(allAlbums.map((a) => [a.id, a]));
 
-// Sort by date desc; albums with no date drop to the bottom in alphabetical order.
-const sorted = albums.slice().sort((a, b) => {
-  const ad = a.data.date?.valueOf();
-  const bd = b.data.date?.valueOf();
-  if (ad != null && bd != null) return bd - ad;
-  if (ad != null) return -1;
-  if (bd != null) return 1;
-  return a.data.title.localeCompare(b.data.title);
-});
+const sections = await getCollection("photosIndex");
+
+// Duplicate album refs across the whole index are fatal.
+const seen = new Map<string, string>();
+for (const s of sections) {
+  for (const slug of s.data.albums) {
+    if (seen.has(slug)) {
+      throw new Error(
+        `[photos-index] album "${slug}" appears in multiple sections: ` +
+          `"${seen.get(slug)}" and "${s.data.name}". Each album may be listed at most once.`,
+      );
+    }
+    seen.set(slug, s.data.name);
+  }
+}
+
+// Stale references are fatal — fail the build with a clear pointer.
+const sortedSections = sections.slice().sort((a, b) => a.data.order - b.data.order);
+
+type RenderedSection = {
+  id: string;
+  name: string;
+  albums: typeof allAlbums;
+};
+
+const renderedSections: RenderedSection[] = sortedSections.map((s) => ({
+  id: s.id,
+  name: s.data.name,
+  albums: s.data.albums.map((slug) => {
+    const a = albumById.get(slug);
+    if (!a) {
+      throw new Error(
+        `[photos-index] section "${s.data.name}" references unknown album: "${slug}". ` +
+          `Either remove the slug from src/content/photos-index.yaml or create ` +
+          `src/content/photos/${slug}/index.yaml.`,
+      );
+    }
+    return a;
+  }),
+}));
+
+// Albums on disk but not listed anywhere → "Other" section, title-sorted.
+const indexedIds = new Set(seen.keys());
+const uncategorized = allAlbums
+  .filter((a) => !indexedIds.has(a.id))
+  .sort((a, b) => a.data.title.localeCompare(b.data.title));
+if (uncategorized.length > 0) {
+  console.warn(
+    `[photos-index] ${uncategorized.length} album(s) not categorized: ` +
+      uncategorized.map((a) => a.id).join(", "),
+  );
+  renderedSections.push({
+    id: "_uncategorized",
+    name: "Other",
+    albums: uncategorized,
+  });
+}
 ---
 
 <BaseLayout
@@ -25,9 +74,18 @@ const sorted = albums.slice().sort((a, b) => {
     <p class="lead">A travel log and hobby gallery — places visited, subjects observed.</p>
   </header>
 
-  <div class="photos-index-grid">
-    {sorted.map((album) => <AlbumCard album={album} />)}
-  </div>
+  {
+    renderedSections.map((section) => (
+      <section class="photos-section">
+        <h2>{section.name}</h2>
+        <div class="photos-index-grid">
+          {section.albums.map((album) => (
+            <AlbumCard album={album} />
+          ))}
+        </div>
+      </section>
+    ))
+  }
 </BaseLayout>
 
 <style>
@@ -69,10 +127,41 @@ const sorted = albums.slice().sort((a, b) => {
     max-width: 56ch;
   }
 
-  .photos-index-grid {
+  .photos-section {
     max-width: var(--wide-width);
     margin: 0 auto;
-    padding: 1rem 2rem 4rem;
+    padding: 0 2rem 3rem;
+  }
+
+  .photos-section:last-of-type {
+    padding-bottom: 4rem;
+  }
+
+  .photos-section h2 {
+    font-family: var(--font-hand);
+    font-size: 2.25rem;
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--color-ink);
+    margin: 1.5rem 0 1.25rem;
+    position: relative;
+    display: inline-block;
+  }
+
+  .photos-section h2::after {
+    content: "";
+    position: absolute;
+    bottom: -0.15rem;
+    left: -0.2rem;
+    right: -0.2rem;
+    height: 7px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10'%3E%3Cpath d='M0,5 Q20,2 50,6 T100,3 T150,6 T200,4' stroke='%23daa520' stroke-width='4' fill='none' opacity='0.3'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  .photos-index-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
@@ -90,6 +179,9 @@ const sorted = albums.slice().sort((a, b) => {
     }
     .photos-header h1 {
       font-size: 2.5rem;
+    }
+    .photos-section h2 {
+      font-size: 1.85rem;
     }
   }
 </style>

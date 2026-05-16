@@ -1,0 +1,32 @@
+# Photo index. Controls section order, section names, and album order on /photos.
+# Each album slug must match a folder under src/content/photos/<slug>/ (with index.yaml).
+# An album listed in two places (or twice in one section) is a build error.
+# An album not listed here is rendered under an auto-generated "Other" section
+# at the bottom of /photos with a build-time console.warn.
+
+- id: subjects
+  name: Subjects
+  order: 1
+  albums:
+    - portraits
+    - plants
+    - animals
+    - work
+
+- id: travels
+  name: Travels
+  order: 2
+  albums:
+    - tahoe-winter
+    - reno
+    - sacramento-napa
+    - morro-bay-pismo
+    - japan
+    - aztec-mexica
+    - labuan-bajo-komodo-island
+    - new-orleans
+    - texas-animals
+    - texas
+    - lake-tahoe-california
+    - singapore
+    - malaysia

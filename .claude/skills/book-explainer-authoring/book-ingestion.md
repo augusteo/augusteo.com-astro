@@ -115,32 +115,98 @@ The skill picks the toolchain at run time based on what's available on the host.
 
 ### EPUB
 
+EPUBs are zips of XHTML. The skill has **three** extraction options. **Option C (direct unzip + XHTML parse) is the recommended default** — it needs no Homebrew installs, preserves print page numbers via embedded pagebreak markers, and gives the agent direct control over chapter boundaries and footnote linkage. Use Option A / B only when you specifically want plain-text rendering for quick scanning.
+
+#### Option C: direct unzip + XHTML parse (recommended)
+
+Works on any system with `unzip` + `rg` (or `grep`). No installs needed beyond standard Unix tools.
+
 ```bash
-# Option A: pandoc (preferred — preserves heading hierarchy + footnote markers).
+# Step 1: find the OPF (package file) path via container.xml.
+# Path varies across EPUBs — OEBPS/, OPS/, root — so DON'T hardcode "OEBPS/content.opf".
+OPF_PATH=$(unzip -p input.epub META-INF/container.xml | \
+  rg -oP 'full-path="\K[^"]+' | head -1)
+echo "OPF: $OPF_PATH"
+
+# Step 2: read Dublin Core metadata from the OPF.
+unzip -p input.epub "$OPF_PATH" | \
+  rg '<dc:(title|creator|identifier|date|publisher|rights)' 
+
+# Step 3: read the spine (reading order, in <itemref> form).
+unzip -p input.epub "$OPF_PATH" | rg -oP 'idref="\K[^"]+'
+
+# Step 4: read the manifest (each spine id maps to an href).
+unzip -p input.epub "$OPF_PATH" | rg '<item '
+
+# Step 5: locate the nav file (EPUB3 TOC) for full chapter titles + print-page list.
+# nav.xhtml is the modern TOC + landmark + page-list source. Don't depend on NCX.
+NAV_PATH=$(unzip -p input.epub "$OPF_PATH" | \
+  rg -oP 'href="\K[^"]+"[^>]*properties="[^"]*nav"' | rg -oP '^[^"]+' | head -1)
+# Some EPUBs use uppercase / different attribute order; if the above is empty try:
+#   unzip -p input.epub "$OPF_PATH" | rg -oP 'href="\K[^"]+\.xhtml(?=[^>]*nav)' | head -1
+
+# Step 6: extract all spine XHTML to a working directory.
+EXTRACT=/tmp/<slug>-extract
+rm -rf "$EXTRACT" && mkdir -p "$EXTRACT"
+unzip -q input.epub 'OEBPS/*.xhtml' -d "$EXTRACT" 2>/dev/null || \
+  unzip -q input.epub 'OPS/*.xhtml' -d "$EXTRACT" 2>/dev/null || \
+  unzip -q input.epub '*.xhtml' -d "$EXTRACT"
+
+# Step 7 (optional): SHA-256 the source file. This is the canonical edition fingerprint.
+shasum -a 256 input.epub
+```
+
+XHTML body files use a small set of stable structural patterns (publisher-conventions vary, but these markers are near-universal):
+
+- `<h1 class="x01-FM-Head">` / `<h2 class="x03-Chapter-Title">` / `<h3 class="x05-Head-A">` — heading hierarchy (the class names are publisher-specific; the `<h1>` / `<h2>` / `<h3>` levels are stable).
+- `<p class="x04-Body-Text">` — body paragraphs.
+- `<span epub:type="pagebreak" id="page_N"/>` — **print-page markers**. Stable across EPUB3 publishers. Use these to populate `locator.page` in the ledger; they map your locator to citable print pages even though EPUB is reflowable.
+- `<a href="..._Notes.xhtml#EndnoteNumberN" id="SuperscriptNumberN"><sup class="endnote">N</sup></a>` — endnote reference in prose. The endnote target is typically a single `_Notes.xhtml` file.
+- `<a epub:type="noteref" href="..._Footnote.xhtml#footnote_N" role="doc-noteref">*</a>` — inline-footnote (asterisk-style) reference. Footnotes are often split into individual `_Footnote.xhtml` files, one per footnote.
+- `<i>`, `<b>`, `<blockquote>`, inline `<span>` — emphasis and quotes. **These break anchor grep verification under `rg -F` — see "Anchor verification" below.**
+
+#### Option A: pandoc (preserves plain text + heading hierarchy)
+
+```bash
 pandoc input.epub -t plain --wrap=preserve -o /tmp/<slug>.txt
 pandoc input.epub --extract-media=/tmp/<slug>-media -t markdown -o /tmp/<slug>.md
+```
 
-# Option B: epub2txt (fallback if pandoc unavailable).
+Useful for quick text-scanning. Pandoc strips inline emphasis tags, which means anchors built from pandoc output may not match the raw XHTML — prefer Option C for ledger anchor extraction.
+
+#### Option B: epub2txt (fallback)
+
+```bash
 epub2txt input.epub > /tmp/<slug>.txt
 ```
 
-EPUBs are XHTML under a zip; pandoc resolves chapter breaks and TOC reliably. To confirm chapter count independently, locate the EPUB's package file via `META-INF/container.xml` (which is at a fixed path), then use the `<rootfile>` href to find `content.opf`, and read the spine + manifest from there:
+#### Page-list extraction from nav.xhtml
+
+The nav file's page-list (EPUB3) maps every print page number to a `xhtml#page_N` anchor. This lets you cite by **stable print page numbers** even though EPUB is reflowable. Extract:
 
 ```bash
-# Step 1: find content.opf path (varies across EPUBs — OEBPS/, OPS/, root, etc.)
-OPF_PATH=$(unzip -p input.epub META-INF/container.xml | \
-  rg -oP 'full-path="\K[^"]+' | head -1)
+unzip -p input.epub "$NAV_PATH" | \
+  rg '<li><a href="[^"]+#page_[^"]+"' | head -20
+```
 
-# Step 2: count chapters from the spine
-unzip -p input.epub "$OPF_PATH" | rg -c '<itemref'
+A single sweep of the page-list gives you chapter-to-page-range mapping (group by xhtml filename, min/max page numbers). This is how the Scout Mindset ingestion populated `start_locator.page` and `end_locator.page` for every chapter without OCR or manual page-counting.
 
-# Step 3 (optional): find toc.ncx via the manifest, then count navPoints
+#### Chapter-coverage cross-check
+
+Independent verification that your spine extraction matches the TOC:
+
+```bash
+# Count items in the spine
+SPINE_COUNT=$(unzip -p input.epub "$OPF_PATH" | rg -c '<itemref')
+echo "Spine items: $SPINE_COUNT"
+
+# If NCX exists (EPUB2 legacy), count navPoints too
 NCX_PATH=$(dirname "$OPF_PATH")/$(unzip -p input.epub "$OPF_PATH" | \
   rg -oP 'href="\K[^"]+\.ncx' | head -1)
 unzip -p input.epub "$NCX_PATH" 2>/dev/null | grep -c '<navPoint' || echo "no NCX"
 ```
 
-Don't assume `OEBPS/content.opf` — many EPUBs put the package at `OPS/content.opf` or at the zip root. The container.xml lookup is the only reliable starting point.
+Don't assume `OEBPS/content.opf`. Many EPUBs put the package at `OPS/content.opf` (Apple / iBooks convention) or at the zip root (some indie publishers). The container.xml lookup in Step 1 is the only reliable starting point.
 
 ### PDF (text-extractable)
 
@@ -220,8 +286,8 @@ Plain text loses footnote/endnote structure; the ingestion will note this in the
 At ingestion start, the agent detects available tools. CLI tools use `command -v`; Python packages (pdfplumber) need a Python import check:
 
 ```bash
-# CLI tools
-for tool in pandoc pdftotext ocrmypdf ebook-convert epub2txt; do
+# CLI tools (none of these are required for EPUB Option C — see below)
+for tool in pandoc pdftotext ocrmypdf ebook-convert epub2txt tesseract; do
   command -v "$tool" >/dev/null 2>&1 && echo "$tool: yes" || echo "$tool: no"
 done
 
@@ -229,14 +295,21 @@ done
 python3 -c "import pdfplumber" 2>/dev/null && echo "pdfplumber: yes" || echo "pdfplumber: no"
 ```
 
-If a required tool is missing for the input format, halt and ask Vic to install it. On macOS:
+**EPUB ingestion has no tool dependency** beyond `unzip` + `rg` (which are universally available). The agent should always be able to ingest an EPUB via Option C without halting for installs. Halt-for-install only applies to:
+
+- **PDF (scanned)**: needs `ocrmypdf` or `tesseract`. Halt if neither is present.
+- **MOBI**: needs `ebook-convert` (from calibre). Halt if calibre is missing — though Vic can sometimes convert MOBI → EPUB on another machine and re-supply the file.
+- **PDF (text-extractable)**: needs `pdftotext` (from poppler) OR Python `pdfplumber`. Halt if neither is present.
+
+If a required tool is missing for a PDF/MOBI input, halt and ask Vic to install it. On macOS:
 
 ```bash
-# pandoc: text conversion
+# pandoc: text conversion (optional for EPUB; useful for PDF)
 # poppler: provides pdftotext (NOT poppler-utils on macOS Homebrew)
 # ocrmypdf: PDF OCR
+# tesseract: per-page OCR confidence (needed for scanned PDFs)
 # calibre: provides ebook-convert (MOBI → EPUB fallback)
-brew install pandoc poppler ocrmypdf calibre
+brew install pandoc poppler ocrmypdf tesseract calibre
 
 # pdfplumber is Python-only
 python3 -m pip install pdfplumber
@@ -246,11 +319,19 @@ On Linux/Debian the package is `poppler-utils`; on macOS Homebrew it is `poppler
 
 ## Edition metadata capture
 
-Captured once, stored as ledger entry id `0`. Sources by format:
+Captured once, stored as ledger entry id `0`. Always include `source_sha256` (the SHA-256 of the source file as canonical edition fingerprint — different printings / ebook editions have different hashes; this is the only reliable way to confirm an edition match across runs).
 
-- **EPUB**: `unzip -p input.epub OEBPS/content.opf | rg '<dc:title|<dc:creator|<dc:identifier|<dc:date|<dc:publisher'` — pulls Dublin Core metadata.
-- **PDF**: `pdfinfo input.pdf` — pulls title / author / creation date. Edition is often missing; ask Vic if not detected.
-- **MOBI**: converted to EPUB, then EPUB extraction.
+Sources by format:
+
+- **EPUB**: container.xml lookup → OPF → Dublin Core. Do NOT hardcode `OEBPS/content.opf`:
+  ```bash
+  OPF_PATH=$(unzip -p input.epub META-INF/container.xml | rg -oP 'full-path="\K[^"]+' | head -1)
+  unzip -p input.epub "$OPF_PATH" | rg '<dc:(title|creator|identifier|date|publisher|rights)'
+  # The OPF also has <meta content="..." name="imprint"/> for publisher imprint.
+  shasum -a 256 input.epub
+  ```
+- **PDF**: `pdfinfo input.pdf` — pulls title / author / creation date. Edition is often missing; ask Vic if not detected. SHA-256 with `shasum -a 256`.
+- **MOBI**: converted to EPUB, then EPUB extraction. SHA-256 the ORIGINAL .mobi, not the converted .epub.
 - **Plain text**: ask Vic for title / author / edition / ISBN.
 
 Edition matters because citations and pagination shift between editions. The ledger records the specific edition the post is anchored to.
@@ -268,6 +349,21 @@ If chapter detection fails (TOC missing, no clear heading pattern), halt and ask
 ## Claim candidate extraction
 
 Per-chapter pass to identify candidate claims. The agent reads each chapter and extracts claims following these heuristics:
+
+### Anti-Part-collapse warning
+
+A specific failure mode the skill exists to prevent: when a book is organized into Parts (e.g., five Parts × three chapters), it is tempting to compress claims to one-per-Part instead of one-per-chapter, on the theory that "Part IV is one cohesive theme." **Do NOT do this** unless the book itself treats the Part as a single claim with chapters as sub-claims.
+
+The Scout Mindset Phase 1 caught this exact failure: the agent collapsed Ch 10–12 ("Changing Your Mind") and Ch 13–15 ("Rethinking Identity") into one mega-claim each. Gate A invocation 1 flagged it as `LOW-CONFIDENCE INGESTION` because:
+
+1. The book introduces updating (Ch 10), leaning-into-confusion (Ch 11), and echo-chamber-escape (Ch 12) as three distinct claims with three distinct evidence pools (Tetlock; Darwin/Klein; Bail et al.). Merging them gives Phase 2 a single matrix row covering five-plus separate studies — not evaluable.
+2. The book introduces identity-as-barrier (Ch 13), hold-lightly (Ch 14), and scout-identity-flywheel (Ch 15) similarly distinctly (HIV-via-breastmilk; Caplan ITT + AIDS activists; Blackmore / Harris / Buterin).
+
+**Rule**: one candidate claim per body chapter when the book has chapter-distinct claims. The 5–12 candidate count guideline yields to book granularity when they conflict — 15 majors for a 15-chapter book is the correct shape even though it's outside the guideline range. Use the guideline as a sanity check, not a hard cap.
+
+If you find yourself writing a candidate claim whose `claim` text contains the word "and" connecting two distinct empirical findings, ask: would Phase 2's fact-check matrix evaluate these as one row or two? If two, split now.
+
+### Heuristics
 
 1. **One claim per major assertion** the book makes. Major = the chapter would lose its point without it.
 2. **Skip claims that are pure summary / setup** ("In this chapter, I'll argue that..."). Look for the actual asserted thing.
@@ -313,6 +409,44 @@ Copyright safety:
 If a passage genuinely needs more than 50 words quoted to be faithful, split it into multiple sequential `direct-quote` entries OR rewrite as a paraphrase with the anchor excerpt covering the relevant sentence.
 
 The MDX itself is also bounded: total direct quotation across the post must respect fair use. Phase 7's Gate D includes a quotation-budget check.
+
+## Anchor verification: use `rg -F` (fixed strings), not regex
+
+Phase 7's ledger-integrity check verifies each `anchor_excerpt` grep-matches the source XHTML. **Use `rg -F` (fixed-string mode), not default `rg`.** Default `rg` treats the anchor as a regex, which can produce false positives when the source has inline emphasis tags inside what you think is a continuous phrase.
+
+Common failure pattern (encountered on Scout Mindset Phase 1, caught at Gate A invocation 2):
+
+- Anchor: `"competence ratings ... predominantly based on how much social confidence they displayed"` (looks like normal prose).
+- Source XHTML: `competence ratings ... predominantly based on how much <i>social confidence</i> they displayed`.
+- Default `rg`: appears to match (rg's regex mode treats whitespace/punctuation flexibly enough that the tag-wrapped phrase falsely looks like a hit on some sample-sized greps).
+- `rg -F`: fails. No continuous matching string exists in the raw XHTML; the `<i>` tags break it up.
+
+Phase 7's ledger-integrity check uses `rg -F`, so any anchor that only matches under default regex `rg` will fail at ship time. Catching this at Phase 1 (via a `rg -F` sweep at end-of-ingestion) is the only way to avoid surprise Gate D failures later.
+
+### How to pick a clean anchor
+
+1. Read the source XHTML around the locator.
+2. Identify a contiguous span of ≥ 8 words that contains NO inline tags (`<i>`, `<b>`, `<span>`, `<a>`, `<blockquote>`).
+3. Quote that span verbatim, preserving curly quotes (U+2019 right single quotation mark `’`, U+201C / U+201D curly double quotes `“`/`”`, em-dashes `—` U+2014).
+4. Verify with `rg -F -l "<anchor>" /tmp/<slug>-extract/OEBPS/xhtml/` — should return exactly one file.
+
+If the locator paragraph has italics in the middle, look for an adjacent sentence in the same paragraph or section that does NOT cross a tag boundary. The anchor doesn't have to be the most quotable sentence; it has to be a uniquely-locating, tag-free fragment.
+
+### Phase 1 anchor sweep (end-of-ingestion verification)
+
+Before declaring Phase 1 done, sweep every claim anchor against the source under `rg -F`:
+
+```bash
+jq -r 'select(.kind=="claim") | "\(.id)\t\(.anchor_excerpt)"' \
+  notes/<slug>.ledger.jsonl | while IFS=$'\t' read -r id anchor; do
+    count=$(rg -F -l "$anchor" /tmp/<slug>-extract/OEBPS/xhtml/ 2>/dev/null | wc -l | tr -d ' ')
+    printf "  id %s: [%s match]\n" "$id" "$count"
+  done
+```
+
+Every row should print `[1 match]`. Any `[0 match]` is a STRUCTURAL Phase 1 defect that must be fixed before Gate A. Any `[2+ match]` means the anchor isn't specific enough — pick a longer or more distinctive fragment.
+
+This sweep is cheap (sub-second) and catches the rg -F gotcha early.
 
 ## Output structure (what Phase 1 writes)
 
