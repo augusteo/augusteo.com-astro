@@ -1,0 +1,73 @@
+---
+title: "Claude Code and Codex both have /goal. Here's how to use it."
+description: "Both vendors shipped the same /goal primitive within months of each other. Here's the workflow I use to background a full bug fix end-to-end."
+pubDate: 2026-05-19
+heroImage: "@assets/blog/claude-code-codex-goal/hero.png"
+heroAlt: "Watercolor sketch of two arrows curving into a closed loop around a central green checkmark, marked with hand-lettered C* and [> ink sigils."
+tags: ["Tech","Claude Code","Codex","AI Coding","Workflow"]
+featured: false
+draft: false
+---
+
+Both Claude Code and Codex now ship a `/goal` command. You give it a condition, walk away, and come back to a PR.
+
+## What `/goal` does
+
+Anthropic's `/goal` (Claude Code v2.1.139+) "sets a completion condition and Claude keeps working toward it without you prompting each step. After each turn, a small fast model checks whether the condition holds." ([docs](https://code.claude.com/docs/en/goal))
+
+OpenAI's `/goal` (Codex CLI, behind an experimental flag): "Codex can work independently for multiple hours without needing your input." ([docs](https://developers.openai.com/codex/use-cases/follow-goals))
+
+Same primitive, both vendors. They shipped within months of each other and the design lines up: a condition string, the agent keeps running until the condition is met, an evaluator decides when it's done.
+
+## How I background a bug fix
+
+This is what I run most often. I find a bug, reproduce it once by hand, then hand the rest off:
+
+1. Write a `/goal` condition that covers the full path. A failing unit test reproduces the bug, the fix lands, Codex reviews the diff with no blocking comments, and the Docker end-to-end test passes in the browser.
+2. Claude writes the failing test (red).
+3. Claude writes the fix (green).
+4. Claude calls our custom Codex plugin for an adversarial review.
+5. Claude runs Docker + browser E2E.
+6. I come back to a PR that's fully tested.
+
+That's it. I'm not babysitting. The goal won't clear until every step passes, and if Codex flags something, Claude addresses it and re-runs the check.
+
+The pattern is just red/green TDD with an adversarial second model in the middle. The [planning phase](/blog/claude-code-workflow-planning) still happens before `/goal` kicks in. `/goal` doesn't replace planning, it replaces the per-turn supervision that comes after.
+
+## Why a different model reviews
+
+The point isn't that Codex catches more bugs than Claude does. It's that different training produces different attention. Two models from the same vendor will overlook the same kinds of things. Two models from different vendors won't.
+
+Anthropic's `/goal` design already bakes this idea in. The completion evaluator is a different model from the actor (Haiku by default, separate from whatever's writing the code). I'm scaling that idea up: use a different vendor's model for the code review step.
+
+I use a custom Claude Code plugin, [part of the stack I run every day](/blog/claude-code-plugin-stack), inspired by Garry Tan's GStack. Simplified version. It exposes commands that get Claude Code to call Codex for adversarial review on both the plan and the code. The plan review catches scope creep before any code lands. The code review catches what Claude wouldn't flag on its own.
+
+OpenAI ships [their own Codex plugin for Claude Code](https://community.openai.com/t/introducing-codex-plugin-for-claude-code/1378186) explicitly for "a more skeptical adversarial review." The official endorsement only flows one direction so far, but the design rationale is the same on both sides.
+
+## What the docs say about writing a goal
+
+The official guidance from both vendors converges.
+
+Anthropic, on writing the condition: "One measurable end state: a test result, a build exit code, a file count, an empty queue." And: "a stated check: how Claude should prove it, such as `npm test` exits 0 or `git status` is clean."
+
+OpenAI, on scoping: "A good goal is bigger than one prompt but smaller than an open-ended backlog. Codex should know what 'done' means before it starts."
+
+Anthropic, on bounding runtime: "To bound how long a goal runs, include a turn or time clause in the condition, such as `or stop after 20 turns`."
+
+One important constraint from Anthropic's docs: "It does not call tools, so it can only judge what Claude has already surfaced in the conversation." The evaluator can't run your tests itself. It can only read whatever Claude says about them. The condition has to bake verification into the steps Claude actually performs (run the test, paste the exit code, run the E2E), not into what the evaluator can verify on its own. Test exit codes don't lie. "I finished" does.
+
+This is the same idea as [enforcing tooling with hooks](/blog/enforcing-bun-with-hooks): make the constraint impossible to fake. A green test is a fact. A claim in the transcript is just a claim.
+
+One more tip from Anthropic's docs: "auto mode removes per-tool prompts, and `/goal` removes per-turn prompts." If you're running auto mode, `/goal` is the natural companion. Together they cover the two places you'd otherwise get interrupted.
+
+## How to start
+
+1. Update Claude Code to v2.1.139+, or enable Codex's experimental `/goal` flag.
+2. Pick a task with a verifiable end state. A test passing. A queue draining. A file count budget.
+3. `/goal <condition>` and walk away.
+
+If you don't already have a Codex review step in your workflow, add one before you start handing real work to `/goal`. The whole reason this works is that something other than Claude is checking Claude's output.
+
+## Closing
+
+Anthropic's 2026 Agentic Coding Trends Report notes that the longest Claude Code sessions nearly doubled in three months. Under 25 minutes to over 45. `/goal` is the primitive that lets that number keep going up. Use it where "done" is a green test.
