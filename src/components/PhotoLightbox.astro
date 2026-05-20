@@ -182,8 +182,13 @@
     btnPrev.addEventListener("click", prev);
 
     overlay.addEventListener("click", (e) => {
-      // Close on background click (target is the overlay itself, not the image/buttons).
-      if (e.target === overlay) close();
+      // Close on any click outside the photo, caption, and nav buttons.
+      // The close (X) button has its own handler; we exclude it here so we
+      // don't double-fire close().
+      const target = e.target as Element | null;
+      if (!target) return;
+      if (target.closest(".lb-image, .lb-caption, .lb-prev, .lb-next, .lb-close")) return;
+      close();
     });
 
     document.addEventListener("keydown", (e) => {
