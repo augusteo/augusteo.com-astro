@@ -7,7 +7,9 @@ description: Long-form blog post on augusteo.com that explains a book faithfully
 
 ## Goal
 
-> Take a book and produce a published-ready MDX post on augusteo.com that **faithfully represents the book's argument in book order**, with every claim, quote, and paraphrase traceable to a chapter/section anchor in the book-source ledger; and that **holds the book scientifically accountable** by tracking the current state of evidence for each cited research claim and surfacing credible tiered critics. **Faithfulness to the source is the first bar; current-state-of-evidence accuracy is the second; credible critic surfacing is the third; visual polish is the fourth.**
+> Take a book and produce a published-ready MDX post on augusteo.com that **is useful to a reader** — opening with the lessons they can take into their life, then walking the book's argument in book order with current evidence and credible critics woven in where they change how to apply the ideas. **Reader usefulness is the first bar; faithfulness to the source is the second; current-state-of-evidence accuracy is the third; credible critic surfacing is the fourth; visual polish is the fifth.**
+>
+> Faithfulness stays load-bearing — every claim, quote, and paraphrase about the book has a `[L#]` anchor to the book-source ledger, and the spine follows book order — but the post is *organized for the reader*, not for the audit trail. Audit detail moves to an appendix table; the body prose reads as flowing prose for a human, not as a form being filled out.
 
 This goal statement gets quoted into all four codex gate prompts so adversarial review pulls in the same direction.
 
@@ -89,7 +91,9 @@ Examples:
 Read these in order before starting any phase. Files marked **(shared)** live in `.claude/explainer-shared/` and are referenced via `../../explainer-shared/<file>`; the rest are local to this skill.
 
 - [`book-ingestion.md`](book-ingestion.md) — EPUB / PDF / MOBI extraction toolchain, edition capture, ledger schema + initialization, OCR confidence handling, footnote/endnote linking, fair-use bounds.
-- [`claim-spine.md`](claim-spine.md) — the 9-part section template, drafting rules per part, ledger-anchor enforcement.
+- [`claim-spine.md`](claim-spine.md) — the 6-part reader-first section template (lead → book summary → operational → color → local stance → figure), drafting rules per part, ledger-anchor enforcement.
+- [`tldr-template.md`](tldr-template.md) — the `## What you can use from this book` shape; TL;DR-as-index contract with no-orphan-synthesis rule.
+- [`appendix-table.md`](appendix-table.md) — the audit-layer table that holds source-quality + current-state + critic-tier columns, off the body prose.
 - [`evidence-check-protocol.md`](evidence-check-protocol.md) — per-claim search rules across PubMed, Google Scholar, Semantic Scholar, Retraction Watch, Data Colada, replication-project DBs. Recency bars. Evidence-type integrity.
 - [`critic-finding-protocol.md`](critic-finding-protocol.md) — tiered sources, credibility ranking, "argument first, credential second", critic-balance rule.
 - `../../explainer-shared/voice-rules.md` **(shared)** — the base "Write Like a Human, Not an AI" guide.
@@ -206,53 +210,77 @@ Goal: a `## Claim matrix` with one row per major claim, each anchored to the led
 
 ## Phase 3: outline + figure list
 
-Goal: a section list (one per major claim, in book order) and a numbered figure table where every figure illustrates a book CONCEPT, not research data.
+Goal: a section list (one per major claim, in book order), the TL;DR lesson list, and a figure list where every figure earns its place by beating prose at illustrating a book CONCEPT.
 
-1. Read `book-figure-recipes.md` and `book-illustration-overrides.md`.
-2. **Sketch the section list.** One section per claim from the matrix, in the order the book introduces them. Use chapter dividers (`## Chapter N: <chapter title>`) if the post benefits from book-structure mirroring.
-3. Number sections (`### 1. <claim summary>`, `### 2. ...`).
-4. **For each section, list figures.** Apply the book figure recipes:
+1. Read `book-figure-recipes.md`, `book-illustration-overrides.md`, `claim-spine.md`, and `tldr-template.md`.
+2. **Sketch the section list.** One section per major claim from the matrix, in the order the book introduces them. Use chapter dividers (`## Chapter N: <chapter title>`) only if the book has 3+ claims per part AND the parts are thematically distinct; default is no dividers.
+3. Number sections (`### 1. <one-line claim>`, `### 2. ...`). H3 headings carry the claim, not just a topic name.
+4. **Sketch the TL;DR lesson list** per `tldr-template.md`: 5-8 lessons in book order, each citing `[See §N]`. No orphan-synthesis claims (every TL;DR claim must be owned by a body section).
+5. **For each section, decide whether a figure beats prose.** Apply the book figure recipes:
    - Two-axis concept map
    - Before/after mental model swap
    - Claim-source-evidence chain
    - Replication-status timeline
    - Other concept diagrams per `book-figure-recipes.md`
-5. **Anti-cleanup check.** For each figure, ask: does this diagram make the book seem cleaner / more systematic than the prose actually supports? If yes, simplify or drop. The anti-cleanup rule from `book-illustration-overrides.md` is hard.
-6. Per-figure spec: mechanism (what concept it illustrates), what the reader walks away noticing, figure type (default `static-svg`).
-7. Append the outline + figure table to `notes/<book-slug>.md` under `## Outline`. Columns: `# | Section | Figure | Type | Concept illustrated | Reader notices`.
-8. Update `## Resume here`: phase 3 done; populate the per-figure progress table. **Run Gate C** (spine structure + figure-list coverage + anti-cleanup check).
+   The rule is "one per major claim where a visual beats prose" — NOT a fixed quota. Many sections will be prose-only and that's correct.
+6. **Anti-cleanup check.** For each proposed figure, ask: does this diagram make the book seem cleaner / more systematic than the prose actually supports? If yes, simplify or drop. The anti-cleanup rule from `book-illustration-overrides.md` is hard.
+7. Per-figure spec: mechanism (what concept it illustrates), what the reader walks away noticing, figure type (default `static-svg`).
+8. Append the outline + TL;DR list + figure table to `notes/<book-slug>.md` under `## Outline`. Three subheads: `### TL;DR lessons`, `### Body sections`, `### Figure list`. Figure list columns: `# | Section | Figure | Type | Why a visual beats prose here | Concept illustrated`.
+9. Update `## Resume here`: phase 3 done; populate the per-figure progress table. **Run Gate C** (TL;DR-as-index check + spine structure + figure-where-visual-beats-prose check + anti-cleanup check).
 
 ## Phase 4: draft prose
 
-Goal: a complete MDX draft with every section following the 9-part claim-spine template, every claim/quote anchored to the ledger via `[L#]` markers, and `<!-- REVISE-WHERE-I-LAND -->` blocks isolated to "Where I land" sections.
+Goal: a complete reader-first MDX draft. Body sections follow the 6-part reader-first claim-spine template. TL;DR is an index of book-order lessons. Audit detail (source-quality, current-state, critic tiers) lives in the appendix table, NOT in body prose.
 
-1. Read `claim-spine.md` end-to-end. The 9-part template is the contract.
-2. Read `book-voice-overrides.md` for the citation-forward voice tilt.
+1. Read `claim-spine.md`, `tldr-template.md`, and `appendix-table.md` end-to-end. The 6-part template + TL;DR-as-index + appendix-table are the contracts.
+2. Read `book-voice-overrides.md` for the reader-first voice (warm, operational, no scaffolding labels).
 3. Create `src/content/blog/<book-slug>/index.mdx` with frontmatter per `../../explainer-shared/mdx-output-spec.md`:
-   - `title` (post title, not book title verbatim — frame as "What [Book Title] says, and what the evidence says back").
+   - `title` (post title; phrase for the reader, e.g. "What [Book] gives you, and where the evidence has moved").
    - `description`, `pubDate`, `tags` (include `"Books"` as primary tag plus topic tags), `featured: false`, `draft: true`, `essay: true`.
    - `heroAlt: "TODO: hero image not yet selected"` placeholder.
    - Omit `heroImage` (Phase 7 adds it).
-4. **Lead with a short setup** (1–2 paragraphs): what book this is, who wrote it, why it's worth engaging with, what this post does (faithfully summarize + scientifically account + surface credible critics). Lead with a `[L#0]` reference to the book itself in the ledger.
-5. **Draft section by section using the 9-part template** from `claim-spine.md`. For each section:
-   - Write parts 1–9 in order.
-   - Every direct quote from the book gets a `[L#…]` marker resolving to a `kind: direct-quote` ledger entry. **Phase 1 only created `kind: claim` entries; you append new `direct-quote` entries to `notes/<book-slug>.ledger.jsonl` here, with monotonically increasing IDs.** Each new entry needs `id`, `kind`, `quote`, `locator`, `anchor_excerpt`, `word_count` per the schema in `book-ingestion.md`.
-   - Every paraphrase of the book gets a `[L#…]` marker resolving to a `kind: paraphrase` ledger entry. Append these to the ledger the same way as direct-quote entries.
+4. **Above-the-fold sequence (NEW shape — kill the old preamble):**
+   - **Lede.** 2-3 sentences. Name the book, the author, what the post does. NO workshop bios, NO "the book divides into five parts", NO "a note on the form". Reader gets the useful claim immediately.
+   - **One "how to use this post" line.** Something like: "Read the top lessons first; use the sections when you want the book's reasoning, evidence, and caveats." Frames the post as a tool.
+   - **`## What you can use from this book`** — TL;DR per `tldr-template.md`. 5-8 lessons, each 50-100 words, each citing `[See §N]`. **Hard rule: no synthesis claim that isn't owned by a later body section.**
+   - **`## Where it gets complicated`** — 1-paragraph editor's note. Name the 2-3 most-aged or most-contested claims so the reader knows what's coming. No more.
+5. **Draft body sections using the 6-part reader-first template** from `claim-spine.md`. For each section:
+   - Write parts 1-6 in order (lead → book summary → operational → color → local stance → figure), as **flowing prose, no bold-labeled scaffolding**.
+   - **Operational sentence is mandatory.** Each section has either one "try this" / "watch for this" sentence OR an explicit "this one is conceptual scaffolding; nothing to apply directly" note.
+   - **Evidence-routing rule:** if current evidence changes how the reader applies the idea → it goes inline in the section's color paragraph. If it only supports traceability → it goes in the appendix table, not the body.
+   - **Local stance** (1-2 sentences) ships as-is — NOT wrapped in `<!-- REVISE-WHERE-I-LAND -->`. The interview skill replaces a different layer (the per-section personal-application paragraph) using `<!-- REVISE-WHERE-I-LAND -->`. Phase 4 emits empty `<!-- REVISE-WHERE-I-LAND -->` placeholders that the interview skill will fill — see step 7 below.
+   - Every direct quote from the book gets a `[L#…]` marker resolving to a `kind: direct-quote` ledger entry. **Phase 1 only created `kind: claim` entries; you append new `direct-quote` and `kind: paraphrase` entries to `notes/<book-slug>.ledger.jsonl` here, with monotonically increasing IDs.** Each new entry needs `id`, `kind`, `quote/text`, `locator`, `anchor_excerpt`, `word_count` per the schema in `book-ingestion.md`.
    - Every figure caption that anchors to the book gets a `[L#…]` marker resolving to a `kind: figure-caption` ledger entry. Append in Phase 5 when figures are implemented.
-   - Every claim about **current evidence** (Today's evidence sections) gets an inline markdown link to the primary source — NOT a `[L#…]` marker. External evidence is not in the ledger.
-   - Every critic is named, tiered, and quoted on the specific argument (not vague disagreement). Inline-link to the critic's piece.
-   - "Where I land" is drafted by the skill from the assembled evidence + critics, wrapped in `<!-- REVISE-WHERE-I-LAND -->` ... `<!-- /REVISE-WHERE-I-LAND -->`. See `where-i-land-template.md` for the drafting rules and ship-time resolution requirements.
-6. **Apply voice rules during drafting** per `../../explainer-shared/voice-rules.md` + `book-voice-overrides.md`. After each section, run `scripts/voice-check.sh src/content/blog/<book-slug>/index.mdx`. Re-run until clean.
-7. **References section** at the end. Three blocks:
-   - `### The book` — the book itself, full citation with edition + ISBN.
-   - `### Current-state-of-evidence sources` — every external source cited in the "Today's evidence" parts.
-   - `### Critics` — every critic cited, with their tier label.
-8. **Inter-post linking.** Scan `src/content/blog/` for topic-adjacent posts and add inline links at natural anchor points. Add related posts to `### Related posts on augusteo.com` block at the top of References (matching the explainer-skill pattern).
-9. Commit per section. After each commit, update `## Resume here`.
+   - Inline-linked critics ONLY when the critic's argument changes the reader's stance. Otherwise the critic stays in the appendix table.
+6. **TL;DR generation order.** The TL;DR comes LAST among the above-the-fold parts. After all body sections are drafted, walk them in order and extract one lesson per major-claim section (skip illustrative-centrality claims). Compose per `tldr-template.md`.
+7. **REVISE-WHERE-I-LAND placeholders for the interview skill.** After the local stance of each major-claim section, emit:
 
->>>  USER GATE: Vic reads full draft, gives critique. Phase 4 ends here.  <<<
+   ```markdown
+   <!-- REVISE-WHERE-I-LAND -->
+   <!-- /REVISE-WHERE-I-LAND -->
+   ```
 
-The skill prints the full draft path to chat and explicitly waits for Vic's review. Vic's critique (text, paths, comments, anything) becomes the input to a Phase 4 revision cycle, OR Vic says "looks good, proceed" and the skill enters Phase 5.
+   Empty between the markers. The `post-interview` skill fills these with Vic's personal application (story / where he's used the framework / failure mode), gated by Vic's approval, and rewrites the opening marker to `<!-- REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD -->`. The closing marker stays `<!-- /REVISE-WHERE-I-LAND -->` (unified namespace). If a section is skipped, the opening becomes `<!-- REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD -->`. See `where-i-land-template.md` for the full terminal-state contract and the regex Gate D enforces.
+8. **Below-the-fold sequence:**
+   - **`## Where I'd disagree with the book`** — consolidated synthesis. 2-4 paragraphs. The cross-claim stance that ties the per-section local stances together.
+   - **`## Reference layer`** with three subheads:
+     - `### Galef's vocabulary` (replace `Galef` with the relevant author): one-line definitions of named frameworks the book uses.
+     - `### Quote bank`: ≤15 verbatim quotes worth saving, each with `[L#]` anchor.
+     - `### Practical-model list`: gathered "try this" / "watch for" sentences from the operational layers of each section.
+   - **`## Conclusion`** — book-faithful closing (if the book has one, e.g. Galef's 8 habits), with one-line takes per item.
+   - **`## Appendix: claim-source-evidence table`** per `appendix-table.md`. One row per major claim.
+   - **`## References`** — block-level citation list: the book, current-state-of-evidence sources, critics with tier.
+9. **Apply voice rules during drafting** per `../../explainer-shared/voice-rules.md` + `book-voice-overrides.md`. After each section, run `scripts/voice-check.sh src/content/blog/<book-slug>/index.mdx`. Re-run until clean.
+10. **Inter-post linking.** Scan `src/content/blog/` for topic-adjacent posts and add inline links at natural anchor points. Add related posts to `### Related posts on augusteo.com` block at the top of References (matching the explainer-skill pattern).
+11. Commit per section. After each commit, update `## Resume here`.
+
+>>>  USER GATE (handoff to post-interview, then post-editor): Phase 4 ends here.  <<<
+
+The skill prints the full draft path to chat and explicitly hands off:
+
+> Draft ready at `src/content/blog/<book-slug>/index.mdx`. Next: run `/post-interview` on this path to fill the personal-application blocks (top-5 default; skip-all also fine). After that, run `/post-editor` for the tightness/voice/faithfulness pass.
+
+Vic chooses when to run each. The writer does NOT auto-chain. Phases 5-7 below cover figure implementation and ship — those run AFTER the editor confirms the prose is shippable.
 
 ## Phase 5: implement figures
 
@@ -320,20 +348,23 @@ Skill-specific subtypes:
 
 ## Hard rules
 
-1. **Faithfulness first, per book claim/quote/paraphrase.** Every claim, quote, or paraphrase **about the book** in the post has a `[L#…]` marker resolving to a ledger entry whose anchor excerpt grep-verifies against the source. No anchor → cannot ship. External-evidence claims (current state of research, critics) use inline markdown links to primary sources instead; they do NOT need ledger anchors.
-2. **Spine follows book order.** Sections appear in the order the book introduces the claims. No reorganization into a thesis arc.
-3. **Source-quality-inside-the-book is tagged on every claim.** An RCT and a memoir anecdote do NOT enter "today's evidence" as equivalent.
-4. **Boundary conditions are explicit.** Every claim section names what the book does NOT claim, to prevent overextension.
-5. **Critics get arguments, not vague disagreement.** Each critic in `## Critics` has a quoted specific argument and a tier label. Field genuinely mixed → no dunk pile.
-6. **Replication-crisis casualties get flagged.** When the book cites a study that has failed to replicate (marshmallow test, power posing, ego depletion, etc.), the post says so explicitly in "What the evidence says today".
-7. **Four codex gates are mandatory.** All four (A: ingestion / B: matrix / C: spine / D: final) auto-fire. Only Gate A's `LOW-CONFIDENCE` surfaces mid-run.
-8. **Single user gate at full prose draft.** Phases 1–4 are autonomous. Vic reads the full MDX after Phase 4, gives critique, and Phases 5–7 run autonomously.
-9. **`draft: true` from creation through ship; Vic flips to `draft: false` explicitly.** Per the explainer-family convention; see `../../explainer-shared/codex-runner.md` Step-6a.
-10. **Static is the figure default.** Interactive only if one of the four override clauses applies. Anti-cleanup rule applies to every figure regardless of type.
-11. **Fair-use bounded excerpts.** Direct quotes in the MDX max ~50 words each; per-chapter cap ~200 words total. The ledger stores excerpts (short, fair-use bounded) and locators — never large copied chunks of the book.
-12. **Project-memory pointer + MEMORY.md entry are required and verified at end of Phase 1.** Halt if missing.
-13. **Inter-post linking applies.** Newer book posts link to older relevant posts (book or explainer); older posts are NOT retroactively edited.
-14. **`scripts/voice-check.sh` exits clean before any commit.** Em-dashes: zero (outside act-divider headings). Banned words: zero or justified per the override rule in `book-voice-overrides.md`.
+1. **Reader usefulness first.** Every section opens with the claim + why it matters for the reader's life. Each section has an explicit operational layer ("try this" / "watch for this") OR an explicit "no operational layer" note. No section reads like a transcript.
+2. **Faithfulness, per book claim/quote/paraphrase.** Every claim, quote, or paraphrase **about the book** in the post has a `[L#…]` marker resolving to a ledger entry whose anchor excerpt grep-verifies against the source. No anchor → cannot ship. External-evidence claims (current state of research, critics) use inline markdown links to primary sources instead; they do NOT need ledger anchors.
+3. **Spine follows book order.** Sections appear in the order the book introduces the claims. No reorganization into a thesis arc. **The TL;DR is an index, not an argument: every TL;DR claim must be owned by a body section; no orphan-synthesis claims.**
+4. **No bold-labeled scaffolding in the body prose.** The 6 parts of the section template (lead → book summary → operational → color → local stance → figure) appear as flowing prose, not as `**What the book says.**`-style form fields. The audit detail (source-quality tags, current-state classifications, critic tiers) lives in the appendix table.
+5. **Evidence-routing rule.** Current evidence appears inline in the body ONLY when it changes how the reader applies the idea. Otherwise it goes in the appendix table.
+6. **Each major-claim section produces ≥1 takeaway artifact.** A verbatim quote, a named framework, or a mental model — whichever lands. The post-level reference layer collects all three layers (quote bank, vocabulary glossary, practical-model list).
+7. **Boundary conditions are explicit where load-bearing.** When the book carefully scopes a claim, the body prose preserves the scope (1 sentence). Detailed boundary conditions move to the appendix table.
+8. **Critics get arguments, not vague disagreement.** Critics named inline in the body ONLY when their argument changes the reader's stance. Other credible critics live in the appendix `Critics` column with tier + 1-line argument.
+9. **Replication-crisis casualties get flagged.** When the book cites a study that has failed to replicate (marshmallow test, power posing, ego depletion, etc.), the post says so explicitly in the body's color paragraph for that section.
+10. **Figures: one per major claim where a visual beats prose.** Not a fixed quota. Static SVG is the default; interactive only when one of the four override clauses applies AND the book's framing supports interaction. Anti-cleanup rule applies to every figure.
+11. **Four codex gates are mandatory.** All four (A: ingestion / B: matrix / C: spine / D: final) auto-fire. Only Gate A's `LOW-CONFIDENCE` surfaces mid-run.
+12. **Single user gate at full prose draft; writer hands off to post-interview and post-editor.** Phases 1–4 are autonomous on the writer side. After Phase 4 the writer prints the handoff line and stops; Vic runs `/post-interview` (top-5 default) and then `/post-editor`, and the writer resumes at Phase 5 only when Vic explicitly says "proceed".
+13. **`draft: true` from creation through ship; Vic flips to `draft: false` explicitly.** Per the explainer-family convention; see `../../explainer-shared/codex-runner.md` Step-6a.
+14. **Fair-use bounded excerpts.** Direct quotes in the MDX max ~30 words each (reduced from 50 — keeps the quote bank scannable); per-chapter cap ~200 words total. The ledger stores excerpts (short, fair-use bounded) and locators — never large copied chunks of the book.
+15. **Project-memory pointer + MEMORY.md entry are required and verified at end of Phase 1.** Halt if missing.
+16. **Inter-post linking applies.** Newer book posts link to older relevant posts (book or explainer); older posts are NOT retroactively edited.
+17. **`scripts/voice-check.sh` exits clean before any commit.** Em-dashes: zero (outside act-divider headings). Banned words: zero or justified per the override rule in `book-voice-overrides.md`.
 
 ## Halt-and-ask conditions
 
@@ -388,20 +419,29 @@ After Phase 7:
 - Hero image present, `heroAlt` describes what's visible.
 - `draft: true` (stays `true` until Vic ships), `essay: true`, `pubDate` is today.
 - **Every `[L#…]` marker in the MDX resolves to a `notes/<slug>.ledger.jsonl` entry.** Verify with `grep -oP '\[L#\d+\]' src/content/blog/<book-slug>/index.mdx | sort -u` and cross-check each against the ledger.
-- **Every claim section has all 9 parts** from the claim-spine template.
-- **Zero remaining `<!-- REVISE-WHERE-I-LAND -->` markers in the MDX.** Every block must be in one of two terminal states: rewritten (no markers, no `*Draft stance...*` preamble) OR kept-as-is (both markers replaced with `<!-- KEEP-AS-IS: YYYY-MM-DD -->` ... `<!-- /KEEP-AS-IS -->`, no preamble). See `where-i-land-template.md` for the convention.
-- **Every critic in `## Critics` has a tier label and a specific argument.**
+- **Every major-claim section follows the 6-part reader-first template** from `claim-spine.md` (lead → book summary → operational → color → local stance → figure). No bold-labeled scaffolding in the body prose.
+- **TL;DR `## What you can use from this book` is present** with 5-8 lessons, each citing `[See §N]`. No orphan-synthesis claims (every TL;DR claim is owned by a body section).
+- **Each major-claim section has an operational sentence** OR an explicit "no operational layer" note.
+- **Each major-claim section has a local stance** (1-2 sentences, plain language).
+- **`## Reference layer` has all three subheads** present and non-empty: `Galef's vocabulary` (or relevant author), `Quote bank`, `Practical-model list`.
+- **`## Appendix: claim-source-evidence table` is present** with one row per major claim per `appendix-table.md`.
+- **All `<!-- REVISE-WHERE-I-LAND -->` markers are in a terminal state.** Per `where-i-land-template.md`: `<!-- REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD -->`, `<!-- REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD -->`, or removed entirely. Regex contract: opening matches `^<!-- REVISE-WHERE-I-LAND(: (INTERVIEW-SOURCED|SKIPPED) \d{4}-\d{2}-\d{2})? -->$` with the state suffix REQUIRED for ship; closing is always `<!-- /REVISE-WHERE-I-LAND -->`. No bare openings.
 - Notes-file `## Codex … review` sections all close on cosmetic rather than structural issues.
 
 ## Common rationalizations to refuse
 
 | Excuse | Reality |
 |---|---|
+| "The bold-labeled scaffolding makes the post easier to scan" | It makes the post read as a form, not prose. The audit detail lives in the appendix table; the body is flowing reader-first prose. |
+| "Every section needs a figure" | Figures earn their place by beating prose. Many sections are prose-only and that's correct. The hard rule is one figure per major claim WHERE A VISUAL BEATS PROSE — not a quota. |
+| "The TL;DR should summarize the post's overall argument" | The TL;DR is an INDEX, not a synthesis. Every TL;DR claim must be owned by a body section. Synthesis lives in `## Where I'd disagree with the book`. |
+| "I can skip the operational sentence; this chapter is theoretical" | Then write the explicit "no operational layer; this is conceptual scaffolding" note. Silent omission is not allowed. |
 | "I can paraphrase without an anchor; it's basically what the book says" | If it's load-bearing prose, it needs a `[L#]` marker. Skill won't ship without it. |
 | "This figure makes the book's argument easier to grasp" | Easier than what the prose supports? If yes, anti-cleanup rule applies. Simplify or drop. |
-| "The book cited it, that's good enough" | The book cited a single study from 2008 that failed to replicate. "What evidence says today" is required. |
+| "The book cited it, that's good enough" | The book cited a single study from 2008 that failed to replicate. Current-state-of-evidence is required for empirical claims. |
 | "The critic is too obscure to bother surfacing" | If the critic identifies a specific flaw with a credible argument, tier them and include them. Argument > credential. |
 | "I can skip Gate A's confidence check; ingestion looked fine" | Gate A is the protection against wrong-spine failure. If it surfaces, halt and review. |
 | "Vic said 'looks good' — I can flip to draft: false" | No. Vic flips draft himself. Always. |
 | "The book is short; I can do without the ledger" | The ledger is the load-bearing constraint. No book skill run is exempt. |
 | "Three of the book's claims are essentially the same; I'll merge them" | Don't. The book introduces them as distinct; respect the book's order and granularity. Merge only if the book itself does. |
+| "Vic skipped the interview — I'll mark the REVISE-WHERE-I-LAND blocks as resolved" | Empty REVISE-WHERE-I-LAND markers stay empty until either filled by interview or explicitly marked SKIPPED. Don't fake resolution. |

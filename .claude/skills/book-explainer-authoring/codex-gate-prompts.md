@@ -258,8 +258,10 @@ issues found" and stop. Otherwise, keep finding things.
 **What you provide to codex:**
 
 - All Gate B inputs PLUS
-- `## Outline` (claim-by-claim section list in book order, with H3 numbered headings)
-- Figure table (columns: # / Section / Figure name / Type / Concept illustrated / Reader notices)
+- `## Outline` with three subheads:
+  - `### TL;DR lessons` — 5-8 reader-first lessons in book order, each with `[See §N]`
+  - `### Body sections` — claim-by-claim section list in book order, with H3 numbered headings
+  - `### Figure list` — columns: # / Section / Figure name / Type / Why a visual beats prose here / Concept illustrated
 
 **The prompt:**
 
@@ -270,77 +272,96 @@ augusteo.com. The post's goal:
 [QUOTE THE GOAL STATEMENT]
 
 Your job is to attack the structural layer before any prose is drafted. The matrix
-has passed Gate B; this gate is about whether the outline + figure list actually
-delivers a faithful, accountable, well-illustrated rendering of the book.
+has passed Gate B; this gate is about whether the outline + TL;DR + figure list
+actually deliver a READER-FIRST, faithful, accountable rendering of the book.
 
 Find:
 
-1. SECTION COVERAGE. Every major claim in the matrix should have exactly one
-   section in the outline. Flag matrix rows with no section, or sections that
+1. TL;DR-AS-INDEX (no thesis-arc gravity). The TL;DR must be an index, not a
+   synthesis. Every lesson must:
+   - Cite a specific body section via `[See §N]`.
+   - Be 50-100 words.
+   - Open with the claim + the reader-usefulness framing (why this matters for
+     the reader's life).
+   No TL;DR lesson may introduce a synthesis claim that isn't owned by a body
+   section. Flag any orphan-synthesis lesson as STRUCTURAL.
+
+2. SECTION COVERAGE. Every major claim in the matrix should have exactly one
+   section in the body. Flag matrix rows with no section, or sections that
    don't correspond to a matrix row.
 
-2. SECTION ORDER MATCHES BOOK ORDER. The outline sections should appear in the
-   order the book introduces the claims. Flag any reordering. (The agent may
-   note in the outline "moved out of book order because X" — if so, evaluate
-   the rationale. Reordering for narrative effect is the canonical Scout
-   Mindset failure; flag aggressively.)
+3. SECTION ORDER MATCHES BOOK ORDER. The body sections should appear in the
+   order the book introduces the claims. The TL;DR mirrors the book's spine.
+   Flag any reordering. (Reordering for narrative effect is the canonical
+   Scout Mindset failure; flag aggressively.)
 
-3. SECTION TEMPLATE CONFORMANCE. Each section should be designed to render the
-   9-part template from `claim-spine.md`: Claim / Type / Centrality / What the
-   book says / Where the book gets it / Boundary conditions / Today's evidence /
-   Critics / Where I land. The outline should make clear what content goes in
-   each part for each section. Flag sections where the outline doesn't allocate
-   content per the template.
+4. READER-FIRST SECTION TEMPLATE CONFORMANCE. Each body section should be
+   designed to render the 6-part reader-first template from `claim-spine.md`:
+   lead (claim + reader-usefulness) → book summary → operational layer →
+   color (inline evidence ONLY when it changes how to apply) → local stance
+   → optional figure. Sections should be 250-400 words of flowing prose, no
+   bold-labeled scaffolding. Flag sections where the outline allocates content
+   to a 9-part labeled template or where bold-label scaffolding survives.
 
-4. CENTRALITY-LENGTH MATCH. The Centrality tag on each section drives section
-   length (core: ~600–900 words; supporting: ~300–500; illustrative: ~150–300).
-   The outline should reflect this allocation. Flag sections where the planned
-   length doesn't match centrality.
+5. OPERATIONAL LAYER PER SECTION. Each major-claim section must have either
+   an explicit operational sentence ("try this", "watch for this", "use as a
+   journaling prompt") OR an explicit "no operational layer; conceptual
+   scaffolding" note. Flag sections where the operational layer is implicit
+   or missing.
 
-5. FIGURES THAT IMPOSE STRUCTURE BEYOND THE BOOK'S FRAMING. The anti-cleanup
-   rule allows figures to chart **book-cited-study evidence** (e.g., a
-   replication-status timeline showing how the book's seed citations have
-   evolved, or a claim-source-evidence chain tying a book claim to its
-   current state of evidence). What it disallows is figures that impose
-   structure (steps, 2x2s, clean Venns, "hero figures" summarizing the
-   thesis) beyond what the book itself renders. Flag figures whose concept
-   column doesn't map to a specific book framing OR a documented book-cited
-   evidence pattern from `book-figure-recipes.md`.
+6. EVIDENCE ROUTING. Inline evidence in body prose appears ONLY when it
+   changes how the reader applies the idea. Source-quality tags, current-state
+   classifications, and critic tier labels belong in the appendix table, not
+   inline. Flag sections that propose inline italic source-quality/current-state
+   lines or labeled critic blocks.
 
-6. ANTI-CLEANUP VIOLATIONS. For each figure, ask: does the figure make the
-   book seem cleaner, more systematic, or more rigorous than the prose
-   supports? Look specifically for:
+7. FIGURES WHERE VISUAL BEATS PROSE. The rule is "one figure per major claim
+   where a visual beats prose" — NOT a fixed quota. Each major-claim section
+   should declare either "figure: <type>, <concept>, <why visual beats prose>"
+   OR "no figure; prose carries this". Flag sections that don't make a
+   per-section decision.
+
+8. FIGURES THAT IMPOSE STRUCTURE BEYOND THE BOOK'S FRAMING. The anti-cleanup
+   rule allows figures to chart book-cited-study evidence (replication
+   timelines, claim-source chains). What it disallows is figures that impose
+   structure (steps, 2x2s, clean Venns, "hero figures") beyond what the book
+   itself renders. Flag figures whose concept column doesn't map to a specific
+   book framing OR a documented book-cited evidence pattern from
+   `book-figure-recipes.md`. Label as ANTI-CLEANUP STRUCTURAL.
+
+9. ANTI-CLEANUP VIOLATIONS. For each figure, look specifically for:
    - 2x2 matrices invented by the agent
    - Clean flowcharts of "steps" when the book describes a fuzzy process
    - Venn diagrams with manufactured overlaps
    - "Hero figures" that summarize the whole thesis
    Label any such finding ANTI-CLEANUP STRUCTURAL.
 
-7. FIGURE COUNT SANITY. The book skill is not figure-heavy by design. A typical
-   post should have figures on 2-3 of its 5-12 sections — usually the most
-   concept-rich claims. Flag if (a) every section has a figure (suggests
-   over-illustration / cleanup risk), or (b) the figure list is missing
-   figures for the most concept-rich claims.
+10. FIGURE-TYPE MISFITS. For each figure, does its type match? Default is
+    static-svg; interactive-canvas/plot only if one of the four override
+    clauses applies (continuous sweep / animation / drag / multi-state toggle)
+    AND the book's framing supports interaction (a chapter on calibration
+    practice supports a CalibrationTest widget; a chapter on vocabulary does
+    not). Flag interactive figures whose override clause is weak or whose
+    book-framing fit is loose.
 
-8. FIGURE-TYPE MISFITS. For each figure, does its type match? Default is
-   static-svg; interactive-canvas/plot only if one of the four override clauses
-   applies (continuous sweep / animation / drag / multi-state toggle). The book
-   skill's override-clause matches are rare; flag any interactive figure
-   whose override clause is weak.
+11. FIGCAPTION LOCATOR. Every figure's figcaption should end with [L#…]
+    resolving to a ledger figure-caption entry. Flag any figure missing this
+    anchor.
 
-9. FIGCAPTION LOCATOR. Every figure's figcaption should end with [L#…] resolving
-   to a ledger figure-caption entry. Flag any figure missing this anchor.
+12. APPENDIX TABLE PRESENCE. The outline should plan a
+    `## Appendix: claim-source-evidence table` with one row per major claim
+    per `appendix-table.md`. Flag if missing.
 
-10. CROSS-REFERENCES BETWEEN SECTIONS. If section N depends on a concept
-    established in section N-1, the outline should plan an explicit
-    cross-reference. Implicit dependencies create reader friction. Flag.
+13. REFERENCE LAYER. The outline should plan a `## Reference layer` section
+    with three subheads (vocabulary glossary, quote bank, practical-model
+    list). Flag if any of the three subheads is missing or unplanned.
 
 For each finding, label it STRUCTURAL (must fix before drafting),
 ANTI-CLEANUP STRUCTURAL (specific subset — fires the figure drop/simplify
 fork), or COSMETIC. Order findings by load-bearing-ness.
 
-Do not be diplomatic. Do not validate. If the outline is sound, say "no structural
-issues found" and stop. Otherwise, keep finding things.
+Do not be diplomatic. Do not validate. If the outline is sound, say "no
+structural issues found" and stop. Otherwise, keep finding things.
 ```
 
 **Halt rules:**
@@ -389,61 +410,101 @@ Find:
    (highest severity; halts ship).
 
 2. PROSE-MATRIX DRIFT. For each claim section, the prose should faithfully
-   render the matrix row's contents: parts 4–7 of the section should match
-   the corresponding matrix columns. Flag prose that strengthens claims
-   beyond what the matrix supports.
+   render the matrix row's contents. The body's claim, summary, and inline
+   color must match the matrix row's claim, locator, and current-state.
+   The appendix table row for the section must also match. Flag prose that
+   strengthens claims beyond what the matrix supports.
 
-3. SECTION-TEMPLATE COMPLETENESS. Each section should have all 9 parts (Claim /
-   Type / Centrality / Book says / Source / Boundary / Today / Critics / Land).
-   Flag any missing part.
+3. READER-FIRST TEMPLATE CONFORMANCE. Each body section should follow the
+   6-part reader-first template (lead → book summary → operational → color →
+   local stance → optional figure) as FLOWING PROSE. Flag:
+   - Bold-labeled scaffolding like `**What the book says.**` (forbidden in the
+     body; that audit detail lives in the appendix table).
+   - Sections missing the operational layer (must have an explicit operational
+     sentence OR an explicit "no operational layer; conceptual scaffolding"
+     note — silent omission is STRUCTURAL).
+   - Sections missing a local stance.
+   - Sections without a `Lead` that names why the claim matters for the
+     reader's life.
 
-4. WHERE-I-LAND BLOCK STATUS. Every section has a part 9 "Where I land". At
-   ship time, every block must be in one of two terminal states:
-   - REWRITTEN: no `REVISE-WHERE-I-LAND` markers, no `KEEP-AS-IS` markers,
-     no `*Draft stance...*` italic preamble. Just Vic's prose.
-   - KEPT-AS-IS: opening `<!-- KEEP-AS-IS: YYYY-MM-DD -->` and closing
-     `<!-- /KEEP-AS-IS -->` wrap the body. No preamble.
-   Flag as STRUCTURAL: any block with a remaining `<!-- REVISE-WHERE-I-LAND -->`
-   opening marker (unresolved draft), OR any mixed wrapper (e.g., `KEEP-AS-IS`
-   opening with `/REVISE-WHERE-I-LAND` closing), OR a `*Draft stance...*`
-   preamble still present.
+4. TL;DR-AS-INDEX INTEGRITY. The `## What you can use from this book` section
+   must contain 5-8 lessons, each citing `[See §N]`. Every lesson's claim
+   must be owned by the body section it cites. Flag:
+   - Lessons that introduce a synthesis claim not owned by any body section
+     (STRUCTURAL — thesis-arc gravity).
+   - Lessons not in book order.
+   - Bare topic-name lessons (must be plain-English claims, not labels).
+   - Lessons outside the 50-100 word window.
 
-5. FRESHNESS REGRESSION. The freshness diff shows matrix rows where
+5. REVISE-WHERE-I-LAND BLOCK STATUS. Every major-claim section emits a
+   `<!-- REVISE-WHERE-I-LAND -->` placeholder for the personal-application
+   layer. At ship time, every placeholder's opening marker must match this
+   regex: `^<!-- REVISE-WHERE-I-LAND(: (INTERVIEW-SOURCED|SKIPPED) \d{4}-\d{2}-\d{2})? -->$`
+   with the state suffix PRESENT (bare suffixless openings are STRUCTURAL).
+   - FILLED-BY-INTERVIEW: `<!-- REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD -->`
+     opens, body has Vic's personal-application paragraph (1-3 sentences),
+     `<!-- /REVISE-WHERE-I-LAND -->` closes.
+   - EXPLICITLY SKIPPED: `<!-- REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD -->`
+     opens, empty between markers, `<!-- /REVISE-WHERE-I-LAND -->` closes.
+   - REMOVED: both markers deleted entirely.
+   Flag as STRUCTURAL: any bare opening, any opening with a different
+   namespace (e.g., `<!-- INTERVIEW-SOURCED: ... -->` without the
+   REVISE-WHERE-I-LAND prefix — legacy), or any closing other than
+   `<!-- /REVISE-WHERE-I-LAND -->`.
+
+6. APPENDIX TABLE COMPLETENESS. `## Appendix: claim-source-evidence table`
+   must have one row per major claim per `appendix-table.md`. Each row's
+   `Book locator` must resolve to a ledger entry. The `Current state` column
+   must match the body's inline color where present. Flag missing rows,
+   broken locators, or state-mismatch.
+
+7. REFERENCE LAYER PRESENCE. `## Reference layer` must have all three
+   subheads non-empty: vocabulary glossary, quote bank, practical-model list.
+   Flag missing subheads or empty layers.
+
+8. FRESHNESS REGRESSION. The freshness diff shows matrix rows where
    Current-state changed since Phase 2 (newer evidence published). For each
-   such row, does the prose in part 7 reflect the new state? Flag prose that
-   still cites the older state.
+   such row, does the prose color paragraph (and the appendix table) reflect
+   the new state? Flag prose that still cites the older state.
 
-6. CRITIC LIST COMPLETENESS + TIER LABELS. Every critic in part 8 should have:
-   (a) name or org, (b) tier label (T1 / T2 / T3), (c) specific argument
-   quoted/paraphrased, (d) link. Flag entries missing any of these.
+9. CRITIC INLINE-VS-APPENDIX PLACEMENT. Critics named inline in the body
+   prose should be those whose argument changes the reader's stance — all
+   other critics belong in the appendix table's `Critics` column with tier +
+   1-line argument. Every critic anywhere should have: (a) name or org,
+   (b) tier label (T1 / T2 / T3), (c) specific argument quoted or
+   paraphrased, (d) link. Flag entries missing any, and flag critics promoted
+   to inline body when they don't change the reader's stance.
 
-7. CITED STUDY RETRACTIONS (re-check). Has any external source cited in the
-   "Today's evidence" sections been retracted since Phase 2? Cross-check
-   Retraction Watch for the most recent set of cited papers. Flag any
-   retraction not yet reflected in the prose.
+10. CITED STUDY RETRACTIONS (re-check). Has any external source cited in the
+    body's inline color OR the appendix table been retracted since Phase 2?
+    Cross-check Retraction Watch for the most recent set of cited papers.
+    Flag any retraction not yet reflected.
 
-8. QUOTATION BUDGET. The fair-use cap is ≤ 50 words per direct quote and
-   ≤ 200 words per chapter total of direct quotation. Walk the MDX and count.
-   Flag overages.
+11. QUOTATION BUDGET. The fair-use cap is ≤ 30 words per direct quote in the
+    body, ≤ 200 words per chapter total of direct quotation. The Quote bank
+    subhead may include up to ~15 verbatim quotes each ≤ 30 words. Walk the
+    MDX and count. Flag overages.
 
-9. REFERENCES SECTION. The post's References section should have three blocks:
-   The book / Current-state-of-evidence sources / Critics. Every external
-   source cited inline should appear in the appropriate References block.
-   Flag missing entries, broken links, or wrong block.
+12. REFERENCES SECTION. The post's References section should have three
+    blocks: The book / Current-state-of-evidence sources / Critics. Every
+    external source cited inline OR in the appendix table should appear in
+    the appropriate References block. Flag missing entries, broken links, or
+    wrong block.
 
-10. RELATED POSTS LINKING. If the post's notes file has a `## Related posts on
+13. RELATED POSTS LINKING. If the post's notes file has a `## Related posts on
     augusteo.com` section, the prose should link to those posts at the named
-    anchor points, AND the References section should include them. Flag missing
-    cross-references.
+    anchor points, AND the References section should include them. Flag
+    missing cross-references.
 
-11. VOICE / BANNED WORDS / EM-DASHES. The voice-check script catches most of
-    these mechanically, but you should also flag any case where the prose
-    crosses into editorial / stance language in parts 1–8 (which should be
-    descriptive). Stance belongs in part 9.
+14. VOICE / BANNED WORDS / EM-DASHES. The voice-check script catches most of
+    these mechanically, but you should also flag any case where the body
+    prose crosses into form-field labeling ("**What the book says.**",
+    italic source-quality lines, italic current-state lines) — those belong
+    in the appendix table, not the body.
 
-12. SUBTLE WRONG MODELS. The post is intuition-second to faithfulness-first,
-    but it still has to be technically accurate. Flag any sentence where the
-    prose builds an intuition that's misleading even if it sounds right.
+15. SUBTLE WRONG MODELS. The post is reader-first but still has to be
+    technically accurate. Flag any sentence where the prose builds an
+    intuition that's misleading even if it sounds right.
 
 For each finding, label it STRUCTURAL (must fix before shipping),
 LEDGER-INTEGRITY STRUCTURAL (highest severity — halts ship), or COSMETIC.

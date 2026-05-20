@@ -6,7 +6,7 @@ heroImage: "@assets/blog/scout-mindset/hero.svg"
 heroAlt: "Stylized topographic map drawn in ink and warm earth tones. Two paths diverge from the same starting point: a short brown soldier-path that loops back on itself, defending a position; and a longer green scout-path that climbs through the contour lines toward the horizon. A compass rose anchors the upper right. The scout's question, 'Is it true?', sits centered over the open terrain."
 tags: ["Books", "Rationality", "Decision-making"]
 featured: false
-draft: false
+draft: true
 essay: true
 ---
 
@@ -15,31 +15,46 @@ import CalibrationTest from "@components/figures/scout-mindset/CalibrationTest.s
 import BettingWidget from "@components/figures/scout-mindset/BettingWidget.svelte";
 import ITT from "@components/figures/scout-mindset/ITT.svelte";
 
-This post is a book-faithful re-read of Julia Galef's *The Scout Mindset: Why Some People See Things Clearly and Others Don't* (Portfolio, 2021) [L0]. The structure is the book's, in book order. Every claim attributed to Galef carries a chapter anchor; every claim about the current state of evidence carries an inline link to a primary source; every critic is named, tiered, and quoted on a specific argument. The goal is three things at once: a faithful summary you can verify against the source, a scientific-accountability layer that tracks where the book's seed citations have held up or moved, and a credible-critic layer that surfaces the strongest readings against it.
+Julia Galef's *The Scout Mindset* (Portfolio, 2021) [L0] is the working manual for "calibrate yourself, hold beliefs lightly, update when you should." This post pulls out what's worth taking from the book, in book order, and flags where the 2026 evidence has moved against some of her seed citations.
 
-The book divides into five Parts and sixteen chapters. The Parts are thematic groupings; the chapters carry the load-bearing claims. This post runs one section per body chapter (Ch 1–15), in order, with a short Conclusion at the end mirroring Galef's own Ch 16. I'm not reorganizing into a thesis arc, and I'm not promoting the book's anecdotes to claim-level when Galef uses them illustratively.
+Read the lessons first; jump to a section when you want the book's reasoning, the current evidence, and where I'd push back.
 
-Galef ran rationality workshops at the Center for Applied Rationality for almost a decade before writing this book. The book is partly the writeup of what those workshops taught her and partly an attempt to reframe the 2000s/2010s "we're all biased" literature (*Thinking, Fast and Slow*, *Predictably Irrational*, *Mistakes Were Made (But Not by Me)*) into something more usable. I went back to it because the rationality / decision-making literature has moved since publication: motivated-numeracy replications, the Bail 2018 echo-chamber follow-ups, the Hauenstein 2024/2025 reanalysis of Tetlock's Good Judgment Project. The book is recent enough that it sits in the middle of the 2011-onward replication-crisis window, and that turns out to matter for several of its citations.
+## What you can use from this book
 
-A note on the form: the post follows the same 9-part template per chapter (claim / type / centrality / what the book says / where it gets it / boundary / today's evidence / critics / where I land). The shape is repetitive on purpose. The "Where I land" sections are explicitly the stance layer; everything else is descriptive.
+**Watch for which question you're asking yourself.** The soldier asks "*can* I believe this?" of supporting evidence and "*must* I believe this?" of contrary evidence; the scout asks "is it true?" of both. The questions are the portable part of chapter 1; the war metaphor itself is loose. [See §1]
+
+**Run the four-bias checklist when you reach for a comfortable belief.** Present bias, ripple effects, habit underinvestment, and overestimated social costs all tilt you toward soldier mindset past the line you'd actually want, given your own long-run goals. Each is a thumb on the scale you can push back on consciously. [See §3]
+
+**Calibrate yourself in narrow domains where you get feedback; don't expect general transfer.** Forecasting practice in your specific domain (project estimates, hiring odds, investment confidence) actually works in a few hours of practice. The book's hope that this turns into a general "thinking clearly" skill is weaker than the evidence supports; calibration learned for weather doesn't make you better at calibrating geopolitics. [See §6]
+
+**Reframe motivation as "is this a bet worth taking?"** It's a better question than "do I believe I can do this?" because it has an actual answer (expected value, however roughly estimated), and it doesn't preclude asking "is this worth it relative to alternatives?" or "should I revise the plan?". [See §8]
+
+**Decouple social confidence from epistemic confidence.** You can hedge your claims and still be relaxed in delivery; Bezos pitching Amazon at "70% chance you'll lose your money" got funded. Anderson 2012 found that competence ratings track posture and tone, not certainty of claim; pretending to higher epistemic confidence than you have isn't necessary for being heard. [See §9]
+
+**Update incrementally; reframe "I was wrong" as "I updated."** Top GJP forecasters revised 12-50 times per question with subtle revisions, not 180-degree flips. The ego friction of "I was wrong" drops away once you treat each revision as a step, not a confession. [See §10]
+
+**Register every anomaly; chase the most interesting; count the ones you explain away.** Marvin Cohen's spring metaphor is the rule: each explain-away is cheap, the cost is paid in the count. If you find yourself explaining away three observations in the same area, that's the signal to stop explaining. [See §11]
+
+**Hold your identity lightly; but watch effective activism do it.** The chapter-14 prescription seems abstract until you read the AIDS Treatment Action Group arc (1987-1996, mortality dropped 60% in two years after the antiretroviral combination trials TAG pushed through the NIH). The case shows you can hold identity lightly *and* be a passionate, effective activist; the dichotomy people worry about is false. [See §14]
+
+## Where it gets complicated
+
+The chapters where the book's seed citations have aged most are §2 (the "critical-thinking trainings fail" line was already outpaced by Morewedge 2015 + Sellier 2019 when the book shipped), §4 (the motivated-numeracy paradigm has failed several preregistered replications since publication), §7 (the methodological critique of positive illusions is solid, but the absolutist read against self-enhancement is contradicted by Dufner 2019's 299-sample meta-analysis), and §10 (the GJP training-and-team story is in active reanalysis as of 2026). The core scout/soldier framing and the practical habits (calibration, incremental updating, holding identity lightly) survive the literature update intact.
 
 ### 1. Scout vs. soldier as two questions, not two verdicts (Ch 1)
 
-*Type: conceptual. Centrality: core.*
+The portable part of chapter 1 is two cognitive postures the book names: the *soldier* defends a preferred conclusion (asking "*can* I believe this?" of supporting evidence and "*must* I believe this?" of contrary), the *scout* asks "is it true?" of any evidence. The framing is useful for self-monitoring in moments where you're about to commit to a belief; at work, in a debate, reading the news.
 
-**What the book says.** Galef opens chapter 1 with the Dreyfus affair: the 1894 French army officers who became convinced of Captain Alfred Dreyfus's guilt and rationalized away the contrary evidence, and Colonel Picquart, the unlikely hero who investigated honestly and exonerated Dreyfus despite his own anti-Semitism and at considerable personal cost. Galef uses this to introduce two cognitive modes [L20]. The soldier asks "Can I believe it?" of evidence that supports a preferred conclusion, and "Must I believe it?" of evidence that doesn't. The scout asks "Is it true?" Galef calls the first directionally motivated reasoning and the second accuracy motivated reasoning. The scout/soldier framing is the book's central vocabulary; she returns to it in every chapter.
+The chapter opens with the Dreyfus affair (1894): the French army officers who rationalized Captain Dreyfus's guilt away from contrary evidence, and Colonel Picquart, the unlikely hero who investigated honestly and exonerated him despite his own anti-Semitism. Galef uses it to introduce the two modes [L20], pulling on Ziva Kunda's "The Case for Motivated Reasoning" (*Psychological Bulletin*, 1990) for the underlying concept and Thomas Gilovich's *How We Know What Isn't So* (1991) for the "Can I? / Must I?" framing. Soldier reasoning is directional; scout reasoning is accuracy-seeking.
 
-**Where the book gets it.** The motivated-reasoning concept is cited to Ziva Kunda's "The Case for Motivated Reasoning" (1990, *Psychological Bulletin*) [L20], which Galef treats as the canonical paper. The "Can I?/Must I?" framing she credits to Thomas Gilovich's *How We Know What Isn't So* (1991). *Source quality: cited-single-study (Kunda 1990 as the foundational paper).*
+**Try this:** when you notice yourself reaching for a comfortable conclusion, ask which question you just asked yourself. If you applied "must I?" to contrary evidence and "can I?" to supporting evidence, that's the soldier signature. The questions reverse for the scout.
 
-**Boundary conditions.** Galef does not claim anyone is a pure scout. The two postures are tendencies, not types; everyone fluctuates. Dreyfus's officers vs. Picquart is an illustrative contrast, not evidence that critics-of-an-army are scouts. The book is explicit that the goal is to shift the *balance* in your own thinking, not to achieve a personality reclassification.
+The motivated-reasoning concept is well-replicated as a description of how people sometimes process belief-incongruent evidence. [Freddie deBoer (Substack 2021)](https://freddiedeboer.substack.com/p/review-julia-galefs-the-scout-mindset) is right that the martial metaphor itself is loose; "admit", "grant", "allow" aren't combat words; but the underlying two-questions distinction holds.
 
-**What the evidence says today.** Kunda's motivated-reasoning framework remains foundational across psychology and behavioral economics. Recent reanalyses have narrowed specific paradigms inside the family (the Kahan-style motivated-numeracy paradigm, in particular, has failed several preregistered replications; see section 4 below), but the underlying *concept* of directionally motivated reasoning is uncontested as a description of how people sometimes process belief-incongruent evidence. *Current state: replicated (conceptual).*
+This is the vocabulary the rest of the book builds on; it earns its keep.
 
-**Credible critics.** No T1 academic critique of the underlying concept. **T2: [Freddie deBoer (Substack, 2021)](https://freddiedeboer.substack.com/p/review-julia-galefs-the-scout-mindset)** argues that Galef overclaims a martial metaphor in everyday reasoning vocabulary; words like "admit", "grant", and "allow" aren't combat metaphors, and Galef "utterly failed to establish such a metaphor." **T2: [Razib Khan (Quillette, 2021)](https://quillette.com/2021/11/10/the-scout-mindset-a-review/)** argues soldier mindset is the evolutionary default and the scout framing understates the structural pull toward soldier behavior.
-
-**Where I land.**
-
-The scout/soldier framing is useful as a vocabulary for self-monitoring. Treat it as a posture you lean toward in a given moment, not a typology you graduate into. The two questions ("Can I believe it?" vs. "Is it true?") are the actually-portable part of chapter 1; the Dreyfus story is illustrative scaffolding. When deBoer pushes back on the martial language, he's right that the metaphor isn't tight, but the questions still work. I read this chapter as more about the questions than the metaphor.
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
 <figure>
 <svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="Side-by-side comparison: the soldier's questions ('Can I believe it?', 'Must I believe it?') and the scout's question ('Is it true?')">
@@ -62,33 +77,18 @@ The scout/soldier framing is useful as a vocabulary for self-monitoring. Treat i
 
 ### 2. The six functions of soldier mindset, and an overstated "trainings fail" (Ch 2)
 
-*Type: conceptual + empirical. Centrality: core.*
-
-Where chapter 1 named the two postures, chapter 2 asks what soldier mindset is *doing*. Galef's move is a Chesterton's-fence: before tearing the soldier down, understand the fence.
-
-**What the book says.** Galef enumerates six functions soldier mindset serves [L21]:
+Chapter 2 asks what soldier mindset is *doing* before tearing it down; a Chesterton's-fence move. The six functions Galef enumerates [L21] (comfort, self-esteem, morale, persuasion, image, belonging; three emotional, three social) are a useful pre-design checklist: if your fix to your own thinking doesn't replace what the soldier-belief was providing, it tends to regress.
 
 > I've broken it down into six overlapping categories: comfort, self-esteem, morale, persuasion, image, and belonging. [L21]
 
-Three emotional (comfort, self-esteem, morale), three social (persuasion, image, belonging). For each, illustrative cases: the "This is fine" dog cartoon for comfort; the Tracy Flick *Election* monologue for self-esteem; the Cooper-Woo-Dunkelberg 1988 entrepreneur overconfidence stat (people give themselves 7+ in 10 odds of success when the baseline is closer to 1 in 10) for morale; LBJ's "working up" ritual for persuasion. The chapter also makes a bounded claim about why "teach people critical thinking" interventions fail at fixing motivated reasoning [L35]:
+**Watch for which of the six a belief is serving when you're about to drop it.** If you can't find a substitute for the function (e.g., the morale function of an entrepreneur's overconfidence), the belief will reassert itself.
 
-> None of these approaches have shown much promise in changing people's thinking in the long run or outside of the classroom. [L35]
+The chapter's load-bearing flaw is a bounded claim about critical-thinking interventions [L35]: that "none of these approaches have shown much promise" at fixing motivated reasoning. By the book's 2021 ship date, that line was already overshooting: [Morewedge et al. (2015)](https://journals.sagepub.com/doi/abs/10.1177/2372732215600886) showed a single-session debiasing game produced medium-to-large reductions in confirmation bias with effects at two-month follow-up; [Sellier, Scopelliti, and Morewedge (2019)](https://pubmed.ncbi.nlm.nih.gov/31347444/) extended this to a field study (graduate students 19% less likely to choose the inferior hypothesis-confirming solution on an unannounced business case). [A 2025 *Scientific Reports* study](https://www.nature.com/articles/s41598-025-28794-w) confirmed the result in a professional national-risk-analyst sample. The underlying intuition ("awareness of bias doesn't fix bias") is directionally right; the absolutist version doesn't survive.
 
-The mechanism, per Galef, is that the trainings target knowledge while motivated reasoning is doing emotional and social work the trainings ignore.
+The six functions hold up; the trainings-fail framing doesn't.
 
-**Where the book gets it.** The six-function taxonomy is Galef's own framing (no cited source for the taxonomy itself). The chapter cites Cooper, Woo, and Dunkelberg's 1988 *Journal of Business Venturing* survey for entrepreneur overconfidence, and Eigen and Listokin's 2012 *Journal of Legal Studies* natural experiment for lawyer overconfidence (law students randomly assigned to one side of a moot court become more confident their side is right AND demand more, hurting settlement outcomes). *Source quality: assertion (six-function taxonomy) + cited-single-study (Cooper-Woo-Dunkelberg; Eigen-Listokin).*
-
-**Boundary conditions.** Galef does NOT claim teaching critical thinking fails in general. The claim is bounded to using critical-thinking pedagogy as a *fix for motivated reasoning*. The chapter is clear the book is not making a blanket anti-education argument; it cites academic research throughout and assumes the reader values it. Endnote 13 also explicitly flags an unresolved dispute between psychologists and evolutionary psychologists over whether the emotional or social benefits of soldier mindset are the load-bearing ones; Galef does not take a side.
-
-**What the evidence says today.** The bounded "trainings fail" subclaim was already overstated by the book's 2021 publication date. [Morewedge et al. (2015, *Policy Insights from the Behavioral and Brain Sciences*)](https://journals.sagepub.com/doi/abs/10.1177/2372732215600886) found that a single-session debiasing game produced medium-to-large reductions in confirmation bias, bias blind spot, and fundamental attribution error, with effects still detectable at two-month follow-up. [Sellier, Scopelliti, and Morewedge (2019, *Psychological Science*)](https://pubmed.ncbi.nlm.nih.gov/31347444/) extended the result to a field study: graduate students trained with the debiasing game were 19% less likely to choose the inferior hypothesis-confirming solution on an unannounced business case modeled on the Challenger launch decision. Both papers were public when Galef shipped. A more recent test, [the 2025 *Scientific Reports* national-risk-analyst study](https://www.nature.com/articles/s41598-025-28794-w), found a single-session debiasing training reduced confirmation bias in both professional national-risk analysts and matched students; an in-field professional sample, not just an experimental one. The broader argument (that trainings which ignore underlying needs underperform) is directionally defensible; the absolutist version ("none of these approaches have shown much promise") is contradicted by the existing literature.
-
-The Cooper-Woo-Dunkelberg 1988 entrepreneur stat itself still gets cited but has been refined by [a 2018 review in *Management Review Quarterly*](https://link.springer.com/article/10.1007/s11301-018-0135-9), which found overoptimism and overconfidence remain the most-replicated entrepreneur biases while other commonly-listed biases (illusion of control, escalation of commitment) have weaker evidence. *Current state: refined (on the trainings-fail subclaim only); the six-function taxonomy is `n/a` for replication.*
-
-**Credible critics.** **T1: Morewedge / Sellier / Scopelliti group**, [Morewedge 2015](https://journals.sagepub.com/doi/abs/10.1177/2372732215600886) and [Sellier, Scopelliti & Morewedge 2019](https://pubmed.ncbi.nlm.nih.gov/31347444/), find that debiasing training does transfer to the field, contra the book's pessimism. **T2: [a 2018 *Management Review Quarterly* synthesis](https://link.springer.com/article/10.1007/s11301-018-0135-9)** notes the Cooper-Woo-Dunkelberg stat is widely cited but other entrepreneurship biases have weaker evidence than overconfidence does. No book-specific T1 critique.
-
-**Where I land.**
-
-The six functions are a useful pre-design checklist for anyone trying to fix their own thinking. If your "fix" doesn't address what soldier mindset was providing, the fix probably regresses. The trainings-fail framing was the part where the book overshot. By 2021, the Morewedge work was five years old and the Sellier follow-up was two years old. Either is enough to soften "shown little promise" to "shown narrow promise on the specific biases trained, with limited generalization." The book's underlying intuition (don't expect awareness-of-bias to fix bias) is right; the citation discipline isn't.
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
 <figure>
 <svg viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="A six-wedge wheel of the functions soldier mindset serves: three emotional (comfort, self-esteem, morale) and three social (persuasion, image, belonging). Truth is shown as one function among many, not the default.">
@@ -132,23 +132,18 @@ The six functions are a useful pre-design checklist for anyone trying to fix the
 
 ### 3. We over-choose soldier, given what we actually want (Ch 3)
 
-*Type: conceptual + empirical. Centrality: core.*
+Galef engages Bryan Caplan's "rational irrationality" model [L22]; the idea that you trade between epistemic and instrumental rationality optimally; and argues four biases systematically tilt the trade toward soldier past the line you'd want, given your long-run goals.
 
-If chapter 2 says soldier mindset serves real needs, chapter 3 asks what we trade away for it.
+The four biases: **present bias** (soldier's emotional reward is immediate; the cost is delayed); **ripple-effect blindness** (one rationalization forces others to stay consistent); **habit underinvestment** (each scout act reinforces the habit like a gym workout; easy to skip, hard to value); and **overestimating social costs** (people penalize us for changing our minds less than we expect). Galef closes with an evolutionary-environment argument: modern life offers far more options than ancestral life, so an accurate internal map is more valuable than it used to be.
 
-**What the book says.** Galef engages Bryan Caplan's "rational irrationality" model directly [L22], the idea that we trade between epistemic and instrumental rationality optimally. Her counter-argument is that four biases push the trade systematically toward soldier: present bias (the emotional reward is immediate, the cost delayed); underestimating ripple effects of self-deception (one rationalization forces others to keep it consistent); underestimating the value of building scout habits (each act of honesty reinforces the underlying habit, like a gym workout); and overestimating social costs (people penalize us for changing our minds less than we expect). She closes with an evolutionary-environment argument: modern life offers far more options than ancestral life, so an accurate internal map is more valuable than it used to be.
+**Run the four biases as a quick checklist when you catch yourself reaching for a comfortable belief.** Each is a thumb on the scale you can push back on consciously. If three of the four apply to the moment, you're probably under-investing in scout for this specific decision.
 
-**Where the book gets it.** Bryan Caplan, "Rational Ignorance Versus Rational Irrationality" (2001, *KYKLOS*) for the framework being engaged. George Ainslie's *Picoeconomics* (1992) for present bias. Andrea Levy et al. (2018, *JAMA Network Open*) for patient nondisclosure: 81% / 61% of patients in two surveys admitted hiding medically relevant information from their doctor, mostly to avoid embarrassment and judgment. *Source quality: expert-frame (Ainslie, Caplan as theory monographs) + cited-single-study (Levy 2018 survey).*
+Present bias and hyperbolic discounting are well-replicated ([Frederick et al. 2002, *JEL*](https://www.aeaweb.org/articles?id=10.1257/jel.40.2.351) remains the canonical synthesis). The "modern life rewards scout" claim is more contested: for deliberative roles (research, engineering, public policy) it reads as obviously right; for roles where social cohesion is the main deliverable (sales, frontline care, organizing) the calculus is less obvious. [Khan (Quillette 2021)](https://quillette.com/2021/11/10/the-scout-mindset-a-review/) presses the evolutionary point further: soldier reward isn't only emotional, it's reproductive-fitness-shaped and harder to override than the chapter implies.
 
-**Boundary conditions.** Galef does not claim every individual instance of soldier mindset is a mistake. The framing is about systematic under-investment given long-run goals; she doesn't argue that the immediate soldier-reward is illusory.
+Take the four biases as a checklist; treat the broader civilizational claim as a hypothesis.
 
-**What the evidence says today.** Present bias and hyperbolic discounting are well-replicated across behavioral economics; [Frederick, Loewenstein, and O'Donoghue's 2002 review in the *Journal of Economic Literature*](https://www.aeaweb.org/articles?id=10.1257/jel.40.2.351) is the canonical synthesis and the subsequent literature continues to refine but not overturn the basic findings. The Levy 2018 patient-nondisclosure rate is a single survey but methodologically standard. *Current state: replicated (the present-bias mechanism); single-survey (the patient-nondisclosure rate).*
-
-**Credible critics.** No T1 academic critique of the bundled "we over-choose soldier" claim. **T2: [Khan (Quillette 2021)](https://quillette.com/2021/11/10/the-scout-mindset-a-review/)** continues a thread from chapter 1: soldier reward isn't only emotional; it's reproductive-fitness-shaped and harder to override than the chapter implies. The "modern life rewards scout" argument depends on what "modern life" means for the reader.
-
-**Where I land.**
-
-The over-choose framing lands. The four biases are useful as a checklist when you notice yourself reaching for a comfortable belief. The "scout's world now" claim is a separate, more contested argument. For people in deliberative roles (research, engineering, public policy), it reads as obviously right; for people in roles where social cohesion is the main deliverable (sales, politics, frontline care), the calculus is less obvious. I'd take from this chapter the four biases and leave the broader civilizational claim as a hypothesis.
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
 <figure>
 <svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="Diagram of Galef's four biases pulling the trade-off between scout and soldier toward soldier: present bias, ripple-effect blindness, habit underinvestment, and overestimating social costs.">
@@ -192,31 +187,22 @@ The over-choose framing lands. The four biases are useful as a checklist when yo
 <figcaption>Galef's chapter-3 case against the rational-irrationality optimum. The scout vs. soldier trade is real, but four biases systematically pull people past the line they'd actually want, given their own long-run preferences. [L22]</figcaption>
 </figure>
 
-### 4. Knowledge amplifies polarization on charged topics, but the mechanism is contested (Ch 4)
+### 4. Knowledge amplifies polarization on charged topics; mechanism is contested (Ch 4)
 
-*Type: empirical. Centrality: core.*
-
-**What the book says.** Galef opens chapter 4 with a chapter-long argument that self-perception fails as a scout-detector. "Feeling objective doesn't make you a scout" (Lawrence Krauss defending Jeffrey Epstein). "Being smart and knowledgeable doesn't make you a scout" either, and here she introduces the load-bearing empirical claim: on ideologically charged scientific topics, higher science intelligence does *not* reduce motivated reasoning; it amplifies polarization. She cites Dan Kahan's 2017 *Journal of Risk Research* paper and notes that Drummond and Fischhoff's 2017 *PNAS* paper finds the same pattern across stem-cell research, human evolution, the Big Bang, and climate change [L23]:
+Galef's chapter-4 argument is that self-perception fails as a scout-detector; feeling objective doesn't make you a scout, and being smart doesn't either. On ideologically charged topics, higher science intelligence *amplifies* polarization rather than reducing it [L23]:
 
 > [A]s scientific intelligence increases, liberal and conservative opinions diverge. [L23]
 
-She then introduces a positive contrast [L36]: five *behavioral* signs of scout mindset, because if introspection fails the test has to be behavioral. The five: telling people when they were right (Lincoln to Grant after Vicksburg); reacting well to personal criticism (Spencer Greenberg's biannual anonymous-feedback survey); proving yourself wrong (Bethany Brookshire fact-checking her own viral tweet about gendered email salutations); taking precautions against fooling yourself (Saul Perlmutter's blinded analysis pipeline for the Supernova Cosmology Project, which won the 2011 Nobel); and having good critics (Darwin and François Jules Pictet de la Rive on the *Origin*).
+She cites Kahan's 2017 motivated-numeracy paradigm and Drummond and Fischhoff's 2017 *PNAS* result. As a corrective, she offers [L36] five *behavioral* signs of scout mindset (since introspection fails the test): telling people when they're right, reacting well to personal criticism (Spencer Greenberg's biannual anonymous-feedback survey), proving yourself wrong (Bethany Brookshire fact-checking her own viral tweet), taking precautions like Saul Perlmutter's blinded supernova-cosmology pipeline, and having good critics (Darwin's correspondence with Pictet de la Rive).
 
-**Where the book gets it.** Kahan 2017 ("Ordinary Science Intelligence", *Journal of Risk Research*) and Drummond and Fischhoff 2017 ("Individuals with Greater Science Literacy and Education Have More Polarized Beliefs on Controversial Science Topics", *PNAS*) for the empirical claim. Inbar and Lammers 2012 (*Perspectives on Psychological Science*) for the 14:1 liberal/conservative ratio in social/personality psychology. The five behavioral signs are Galef's taxonomy. *Source quality: cited-single-study (Kahan, Drummond/Fischhoff) + assertion (the five-signs taxonomy).*
+**Watch for which sign you can actually run in your week.** "Tell someone when they were right" is the cheapest entry; "blind your own analysis pipeline" is the most expensive. Pick one.
 
-**Boundary conditions.** Galef does NOT claim higher science literacy is bad. The chapter presents the polarization-with-literacy result as a humbling fact about ideologically charged topics, not as anti-intellectualism. She is careful to scope the result to *charged* topics: on neutrally-framed science questions, education and polarization don't track the same way.
+The pattern Galef points at is real but the mechanism story is where the literature has moved against her. The cross-sectional correlation has held up ([Fischer, Drews et al. 2022, *PNAS*](https://pubmed.ncbi.nlm.nih.gov/35467910/) replicated the signature on a fresh sample). But the *motivated-numeracy paradigm*; the one giving the chapter its bite about reasoning capacity as a multiplier; has failed several preregistered direct replications: [Persson, Tappin et al. (2021, *Cognition*)](https://pubmed.ncbi.nlm.nih.gov/34051421/); [Lind et al. (2022)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10410746/); and [Bago et al. (2020)](https://pubmed.ncbi.nlm.nih.gov/31916834/) found that deliberation *reduces* belief in false news rather than amplifying; the opposite of the motivated-System-2 account. [A 2024 *Review of Philosophy and Psychology* analysis](https://link.springer.com/article/10.1007/s13164-024-00737-w) argues the original design is Bayesian-updating-compatible, so the paradigm doesn't uniquely identify motivated reasoning at all.
 
-**What the evidence says today.** The Drummond and Fischhoff cross-sectional correlation has held up. [Fischer, Drews et al. (2022, *PNAS*)](https://pubmed.ncbi.nlm.nih.gov/35467910/) replicated the correlational signature on a fresh sample and confirmed the pattern, but found little support for the causal "science literacy *drives* motivated reasoning" mechanism that gives the result its bite.
+Keep the humbling observational fact (polarization-with-literacy is real on charged topics); hold the "knowledge amplifies motivated reasoning" mechanism loosely; the five behavioral signs survive the mechanism debate unchanged.
 
-The mechanism story is where the literature has moved. The specific motivated-numeracy paradigm that Kahan introduced (and that gives the chapter its sharpest claim about higher reasoning capacity *amplifying* identity-protective cognition) has failed several preregistered direct replications: [Persson, Tappin et al. (2021, *Cognition*)](https://pubmed.ncbi.nlm.nih.gov/34051421/); [Lind et al. (2022)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10410746/); Bago et al. (2020). [Bago et al. specifically found](https://pubmed.ncbi.nlm.nih.gov/31916834/) that deliberation reduces (rather than amplifies) belief in false news, the opposite prediction of the motivated-System-2 account. [A 2024 analysis in *Review of Philosophy and Psychology*](https://link.springer.com/article/10.1007/s13164-024-00737-w) argues the original motivated-numeracy design is Bayesian-updating-compatible, so "motivated reasoning" is underdetermined by the data.
-
-The cleanest reading as of 2026: the polarization-among-the-science-literate *pattern* replicates; the motivated-reasoning *mechanism* the book reaches for is genuinely contested. *Current state: split, replicated (correlational pattern) + disputed (mechanism).*
-
-**Credible critics.** **T1: [Persson, Tappin et al. (2021, *Cognition*)](https://pubmed.ncbi.nlm.nih.gov/34051421/)**. preregistered replication failure of motivated numeracy. **T1: [Bago et al. (2020)](https://pubmed.ncbi.nlm.nih.gov/31916834/)**. deliberation reduces, not amplifies, fake-news belief. **T1: [Fischer, Drews et al. (2022, *PNAS*)](https://pubmed.ncbi.nlm.nih.gov/35467910/)**. the correlation replicates but the mechanism doesn't get unique support from these data. **T2: [Review of Philosophy and Psychology, 2024](https://link.springer.com/article/10.1007/s13164-024-00737-w)**. the design is Bayesian-updating-compatible; motivated reasoning is underdetermined by what the paradigm measures.
-
-**Where I land.**
-
-The pattern Galef points at is real and worth knowing about: on charged topics, more science literacy correlates with more polarized beliefs, not less. The causal story she gestures toward (motivated reasoning amplified by reasoning capacity) is where the literature has moved against her. The cleanest update I'd make to the chapter: keep the humbling observational fact, hold the motivated-numeracy mechanism loosely, and look for the actual driver in something other than reasoning-capacity-as-multiplier. The five behavioral signs survive the mechanism debate unchanged; they're useful regardless.
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
 <figure>
 <svg viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="A two-by-two grid showing the motivated-numeracy paradox: higher numeracy improves accuracy on neutrally-framed problems and (per the contested Kahan 2013 mechanism) amplifies polarization on identity-laden problems. Replication status annotated.">
@@ -250,79 +236,55 @@ The pattern Galef points at is real and worth knowing about: on charged topics, 
 
 ### 5. Five thought experiments as journaling aids, not diagnostic instruments (Ch 5)
 
-*Type: practical. Centrality: supporting.*
+Chapter 5 is Galef's operational answer to "if introspection fails, what then?"; five counterfactual tools to make motivated reasoning visible from the inside [L24]: the **double-standard test** (would I accept this argument applied to someone I disliked?), the **outsider test** (what would a fresh CEO do?), the **conformity test** (if others no longer held this view, would I?), the **selective-skeptic test** (would I find this evidence credible if it supported the other side?), and the **status-quo-bias test** (would I actively choose my current situation if it weren't the default?). The Andy Grove and Gordon Moore Intel pivot is the outsider-test exemplar; passing isn't proof, failing tells you to do more work.
 
-§5 picks up directly from §4's "feeling objective doesn't make you a scout." The five thought experiments are operational answers to "if introspection fails, what then?"
+**Use them as journal prompts, not as diagnostics.** Each tool reveals your reasoning is contingent; none of them validates your view. Pick one and write the answer out; the friction of writing forces what introspection skips. The outsider test transfers best for medium-to-long-term decisions.
 
-**What the book says.** Galef introduces five counterfactual-variation tools [L24]: (1) the double-standard test (would you accept this argument if applied to someone you disliked?); (2) the outsider test (what would a fresh CEO do?); (3) the conformity test (if others no longer held this view, would you?); (4) the selective-skeptic test (would you find this evidence credible if it supported the other side?); (5) the status-quo-bias test (would you actively choose your current situation if it weren't the default?). Each is a way to make motivated reasoning visible from the inside. Andy Grove and Gordon Moore's Intel pivot from memory chips to microprocessors is the outsider-test exemplar; David's San Francisco job decision is the status-quo-bias case.
+The bundled five-tool kit isn't a measurable construct and no replication literature targets it directly; component-level evidence (perspective-taking transfer in social psychology) is genuinely contested but doesn't bear directly on Galef's framing.
 
-**Where the book gets it.** The "loser pays" wording-flip study (85% favorable when imagined as the winning defendant, 44% when imagined as the losing plaintiff) is from Bazerman and Moore's *Judgment in Managerial Decision Making* (2008) textbook. The status-quo-bias reversal test is cited to Bostrom and Ord (2006, *Ethics*). The rest is anecdotal (Galef's own selective-skeptic moment while researching the book; her childhood "Shoshana" conformity story). *Source quality: assertion (the tool kit as a whole) + textbook reference + cited-single-study (Bostrom and Ord) + anecdote.*
-
-**Boundary conditions.** Galef is explicit these are not oracles. Each tool reveals that your reasoning is contingent, not that you're wrong. Passing a double-standard test doesn't validate your view; failing one tells you to do more work.
-
-**What the evidence says today.** The bundled five-tool kit isn't a measurable construct; no replication literature targets it. Component-level evidence exists in scattered form (perspective-taking transfer is genuinely contested in social psychology), but the kit's value is as a journaling prompt, not a treatment. *Current state: no-update-found.*
-
-**Credible critics.** No credible critics found for the tool kit itself. Component-level: the broader perspective-taking literature has its own debates that don't bear directly on Galef's framing.
-
-**Where I land.**
-
-The five tools are useful as cognitive prompts. The right framing is "things to write down when you notice yourself reaching for a conclusion," not "diagnostic test for motivated reasoning." Use them as a brief journal exercise. The Intel-pivot story is the most useful anchor here; the outsider test transfers to a lot of medium-to-long-term decisions.
+Useful as cognitive prompts; don't oversell them as tests.
 
 <figure>
 <DoubleStandard client:visible />
 <figcaption>The double-standard test, the first of Galef's five thought experiments in Ch 5: same evidence, same argument, swap the actor. The shift in verdict is the asymmetry the test is designed to surface. Passing isn't proof; failing tells you to keep looking. [L24]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
+
 ### 6. Calibration is learnable in narrow domains; cross-domain transfer is weaker (Ch 6)
 
-*Type: empirical + practical. Centrality: core.*
-
-**What the book says.** Galef argues quantifying confidence is a learnable skill [L25]:
+Galef argues quantifying confidence is a learnable skill [L25] and lays out the operational toolkit: Douglas Hubbard's "equivalent bet test" (would you rather guess on this question, or pull a ball-and-box gamble with these odds?), Robert Kurzban's "press secretary vs. board of directors" metaphor (the press secretary makes claims; the board makes bets; only the board is incentivized for accuracy), and a 40-question calibration exercise. Spock is the anti-exemplar: across the original *Star Trek* run (n=23 predictions), when he says something is "impossible" it happens 83% of the time; when he says >99.5% likely, 17%.
 
 > Calibration is a skill with a quick learning curve. A couple of hours of practice is all it takes for most people to become very well calibrated, at least within a single domain. [L25]
 
-She catalogs Spock's confidence statements across the original *Star Trek* run as anti-exemplar (n=23 predictions; when Spock says something is "impossible" it happens 83% of the time, when he says it's >99.5% likely it happens 17% of the time). Appendix A lists the full dataset. Robert Kurzban's "press secretary vs. board of directors" metaphor (the press secretary makes claims; the board makes bets; only the board is incentivized for accuracy). Douglas Hubbard's "equivalent bet test" (would you rather guess on this question, or pull a ball-and-box gamble with these odds?). The chapter includes a 40-question calibration exercise (Appendix B has the answers).
+**Calibrate yourself in domains where you get feedback (forecasting markets, project estimates, anything you predict and check); and accept that the practice transfers narrowly.** A few hours of practice does the within-domain job. Don't expect it to make you generally better at thinking probabilistically.
 
-**Where the book gets it.** Douglas Hubbard, *How to Measure Anything* (Wiley, 2007), the equivalent-bet test. Robert Kurzban, *Why Everyone (Else) Is a Hypocrite* (Princeton, 2010), the press-secretary metaphor. The Spock dataset is Galef's compilation. *Source quality: practitioner-manual (Hubbard, Kurzban as trade-press how-to/theory) + cited-replicated-body (implicit Mellers/GJP work, not cited in-chapter).*
+Within-domain calibration training is well-supported. [Mellers et al. 2014 (*Psychological Science*)](https://journals.sagepub.com/doi/10.1177/0956797614524255) and the [follow-up 2015 paper](https://web.stanford.edu/~knutson/jdm/mellers15.pdf) document Good Judgment Project forecasters improving over the IARPA tournament's three years, with Brier-score gains driven partly by calibration training. Cross-domain transfer is much weaker: calibration learned for weather doesn't reliably make you better at calibrating geopolitical forecasts, and calibration learned anywhere degrades without ongoing feedback. [A Plan Space review](https://planspace.org/20210502-the_scout_mindset_by_galef/) presses a deeper objection: for genuinely difficult propositions there's no oracle, so calibration assumes a checkable ground truth that's often unavailable for the questions worth thinking about most.
 
-**Boundary conditions.** The "couple of hours of practice" claim applies to within-domain calibration with focused feedback. Galef explicitly does not claim cross-domain transfer or that calibration training makes you generally better at thinking probabilistically.
-
-**What the evidence says today.** Within-domain calibration training is well-supported. [Mellers et al. 2014 (*Psychological Science*)](https://journals.sagepub.com/doi/10.1177/0956797614524255) and the [follow-up 2015 *Perspectives on Psychological Science* paper](https://web.stanford.edu/~knutson/jdm/mellers15.pdf) document that Good Judgment Project forecasters improved over the IARPA tournament's three years, with measurable Brier-score gains driven partly by calibration training. Cross-domain transfer is much weaker: calibration learned for weather doesn't reliably make you better at calibrating geopolitical forecasts, and calibration learned anywhere degrades without ongoing feedback (Tetlock has made this point repeatedly). The book's specific "a couple of hours of practice" line is true for within-domain calibration; the broader implication that calibration is a portable skill needs hedging. *Current state: refined.*
-
-**Credible critics.** **T1: [Mellers, Stone, et al. 2015 (*Perspectives on Psychological Science*)](https://web.stanford.edu/~knutson/jdm/mellers15.pdf)** itself bounds the calibration claim: the GJP forecasters' gains came partly from training but also from ongoing tournament practice with feedback; calibration without such practice degrades. **T2: [a Plan Space review](https://planspace.org/20210502-the_scout_mindset_by_galef/)** raises a deeper objection: for genuinely difficult propositions there's no oracle, so calibration assumes a checkable ground truth that often isn't available. The objection lands on the kinds of questions worth thinking about most.
-
-**Where I land.**
-
-Calibrate yourself in domains where you get feedback (forecasting markets, project estimation, anything you actually predict and check). The two-hours-of-practice number is roughly right for those. Don't expect this to make you a generally less-biased thinker. The Spock exercise is fun and the dataset is small enough to take seriously without overgeneralizing.
+Within-domain calibration is one of the most actionable practices in the book; the broader implication that it's a portable thinking skill needs hedging.
 
 <figure>
 <CalibrationTest client:visible />
 <figcaption>Galef's chapter-6 prescription, ported to a 10-item self-test. Within-domain calibration is what the literature most strongly supports (per Mellers 2014 and Tetlock's GJP work); cross-domain transfer is weaker and degrades without practice. The exercise is directional, not diagnostic. [L25]</figcaption>
 </figure>
 
-### 7. The positive-illusions critique is sharp; the absolutist read isn't quite right (Ch 7)
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
-*Type: empirical critique + practical. Centrality: core.*
+### 7. The positive-illusions critique is sharp; the absolutist read isn't (Ch 7)
 
-**What the book says.** Galef opens chapter 7 with Steven Callahan's 76-day Atlantic survival in a life raft (1981) as a scout exemplar: he refused to self-deceive because Nature wouldn't reward him for it. She walks through honest coping techniques: making a hypothetical plan, noticing silver linings without rationalizing the cloud away, focusing on a different goal, "things could be worse" (the AIDS Treatment Action Group through the 1993 AZT disappointment) [L37]. Then she pivots to the chapter's sharpest claim [L26]:
+Chapter 7 opens with Steven Callahan's 76-day Atlantic survival (1981) as a scout exemplar; he refused to self-deceive because Nature wouldn't reward him for it; and walks through *honest coping* techniques (hypothetical plans, noticing silver linings without rationalizing the cloud away, "things could be worse" framings; the AIDS Treatment Action Group through the 1993 AZT disappointment) [L37]. Then Galef makes the chapter's sharpest move [L26]:
 
 > Calling people's beliefs "biased" or "illusions" without any objective standard of reality to compare them to is a problem that's rampant throughout the research on self-deception. [L26]
 
-The research-is-broken argument targets the Taylor and Brown 1988 positive-illusions framework and the Sackeim-Gur Self-Deception Questionnaire from the 1970s. Her case: they conflate positive beliefs with positive illusions (a self-rating of "above average" is classified as delusion without an external measure of the trait), and the SDQ classifies people as self-deceivers for answering common-experience questions with low scores. Galef is careful to scope her target: she doesn't claim self-deception can't cause happiness; she claims this particular research line doesn't show that it does.
+The target is the Taylor and Brown 1988 positive-illusions framework and the Sackeim-Gur Self-Deception Questionnaire: both classify people as self-deceivers without an external check on the trait being self-rated.
 
-**Where the book gets it.** Taylor and Brown 1988 ("Illusion and Well-being", *Psychological Bulletin*) for the framework being critiqued. Sackeim and Gur 1979 ("Self-deception: A Concept in Search of a Phenomenon") for the SDQ. Robins and Beer 2001 (*JPSP*) for evidence of long-term costs to self-enhancement, which the book cites in its favor. Steven Callahan, *Adrift: Seventy-six Days Lost at Sea* (1986) for the opening narrative. *Source quality: cited-single-study (Taylor & Brown; Sackeim & Gur; Robins & Beer).*
+**When you catch yourself coping by rationalizing, swap to one of the honest moves instead.** Make a hypothetical plan for the bad outcome, find a real silver lining without rewriting the cloud, or focus on a different goal. The honest moves match the mood benefit without the accuracy cost.
 
-**Boundary conditions.** Galef explicitly does not claim self-deception cannot cause happiness. The claim is narrower: the popular research showing it does is methodologically broken, and honest coping techniques are available that match the mood benefits without the accuracy cost.
+The methodological critique is well-supported. [Colvin and Block 1994 (*Psychological Bulletin*)](https://pubmed.ncbi.nlm.nih.gov/8078973/) is the canonical rebuttal: Taylor and Brown's conclusion doesn't survive when an objective standard for "above-average" is applied. But the stronger read (positive illusions never help) doesn't survive either: [Dufner, Gebauer, Sedikides, and Denissen 2019 (*PSPR*)](https://research.tilburguniversity.edu/en/publications/self-enhancement-and-psychological-adjustment-a-meta-analytic-rev/) meta-analyzed 299 samples and found self-enhancement *is* positively related to personal-adjustment outcomes (effects heterogeneous, interpersonal effects mixed). [Taylor and Brown's 1994 response](https://taylorlab.psych.ucla.edu/wp-content/uploads/sites/5/2014/10/1994_Positive-Illusions-and-Well-Being-Revisited_Separating-Fact-from-Fiction.pdf) narrowed the original claim toward "people believe they can control things more than is actually the case."
 
-**What the evidence says today.** Galef's *methodological* critique is well-supported. [Colvin and Block 1994 (*Psychological Bulletin*)](https://pubmed.ncbi.nlm.nih.gov/8078973/) published the canonical methodological rebuttal: the Taylor and Brown "positive illusions are adaptive" conclusion does not survive when an objective standard for "above-average" is applied. [Taylor and Brown's 1994 response](https://taylorlab.psych.ucla.edu/wp-content/uploads/sites/5/2014/10/1994_Positive-Illusions-and-Well-Being-Revisited_Separating-Fact-from-Fiction.pdf) attempted to redefine the claim toward "people believe they can control things more than is actually the case", a narrower position than the original. Robins and Beer 2001 (which Galef cites herself) found long-term costs to self-enhancement.
-
-The complication is that the field is *not* unanimously on Galef's side on the stronger reading. [Dufner, Gebauer, Sedikides, and Denissen (2019, *Personality and Social Psychology Review*)](https://research.tilburguniversity.edu/en/publications/self-enhancement-and-psychological-adjustment-a-meta-analytic-rev/) meta-analyzed 299 samples and found self-enhancement is positively related to personal-adjustment outcomes (effect heterogeneous, interpersonal-adjustment effects mixed). So Galef's *methodological* critique stands; the implied stronger position ("positive illusions never cause happiness") does not survive the meta-analytic evidence. *Current state: refined / contested.*
-
-**Credible critics.** **T1: Taylor and Brown 1994 themselves** [(response)](https://taylorlab.psych.ucla.edu/wp-content/uploads/sites/5/2014/10/1994_Positive-Illusions-and-Well-Being-Revisited_Separating-Fact-from-Fiction.pdf), defending the original by narrowing the definition. **T1: [Dufner et al. 2019 meta-analysis](https://research.tilburguniversity.edu/en/publications/self-enhancement-and-psychological-adjustment-a-meta-analytic-rev/)**. 299 samples; self-enhancement is positively related to personal adjustment, complicating Galef's stronger framing. **T2: pop-psychology authors** (Hallinan, *Kidding Ourselves*, 2014, cited in the book itself) continue to treat positive illusions as adaptive without engaging Colvin and Block.
-
-**Where I land.**
-
-The methodological critique is right and worth restating: you cannot call a belief an "illusion" without an objective standard, and the SDQ items are not a measure of self-deception. The honest coping techniques are practically useful regardless of whether positive illusions also help. The place where the chapter overshoots is treating the methodological win as a substantive win: the 299-sample Dufner meta-analysis says self-enhancement has *some* positive correlation with personal adjustment, even after fixing the measurement problems. The cleanest read is: Galef is right about the studies, partly right about the prescription, and the broader question is still being worked.
+Galef is right about the studies, partly right about the prescription. The honest-coping techniques are useful regardless of how the substantive question shakes out.
 
 <figure>
 <svg viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="A balance scale weighing the benefits of positive illusions on one side against their costs on the other; both pans bear weight, with the costs pan slightly heavier per the Colvin and Block 1994 methodological rebuttal but not zeroed-out per the Dufner 2019 meta-analysis.">
@@ -357,57 +319,48 @@ The methodological critique is right and worth restating: you cannot call a beli
 <figcaption>Galef's chapter-7 ledger. The methodological critique (against the Taylor and Brown framework as originally measured) lands. The absolutist implication (no upside to positive illusions, ever) does not: the Dufner 2019 meta-analysis (k=299) shows the benefits pan is not empty even after measurement issues are addressed. The honest-coping techniques the chapter recommends recover most of the benefits without the costs. [L26]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
+
 ### 8. "Bet worth taking" reframes motivation as expected value (Ch 8)
 
-*Type: conceptual + practical. Centrality: core.*
+Chapter 8 attacks the "self-belief" model of motivation (Henry Ford's "Whether you think you can or you can't, you're right"; William James's "Will to Believe") on operational grounds: it precludes the actually useful questions about a decision. Is this goal worth pursuing *relative to alternatives*? Should I revise the plan? How much should I stake?
 
-**What the book says.** Galef argues the "self-belief" model of motivation (Henry Ford's "Whether you think you can or you can't, you're right"; William James's "Will to Believe") is wrong because it precludes the most useful questions: Is this goal worth pursuing relative to alternatives? Should I revise the plan? How much should I stake? Three vignettes: Galef herself at sixteen choosing not to pursue Broadway after running Actors Equity income numbers; Shellye Archambeau at MetricStream adapting her CEO ambition after the 2001 dot-com crash; Norm Brodsky losing Perfect Courier when he bet the company on Sky Courier. Then the reframe [L27]:
+The chapter's reframe [L27]:
 
 > They're motivated by the thought, "This is a bet worth taking." [L27]
 
-Elon Musk's stated 10% confidence in Tesla and SpaceX at founding; Jeff Bezos's 30% confidence in Amazon. The Trevor Bauer "random variation" example for equanimity in the face of streaks and slumps.
+Vignettes: Galef herself at sixteen choosing not to pursue Broadway after running Actors Equity income numbers; Shellye Archambeau adapting her CEO ambition after the 2001 dot-com crash; Norm Brodsky losing Perfect Courier when he bet the company on Sky Courier. Elon Musk's stated 10% confidence in Tesla and SpaceX at founding; Jeff Bezos's 30% confidence in Amazon. Trevor Bauer's "random variation" framing for equanimity in the face of streaks and slumps.
 
-**Where the book gets it.** Anecdotal: Musk, Bezos, Brodsky, Bauer; William James 1896 *The Will to Believe* as the contrasting philosophical position; Galef's own Broadway decision (personal experience). *Source quality: expert-quote (Musk, Bezos quoted estimates) + anecdote + personal-experience (Galef's Broadway story).*
+**Replace "do I believe I can do this?" with "is this a bet worth taking?"** The latter has an actual answer (expected value, however roughly estimated) and doesn't preclude asking "is this worth it relative to alternatives?" or "should I revise?"; the most useful questions about any high-variance pursuit.
 
-**Boundary conditions.** Galef does not claim founders should suppress all optimism. The argument is that the *self-belief* model is wrong because it precludes asking "is this worth doing?" She doesn't claim every founder should run their own probability spreadsheet.
+Conceptual claim, not empirical; n/a for replication. The Musk/Bezos probability self-reports are years-after-the-fact, so the evidence is light. [Freddie deBoer (Substack 2021)](https://freddiedeboer.substack.com/p/review-julia-galefs-the-scout-mindset) presses the point that thought-experiment reframings are essentially powerless against deep irrationalism; whether the reframe actually changes behavior is an open question.
 
-**What the evidence says today.** This is a conceptual claim, not an empirical one; n/a for replication. The Musk/Bezos probability quotes are self-reports made years after the relevant decisions. There is a separate literature on entrepreneur overconfidence and its outcomes (see chapter 2), but the specific reframe Galef proposes is a philosophical move, not a testable mechanism. *Current state: n/a.*
-
-**Credible critics.** No T1 academic critique of the bet-worth-taking reframe. **T2: deBoer** argues that thought experiments are essentially powerless against deep irrationalism; his point lands on whether reframings actually change behavior.
-
-**Where I land.**
-
-The reframe is useful. "Is this a bet worth taking?" is a more useful question than "Do I believe I can do this?" because it has an actual answer (expected value, however roughly estimated). The autobiographical-quote evidence is light; treat the reframe as a posture you can try, not a validated intervention. The Bauer "random variation" example is the most portable part of the chapter for anyone working in a high-variance domain.
+Treat as a posture you can try, not a validated intervention. The Bauer "random variation" frame is the most portable part for anyone working in a high-variance domain.
 
 <figure>
 <BettingWidget client:visible />
 <figcaption>Galef's chapter-8 reframe, ported to two sliders. Hubbard's equivalent-bet test (introduced in Ch 6) and Kurzban's press-secretary metaphor target the same gap: between what your confidence-words claim and what your bet-acceptance would actually reveal. [L27]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
 ### 9. Social confidence reads as competence; epistemic confidence is separately useful (Ch 9)
 
-*Type: empirical + practical. Centrality: core.*
-
-**What the book says.** Galef argues the "you must project certainty to be influential" common wisdom is wrong. Bezos pitching Amazon investors in 1997 with "There's a 70% chance you're going to lose all your money, so don't invest unless you can afford to lose it." And Amazon got funded. She introduces a distinction the chapter returns to throughout [L28]:
+The chapter's argument: the "you must project certainty to be influential" common wisdom is wrong. Bezos pitched Amazon investors in 1997 with "There's a 70% chance you're going to lose all your money, so don't invest unless you can afford to lose it." And Amazon got funded. The distinction the chapter returns to [L28]:
 
 > The more a student participated in conversation, used an authoritative tone, and a relaxed manner, the higher their perceived competence. [L28]
 
-The claim has two arms. The first (the lens-analysis result): competence ratings track social-confidence cues (posture, tone, participation), not claims of epistemic certainty. The second (the status-motive result): people who want status are more overconfident. Both are anchored in Cameron Anderson et al.'s 2012 *JPSP* paper. Three rules for communicating uncertainty: show it's justified, give informed estimates with sourcing, have a plan. Benjamin Franklin and Lincoln as historical exemplars of hedged epistemic claims plus high social confidence.
+Galef leans on Cameron Anderson et al.'s 2012 *JPSP* paper: competence ratings track *social* cues (posture, tone, participation), not *epistemic* claim-certainty. Lincoln and Franklin as historical exemplars of hedged claims plus high social confidence. Three rules for communicating uncertainty: show it's justified, give informed estimates with sourcing, have a plan.
 
-**Where the book gets it.** Anderson, Brion, Kennedy, and Moore 2012, "A Status-Enhancement Account of Overconfidence" (*JPSP*); Walker 1977 on verbal vs. nonverbal confidence cues; Blanch et al. 2009 on doctor-patient uncertainty. *Source quality: cited-single-study (Anderson 2012).*
+**You can hedge your claims and still be relaxed in delivery; and that combination reads as competent.** Don't trade epistemic accuracy for social signal; both are available simultaneously. Watch especially for the failure mode of stating something as certain when you're not; if the claim turns out wrong, the social benefit reverses (see Tenney 2019 below).
 
-**Boundary conditions.** Galef does not claim epistemic confidence is unimportant. The claim is that it's not what drives perceived competence in face-to-face settings, and that pretending to higher epistemic confidence than you have isn't necessary for being persuasive.
+[Mayiwar, Løhre, Chandrashekar, and Hærem (2025, *JPSP*)](https://pubmed.ncbi.nlm.nih.gov/40146586/) ran a preregistered direct replication of Anderson 2012 *Study 5* (desire-for-status → overconfidence) and confirmed the link (β = 0.19 to 0.31 depending on the measure). The arm Galef leans on more heavily (Study 4's behavioral lens-analysis of which cues predict perceived competence) is still resting on the original 2012 study, no preregistered direct replication yet. [Tenney, Meikle, Hunsaker, Moore, and Anderson 2019 (*JPSP*)](https://pubmed.ncbi.nlm.nih.gov/30307277/) extends with a useful moderator: revealed *verbal* overconfidence (falsifiable claims that turned out wrong) carries a status penalty; revealed *nonverbal* overconfidence (relaxed posture without specific claims) doesn't. The book is on the right side of this; it recommends epistemic hedging while keeping posture; but doesn't flag the verbal/nonverbal asymmetry explicitly.
 
-**What the evidence says today.** [Mayiwar, Løhre, Chandrashekar, and Hærem (2025, *JPSP*)](https://pubmed.ncbi.nlm.nih.gov/40146586/) ran a preregistered direct replication of Anderson 2012 *Study 5* (desire-for-status → overconfidence) and confirmed the link (β = 0.19 with the original measure; β = 0.31 with an alternative). Study 5 is the status-motive arm of Anderson's paper. The arm Galef leans on for the chapter (Study 4's behavioral lens-analysis: which cues predict perceived competence in face-to-face groups) has not received a comparable preregistered direct replication. So one half of the underlying paper is now directly replicated; the half the book most directly uses is still resting on the original 2012 study.
+The combined picture from Anderson 2012 + Tenney 2019 + [Kennedy, Anderson, and Moore 2013 (*JOBHDP*)](https://www.sciencedirect.com/science/article/abs/pii/S0749597813000800) (who find revealed overconfidence retains some social benefits on aggregate): be relaxed in posture, hedged in specific verbal claims. The worst outcome is being overconfident *and getting caught*, which is what you risk when you suppress accurate epistemic uncertainty for social signal.
 
-[Tenney, Meikle, Hunsaker, Moore, and Anderson 2019, "Is Overconfidence a Social Liability?" (*JPSP*)](https://pubmed.ncbi.nlm.nih.gov/30307277/) extended the picture with a verbal-vs-nonverbal moderator: when *verbal* overconfidence is revealed (someone made falsifiable claims that turned out wrong), the status enhancement reverses; when *nonverbal* overconfidence is revealed (relaxed posture, authoritative tone, no specific falsifiable claim), the status enhancement survives the reveal. The book is on the right side of this for the social-confidence arm (it explicitly recommends epistemic hedging while keeping posture); the revealed-verbal-overconfidence penalty is a worth-knowing addition the chapter does not flag. *Current state: mixed; replicated on the status-motive arm; single-study on the specific cue-competence arm Galef relies on, with the Tenney 2019 verbal/nonverbal moderation as the most useful extension.*
-
-**Credible critics.** **T1: [Tenney et al. 2019 (*JPSP*)](https://pubmed.ncbi.nlm.nih.gov/30307277/)** show that revealed-verbal-overconfidence imposes a status penalty (revealed-nonverbal-overconfidence does not); the book's chapter does not flag the verbal-vs-nonverbal distinction. **T1: [Kennedy, Anderson, and Moore 2013 (*JOBHDP*)](https://www.sciencedirect.com/science/article/abs/pii/S0749597813000800)** find that on aggregate, revealed overconfidence still retains some social benefits, which complicates the cleanest reading of the Tenney 2019 verbal penalty. The combined picture: be relaxed in posture, hedged in specific verbal claims.
-
-**Where I land.**
-
-The social-vs-epistemic confidence distinction is useful for self-monitoring; you can be hedged about claims and still relaxed in posture. Treat the chapter's specific mechanism (social cues drive competence ratings) as a plausible hypothesis with a single 2012 study behind the load-bearing arm, and apply Tenney 2019: the worst outcome is being overconfident *and getting caught*, which is what you risk when you suppress accurate epistemic uncertainty for social signal.
+The distinction is useful for self-monitoring; treat the chapter's specific mechanism (social cues drive competence ratings) as a plausible hypothesis with a single 2012 study behind the load-bearing arm.
 
 <figure>
 <svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="A two-by-two quadrant of epistemic confidence (low/high) versus social confidence (low/high), with worked examples per quadrant: hedged-and-quiet, hedged-and-poised, certain-and-unpolished, certain-and-poised.">
@@ -446,30 +399,24 @@ The social-vs-epistemic confidence distinction is useful for self-monitoring; yo
 <figcaption>The chapter-9 distinction made concrete. Epistemic confidence is about the claim; social confidence is about the delivery. Galef's point is that the scout's combination is bottom-right (hedged claims, relaxed delivery), and Bezos pitching investors with "70% chance you'll lose your money" is the worked case. Anderson 2012 finds that competence ratings track social cues, not claim certainty, so top-right isn't the price of admission. [L28]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
 ### 10. Superforecasters update incrementally; the training story is under reanalysis (Ch 10)
 
-*Type: empirical. Centrality: core.*
-
-**What the book says.** The book's strongest empirical chapter. Galef centers Philip Tetlock's superforecaster research (Good Judgment Project + the IARPA forecasting tournament). A small fraction of forecasters consistently outperformed CIA analysts (with access to classified data) by ~30%, and beat university teams by up to 70%. The signature behavior [L29]:
+The book's strongest empirical chapter centers Philip Tetlock's superforecaster research (Good Judgment Project + the IARPA forecasting tournament). A small fraction of forecasters consistently outperformed CIA analysts (with access to classified data) by ~30%, and beat university teams by up to 70%. The signature behavior [L29]:
 
 > The superforecasters changed their minds all the time. Not dramatic, 180-degree reversals every day, but subtle revisions as they learned new information. [L29]
 
-Tim Minto, the top superforecaster, revised 12 to 50 times per question. Jerry Taylor (Cato Institute climate skeptic turned climate activist) as a case study in how updating happens in practice. Tetlock's "seven belief-system defenses" framework, particularly "I was almost right" and "politics is hopelessly cloudlike." The reframe: "updating" beats "admitting a mistake" because it removes the ego-friction.
+Tim Minto, the top superforecaster, revised 12 to 50 times per question. Jerry Taylor (Cato Institute climate skeptic turned climate activist) as a case study in how updating happens in practice. The chapter's portable reframe: "updating" beats "admitting a mistake" because it removes the ego-friction.
 
-**Where the book gets it.** Tetlock and Gardner, *Superforecasting* (2015, Crown), the trade-book synthesis; the underlying empirical work is Mellers et al. 2014/2015 in *Psychological Science* and *Perspectives on Psychological Science*; Tetlock's earlier *Expert Political Judgment* (2005, Princeton). *Source quality: cited-replicated-body (the GJP/IARPA tournament work has multiple peer-reviewed reports).*
+**Reframe "I was wrong" as "I updated."** Each revision is a step, not a confession. The friction of admitting error drops away when the act stops being identity-defining.
 
-**Boundary conditions.** Galef does not claim superforecasters are predictive across all domains. The Tetlock work is explicitly about geopolitical forecasting questions over fixed time horizons; the book respects this caveat and notes the within-paradigm scope.
+The within-paradigm result (a small fraction outperforms peers and analysts on geopolitical questions over the tournament window) is documented across [Mellers et al. 2014 (*Psychological Science*)](https://journals.sagepub.com/doi/10.1177/0956797614524255) and [Mellers et al. 2015](https://web.stanford.edu/~knutson/jdm/mellers15.pdf), and confirmed in subsequent tournaments. The book respects the cross-domain generalizability caveat: calibration for short-horizon geopolitics doesn't transfer to long-horizon strategic questions.
 
-**What the evidence says today.** The within-paradigm result (a small fraction of forecasters outperform peers and intelligence analysts on geopolitical questions over the tournament window) is documented across multiple Mellers et al. papers ([Mellers, Stone et al. 2014, *Psychological Science*](https://journals.sagepub.com/doi/10.1177/0956797614524255); [Mellers, Stone et al. 2015, *Perspectives on Psychological Science*](https://web.stanford.edu/~knutson/jdm/mellers15.pdf)) and has been confirmed in subsequent BWBM tournaments. Two caveats matter. The first, which the book respects: cross-domain generalizability is contested. Calibration learned for short-horizon geopolitics doesn't reliably transfer to medium-or-long-horizon strategic questions, and Tetlock himself bounds the claim.
+The newer caveat the book couldn't cite: [Hauenstein, Moore, Anderson et al. (2024/2025, *Psychological Science*)](https://journals.sagepub.com/doi/10.1177/09567976241266481) reanalyzed GJP-style training/team effects with method-variance controls and found the effects shrink (and in some specifications reverse) when method-variance is modeled properly. [Karimi Motahhar and Gruca (2025, *International Journal of Forecasting*)](https://www.sciencedirect.com/journal/international-journal-of-forecasting) pushed back the other way, finding probability training significantly reduced several biases. The literature is in active back-and-forth.
 
-The second caveat is newer and the book couldn't cite it: [Hauenstein, Moore, Anderson, and colleagues (2024/2025, *Psychological Science*)](https://journals.sagepub.com/doi/10.1177/09567976241266481) reanalyzed GJP-style training/team effects with method-variance controls and found the effects shrink (and in some specifications reverse) when method-variance is properly modeled. Subsequent work has pushed back the other way: [Karimi Motahhar and Gruca (2025, *International Journal of Forecasting*)](https://www.sciencedirect.com/journal/international-journal-of-forecasting) modeled compensatory vs. non-compensatory biases in GJP forecasts and found probability training significantly reduced several biases, partially defending the training-causes-gains story. So the literature is in active back-and-forth as of 2026. The reanalysis doesn't kill "superforecasters exist and update incrementally"; it does mean the stronger claim about training and team interventions is being actively contested. The book's habit prescription ("update incrementally; reframe mistakes as updates") survives the reanalysis unchanged. *Current state: refined; within-paradigm replicated; training/team interventions under active method-variance reanalysis.*
-
-**Credible critics.** **T1: [Hauenstein, Moore, Anderson et al. 2024/2025 (*Psychological Science*)](https://journals.sagepub.com/doi/10.1177/09567976241266481)** method-variance reanalysis shrinks or reverses apparent training and team effects in the GJP design. **T1: [Karimi Motahhar & Gruca 2025 (*International Journal of Forecasting*)](https://www.sciencedirect.com/journal/international-journal-of-forecasting)** find that probability-training significantly reduces several forecasting biases in GJP data, partially defending the training-causes-gains story against the method-variance critique. The selection-vs-training question is unresolved as a literature-wide matter. **T2: [Dynamic Ecology's review of *Superforecasting*](https://dynamicecology.wordpress.com/2017/08/16/book-review-superforecasting-by-philip-tetlock-and-dan-gardner/)** notes most "superforecasting" tournaments are short-horizon and on questions that don't generalize to real strategic decisions.
-
-**Where I land.**
-
-The superforecaster finding is one of the more durable empirical claims in the book. The training-and-team intervention story is under active methodological reanalysis as of 2026; that doesn't undo the cohort-level result but it does soften the implied "you can train this in your own life" reading. The habit prescription, update incrementally, treat mistakes as updates rather than reversals, is useful independent of how the training mechanism shakes out.
+The cohort-level "superforecasters exist and update incrementally" finding holds. The "you can train this in your own life" implication is what's softening. The habit prescription (update incrementally, reframe mistakes as updates) survives the reanalysis unchanged.
 
 <figure>
 <svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="A four-rung habit ladder showing what superforecasters do, with each rung depending on the one below: granular probabilities, frequent small updates, calibration feedback, reframing mistakes as updates.">
@@ -495,27 +442,22 @@ The superforecaster finding is one of the more durable empirical claims in the b
 <figcaption>The chapter-10 habit checklist. The four behaviors are the scout-mindset version of what the GJP "superforecasters" did in the IARPA tournament. Galef presents them as habits to cultivate, not as a strictly ordered ladder. The cohort-level result is durable; the implied "you can be trained into it" story is what the 2024/2025 method-variance reanalysis is contesting. [L29]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
+
 ### 11. Lean into confusion, but accept that selectivity matters (Ch 11)
 
-*Type: conceptual + historical. Centrality: core.*
-
-**What the book says.** Galef opens chapter 11 with an optical-illusion photograph: raccoons on what looks like a hillside, until you see the rock is actually a rock in water reflecting the sky. The chapter argues the way most people handle anomalies, explaining them away to preserve the existing paradigm, is the wrong move; the right move is curiosity [L31]:
+Chapter 11 opens with an optical-illusion photograph (raccoons on what looks like a hillside until the rock turns out to be a rock in water reflecting the sky) and argues that the way most people handle anomalies; explaining them away to preserve the existing paradigm; is the wrong move [L31]:
 
 > [W]e react to observations that conflict with our worldview by explaining them away. [L31]
 
-Darwin's "golden rule" (write down any observation contradicting your theory the instant you encounter it) as positive exemplar; the peacock's tail puzzle as a case where following the anomaly led Darwin to sexual selection. Spock as anti-exemplar: dismissing aliens as "illogical" rather than asking what he was missing. Bruce Bueno de Mesquita's *War Trap* (1981): roughly 22% of 1816–1974 nation-state conflicts involve weaker nations attacking stronger ones; apparently irrational on paper, but the rational reasons are findable if you look. The Donna / Rodan + Fields MLM paradigm-shift story via Leah Remini's Scientology documentary. The London Homeopathic Hospital 1850s case (cholera mortality 18% at the homeopathic hospital vs. 46% at mainstream hospitals, because the homeopaths happened to recommend whey rehydration and hygiene). Marvin Cohen's spring metaphor: explaining away one anomaly is fine; the spring snaps if you stretch it too many times.
+Darwin's "golden rule" (write down any observation contradicting your theory the instant you encounter it) is the positive exemplar; the peacock's tail puzzle led Darwin to sexual selection by following the anomaly rather than dismissing it. Spock is the anti-exemplar: dismissing aliens as "illogical" rather than asking what he's missing. Bruce Bueno de Mesquita's *War Trap* (1981) finds that roughly 22% of 1816–1974 nation-state conflicts involve weaker nations attacking stronger ones; apparently suicidal on paper, ex-ante rational once you look. The London Homeopathic Hospital case (1850s cholera, 18% mortality at the homeopathic hospital vs. 46% at mainstream hospitals; because the homeopaths happened to recommend whey rehydration and hygiene). Marvin Cohen's spring metaphor: explaining away one anomaly is fine; the spring snaps if you stretch it too many times.
 
-**Where the book gets it.** Bruce Bueno de Mesquita, *The War Trap* (Yale, 1983); Gary Klein, *Sources of Power* (MIT, 2017 ed.); Cohen, Freeman, and Thompson 1998 on critical thinking in tactical decisions; Darwin's correspondence and autobiography. *Source quality: cited-single-study (Bueno de Mesquita) + cited-historical (Darwin correspondence) + anecdote-mix.*
+**Register anomalies as you notice them, but count the ones you explain away; and if you find three in the same area, stop explaining.** That's the operational rule. The chapter's prescription isn't "chase every anomaly" (selectivity matters); it's "track the count."
 
-**Boundary conditions.** Galef does not claim every anomaly should be pursued. The prescription is to *register* anomalies and pursue them when patterns accumulate, not to chase every contradiction.
+The Bueno de Mesquita stylized fact survives; rational-choice IR theory has refined the model but the basic observation holds. The historical illustrations are documented. No T1 critics found; the philosophical move (Kuhn-style paradigm shifts begin with accumulated anomalies) is uncontroversial across history of science.
 
-**What the evidence says today.** Conceptual and historical claim. The Bueno de Mesquita stylized fact survives in international relations; rational-choice IR theory has refined the model but the basic observation (apparently-suicidal attacks can be ex-ante rational) still holds. Historical illustrations (Darwin's correspondence; London Homeopathic Hospital cholera mortality) are factually accurate; both are documented in their respective archives. *Current state: n/a for empirical replication; historical claims accurate.*
-
-**Credible critics.** No major critics of the lean-into-confusion principle. The historical examples are well-documented; the philosophical move (Kuhn-style paradigm shifts begin with accumulated anomalies) is uncontroversial across history of science.
-
-**Where I land.**
-
-The principle is right; the operational version is harder than the chapter implies. You can't pursue every anomaly; selectivity matters and the chapter is mostly silent on how to allocate attention. Marvin Cohen's spring metaphor is the most useful part for practical use: track the count, not just each instance. If you find yourself explaining away three anomalies in the same area, that's the signal to stop explaining and start looking.
+The principle lands; the operational version is harder than the chapter implies. The chapter is mostly silent on how to allocate attention across many anomalies. Cohen's spring metaphor is the portable rule.
 
 <figure>
 <svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="A central anomaly node with four scout-friendly reframes branching out: this was high expected-value; the alternative wasn't great either; useful information; what now. Marvin Cohen's spring metaphor shown at the bottom: explaining away one anomaly is cheap; three accumulate to a paradigm shift.">
@@ -559,30 +501,22 @@ The principle is right; the operational version is harder than the chapter impli
 <figcaption>Galef's chapter-11 prescription: don't explain anomalies away; <em>register</em> them, look for the rational story, follow the most interesting ones, and count the ones you do explain away. Marvin Cohen's spring metaphor is the operational rule: each explain-away is cheap; the cost is paid in the count. [L31]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
 ### 12. Echo-chamber escape is harder than the book says, in both directions (Ch 12)
 
-*Type: empirical + practical. Centrality: core.*
-
-**What the book says.** Galef argues the standard "escape your echo chamber" advice doesn't work as commonly given. The chapter centers Bail et al. 2018 in *PNAS* [L32]:
+The chapter argues the standard "escape your echo chamber" advice doesn't work as commonly given. The center is Bail et al. 2018 in *PNAS* [L32]:
 
 > Conservatives who spent a month reading liberal tweets became dramatically more conservative. [L32]
 
-Liberals who followed a conservative Twitter bot for a month moved slightly more liberal, an effect that didn't reach statistical significance. Anecdotal supporting cases: Rachael Previti's "one week of Fox News" essay; a Michigan magazine's media-diet swap. The chapter's positive prescription: listen to people who are reasonable (r/FeMRADebates as productive-disagreement example); share intellectual common ground (Jerry Taylor + Bob Litterman's risk-management framing on climate); share goals (Kelsey Piper and Jen disagreeing on abortion while both in effective altruism). And a debunking of the "team of rivals" myth: three of Lincoln's four "rivals" (Cameron, Bates, Chase) failed; only Seward worked out, and only after months of insubordination.
+Liberals followed a conservative Twitter bot for a month and moved slightly more liberal (not significant). The positive prescription: listen to reasonable people (r/FeMRADebates as productive-disagreement example), share intellectual common ground (Jerry Taylor + Bob Litterman's risk-management framing on climate), share goals (Kelsey Piper and Jen disagreeing on abortion while both inside effective altruism). The chapter also debunks the "team of rivals" myth: three of Lincoln's four "rivals" failed; only Seward worked out, and only after months of insubordination.
 
-**Where the book gets it.** Christopher A. Bail et al., "Exposure to Opposing Views on Social Media Can Increase Political Polarization" (2018, *PNAS*); Doris Kearns Goodwin, *Team of Rivals* (2005, the book being critiqued); T. Harry Williams 1966 and Brian McGinty 2008 for the actual cabinet histories. *Source quality: cited-single-study (Bail 2018) + cited-secondary-historical.*
+**Curate the cross-ideological inputs you can listen to with shared goals or shared common ground; don't try to "just read the other side" via the loudest opposing voices on social media.** The diagnosis is platform-specific; the prescription is portable.
 
-**Boundary conditions.** Galef does NOT claim echo-chamber-escape advice is uniformly bad. The argument is that the *default* version (read the loudest opposing voices) is counterproductive; better-curated cross-ideological listening (reasonable interlocutors, shared common ground, shared goals) works.
+The chapter's framing has aged unevenly. [Bail's own 2018 result](https://www.pnas.org/doi/10.1073/pnas.1804840115) holds in the direction the chapter cites for conservatives. But [Levy 2021 (*American Economic Review*)](https://www.aeaweb.org/articles?id=10.1257%2Faer.20191777) ran a field experiment offering Facebook users subscriptions to counter-attitudinal news outlets and found *decreased* out-party animosity (though not opinion shifts). [Guess, Malhotra, Pan et al. 2023 (*Science*)](https://www.science.org/doi/10.1126/science.abp9364), part of the Meta-Facebook 2020-election studies, manipulated algorithmic feeds for three months and found small effects on polarization despite substantial changes in on-platform exposure. Exposure backfires under specific conditions (Twitter, paid-to-follow, opposing pundits as source); counter-attitudinal news from established outlets can *reduce* out-party animosity.
 
-**What the evidence says today.** Three follow-up bodies of work complicate the chapter's framing. [Bail's own 2018 result](https://www.pnas.org/doi/10.1073/pnas.1804840115) holds in the direction the chapter cites for conservatives (significant rightward shift after liberal-tweet exposure); the liberal direction wasn't significant. But [Levy 2021 (*American Economic Review*)](https://www.aeaweb.org/articles?id=10.1257%2Faer.20191777) ran a field experiment offering Facebook users subscriptions to counter-attitudinal news outlets and found *decreased* out-party animosity (though not opinion shifts). [Guess, Malhotra, Pan et al. 2023 (*Science*)](https://www.science.org/doi/10.1126/science.abp9364), part of the Meta-Facebook 2020-election studies, manipulated algorithmic feeds for consenting users for three months and found small effects on issue polarization, affective polarization, and political knowledge despite substantial changes in on-platform content exposure.
-
-The cleanest reading: exposure backfires only under specific conditions (Twitter, paid-to-follow, opposing politicians and pundits as the source). Counter-attitudinal news from established outlets can *reduce* out-party animosity; algorithmic feed changes at scale don't move polarization much in either direction over three months. Galef's *prescription* (curate reasonable interlocutors with shared common ground or shared goals) is more defensible than her *diagnosis* (exposure to the other side is counterproductive in general). *Current state: refined / contested.*
-
-**Credible critics.** **T1: [Levy 2021 *AER*](https://www.aeaweb.org/articles?id=10.1257%2Faer.20191777)**. random counter-attitudinal Facebook news exposure decreased out-party animosity, against the chapter's framing. **T1: [Guess, Malhotra, Pan et al. 2023 *Science*](https://www.science.org/doi/10.1126/science.abp9364)**. algorithmic feed manipulation barely moved polarization or knowledge over three months. **T2: [Nature Briefing 2023 coverage](https://www.nature.com/articles/d41586-023-02425-8)** of the Meta-Facebook studies notes that the Bail 2018 finding has been over-generalized in popular accounts; algorithmic-feed exposure effects depend heavily on platform, framing, and curation.
-
-**Where I land.**
-
-Use Galef's prescription, hold the diagnosis loosely. The "just read the other side" advice is only counterproductive in specific operational conditions (most prominently, paid-to-follow on Twitter with high-output pundits as the input). Newsletter subscriptions, longer essays, and shared-goal contexts behave differently. The "reasonable interlocutors with shared common ground" framing is the load-bearing prescription; the Bail 2018 framing is the part that hasn't aged best.
+Use the prescription; hold the diagnosis loosely. The "reasonable interlocutors with shared common ground" framing is the load-bearing part.
 
 <figure>
 <svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="Two threshold bars showing the same evidence judged against symmetric (scout) vs asymmetric (soldier) acceptance standards. The soldier's bars sit at different heights for friendly vs hostile evidence; the scout's bars sit at the same height for both.">
@@ -623,33 +557,28 @@ Use Galef's prescription, hold the diagnosis loosely. The "just read the other s
 <figcaption>The selective-skeptic test from Galef's five Ch-5 tools, applied to Ch 12's echo-chamber problem. The soldier's two bars are what the empirical literature (Bail 2018 onward) calls "biased assimilation." The scout's matched bars are the operational fix; the chapter's positive prescriptions (curate reasonable interlocutors, share goals) follow from it. [L32]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
+
 ### 13. When a belief becomes an identity, it resists updating (Ch 13)
 
-*Type: conceptual + historical. Centrality: core.*
-
-**What the book says.** Galef argues identity-laden beliefs become harder to update even when the facts shift [L30]:
+Chapter 13 argues identity-laden beliefs become harder to update even when the facts shift [L30]:
 
 > [W]hen a belief is part of your identity, it becomes far harder to change your mind, even when the facts change dramatically. [L30]
 
-Two routes to identity: feeling embattled (minority sects, persecuted subcultures, 2019 Gallup showing 40% wouldn't vote for an atheist), and feeling proud (breastfeeding as connection-with-baby; crypto as anti-bank rebellion; pessimism as savvy). Even mundane disagreements can identitize (the "mommy wars"; the "probability wars" between frequentists and Bayesians (actual conference songs). Eight signs your belief has become an identity: using "I believe"; annoyance at criticism of the ideology; defiant language ("proud", "standing up", "unapologetic"); righteous tone ("period. full stop."); gatekeeping ("you can't call yourself X if…"); schadenfreude; epithets ("Breastapo", "social justice warriors"); having publicly defended the view.
+Two routes to identity: feeling **embattled** (minority sects, persecuted subcultures; 2019 Gallup showed 40% wouldn't vote for an atheist) and feeling **proud** (breastfeeding as connection-with-baby; crypto as anti-bank rebellion; pessimism as savvy). Even mundane disagreements can identitize. **Eight signs your belief has become an identity:** using "I believe..."; annoyance at criticism of the ideology; defiant language ("proud", "standing up", "unapologetic"); righteous tone ("period. full stop."); gatekeeping ("you can't call yourself X if..."); schadenfreude when opponents lose; epithets for the other side; having publicly defended the view.
 
-The chapter closes with what Galef calls the deadliest illustration [L38]:
+The chapter closes with the deadliest illustration [L38]:
 
 > In the 1980s, evidence began to accumulate that HIV can be transmitted in breast milk. [L38]
 
-The CDC issued a recommendation in 1985 that HIV-positive mothers should avoid breastfeeding. It took until 1998 for the leading pro-breastfeeding advocacy organizations to accept that HIV can be transmitted in breast milk and to acknowledge that fact to new mothers. Many babies contracted HIV unnecessarily in the interval.
+The CDC issued a recommendation in 1985 that HIV-positive mothers should avoid breastfeeding. It took until 1998 for leading pro-breastfeeding advocacy organizations to accept the transmission fact. Many babies contracted HIV unnecessarily in the interval.
 
-**Where the book gets it.** Courtney Jung, *Lactivism* (Basic Books, 2015), for the HIV/breast-milk timeline; the "mommy wars" and "probability wars" examples are journalism-sourced. The mechanism (identity-protective cognition) is the broader Kahan framework. *Source quality: assertion (mechanism) + historical-record (Jung for the HIV timeline).*
+**Run the 8-sign self-check periodically on the beliefs you defend most often.** Two or three signs is fine; five or more means you're holding the belief as identity, which makes it harder to update when you should.
 
-**Boundary conditions.** Galef does not claim having any identity is bad. The argument is that the *colonization of reasoning* by identity is the failure mode, not identification itself.
+The identity-protective cognition construct is supported in broad strokes; the motivated-numeracy operationalization is contested per §4 above. The HIV/breast-milk historical timeline is accurate per Courtney Jung's *Lactivism* (Basic Books, 2015).
 
-**What the evidence says today.** The identity-protective cognition construct is supported in broad strokes (people resist evidence that threatens identity-laden beliefs more than they resist neutrally-framed evidence). The specific motivated-numeracy operationalization that often gets cited is contested per section 4 above. The HIV/breast-milk historical timeline is accurate: the CDC warning came in 1985 (the chapter is right on the year), and the leading lactivist organizations did not formally accept the transmission risk until the late 1990s; Jung's *Lactivism* documents the chronology. *Current state: n/a for replication (conceptual + historical); historical illustration accurate.*
-
-**Credible critics.** **T1: identity-protective-cognition replication mix**. see section 4 critics; the specific motivated-numeracy paradigm has failed, but the broader construct survives in observational form. **T3:** no major critics of the HIV/breast-milk historical claim.
-
-**Where I land.**
-
-The mechanism is real; the eight signs are useful as a self-diagnostic checklist. The chapter slightly underestimates how identity-protective behavior can be net adaptive in some contexts (the persecuted-minority case is where identity-cohesion has both protective and isolating functions). The HIV/breast-milk illustration is the most morally heavy moment in the book, and it lands because the timeline is documented and the cost was measurable. Where the chapter falls short: it doesn't help the reader much with what to *do* about identity-laden beliefs that are also genuinely useful for community membership. That gap is what chapters 14 and 15 try to fill.
+The eight signs are a useful self-diagnostic. Where the chapter falls short: it doesn't help the reader much with what to *do* about identity-laden beliefs that are also genuinely useful for community membership. Chapters 14 and 15 try to fill that gap.
 
 <figure>
 <svg viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="A scatter plot with identity-load on the x-axis and willingness-to-update on the y-axis, with example beliefs placed along a downward curve: weather forecast at low identity-load (high update willingness); favorite sports team mid; political identity high (low willingness).">
@@ -690,68 +619,50 @@ The mechanism is real; the eight signs are useful as a self-diagnostic checklist
 <figcaption>The direction Ch 13 names, with illustrative jumps rather than a measured scale. The book gives two routes to identity (embattled and proud), not a continuous law. The cost rises sharply at the right edge: Galef's HIV-in-breast-milk illustration sits there, and the decade-long lag between the 1985 CDC warning and 1998 lactivist organizational acceptance is the cost being counted. [L30]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
 ### 14. Hold your identity lightly, and watch effective activism do it (Ch 14)
 
-*Type: conceptual + practical. Centrality: core.*
-
-**What the book says.** Galef proposes "holding your identity lightly" as a softening of Paul Graham's 2009 "Keep Your Identity Small" essay [L33]:
+Galef proposes "holding your identity lightly" as a softening of Paul Graham's 2009 "Keep Your Identity Small" essay [L33]:
 
 > Holding an identity lightly means thinking of it in a matter-of-fact way, rather than as a central source of pride and meaning in your life. [L33]
 
-Identify as a feminist, Democrat, or vegan if useful, but don't let the label colonize your reasoning. Barry Goldwater as historical exemplar: Republican who broke with Nixon during Watergate, defended *Roe v. Wade*, and defended Bill Clinton during Whitewater after concluding the Republicans had no case. Then Galef introduces Bryan Caplan's Ideological Turing Test [L39]:
+Identify as a feminist, Democrat, or vegan if useful, but don't let the label colonize your reasoning. Barry Goldwater is the historical exemplar: Republican who broke with Nixon during Watergate, defended *Roe v. Wade*, and defended Bill Clinton during Whitewater after concluding the Republicans had no case. The chapter introduces Bryan Caplan's Ideological Turing Test [L39]; can you state the other side's argument convincingly enough that an actual believer couldn't tell you apart?; with the Adam Mongrain *Vox* piece on his slow shift through good-faith conversations with his vaccine-skeptic wife as a working example.
 
-> The ideological Turing test, suggested by economist Bryan Caplan, is based on similar logic. [L39]
-
-Can you state the other side's argument convincingly enough that an actual believer couldn't tell you apart? A caricature-fails example from a liberal blogger writing about conservatives. The Adam Mongrain *Vox* piece on his slow shift through good-faith conversations with his vaccine-skeptic wife (the 2015 Pandemrix narcolepsy concession as a useful update).
-
-The chapter closes with the AIDS Treatment Action Group's pivot [L40]:
+The chapter closes with the AIDS Treatment Action Group pivot [L40]:
 
 > [C]onsider the story of a small group of scouts whose efforts turned the tide of AIDS [L40]
 
-The late-1980s disruptive ACT UP protests gave way in the mid-1990s to TAG's inside-the-NIH cooperation, designing the "large simple trial" (Spencer Cox's protocol) that delivered the 1996 antiretroviral combination therapy results. AIDS mortality dropped 60% in the United States over the following two years.
+The late-1980s disruptive ACT UP protests gave way in the mid-1990s to TAG's inside-the-NIH cooperation, designing the "large simple trial" protocol (Spencer Cox) that delivered the 1996 antiretroviral combination therapy results. AIDS mortality dropped 60% in the United States over the following two years.
 
-**Where the book gets it.** Paul Graham, "Keep Your Identity Small" (2009 essay). Bryan Caplan, "The Ideological Turing Test" (2011 *Library of Economics and Liberty* blog). David France, *How to Survive a Plague* (Knopf, 2016), for the TAG arc. Adam Mongrain, *Vox* (2015). Multiple *Washington Post* and *Christian Science Monitor* pieces for Goldwater. *Source quality: expert-quote (Graham, Caplan) + historical-record (France for TAG) + anecdote (Mongrain).*
+**Run the ITT as a journaling exercise on a position you disagree with, but don't treat it as a credential.** "I passed the ITT for X" is the failure mode; "I tried to write the strongest version of the opposing argument, and here's where I got stuck" is the use. The diagnostic is what you notice when you try, not whether you pass.
 
-**Boundary conditions.** Galef explicitly rebuts the "scouts are too passive to act" or "activists must be dispassionate" misreading. The TAG case is the explicit counterexample: holding identity lightly is compatible with passionate, effective activism. The chapter is built around this counter-argument; the post should not flatten it.
+Caplan's ITT is a conceptual diagnostic, not an empirically tested intervention. The TAG history is accurately recounted (David France's *How to Survive a Plague* is the canonical secondary source); the timeline is not contested.
 
-**What the evidence says today.** Practical and historical claim. Caplan's ITT is a conceptual diagnostic, not an empirically tested intervention; widely cited as a thought exercise across rationality / decision-making writing but not the subject of an experimental literature. The ACT UP / Treatment Action Group history is accurately recounted; France's documentation is the canonical secondary source. *Current state: n/a for replication; historical case accurate.*
-
-**Credible critics.** No T1 academic critique surfaced in the search. **T3:** No critique of the historical TAG case surfaced in the search; David France's documentation is the canonical secondary source and the timeline is not contested.
-
-**Where I land.**
-
-The TAG case is the most persuasive chapter in the book. It survives the boundary worry head-on: you can both hold your identity lightly and act effectively. The ITT is useful as a journaling exercise rather than as a credential ("I passed the ITT for X" is the failure mode; "I tried to write the strongest version of the argument I oppose, and here's where I got stuck" is the use). The lightness framing is harder to put into practice than the chapter implies, but the direction is right and the TAG arc is concrete enough to study.
+The TAG case is the most persuasive in the book; it dissolves the "scouts are too passive to act" worry head-on. The lightness framing is harder to practice than the chapter implies, but the direction is right and the case study is concrete enough to study.
 
 <figure>
 <ITT client:visible />
 <figcaption>Bryan Caplan's Ideological Turing Test, ported to a reader exercise. Caplan's original move (state the other side's case well enough that an actual believer couldn't tell you apart) only works as an honest exercise; the pairs above are synthetic by design. The diagnostic isn't whether you pass; it's what you notice when you try. [L39]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
 
-### 15. The scout-identity flywheel as the book proposes it, with community scaffolding as the caveat (Ch 15)
+### 15. Scout as an identity, with community scaffolding as the caveat (Ch 15)
 
-*Type: conceptual + autobiographical-exemplar. Centrality: core.*
-
-If chapter 13 named identity as the barrier and chapter 14 showed it could be held lightly, chapter 15 names the active ingredient: make scout itself the identity that updates.
-
-**What the book says.** Galef argues the cure for identity-as-barrier is making scout mindset itself part of your identity, which converts the short-term emotional *cost* of admitting error into a short-term emotional *reward* [L34]:
+If chapter 13 named identity as the barrier and chapter 14 showed it could be held lightly, chapter 15 names the active ingredient: make scout itself the identity. That converts the short-term emotional *cost* of admitting error into a short-term emotional *reward* [L34]:
 
 > Scout mindset isn't a chore they carry out grudgingly; it's a deep personal value of theirs, something they take pride in. [L34]
 
-Case studies: Susan Blackmore, the paranormal-believer-turned-skeptic who ran her own experiments and accepted the null results. Joshua Harris finally pulling *I Kissed Dating Goodbye* in 2018 after a decade of cognitive dissonance and reader feedback. Vitalik Buterin publicly hedging on Ethereum (sold roughly 25% of his Ether before the peak). Online communities that reinforce the identity: r/FeMRADebates; Kal Turnbull's ChangeAView.com with its "delta" status currency for users who change someone's mind. Bethany Brookshire's trajectory through drama club → cutthroat academia → journalism as a community-shifting case. The chapter closes with the Dawkins anecdote about the elderly Oxford zoologist who, after a visiting American scholar presented evidence the Golgi apparatus was real, walked to the front of the lecture hall and said "My dear fellow, I wish to thank you. I have been wrong these fifteen years."
+The case studies are mostly individual: Susan Blackmore, the paranormal-believer-turned-skeptic who ran her own experiments and accepted the null results; Joshua Harris pulling *I Kissed Dating Goodbye* in 2018; Vitalik Buterin publicly hedging on Ethereum (sold ~25% of his Ether before the peak). The chapter closes with the Dawkins anecdote about the elderly Oxford zoologist who, after a visiting American scholar presented evidence the Golgi apparatus was real, walked to the front of the lecture hall and said "My dear fellow, I wish to thank you. I have been wrong these fifteen years."
 
-**Where the book gets it.** Susan Blackmore's chapter in Richard Gross's *Psychology* (Hodder, 2010). Ruth Graham's *Slate* (2016) and Josh Harris's blog posts. Vitalik Buterin's public statements via Twitter/Reddit. Holden Karnofsky's Open Philanthropy 2016 blog post. *Source quality: anecdote-only (Blackmore, Harris, Buterin, Dawkins's Oxford zoologist).*
+**Pick the community before you try to install the identity.** Most of the lift comes from being inside a place where "I was wrong about X" reads as a high-status move; a rationality forum, a research lab with norms around updating, a workplace where revising estimates is rewarded. Without the scaffolding, the individual-level prescription is harder than the chapter implies.
 
-**Boundary conditions.** Galef does not claim the flywheel is automatic. The argument is that it's *available* with deliberate identity-cultivation and community choice, not that it happens to anyone exposed to the idea.
+Conceptual claim with anecdotal evidence. There's a broader identity-as-motivation literature (Aronson and others) that provides general empirical backing for the mechanism, but the specific flywheel framing is Galef's. [Razib Khan (Quillette)](https://quillette.com/2021/11/10/the-scout-mindset-a-review/) presses the point that soldier mindset is evolutionarily endorsed, so the flywheel reaches a smaller audience than the chapter implies. [Scott Alexander (Astral Codex Ten)](https://www.astralcodexten.com/p/book-review-the-scout-mindset) raises the deeper worry that scout identity requires becoming a better person, which "can't be trained" in one book.
 
-**What the evidence says today.** Conceptual claim with anecdotal evidence. There's a broader identity-as-motivation literature (Aronson and others) that provides general empirical backing for the mechanism, but the specific flywheel framing is Galef's. *Current state: n/a for replication; conceptually consistent with the broader identity-motivation literature.*
-
-**Credible critics.** **T2: [Khan (Quillette)](https://quillette.com/2021/11/10/the-scout-mindset-a-review/)**. most people will not adopt scout as identity because soldier is evolutionarily endorsed and easier; the flywheel reaches a small audience. **T2: [Scott Alexander (Astral Codex Ten)](https://www.astralcodexten.com/p/book-review-the-scout-mindset)**. scout identity requires becoming a better person, which "can't be trained" in one book.
-
-**Where I land.**
-
-The book argues the flywheel is available for some people in some communities, and the anecdotal cases are coherent. What the chapter underplays is how much of the lift comes from being in the right community in the first place: a rationality forum, a research lab with norms around updating, a workplace where saying "I was wrong about X" is recognized as a high-status move rather than a low-status one. Without that scaffolding, the individual-level prescription is harder. The portable part is the recognition that identity-as-update can be a community feature you select for, the way you select for other things you want in your environment.
+The flywheel is available; what the chapter underplays is how much of the lift is environmental. The portable insight is that identity-as-update can be a *community feature you select for*, the way you select for other things you want in your environment.
 
 <figure>
 <svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" width="100%" role="img" aria-label="A four-node flywheel diagram: community norms → individual habit → reinforced identity → community sustained, with caveat labels around the loop noting it depends on low-stakes domains and non-coerced membership.">
@@ -790,23 +701,109 @@ The book argues the flywheel is available for some people in some communities, a
 <figcaption>The Ch-15 flywheel as the book proposes it. The loop runs cleanly inside the right community (a forecasting tournament, a research lab, a workplace where "I was wrong about X" reads as high-status). Without the scaffolding, individuals are pushing the loop alone. The book argues the flywheel is <em>available</em>, not automatic. [L34]</figcaption>
 </figure>
 
+<!-- REVISE-WHERE-I-LAND -->
+<!-- /REVISE-WHERE-I-LAND -->
+
+## Where I'd disagree with the book
+
+Three lines I'd soften across the book, threading the local stances above:
+
+The **citation discipline on the empirical chapters** is the biggest gap. Several seed citations were already overshooting by 2021 (the "critical-thinking trainings fail" line in §2; the motivated-numeracy mechanism in §4), and the Tetlock training-and-team story in §10 is in active reanalysis as of 2026. The mistake isn't the prescriptions; those mostly survive; but the framing around them, which often reads more decisive than the underlying evidence supports.
+
+The **community half of the prescription is underweighted**. The chapter-15 flywheel reads as an individual-level recipe ("make scout your identity"), but the case studies and the TAG arc all turn on community structure. Without a community where revising estimates is recognized as a high-status move, the individual is pushing the loop alone. The book's last 50 pages would be stronger if they led with environment-selection rather than identity-installation.
+
+The **operational layer is missing on some of the most important moves**. The five thought experiments (§5) are presented as tools without quite enough about *when to deploy which*. The "lean into confusion" prescription (§11) is silent on selectivity. The honest-coping techniques (§7) are sketched but not really procedurized. Most readers will keep the vocabulary and not the practice; the practice is where the book could have done more work.
+
+The strongest move in the book is the boundary in §14: holding identity lightly is *compatible* with effective activism, not opposed to it. The TAG arc is the cleanest counterexample to the "scouts are too passive to act" worry, and the book doesn't oversell it.
+
+## Reference layer
+
+### Galef's vocabulary
+
+- **Scout / soldier mindset.** Two cognitive postures: scout asks "is it true?"; soldier asks "*can* I believe this?" of supporting evidence and "*must* I believe this?" of contrary. (§1)
+- **The six functions of soldier mindset.** What soldier-belief is doing for you: comfort, self-esteem, morale (emotional); persuasion, image, belonging (social). (§2)
+- **The double-standard test.** Would you accept this argument applied to someone you disliked? (§5)
+- **The outsider test.** What would a fresh CEO do? (§5)
+- **The selective-skeptic test.** Would you find this evidence credible if it pointed the other way? (§5, §12)
+- **The status-quo-bias test.** Would you actively choose your current situation if it weren't the default? (§5)
+- **Equivalent bet test.** Would you rather guess on this question or pull a ball-and-box gamble with the equivalent odds? (Hubbard, via §6)
+- **Press secretary vs. board of directors.** The press secretary makes claims; the board makes bets. Only the board is incentivized for accuracy. (Kurzban, via §6)
+- **Bet worth taking.** A better motivation question than "do I believe I can do this?" because it has an actual answer. (§8)
+- **Social vs. epistemic confidence.** What your tone says about you vs. what your claim says about the world. The scout's combination is hedged-claim + relaxed-delivery. (§9)
+- **Update incrementally.** Subtle revisions as new information arrives, not 180-degree flips. (§10)
+- **The spring metaphor.** Each explain-away of an anomaly is cheap; the cost is paid in the count. (Marvin Cohen, via §11)
+- **Hold your identity lightly.** Think of an identity matter-of-factly, not as a central source of pride or meaning. (Graham, via §14)
+- **Ideological Turing test.** Can you state the other side's argument so convincingly an actual believer couldn't tell you apart? (Caplan, via §14)
+- **The scout-identity flywheel.** Community norms → individual habit → reinforced identity → community sustained. (§15)
+
+### Quote bank
+
+- "I've broken it down into six overlapping categories: comfort, self-esteem, morale, persuasion, image, and belonging." [L21]
+- "[A]s scientific intelligence increases, liberal and conservative opinions diverge." [L23]
+- "Calibration is a skill with a quick learning curve. A couple of hours of practice is all it takes for most people to become very well calibrated, at least within a single domain." [L25]
+- "Calling people's beliefs 'biased' or 'illusions' without any objective standard of reality to compare them to is a problem that's rampant throughout the research on self-deception." [L26]
+- "They're motivated by the thought, 'This is a bet worth taking.'" [L27]
+- "The more a student participated in conversation, used an authoritative tone, and a relaxed manner, the higher their perceived competence." [L28]
+- "The superforecasters changed their minds all the time. Not dramatic, 180-degree reversals every day, but subtle revisions as they learned new information." [L29]
+- "[W]hen a belief is part of your identity, it becomes far harder to change your mind, even when the facts change dramatically." [L30]
+- "[W]e react to observations that conflict with our worldview by explaining them away." [L31]
+- "Conservatives who spent a month reading liberal tweets became dramatically more conservative." [L32]
+- "Holding an identity lightly means thinking of it in a matter-of-fact way, rather than as a central source of pride and meaning in your life." [L33]
+- "Scout mindset isn't a chore they carry out grudgingly; it's a deep personal value of theirs, something they take pride in." [L34]
+
+### Practical-model list
+
+- **The two-questions check.** When you reach for a conclusion, ask which question you just asked. If "must I?" of contrary evidence and "can I?" of supporting evidence; that's the soldier signature.
+- **The four-bias checklist.** When you notice yourself reaching for a comfortable belief, run through: present bias, ripple-effect blindness, habit underinvestment, overestimated social costs. Three of four → you're under-investing in scout.
+- **Pick one behavioral sign.** Telling someone they were right; reacting well to criticism; proving yourself wrong; blinding an analysis; finding a good critic. Pick the cheapest entry that fits your week.
+- **One thought experiment, written out.** Use the double-standard or outsider test as a journal prompt on a real decision. The friction of writing forces what introspection skips.
+- **Calibrate within a domain you actually predict.** Project ETAs, hiring odds, forecasting markets. A few hours of practice does the within-domain job; don't oversell the transfer.
+- **Honest coping over rationalizing.** When you catch yourself rewriting reality to feel better, swap to: a hypothetical plan, a real silver lining, or a different goal.
+- **"Bet worth taking?" instead of "do I believe I can?"** The reframe has an actual answer (expected value) and doesn't preclude the actually useful questions (alternatives, revision, stake size).
+- **Hedge claims; keep posture.** You can say "I'm not sure" with poise. Bezos pitched Amazon at "70% chance you'll lose your money" and got funded.
+- **"I updated" beats "I was wrong."** Each revision is a step, not a confession. The ego friction drops away when the act stops being identity-defining.
+- **Register and count anomalies.** Each explain-away is cheap; the cost is paid in the count. Three in the same area → stop explaining, start looking.
+- **Curate the cross-ideological inputs.** Newsletter subscriptions, longer essays, shared-goal contexts behave differently from "loudest opposing voices on Twitter." Pick someone reasonable, not someone representative.
+- **Run the 8-sign self-check.** "I believe..."; annoyance at criticism; defiant language; righteous tone; gatekeeping; schadenfreude; epithets; having publicly defended. Five+ signs → identity has colonized the belief.
+- **Try the ITT as journal, not credential.** "I tried to write the strongest opposing version and here's where I got stuck" is the use. "I passed the ITT for X" is the failure mode.
+- **Pick the community before installing the identity.** Most of the lift is environmental; a place where "I was wrong about X" reads as high-status, not low-status.
 
 ## Conclusion
 
 Galef's closing chapter offers eight habit-starts: do a thought experiment when deciding; notice claims-with-certainty and check them; make a concrete plan instead of rationalizing a worry; find a reasonable opinion source on the other side; get curious about "irrational" behavior; look for opportunities to update slightly; reach out to someone you previously disagreed with and let them know; attempt an Ideological Turing test. My one-line read on each, given the evidence walk-through above:
 
-1. **Thought experiments**. useful as journaling prompts; not diagnostic. The outsider test transfers best.
-2. **Notice claims-with-certainty**. easier said than done; calibration practice in a narrow domain (forecasting, project estimates) is the part that has the most evidence behind it.
-3. **Make a concrete plan**. the honest-coping move from chapter 7; well-supported as practical advice even where the underlying positive-illusions literature is contested.
-4. **Find a reasonable opposing voice**. the chapter 12 prescription, more defensible than the chapter 12 diagnosis. Pick someone curated.
-5. **Get curious about "irrational" behavior**. chapter 11 lands here; the operational version is harder than the chapter implies, but the spring-metaphor heuristic (count anomalies, don't just explain each one away) is portable.
-6. **Look for opportunities to update slightly**. the durable habit prescription from chapter 10; survives the GJP method-variance reanalysis intact.
-7. **Reach out after an update**. chapter 14 territory; the TAG case is the model.
-8. **Attempt an Ideological Turing test**. useful as a journaling exercise; ungameable as a credential.
+1. **Thought experiments.** Useful as journaling prompts; not diagnostic. The outsider test transfers best.
+2. **Notice claims-with-certainty.** Easier said than done; calibration practice in a narrow domain (forecasting, project estimates) is the part that has the most evidence behind it.
+3. **Make a concrete plan.** The honest-coping move from chapter 7; well-supported as practical advice even where the underlying positive-illusions literature is contested.
+4. **Find a reasonable opposing voice.** The chapter-12 prescription, more defensible than the chapter-12 diagnosis. Pick someone curated.
+5. **Get curious about "irrational" behavior.** Chapter 11 lands here; the operational version is harder than the chapter implies, but the spring metaphor (count anomalies) is portable.
+6. **Look for opportunities to update slightly.** The durable habit prescription from chapter 10; survives the GJP method-variance reanalysis intact.
+7. **Reach out after an update.** Chapter 14 territory; the TAG case is the model.
+8. **Attempt an Ideological Turing test.** Useful as a journaling exercise; ungameable as a credential.
 
-The book reads best as a vocabulary plus a posture plus a community-selection prompt, not as a tested treatment. Where the prescription is well-evidenced (calibration in narrow domains, incremental updating, honest coping), the book is on solid ground. Where the prescription is wrapped around an underlying claim that has aged (the motivated-numeracy paradigm, the absolutist read of the Taylor and Brown critique, the over-generalization of Bail 2018), the prescription mostly survives the update; the framing needs softening.
+The book reads best as a vocabulary plus a posture plus a community-selection prompt, not as a tested treatment.
 
-The boundary the book draws most carefully, that holding identity lightly is compatible with effective activism rather than opposed to it, is its strongest move. The Treatment Action Group story is the cleanest example I know of "the scout mindset in the field," and the chapter doesn't oversell it.
+## Appendix: claim-source-evidence table
+
+The audit layer. One row per major-claim section.
+
+| § | Claim | Book locator | Source quality | Current state | Critics (tier ‖ argument) |
+|---|---|---|---|---|---|
+| 1 | Scout / soldier as two reasoning postures | Ch 1 [L20] | expert-frame (Kunda 1990, Gilovich 1991) | replicated (conceptual) | T2: deBoer ‖ martial metaphor is loose; T2: Khan ‖ soldier is evolutionary default |
+| 2 | Six functions checklist + "trainings fail" line | Ch 2 [L21, L35] | assertion (taxonomy) + cited-single-study (Cooper-Woo-Dunkelberg) | refined (debiasing trainings do transfer; Morewedge 2015, Sellier 2019, *Scientific Reports* 2025) | T1: Morewedge/Sellier ‖ debiasing game transfers to field |
+| 3 | Four biases tilt the soldier-scout trade | Ch 3 [L22] | expert-frame (Ainslie, Caplan) + cited-single-study (Levy 2018) | replicated (present-bias mechanism); single-survey (Levy 2018 nondisclosure rate) | T2: Khan ‖ soldier is reproductive-fitness-shaped |
+| 4 | Knowledge amplifies polarization on charged topics | Ch 4 [L23, L36] | cited-single-study (Kahan 2017, Drummond/Fischhoff 2017) + assertion (5-signs taxonomy) | split: pattern replicated (Fischer 2022); motivated-numeracy mechanism failed (Persson 2021, Lind 2022, Bago 2020); paradigm Bayesian-compatible (*RPP* 2024) | T1: Persson 2021 ‖ failed preregistered replication; T1: Bago 2020 ‖ deliberation reduces false-news belief |
+| 5 | Five thought experiments | Ch 5 [L24] | assertion + textbook (Bazerman/Moore) + cited-single-study (Bostrom/Ord) + anecdote | no-update-found (kit not measurable construct) | none for kit; perspective-taking literature has its own debates |
+| 6 | Calibration is learnable in narrow domains | Ch 6 [L25] | practitioner-manual (Hubbard, Kurzban) + cited-replicated-body (Mellers/GJP, not in-chapter) | refined (within-domain replicated; cross-domain transfer weaker) | T1: Mellers 2015 ‖ gains came partly from ongoing tournament practice; T2: Plan Space ‖ no oracle for difficult propositions |
+| 7 | Positive-illusions critique + honest coping | Ch 7 [L26, L37] | cited-single-study (Taylor/Brown, Sackeim/Gur, Robins/Beer) | refined / contested: methodological critique stands (Colvin/Block 1994); absolutist read doesn't survive Dufner 2019 meta-analysis (k=299) | T1: Taylor/Brown 1994 ‖ narrowed defense; T1: Dufner 2019 ‖ self-enhancement still positively related to personal adjustment |
+| 8 | "Bet worth taking" reframes motivation | Ch 8 [L27] | expert-quote (Musk, Bezos) + anecdote + personal-experience | n/a (conceptual) | T2: deBoer ‖ thought-experiments powerless against deep irrationalism |
+| 9 | Social ≠ epistemic confidence | Ch 9 [L28] | cited-single-study (Anderson 2012) | mixed: status-motive arm replicated (Mayiwar 2025); cue-competence arm still single-study; verbal/nonverbal moderator added (Tenney 2019) | T1: Tenney 2019 ‖ revealed-verbal-overconfidence carries status penalty; T1: Kennedy 2013 ‖ revealed overconfidence retains some social benefits |
+| 10 | Superforecasters update incrementally | Ch 10 [L29] | cited-replicated-body (Mellers 2014/2015, Tetlock 2015) | refined: within-paradigm replicated; training/team effects under method-variance reanalysis (Hauenstein 2024/2025); Karimi Motahhar 2025 partially defends training | T1: Hauenstein 2024/2025 ‖ training/team effects shrink under method-variance controls; T1: Karimi Motahhar 2025 ‖ probability training reduces several biases |
+| 11 | Lean into confusion, but selectivity matters | Ch 11 [L31] | cited-single-study (Bueno de Mesquita) + cited-historical (Darwin) + anecdote-mix | n/a; historical claims accurate | none on the principle |
+| 12 | Echo-chamber escape, curate reasonable interlocutors | Ch 12 [L32] | cited-single-study (Bail 2018) + cited-secondary-historical | refined / contested: Bail 2018 holds in conservatives-on-Twitter condition; Levy 2021 finds counter-attitudinal news reduces animosity; Guess 2023 finds algorithmic feeds barely move polarization | T1: Levy 2021 ‖ counter-attitudinal news reduces out-party animosity; T1: Guess 2023 ‖ algorithmic feed manipulation barely moves polarization |
+| 13 | Belief-as-identity resists updating | Ch 13 [L30, L38] | assertion (mechanism) + historical-record (Jung 2015 for HIV/breast-milk) | n/a (conceptual + historical); illustration accurate | identity-protective replication mix per §4 |
+| 14 | Hold identity lightly; ITT; TAG case | Ch 14 [L33, L39, L40] | expert-quote (Graham, Caplan) + historical-record (France for TAG) + anecdote | n/a; historical case accurate | none on principle or case |
+| 15 | Scout-as-identity flywheel + community scaffolding | Ch 15 [L34] | anecdote-only (Blackmore, Harris, Buterin) | n/a; conceptually consistent with broader identity-motivation literature | T2: Khan ‖ soldier evolutionarily endorsed; T2: Alexander ‖ scout-identity requires becoming a better person |
 
 ## References
 

@@ -91,11 +91,18 @@ Example:
 
 No overrides on these. The base `../../explainer-shared/illustration-style.md` rules apply unchanged. Book posts use the same palette as explainer posts.
 
-## When the figure list is too thin
+## Figure-coverage rule
 
-If after Phase 3 the figure list is small (1-2 figures for a 5-12-section post), that's fine. The book skill is not figure-heavy by design. A post can ship with figures only on the 2-3 most concept-rich claims; other sections rely on prose + ledger anchors alone.
+**One figure per major claim where a visual beats prose.** Not a fixed quota. Apply this judgment per section:
 
-Gate C will not flag a thin figure list as STRUCTURAL — it only flags figures that violate the anti-cleanup rule or chart research data inappropriately.
+- **Visual beats prose** when the concept is spatial (a hierarchy, a 2-axis trade-off, a sequence), comparative (before / after, two postures), or numeric (a replication-status timeline, a forecasting calibration curve).
+- **Prose beats visual** when the concept is definitional (a vocabulary distinction; a one-sentence framing), narrative (a historical case; a single anecdote), or already concrete (a quote that lands; a named framework).
+
+Both states are correct. Many sections will be prose-only and that's the right call. Forcing a figure where prose carries the idea produces filler.
+
+When the override clauses for interactive figures from `../../explainer-shared/figure-recipes.md` apply (continuous parameter sweep, animated time evolution, drag-based spatial reasoning, multi-state toggle), AND the book's framing supports the interaction, use an interactive widget instead of static SVG. Interactive widgets are rare in book posts but not banned — when the chapter is about calibration practice, a CalibrationTest widget can beat a static plot. The anti-cleanup rule still applies.
+
+Gate C verifies the rule: every major claim has either a figure or an explicit "prose carries this; no figure needed" note in the outline. Gate C does NOT flag a low total figure count — it flags missing per-claim decisions.
 
 ## When the agent isn't sure
 

@@ -2,17 +2,25 @@
 
 The base voice rules live in `../../explainer-shared/voice-rules.md` — Vic's "Write Like a Human, Not an AI" guide. Those rules apply to every post on augusteo.com.
 
-This file is a thin overlay for book posts only. It tilts the voice toward **citation-forward** and away from essayistic flourish, because the book skill's job is faithful summary + scientific accountability rather than narrative arc.
+This file is a thin overlay for book posts only. It tilts the voice toward **reader-first + citation-forward** — faithful summary, scientific accountability, AND reader utility. The post should read like a useful tool, not a critical-edition annotation; the locators are present because the reader can verify, not because the prose is decorated with them.
 
 The base wins on style; the overlay wins on emphasis.
 
-## Tilt 1: Citations are part of the voice, not decoration
+## Tilt 0: Reader first, structure second
 
-In an explainer-skill post, citations live in `## References` at the bottom. The prose links inline to named sources, but the citation density is moderate.
+Each body section opens with what the claim means for someone trying to think better, before any audit detail. The book-summary content follows the reader-usefulness lead, not the other way around. Source-quality tags, current-state classifications, and critic tier labels do NOT appear as inline italic lines in body prose — they live in the appendix table.
 
-In a book post, **the prose is locator-dense by design**. Every claim from the book has a `[L#…]` marker; every claim about current evidence has an inline link to a primary source; every critic is hyperlinked to the critique. The reader should be able to verify any sentence about the book without leaving the post.
+**Apply by:**
+- Section leads name a real situation (deciding, hiring, forecasting, arguing) that the claim touches.
+- Operational sentence ("try this when X" / "watch for Y") is the bridge from idea to action; each major-claim section has one OR an explicit "no operational layer" note.
+- Inline italic audit lines like `*Source quality: cited-single-study. Current state: refined.*` are FORBIDDEN in body prose. That detail moves to the appendix table.
+- The body's local stance is plain language, not jargon: "this still holds up", "useful but overclaimed", "skip this one".
 
-This is a voice choice, not just a citation discipline. The prose should feel like a critical-edition annotation, not a literary essay.
+## Tilt 1: Citations as audit anchors, not decoration
+
+Every claim from the book has a `[L#…]` marker. Every claim about current evidence has an inline link to a primary source. The reader should be able to verify any sentence about the book without leaving the post.
+
+This is an audit discipline, not a voice flourish. The prose should still feel like prose — anchors at sentence boundaries where they don't break rhythm, never crammed into the middle of a clause.
 
 **Apply by:**
 - Don't bury anchors in awkward places. Put `[L#…]` at sentence boundaries where they don't break the rhythm.

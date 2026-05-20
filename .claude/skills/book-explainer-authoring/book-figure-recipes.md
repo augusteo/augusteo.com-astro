@@ -102,11 +102,19 @@ The patterns are deliberately conservative. The book skill is not figure-heavy; 
 
 ## When to invoke an interactive figure
 
-Per the shared `../../explainer-shared/figure-recipes.md`, interactive figures require one of the four override clauses (continuous sweep, animation, drag, multi-state toggle). For book posts these clauses rarely apply.
+Per the shared `../../explainer-shared/figure-recipes.md`, interactive figures require one of the four override clauses (continuous sweep, animation, drag, multi-state toggle). For book posts these clauses apply when the chapter is about a *practice* the reader can rehearse, not just a *concept* to read about.
 
-The only common case: an **interactive replication-status timeline** with a slider for "publication year" — the reader can drag the year and see which studies were available at that point. This is a continuous sweep over the temporal axis and is a legitimate use of the `<Slider>` primitive.
+Common cases:
 
-In all other cases, default to static SVG.
+- **Calibration practice** (the chapter walks through how to calibrate confidence) → an interactive widget where the reader makes guesses, marks confidence, and sees their calibration plot. Continuous-sweep + multi-state-toggle.
+- **Double-standard test** (the chapter argues that you should ask "would I accept this argument if it pointed the other way?") → an interactive widget where the reader sees a scenario, makes a judgment, then sees the mirror scenario. Multi-state toggle.
+- **Bet on your beliefs** (the chapter reframes confidence as expected value) → an interactive widget where the reader sets a bet and sees the EV under different probability assumptions. Continuous sweep.
+- **Ideological Turing test** (the chapter says you should try to write the strongest version of the opposing view) → an interactive widget where the reader writes their version, then sees a model version. Multi-state toggle (write / reveal / compare).
+- **Replication-status timeline** (the chapter cites studies that have failed to replicate) → an interactive timeline with a year-slider; the reader sees which studies were available when. Continuous sweep over time.
+
+These widgets are reusable and live at `src/components/figures/<book-slug>/<Widget>.svelte`. Anti-cleanup rule still applies — the widget must illustrate a practice the book itself describes, not a practice the agent invented to "round out" the book.
+
+Default to static SVG when the chapter is conceptual (definitions, vocabulary, historical narrative, one-off framings). Default to interactive when the chapter is about something the reader is meant to *do*.
 
 ## Figcaption locator format
 

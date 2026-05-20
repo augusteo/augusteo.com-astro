@@ -1,255 +1,182 @@
-# Claim spine: the 9-part section template
+# Claim spine: the reader-first section template
 
-Every claim in the book gets one section in the post. Sections appear in the order the book introduces the claims (no reorganization into a thesis arc). Each section follows this fixed 9-part template:
+Every major claim in the book gets one section in the post. Sections appear in the order the book introduces the claims (no reorganization into a thesis arc — that constraint stays absolute). Each section is **flowing prose, 250-400 words, no bold-labeled scaffolding**, in this order:
 
 ```
-1. Claim                — one-sentence statement
-2. Claim type           — empirical / conceptual / historical / practical / moral / autobiographical
-3. Centrality           — core / supporting / illustrative
-4. What the book says   — faithful summary with [L#…] ledger anchor + short quote
-5. Where the book gets it  — book's own source, tagged with source-quality-inside-the-book
-6. Boundary conditions  — what the book explicitly does NOT claim
-7. What the evidence says today  — current state of research with primary-source links
-8. Credible critics     — tiered list with specific arguments
-9. Where I land         — Vic's stance, wrapped in <!-- REVISE-WHERE-I-LAND -->
+1. Lead          — claim + why it matters for the reader's life (1-2 sentences)
+2. Book summary  — faithful summary with [L#] anchor and (optionally) a short quote
+3. Operational   — one "try this" or "watch for this" sentence; the action layer
+4. Color         — current evidence woven inline, ONLY when it changes how the reader applies the idea
+5. Local stance  — 1-2 sentences ("still holds up" / "useful but overclaimed" / "skip this one")
+6. Figure        — one figure if a visual beats prose for this claim
 ```
 
-This file is the contract for Phase 4 drafting. Every section in the post conforms; deviations halt and surface to Vic.
+The reader's lens drives every part: claim → why I care → what to do → what's changed → trust level. Audit detail (source-quality tags, current-state classifications, critic tier labels) moves out of the body prose and into the appendix table (`appendix-table.md`).
 
-## Why 9 parts (not 5, not 12)
+This file is the contract for Phase 4 drafting. Gate C verifies conformance.
 
-The earlier 5-part shape (book / source / today / critics / land) was incomplete. Codex flagged on the plan that non-fiction needs:
+## What moved to notes/appendix, not deleted
 
-- **Claim type** — the evidence standard for an empirical claim ("X improves outcomes by 50%") differs from a conceptual one ("Two modes of reasoning"). The post must hold each kind to its appropriate bar.
-- **Centrality** — without an explicit weight, every claim gets the same section length, which makes a supporting anecdote sound as load-bearing as a core empirical claim. Centrality drives section length and emphasis.
-- **Source-quality-inside-the-book** — an RCT and a memoir anecdote should NOT enter "today's evidence" as equivalent. Tagging it forces the prose to weight them differently.
-- **Boundary conditions** — without "what the book does NOT claim," the post slides into overextension and dunk-on-strawman failures.
+The old 9-part template fields — claim type, centrality, boundary conditions (extended), source quality, current state, critic tier+argument — are **removed from body prose**, not removed from the pipeline. They still live in:
 
-12 would be too many; 9 is the minimum that catches the failure modes.
+- The claim matrix in `notes/<book-slug>.md` (used by Phase 2 + Gates B/D).
+- The appendix table in the post (`## Appendix: claim-source-evidence table`, per `appendix-table.md`).
+- The ledger (`notes/<book-slug>.ledger.jsonl`).
 
-## Part 1: Claim
+Body prose drops them; the audit-system retains them. Don't conflate the two.
 
-One sentence. Plain English. The book's claim in the agent's words, faithfully.
+## Why this template, not the 9-part labeled one
 
-**Good:** "Calibration training reliably improves probability estimation in a few weeks."
-**Bad:** "Galef discusses calibration."
+The earlier 9-part shape (claim / type / centrality / what the book says / where the book gets it / boundary / today's evidence / critics / where I land) produced 13,835-word posts that read like forms being filled out. Codex flagged on revision that:
 
-The claim is the section's H3 heading (numbered). Examples:
+- **Bold-labeled scaffolding fights the reader.** "**What the book says.**" ... "**Where the book gets it.**" ... makes every section a transcript, not prose.
+- **Audit detail in the body buries the usable parts.** Source-quality tags and current-state classifications belong somewhere scannable, not in italic lines under every paragraph.
+- **Per-section "Where I land" repeats 15 times.** Better: a 1-2 sentence local stance per section + a final synthesis section at the end.
+- **No "operational" layer.** Reader usefulness is not summary + evidence; it is summary + evidence + *what to do with it*. Add this explicitly.
+
+The new template enforces reader-first sequencing. Structure exists only insofar as it serves the reader.
+
+## Part 1: Lead (claim + why it matters)
+
+One or two sentences. The first sentence states the book's claim in plain English. The second states why it matters for the reader's life — what kind of decision, situation, or habit it touches.
+
+**Good:**
+> Galef argues that calibration training reliably improves probability estimation in narrow domains. If you make forecasts at work — project estimates, hiring odds, investment confidence — this is the chapter with the most actionable practice in the book.
+
+**Bad:**
+> *Type: empirical. Centrality: core.* Galef discusses calibration in chapter 6.
+
+The H3 heading itself does heavy lifting; phrase it as a one-line takeaway, not a topic label:
 
 ```markdown
-### 4. Calibration training works, but in a narrower way than the book suggests
-### 5. The soldier mindset is a recognizable cognitive pattern, not a moral failing
+### 6. Calibration is learnable in narrow domains; transfer is weaker than the book hopes (Ch 6)
 ```
 
-The H3 may include the agent's stance (e.g. "but in a narrower way than the book suggests") because the section's job is faithful-summary + scientific-accountability. The stance reflects what parts 7+8 will support; it is not a thesis the book imposed.
+The "; weaker than the book hopes" hangs off because the local stance is part of the section's load. The H3 may include the agent's view; it must still represent the book's claim faithfully.
 
-## Part 2: Claim type
+## Part 2: Book summary
 
-Choose one. Tags the evidence standard for parts 7 and 8.
+Faithful prose summary of the chapter's argument. Includes:
 
-| Type | What it means | Evidence bar |
-|---|---|---|
-| `empirical` | Claim about how the world is, backed (or claimed to be) by data | Primary studies, replications, meta-analyses |
-| `conceptual` | A framework, distinction, or mental model | Coherence + utility; not strictly empirical, but check if the framework predicts anything |
-| `historical` | A claim about events / people / past | Primary historical sources, scholarship, dates |
-| `practical` | A how-to / "you should X" recommendation | Outcome data on the practice when available; otherwise expert opinion + plausibility |
-| `moral` | A value claim ("X is good / bad / right") | Argument structure; not falsifiable, but check internal consistency + counterarguments |
-| `autobiographical` | The author's own experience | Internal consistency + plausibility; don't fact-check the author's lived experience |
-
-Rendered in the MDX as a sentence: `*Type: empirical. Centrality: core.*` immediately under the H3.
-
-## Part 3: Centrality
-
-Choose one:
-
-- `core` — the book's argument fails without this claim. Section gets ~600–900 words.
-- `supporting` — the claim reinforces a core claim or extends it to a new domain. Section gets ~300–500 words.
-- `illustrative` — anecdotal / example. The book uses it to illustrate; the post should rarely promote one to a section. Section gets ~150–300 words.
-
-Centrality is set during Phase 2's claim-matrix-building, by reading how the book treats the claim (returned to repeatedly = core; mentioned once as example = illustrative).
-
-## Part 4: What the book says
-
-Faithful prose summary of the claim as the book makes it. Includes:
-
-- An MDX-style ledger anchor `[L#…]` on the very first sentence of this part, resolving to a `kind: claim` or `kind: paraphrase` ledger entry.
-- A short direct quote from the book if one captures the claim cleanly. The quote is wrapped in `<blockquote>` or styled as a callout, and has its own `[L#…]` marker resolving to a `kind: direct-quote` ledger entry. Quote ≤ 50 words.
-- The chapter the claim appears in (e.g., "In chapter 3..."), so the reader can pick up the book and find it.
+- An MDX-style ledger anchor `[L#…]` on the first sentence that asserts what the book says, resolving to a `kind: claim` or `kind: paraphrase` ledger entry.
+- An optional short direct quote (≤ 30 words) if one captures the claim cleanly. Quote gets its own `[L#…]` marker resolving to a `kind: direct-quote` ledger entry.
+- The chapter the claim appears in, so the reader can pick up the book and find it.
 
 **Anchor rule.** Every sentence that asserts something the book said needs an anchor. Sentences that paraphrase the agent's framing of the book's argument do not need anchors but should not put words in the author's mouth.
 
-Example:
+**Length.** 80-150 words. The summary stays tight; readers needing more go to the book.
 
-```markdown
-**What the book says.** Galef opens chapter 3 [L#42] by introducing the *scout* /
-*soldier* split: scouts seek truth, soldiers defend territory. She writes:
+**Drop the bold label.** Do NOT write `**What the book says.** ...`. Write flowing prose.
 
-> The scout's job is not to attack or defend. The scout's job is to understand. [L#73]
+## Part 3: Operational layer
 
-The chapter [L#44] develops this as a recognizable cognitive pattern...
-```
+**One sentence**, conversational, action-shaped. "Try this when X." "Watch for this signature." "Use this as a journaling prompt." This is the bridge from the book's idea to the reader's life — the operational version, not the abstract one.
 
-## Part 5: Where the book gets it
+**When the book scopes the action (boundary condition):** the operational sentence MUST name the boundary. "Calibrate yourself, but only in domains where you get feedback." "Try the scout questions on yourself; don't use them as a club on someone else." A reader who walks away with the action but not its boundary will misapply the idea — that's the failure mode this rule prevents.
 
-The book's own cited source for the claim. Tag the source quality:
+**Good:**
+> When you catch yourself reaching for a comfortable belief, ask the two scout questions in sequence: of supportive evidence, "must I believe this?"; of contrary evidence, "can I believe this?" Both reversed from the soldier default.
 
-- `cited-RCT` — book points at a randomized controlled trial.
-- `cited-single-study` — book points at one observational / correlational study.
-- `cited-meta-analysis` — book points at a meta-analysis or systematic review.
-- `cited-replicated-body` — book points at a literature where the finding has been replicated multiple times.
-- `expert-quote` — book quotes an authority figure as evidence.
-- `anecdote` — book gives an illustrative story.
-- `personal-experience` — book reports the author's own experience.
-- `assertion` — book asserts without citation (very common in pop-science).
+**Good (with boundary):**
+> Calibrate your confidence in narrow domains where you get feedback (project ETAs, hiring odds). Don't expect the practice to generalize into a "thinking-clearly" skill across domains — the evidence on that transfer is weak.
 
-Source-quality is captured in the ledger's claim entry AND in the prose:
+**Bad:**
+> One practical implication of the chapter is the use of cognitive vocabulary to monitor one's own reasoning postures.
 
-```markdown
-**Where the book gets it.** Galef cites Murphy & Winkler (1977) [L#198] on weather-
-forecaster calibration as the main empirical support — a single study from 1977.
-The book also nods at Lichtenstein et al. (1982) on calibration training generally.
-*Source quality: cited-single-study, with a supporting citation to an older literature.*
-```
+If the chapter is genuinely non-operational (a historical anecdote, a definitional move), say so explicitly: "*This one is conceptual scaffolding for later chapters; nothing to apply directly.*" That counts as discharging the operational layer.
 
-The italic source-quality line at the end of part 5 is mandatory. It's how the reader can scan for "is this an RCT or an anecdote?"
+**Hard rule (Gate C check):** every section has either an operational sentence OR an explicit "no operational layer" note. No section silently lacks it. AND if the book scopes the action, the boundary lands in the operational sentence (or in the local stance) — not silently dropped.
 
-## Part 6: Boundary conditions
+## Part 4: Color (evidence woven inline)
 
-What the book explicitly does NOT claim. This part exists to prevent two failure modes:
+Current state of research, **as woven prose, not a labeled block**. The evidence-routing rule:
 
-1. **Overextension by the post.** The agent reads the claim, generalizes it more than the book did, then "what evidence says today" critiques the over-generalization. That's a strawman.
-2. **Overextension by the reader.** The book carefully scopes the claim, but the prose summary in part 4 drops the scoping, and the reader walks away with a stronger claim than the author made.
+- **If current evidence changes how a reader should apply the idea → it goes inline.** "However, the 2018 Many Labs follow-up found the effect halved in better-powered samples, so calibrate yourself in your domain but don't expect general thinking-skill transfer."
+- **If evidence only supports traceability → it goes in the appendix table.** Source-quality tags, current-state classifications, critic tier labels.
 
-**How to write part 6:**
+The body prose names quality only when it matters to the argument ("the book's single 1988 study has been overtaken by..."). Critics named in the prose only when the critic's specific argument changes the reader's stance.
 
-- Re-read the chapter the claim appears in. Look for the book's hedges, scope conditions, "this only applies when..." language.
-- State the boundary explicitly. Use the book's own framing.
-- If the book makes no boundary statement, write "The book asserts this without scope conditions" — that's its own kind of signal.
+**Length.** 50-150 words per section. Many sections won't need much color — the book holds up and the inline color is one sentence. That's fine.
 
-Example:
+## Part 5: Local stance
 
-```markdown
-**Boundary conditions.** Galef explicitly does not claim that calibration training
-transfers across domains [L#46]. The weather-forecaster example is about
-*forecasters becoming better at forecasting weather*, not about generic
-"thinking probabilistically" skill. She also flags that the training requires
-focused feedback — not just "try harder to be calibrated."
-```
+One or two sentences. The agent's judgment, in plain language. Examples:
 
-When the boundary is the load-bearing part of the section's critique in parts 7 and 8, surface it here even if it took digging to find.
+- "This still holds up."
+- "Useful as a checklist, but the supporting study is weak."
+- "The framing is right; the prescription is overconfident."
+- "Skip this one; the evidence has aged out."
 
-## Part 7: What the evidence says today
+Local stance is NOT wrapped in `<!-- REVISE-WHERE-I-LAND -->` comments — those markers are reserved for the per-claim stance that the interview skill replaces with Vic's personal application. The local stance is the agent's read of the evidence; it ships as-is.
 
-Current state of research, as of the post's `pubDate`. The work happens in Phase 2 (evidence-check-protocol.md); part 7 renders the results to prose.
+The post's final `## Where I'd disagree with the book` section consolidates the cross-claim synthesis. Per-section local stances stay local.
 
-Classify the current state:
+## Part 6: Figure (if a visual beats prose)
 
-- `replicated` — finding holds in subsequent studies / meta-analyses.
-- `refined` — finding holds with adjustments (smaller effect size, narrower scope).
-- `weakened` — finding survives but is less robust than originally claimed.
-- `disputed` — credible critiques exist; field genuinely mixed.
-- `disproven` — finding does not survive replication / has been retracted.
-- `unsettled` — no clear current consensus; original evidence stands alone.
-- `no-update-found` — the agent couldn't find newer evidence; treat the original as the state. (Use this when search is exhausted, not as a lazy default.)
+A figure goes here **only if a visual beats prose** for this claim. Not every section gets a figure; not every major claim gets one either. The rule from `book-illustration-overrides.md` applies:
 
-**Evidence-type integrity rule.** Do not treat:
+- Static SVG is the default.
+- Interactive widgets only when one of the four override clauses applies AND the book's framing supports interaction.
+- Anti-cleanup rule: no figure may impose structure the book doesn't itself render.
 
-- A single replication blog post as "the field disagrees".
-- A pop-science writeup as a primary source.
-- A failed-to-replicate study as proof the original was fraud.
+A figure-light post is fine. Forcing a figure where prose carries the idea is its own failure mode.
 
-Each source you cite has a type; respect the hierarchy (meta-analyses > replication studies > original RCTs > observational studies > expert blog posts > journalism > Twitter takes).
+## What goes ABOVE the body sections
 
-Example:
+A reader-first post leads with utility, not metadata:
 
-```markdown
-**What the evidence says today.** Calibration of weather forecasters has held up
-[link to Bröcker & Smith 2007 meta-analysis]: trained forecasters do achieve good
-calibration in their domain. But generalization is weaker than the book implies
-[link to Mellers et al. 2014 on the Good Judgment Project, which found
-calibration training improved geopolitical forecasting only modestly without
-ongoing feedback]. *Current state: refined.*
-```
+1. **Lede.** 2-3 sentences. Name the book, the author, what the post does. Nothing about workshops, the book's part structure, or methodology. Reader gets the useful claim immediately.
 
-The italic current-state line at the end of part 7 is mandatory.
+2. **One "how to use this post" line.** "Read the top lessons first; use the sections when you want the book's reasoning, evidence, and caveats." Frames the post as a tool, not an essay.
 
-## Part 8: Credible critics
+3. **`## What you can use from this book` — the TL;DR.** See `tldr-template.md`. Each lesson is an index entry with a `[See §N]` jump. **Hard rule: TL;DR may not introduce a synthesis claim that isn't owned by a later section.** That prevents thesis-arc gravity.
 
-Critics by tier (see `critic-finding-protocol.md`). Each critic gets:
+4. **`## Where it gets complicated` — short editor's note.** 1 paragraph naming the 2-3 most-aged or most-contested claims so the reader knows what's coming.
 
-- **Name** (or org / publication if no individual author).
-- **Tier label** — `T1` (academic / domain-expert), `T2` (long-form essay), `T3` (replication-tracker / community).
-- **Specific argument** — quoted or paraphrased. Vague disagreement doesn't count.
+## What goes BELOW the body sections
 
-**Critic balance rule.** If the field is genuinely mixed, the critics list reflects that. Do not curate a one-sided dunk pile. If the book stands up under scrutiny on a claim, part 8 says so explicitly: "No credible critics found in the search; the claim appears to hold."
+1. **`## Where I'd disagree with the book` — consolidated synthesis.** The cross-claim stance. Each per-section local stance is a sentence; this section connects them into Vic's overall read of the book. 2-4 paragraphs.
 
-Example:
+2. **`## Reference layer`** — three short subheads:
+   - `### Galef's vocabulary` — one-line definitions of named frameworks.
+   - `### Quote bank` — ≤15 verbatim quotes, each with `[L#]` anchor.
+   - `### Practical-model list` — the "try this" sentences from the operational layers, gathered into a usable list.
 
-```markdown
-**Credible critics.**
+3. **`## Conclusion`** — book-faithful closing if the book itself has one (Galef's 8 habits, etc.) with one-line takes per item.
 
-- **T1 (academic): Andrew Gelman** has argued [link to Statistical Modeling blog
-  post 2019] that "calibration is overrated as a general thinking skill" — his
-  point is that domain-specific calibration doesn't transfer.
-- **T1: Phil Tetlock** (originator of the Good Judgment Project) writes [link]
-  that calibration without active forecasting practice degrades, which the book
-  underplays.
-- **T2 (long-form): The Atlantic 2023 piece** "[Title]" [link] takes the book's
-  framing seriously but flags that the soldier / scout distinction is fuzzier
-  than presented.
-- **No T3 hits.** Retraction Watch and Data Colada have no entries on Murphy & Winkler.
-```
+4. **`## Appendix: claim-source-evidence table`** — the audit layer. One row per claim with `Section | Book locator | Source quality | Current state | Critics tier ‖ argument`. Replaces the inline italic lines that used to live in every section.
 
-If a tier has no entries, state it. Don't omit the tier silently.
+5. **`## References`** — block-level citation list: the book itself, current-state-of-evidence sources, critics (with tier).
 
-## Part 9: Where I land
+## Takeaway-artifact rule
 
-Vic's stance. The skill drafts placeholder text from the evidence + critics in parts 5–8 — see `where-i-land-template.md` for the drafting rules. The drafted text is wrapped in HTML comments:
+Not every major claim needs the rigid (quote, framework, mental model) triple. The relaxed rule:
 
-```markdown
-**Where I land.**
+- **Per-section: ≥1 takeaway artifact is the target, not a hard gate.** Could be a verbatim quote, a named framework, or a mental model — whichever lands for that claim. Some claims are usefully bare and forcing an artifact creates filler. The editor surfaces thin sections; doesn't block ship for missing one artifact.
+- **Post-level: all three reference layers exist and are non-empty.** The post must have a quote bank, a vocabulary glossary, and a practical-model list under `## Reference layer`. Each layer must have at least 3 entries (a single-entry layer is just noise).
 
-<!-- REVISE-WHERE-I-LAND -->
-*Draft stance, generated from the evidence + critics above. Vic to rewrite in his voice.*
-
-The book's framing of calibration is useful as a cognitive vocabulary but oversells
-the practical transfer. The Murphy & Winkler evidence is real but narrow; the
-Mellers et al. work suggests that what generalizes is the practice, not the
-underlying skill. I'd take from this: calibrate yourself in the specific domains
-you care about, and don't expect that to make you generally less biased.
-<!-- /REVISE-WHERE-I-LAND -->
-```
-
-Vic scans the post for `REVISE-WHERE-I-LAND` comments after the Phase 4 user gate. For each block, he either:
-
-1. **Rewrites in his own voice.** Replace the body with his prose, then remove both `<!-- REVISE-WHERE-I-LAND -->` and `<!-- /REVISE-WHERE-I-LAND -->` markers AND the `*Draft stance...*` italic preamble.
-
-2. **Keeps the draft as-is.** Replace `<!-- REVISE-WHERE-I-LAND -->` with `<!-- KEEP-AS-IS: YYYY-MM-DD -->` AND replace `<!-- /REVISE-WHERE-I-LAND -->` with `<!-- /KEEP-AS-IS -->`. Remove the `*Draft stance...*` italic preamble. The body stays.
-
-Both terminal states are valid for ship. **Gate D blocks ship on any remaining `REVISE-WHERE-I-LAND` markers** — they signal an unresolved Vic-owned section that cannot ship.
+The reference layer is what the reader pastes into their notes app. Most major claims will contribute ≥1 entry across the three layers; the editor reports coverage but doesn't force per-section artifacts.
 
 ## Section ordering rules
 
 - Sections appear in the order the book introduces the claims. The agent re-reads the chapter sequence to determine order; doesn't reorder for "narrative flow".
-- Within a section, the 9 parts appear in the order above. Don't shuffle.
-- Use H3 numbered headings (`### 1. ...`, `### 2. ...`) for sections; H4 (`#### Part name`) is NOT used for the 9 parts. Parts are inline bold labels in prose (`**What the book says.** ...`).
-- Optional H2 chapter dividers (`## Chapter N: <chapter title>`) if the book has long parts and the post benefits from book-structure mirroring. Only use if the book has 3+ claims per part and the parts are thematically distinct.
+- Within a section, the 6 parts (lead → book summary → operational → color → local stance → figure) appear in this order. Don't shuffle.
+- Use H3 numbered headings (`### 1. ...`, `### 2. ...`) for sections.
+- Bold inline labels (`**What the book says.**`) are NOT used. The parts are prose, not form fields.
+- Optional H2 chapter dividers (`## Chapter N: <chapter title>`) only if the book has 3+ claims per part AND the parts are thematically distinct. Default is no chapter dividers.
 
 ## Ledger anchor enforcement
 
-Every line in parts 4, 5, 6, and 7 that asserts something the book said or the evidence shows must have a citation:
+Every claim/quote/paraphrase about the book gets a `[L#…]` marker resolving to a ledger entry. Phase 7's ledger-marker cross-check verifies every marker resolves; Gate D additionally verifies the prose near each marker faithfully renders the entry's excerpt.
 
-- `[L#…]` markers for book content (resolving to ledger entries).
-- Inline markdown links for external evidence and critics.
-
-Phase 7's ledger-marker cross-check walks the MDX and verifies every `[L#…]` resolves. Phase 7's Gate D additionally verifies the prose near each marker faithfully renders the ledger entry's excerpt.
+External evidence (today's evidence, critics) uses inline markdown links to primary sources — not `[L#]` markers.
 
 ## When the template doesn't fit
 
 Rare cases:
 
-- **The book doesn't make discrete claims; it weaves an argument.** Example: a narrative-driven historical book. In this case, the agent halts after Phase 1 candidate-claim extraction and asks Vic whether to (a) extract claims anyway with low confidence, or (b) switch tools (use `explainer-authoring` to write a thesis-led narrative).
-- **Two claims are deeply intertwined; the book treats them as one.** Merge into one section. The H3 is the combined claim; part 4 covers both.
-- **A claim is impossible to evaluate without the surrounding chapter.** Lead the section with a 1-paragraph chapter summary BEFORE part 1 (using `> ` blockquote styling). Then proceed with the 9 parts.
+- **The book doesn't make discrete claims; it weaves an argument.** Halt after Phase 1 candidate-claim extraction and ask Vic whether to (a) extract claims anyway with low confidence, or (b) switch tools (use `explainer-authoring` for a thesis-led narrative).
+- **Two claims are deeply intertwined; the book treats them as one.** Merge into one section. The H3 is the combined claim.
+- **A claim is impossible to evaluate without the surrounding chapter.** Lead the section with a 1-paragraph chapter summary BEFORE part 1 (using `> ` blockquote styling). Then proceed with the 6 parts.
 
 In all other cases, the template is the contract. Conformance is checked by Gate C.
