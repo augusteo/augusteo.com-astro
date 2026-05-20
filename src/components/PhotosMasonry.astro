@@ -73,7 +73,10 @@ tiles.forEach((t, i) => {
     padding: 0 2rem;
   }
 
-  .photos-masonry .col {
+  /* :global() is required because the masonry repartition script creates fresh
+     .col divs at runtime — they lack the data-astro-cid attribute, so scoped
+     selectors don't match and the vertical gap between photos disappears. */
+  .photos-masonry :global(.col) {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -145,7 +148,7 @@ tiles.forEach((t, i) => {
       gap: 1rem;
       padding: 0 1rem;
     }
-    .photos-masonry .col { gap: 1rem; }
+    .photos-masonry :global(.col) { gap: 1rem; }
   }
 </style>
 
