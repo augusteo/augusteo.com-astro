@@ -437,20 +437,20 @@ Find:
    - Lessons outside the 50-100 word window.
 
 5. REVISE-WHERE-I-LAND BLOCK STATUS. Every major-claim section emits a
-   `<!-- REVISE-WHERE-I-LAND -->` placeholder for the personal-application
+   `{/* REVISE-WHERE-I-LAND */}` placeholder for the personal-application
    layer. At ship time, every placeholder's opening marker must match this
-   regex: `^<!-- REVISE-WHERE-I-LAND(: (INTERVIEW-SOURCED|SKIPPED) \d{4}-\d{2}-\d{2})? -->$`
+   regex: `^\{/\* REVISE-WHERE-I-LAND(: (INTERVIEW-SOURCED|SKIPPED) \d{4}-\d{2}-\d{2})? \*/\}$`
    with the state suffix PRESENT (bare suffixless openings are STRUCTURAL).
-   - FILLED-BY-INTERVIEW: `<!-- REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD -->`
+   - FILLED-BY-INTERVIEW: `{/* REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD */}`
      opens, body has Vic's personal-application paragraph (1-3 sentences),
-     `<!-- /REVISE-WHERE-I-LAND -->` closes.
-   - EXPLICITLY SKIPPED: `<!-- REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD -->`
-     opens, empty between markers, `<!-- /REVISE-WHERE-I-LAND -->` closes.
+     `{/* /REVISE-WHERE-I-LAND */}` closes.
+   - EXPLICITLY SKIPPED: `{/* REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD */}`
+     opens, empty between markers, `{/* /REVISE-WHERE-I-LAND */}` closes.
    - REMOVED: both markers deleted entirely.
    Flag as STRUCTURAL: any bare opening, any opening with a different
-   namespace (e.g., `<!-- INTERVIEW-SOURCED: ... -->` without the
+   namespace (e.g., `{/* INTERVIEW-SOURCED: ... */}` without the
    REVISE-WHERE-I-LAND prefix — legacy), or any closing other than
-   `<!-- /REVISE-WHERE-I-LAND -->`.
+   `{/* /REVISE-WHERE-I-LAND */}`.
 
 6. APPENDIX TABLE COMPLETENESS. `## Appendix: claim-source-evidence table`
    must have one row per major claim per `appendix-table.md`. Each row's

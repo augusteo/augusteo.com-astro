@@ -107,7 +107,7 @@ One or two sentences. The agent's judgment, in plain language. Examples:
 - "The framing is right; the prescription is overconfident."
 - "Skip this one; the evidence has aged out."
 
-Local stance is NOT wrapped in `<!-- REVISE-WHERE-I-LAND -->` comments — those markers are reserved for the per-claim stance that the interview skill replaces with Vic's personal application. The local stance is the agent's read of the evidence; it ships as-is.
+Local stance is NOT wrapped in `{/* REVISE-WHERE-I-LAND */}` comments — those markers are reserved for the per-claim stance that the interview skill replaces with Vic's personal application. The local stance is the agent's read of the evidence; it ships as-is.
 
 The post's final `## Where I'd disagree with the book` section consolidates the cross-claim synthesis. Per-section local stances stay local.
 

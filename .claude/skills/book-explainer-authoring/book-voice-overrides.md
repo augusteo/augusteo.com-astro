@@ -79,7 +79,7 @@ The locator does the work the hedge was trying to do.
 
 ## Tilt 6: The post's stance is in part 9, not in parts 1–8
 
-Parts 1–8 are descriptive: what the book says, where it came from, what the evidence is, who critiques it. The agent's stance — what Vic thinks — lives in part 9 ("Where I land"), and is wrapped in `<!-- REVISE-WHERE-I-LAND -->` for Vic to own.
+Parts 1–8 are descriptive: what the book says, where it came from, what the evidence is, who critiques it. The agent's stance — what Vic thinks — lives in part 9 ("Where I land"), and is wrapped in `{/* REVISE-WHERE-I-LAND */}` for Vic to own.
 
 Voice in parts 1–8 should be **reportorial**, not editorial. Avoid:
 

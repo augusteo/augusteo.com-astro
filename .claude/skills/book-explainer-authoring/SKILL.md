@@ -106,7 +106,7 @@ Read these in order before starting any phase. Files marked **(shared)** live in
 - [`codex-gate-prompts.md`](codex-gate-prompts.md) — exact prompts for Gates A / B / C / D.
 - `../../explainer-shared/codex-runner.md` **(shared)** — shared runner mechanics.
 - `../../explainer-shared/playwright-checks.md` **(shared)** — per-figure-type visual review failure modes.
-- [`where-i-land-template.md`](where-i-land-template.md) — what the skill drafts vs. what Vic owns; `<!-- REVISE-WHERE-I-LAND -->` wrapper.
+- [`where-i-land-template.md`](where-i-land-template.md) — what the skill drafts vs. what Vic owns; `{/* REVISE-WHERE-I-LAND */}` wrapper.
 - [`resume-tracker.md`](resume-tracker.md) — autonomous-run state model.
 
 ## The seven phases
@@ -128,7 +128,7 @@ Phase 3: outline + figure list
    → Gate C (spine structure + figure-list coverage + anti-cleanup check)
 
 Phase 4: draft prose
-   → full MDX with [L#] markers + <!-- REVISE-WHERE-I-LAND --> blocks
+   → full MDX with [L#] markers + {/* REVISE-WHERE-I-LAND */} blocks
 
 >>>  USER GATE: Vic reads full draft, gives critique  <<<
 
@@ -248,7 +248,7 @@ Goal: a complete reader-first MDX draft. Body sections follow the 6-part reader-
    - Write parts 1-6 in order (lead → book summary → operational → color → local stance → figure), as **flowing prose, no bold-labeled scaffolding**.
    - **Operational sentence is mandatory.** Each section has either one "try this" / "watch for this" sentence OR an explicit "this one is conceptual scaffolding; nothing to apply directly" note.
    - **Evidence-routing rule:** if current evidence changes how the reader applies the idea → it goes inline in the section's color paragraph. If it only supports traceability → it goes in the appendix table, not the body.
-   - **Local stance** (1-2 sentences) ships as-is — NOT wrapped in `<!-- REVISE-WHERE-I-LAND -->`. The interview skill replaces a different layer (the per-section personal-application paragraph) using `<!-- REVISE-WHERE-I-LAND -->`. Phase 4 emits empty `<!-- REVISE-WHERE-I-LAND -->` placeholders that the interview skill will fill — see step 7 below.
+   - **Local stance** (1-2 sentences) ships as-is — NOT wrapped in `{/* REVISE-WHERE-I-LAND */}`. The interview skill replaces a different layer (the per-section personal-application paragraph) using `{/* REVISE-WHERE-I-LAND */}`. Phase 4 emits empty `{/* REVISE-WHERE-I-LAND */}` placeholders that the interview skill will fill — see step 7 below.
    - Every direct quote from the book gets a `[L#…]` marker resolving to a `kind: direct-quote` ledger entry. **Phase 1 only created `kind: claim` entries; you append new `direct-quote` and `kind: paraphrase` entries to `notes/<book-slug>.ledger.jsonl` here, with monotonically increasing IDs.** Each new entry needs `id`, `kind`, `quote/text`, `locator`, `anchor_excerpt`, `word_count` per the schema in `book-ingestion.md`.
    - Every figure caption that anchors to the book gets a `[L#…]` marker resolving to a `kind: figure-caption` ledger entry. Append in Phase 5 when figures are implemented.
    - Inline-linked critics ONLY when the critic's argument changes the reader's stance. Otherwise the critic stays in the appendix table.
@@ -256,11 +256,11 @@ Goal: a complete reader-first MDX draft. Body sections follow the 6-part reader-
 7. **REVISE-WHERE-I-LAND placeholders for the interview skill.** After the local stance of each major-claim section, emit:
 
    ```markdown
-   <!-- REVISE-WHERE-I-LAND -->
-   <!-- /REVISE-WHERE-I-LAND -->
+   {/* REVISE-WHERE-I-LAND */}
+   {/* /REVISE-WHERE-I-LAND */}
    ```
 
-   Empty between the markers. The `post-interview` skill fills these with Vic's personal application (story / where he's used the framework / failure mode), gated by Vic's approval, and rewrites the opening marker to `<!-- REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD -->`. The closing marker stays `<!-- /REVISE-WHERE-I-LAND -->` (unified namespace). If a section is skipped, the opening becomes `<!-- REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD -->`. See `where-i-land-template.md` for the full terminal-state contract and the regex Gate D enforces.
+   Empty between the markers. The `post-interview` skill fills these with Vic's personal application (story / where he's used the framework / failure mode), gated by Vic's approval, and rewrites the opening marker to `{/* REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD */}`. The closing marker stays `{/* /REVISE-WHERE-I-LAND */}` (unified namespace). If a section is skipped, the opening becomes `{/* REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD */}`. See `where-i-land-template.md` for the full terminal-state contract and the regex Gate D enforces.
 8. **Below-the-fold sequence:**
    - **`## Where I'd disagree with the book`** — consolidated synthesis. 2-4 paragraphs. The cross-claim stance that ties the per-section local stances together.
    - **`## Reference layer`** with three subheads:
@@ -425,7 +425,7 @@ After Phase 7:
 - **Each major-claim section has a local stance** (1-2 sentences, plain language).
 - **`## Reference layer` has all three subheads** present and non-empty: `Galef's vocabulary` (or relevant author), `Quote bank`, `Practical-model list`.
 - **`## Appendix: claim-source-evidence table` is present** with one row per major claim per `appendix-table.md`.
-- **All `<!-- REVISE-WHERE-I-LAND -->` markers are in a terminal state.** Per `where-i-land-template.md`: `<!-- REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD -->`, `<!-- REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD -->`, or removed entirely. Regex contract: opening matches `^<!-- REVISE-WHERE-I-LAND(: (INTERVIEW-SOURCED|SKIPPED) \d{4}-\d{2}-\d{2})? -->$` with the state suffix REQUIRED for ship; closing is always `<!-- /REVISE-WHERE-I-LAND -->`. No bare openings.
+- **All `{/* REVISE-WHERE-I-LAND */}` markers are in a terminal state.** Per `where-i-land-template.md`: `{/* REVISE-WHERE-I-LAND: INTERVIEW-SOURCED YYYY-MM-DD */}`, `{/* REVISE-WHERE-I-LAND: SKIPPED YYYY-MM-DD */}`, or removed entirely. Regex contract: opening matches `^\{/\* REVISE-WHERE-I-LAND(: (INTERVIEW-SOURCED|SKIPPED) \d{4}-\d{2}-\d{2})? \*/\}$` with the state suffix REQUIRED for ship; closing is always `{/* /REVISE-WHERE-I-LAND */}`. No bare openings.
 - Notes-file `## Codex … review` sections all close on cosmetic rather than structural issues.
 
 ## Common rationalizations to refuse
