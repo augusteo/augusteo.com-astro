@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "bun run sync && concurrently \"bun run watch:content\" \"astro dev\"",
-    "build": "bun run sync && astro build",
+    "build": "astro build",
     "preview": "astro preview",
     "sync": "bun scripts/sync-content.ts",
     "sync:force": "bun scripts/sync-content.ts --force",
