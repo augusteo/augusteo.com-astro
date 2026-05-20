@@ -735,7 +735,14 @@ async function syncContent(): Promise<void> {
   const totalImages = Object.keys(newCache.externalImages).length;
   const downloadInfo = totalImages > 0 ? ` (${totalImages} external images cached)` : '';
   console.log(`\n\u2705 Sync complete: ${processed} processed, ${skipped} skipped, ${errors} errors${downloadInfo}\n`);
+
+  if (errors > 0) {
+    process.exitCode = 1;
+  }
 }
 
 // Run sync
-syncContent().catch(console.error);
+syncContent().catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});

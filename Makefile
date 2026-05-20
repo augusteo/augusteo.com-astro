@@ -1,4 +1,4 @@
-.PHONY: help dev build preview sync sync-force sync-clean watch install clean texture
+.PHONY: help dev build preview sync sync-force sync-clean watch install install-hooks clean texture
 
 help:
 	@echo "Usage: make [target]"
@@ -17,9 +17,10 @@ help:
 	@echo "  watch       Watch Obsidian folders for changes"
 	@echo ""
 	@echo "Utilities:"
-	@echo "  install  Install dependencies"
-	@echo "  clean    Remove build artifacts and sync cache"
-	@echo "  texture  Generate noise texture"
+	@echo "  install        Install dependencies"
+	@echo "  install-hooks  Point git at .githooks/ (pre-push runs astro build)"
+	@echo "  clean          Remove build artifacts and sync cache"
+	@echo "  texture        Generate noise texture"
 
 dev:
 	bun run dev
@@ -45,6 +46,16 @@ watch:
 
 install:
 	bun install
+
+install-hooks:
+	@current=$$(git config --get core.hooksPath || true); \
+	if [ -n "$$current" ] && [ "$$current" != ".githooks" ]; then \
+	  echo "✗ core.hooksPath is already set to '$$current'."; \
+	  echo "  Run 'git config --unset core.hooksPath' first, or set it to .githooks manually."; \
+	  exit 1; \
+	fi
+	git config core.hooksPath .githooks
+	@echo "✓ git hooks now point at .githooks/ (pre-push runs astro build)"
 
 clean:
 	rm -rf dist .sync-cache.json

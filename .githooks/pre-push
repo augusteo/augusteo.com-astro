@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Pre-push gate: astro build must succeed against the committed tree before pushing.
+# Bypass once with: git push --no-verify
+#
+# Deliberately does NOT run `bun run sync` — sync rewrites tracked MDX from the
+# Obsidian source, which would mean the gate validates a mutated tree while git
+# pushes the pre-mutation commit. Run `bun run sync` (or `bun run dev`) manually,
+# commit the result, then push.
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+echo "→ pre-push: bun astro build"
+if ! bun astro build; then
+  echo
+  echo "✗ pre-push: build failed. Fix the error above, or bypass once with: git push --no-verify"
+  exit 1
+fi
+
+echo "✓ pre-push: build clean"
