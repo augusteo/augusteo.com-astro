@@ -251,6 +251,20 @@ Find:
    line `*Pre-rule post; related-posts scan not retroactively run.*` and nothing else. If
    real entries are present below the stub, the no-op does NOT apply — walk every entry.
 
+10. UNEXPLAINED MATH. The post is intuition-first for a reader who is NOT fluent in this
+    subfield's math (see the audience line in `## Spec`). Walk every formula, equation, and
+    named mathematical object in the prose AND in the figures (a Greek symbol, a log-ratio,
+    a sigmoid, a KL penalty, an ELBO, an expectation, an argmax, a norm). For each, check:
+    is every symbol named in plain words at first appearance; is the equation read out in
+    plain English; is each non-obvious operation (log, ratio, exp, expectation, argmax)
+    given a one-clause working intuition; is the behavior at the extremes explained? Flag
+    any formula dropped in raw, any symbol left unglossed, any place the prose assumes math
+    fluency the stated audience does not have, and any equation whose only copy lives inside
+    a figure SVG with no plain-language read in prose or caption. Calibrate to the Spec's
+    audience: an ML-researcher audience needs only symbol-naming; an "engineers without much
+    X" audience needs the full intuitive treatment. Do not demand derivations — intuition,
+    not proof, is the bar.
+
 For each finding, label it STRUCTURAL (must fix before shipping) or COSMETIC. Order by
 load-bearing-ness. Cite specific paragraph / sentence / matrix row.
 

@@ -56,6 +56,26 @@ Inside each decomposition section, follow this rhythm:
 
 Each section is 300–800 words depending on the mechanism's depth. If a section runs past 800, decompose further or move some of it to a footnote.
 
+## Math, made intuitive
+
+The reader of these posts is usually an engineer who is fluent in *some* math but not the specific math of this subfield. A backend engineer reading an RL post knows what a function is; they may not have a working feel for a log-ratio, a KL term, or an expectation. So the rule is: **a formula a reader can't read is worse than no formula.** Intuition comes before notation, always. Every formula, symbol, and named mathematical object has to be reachable by someone who has never seen it.
+
+This is not "dumbing down." The equation still appears in full — you are adding the plain-language read alongside it, not removing the rigor. The density rule still holds; you make the math *land*, you don't pad it.
+
+When a formula, equation, or named object appears (a Greek symbol, a log-ratio, a sigmoid, a KL penalty, an ELBO, an expectation, an argmax, a norm), run this checklist in the prose right where it appears:
+
+1. **Say what it's for before you show it.** One plain sentence naming what the quantity *wants*. "We need a single number for how much better the winning answer is than the losing one." Then the formula.
+2. **Name every symbol on first sight, in words.** Greek letters especially. "σ (sigma) is the S-shaped squashing curve from Fig 2." "π (pi) is the model's probability of producing an answer; π_ref is the frozen reference's." Never let a symbol sit on the page unglossed, not even once.
+3. **Read the line out in plain English.** Translate the whole equation into a sentence someone could say aloud. The DPO loss isn't "L = −log σ(β(r_w − r_l))"; it's "push the winner's score above the loser's, run the gap through the S-curve, and the loss falls as the model gets more confident it picked right."
+4. **Ground the operation, not just the symbol.** The audience may not have intuition for the *operations*, not only the letters. Hand over the working feel in one clause, no derivation: a *ratio* is "how many times more likely"; a *log* "is zero when the two match, positive when the top is bigger, negative when smaller, and turns multiplying into adding"; an *expectation* is "the average over many tries"; an *argmax* is "whichever choice scores highest." Give the intuition the reader needs to keep reading, not the proof.
+5. **Explain the behavior at the extremes.** This is where the intuition actually lives. What happens when the input is zero, tiny, or huge? "Equal scores → the sigmoid is 0.5, a coin flip. A big gap → it saturates near 1." Extremes anchor the shape better than the middle does.
+6. **Anchor to the metaphor already running.** Tie the math back to the post's live images: the leash, the yardstick, the vote, the judge. The symbol and the metaphor should click together.
+7. **One concrete instance, where it's cheap.** Plug in a tiny number so the reader sees it move. "If the model is twice as likely as the reference, the ratio is 2 and the log-ratio is about +0.7."
+
+What not to do: don't **derive** (intuition, not proof — the reader doesn't need the algebra from the RLHF objective to the DPO loss, only what the result means); don't define a symbol three sentences after using it; don't assume `log` / `exp` / expectation / gradient are "obvious"; don't let the only copy of the equation live inside a figure SVG (the accessibility rule in `illustration-style.md` — the intuitive read belongs in prose or caption).
+
+**Calibrate to the stated audience.** The depth of this treatment is set by the `## Spec` audience line, not applied uniformly. An ML-researcher audience needs only symbol-naming and can skip the log/ratio primer; an "engineers who know deep learning but not much RL" audience gets the full ramp; a general-technical audience gets even more grounding. Read the Spec, then dial it.
+
 ## Phrasing patterns
 
 These are the verbal moves that make the figures land. Borrow them.
