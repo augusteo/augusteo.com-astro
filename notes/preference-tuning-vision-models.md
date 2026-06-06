@@ -354,12 +354,12 @@ Three acts + coda. Throughline (one human preference verdict, "this one, not tha
 | 2 | BradleyTerrySigmoid | static-svg | P(A≻B) = σ(score gap) | small gap → coin flip; big gap → near-certain |
 | 3 | RlhfPipeline | static-svg | SFT → reward model → PPO, with KL leash; human in stage 2 | RLHF needs two extra networks + online sampling |
 | 4 | DpoCollapsesLoop | static-svg | RLHF's RM+PPO loop vs DPO's single classification step | same inputs, far less machinery |
-| 5 | DpoLossAnatomy | static-svg | annotated DPO loss: log-σ, β, chosen/rejected log-ratios, frozen π_ref, implicit reward | what each term in the loss does |
+| 5 | DpoLossAnatomy | static-svg | annotated DPO loss: log-σ, β (reference-leash strength), chosen/rejected log-ratios, frozen π_ref, implicit reward | what each term in the loss does |
 | 6 | BetaLeash | static-svg (re-typed at Gate 1, 2026-06-05: interactive→static, codex TYPE-CHANGE, auto-accepted per autonomous mandate; unlock-count 1) | three β panels: low β drifts far / high β hugs reference | which way β moves the model vs the SFT reference |
 | 7 | GrpoDropsCritic | static-svg | PPO (policy + critic) vs GRPO (group mean as baseline) | advantage without a value network |
 | 8 | DiffusionDpoTrajectory | static-svg | winner x⁺ pulled up / loser x⁻ pushed down over the denoise trajectory vs frozen reference | DPO adapted to a generator with no token log-probs |
 | 9 | CheapVerdictVsGroundTruth | static-svg | authoring a dense target (expensive) vs judging a proposal (cheap) | judge-a-proposal scales; author-the-target doesn't |
-| 10 | DataEngineLoop | static-svg | model proposes → human/AI verdicts → preference data → SFT+DPO → better model → loop | the virtuous cycle, arrow by arrow |
+| 10 | DataEngineLoop | static-svg | GENERIC loop: model proposes → human/AI verifies/corrects/rates → dataset improves → model retrains → loop (NO SFT+DPO box — that's Fig 12) | the virtuous cycle, arrow by arrow |
 | 11 | SamThreeDEloClimb | static-svg (schematic) | preference/Elo rising across data-engine rounds above retrieval baseline | the loop compounds; SCHEMATIC, no numbers |
 | 12 | SamThreeDAssembled | static-svg | synthetic pretrain → SFT → DPO on verdicts → data engine → 5:1/6:1 win | every earlier mechanism in one picture |
 
@@ -389,7 +389,7 @@ Last touched: 2026-06-05.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | done (Gate 1 pending) | `## Outline` |
+| 3. Outline + figure list | done (Gate 1 closed) | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/preference-tuning-vision-models/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -400,7 +400,7 @@ Last touched: 2026-06-05.
 | Date | Gate | Outcome | Findings file |
 |---|---|---|---|
 | 2026-06-05 | 0 (research) | structural-fixed, CLOSED after 3 invocations (8+1 STRUCTURAL fixed) | `## Codex research review` / notes/preference-tuning-vision-models-codex-research-20260605.md |
-| 2026-06-05 | 1 (outline) | structural-fixed (9 STRUCTURAL + 1 TYPE-CHANGE addressed); re-run pending | `## Codex outline review` / notes/preference-tuning-vision-models-codex-outline-20260605.md |
+| 2026-06-05 | 1 (outline) | structural-fixed, CLOSED after 2 invocations (9 STRUCTURAL + 1 TYPE-CHANGE; β direction confirmed correct by codex on re-run; last Fig-10-table-row dedup fixed) | `## Codex outline review` / notes/preference-tuning-vision-models-codex-outline-20260605.md |
 
 ### Phase 5 figure progress (populate at end of phase 3)
 
@@ -421,10 +421,11 @@ Last touched: 2026-06-05.
 
 ### Suggested next batch
 
-Phase 2 + Gate 0 are DONE. Next:
-1. Phase 3: draft the three-act outline (section list, numbered) per narrative-template.md; thread the throughline through every act.
-2. Build the figure table (default static-svg; flag the Bradley-Terry sigmoid + Elo-climb as plots, DPO beta-sweep as the one interactive candidate). Lock figure types.
-3. Run Gate 1 (codex on outline + figure table).
+Phases 1-3 + Gates 0-1 DONE. Next: Phase 4 (draft prose). Draft section by section per the ## Outline (12 sections, 3 acts + coda):
+1. Create src/content/blog/preference-tuning-vision-models/index.mdx with frontmatter (draft: true, essay: true, no heroImage yet).
+2. Draft Act 1 (§1), commit. Then Act 2 (§2-7), one section per commit, figure placeholders as `{/* TODO: Fig N: ... */}`. Then Act 3 (§8-11), coda (§12).
+3. Voice-check clean before each commit. Per-section "Reader can now:" comment. Weave related-post links (image-generators-vision-models companion; generative-vision-stack; unified-vision-stack; ssl-pretraining-recipes). Emit ## References from the matrix.
+4. Then Phase 5 (implement the 12 static figures), Phase 6 (playwright), Phase 7 (freshness + Gate 2 + hero + ship).
 
 ### How to resume from a fresh context
 
