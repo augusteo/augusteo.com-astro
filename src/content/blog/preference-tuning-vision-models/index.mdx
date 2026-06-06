@@ -9,7 +9,7 @@ draft: true
 essay: true
 ---
 
-*Preference tuning is how you train a model on "this one, not that one" instead of "copy this." It grew up in chatbots, as RLHF and then DPO and GRPO, and it has quietly become the data engine behind Meta's [SAM 3D](https://arxiv.org/abs/2511.16624). This post follows a single human verdict the whole way: from a chatbot A/B click to a thumbs-up on a reconstructed 3D shape. Written for engineers who know deep learning and fine-tuning but not much reinforcement learning. About a 35-minute read.*
+*Preference tuning is how you train a model on "this one, not that one" instead of "copy this." It grew up in chatbots, as RLHF and then DPO and GRPO, and it has quietly become the data engine behind Meta's [SAM 3D](https://arxiv.org/abs/2511.16624). This post follows a single human verdict the whole way: from a chatbot A/B click to a thumbs-up on a reconstructed 3D shape. Written for engineers who know deep learning and fine-tuning but not much reinforcement learning. About a 25-minute read.*
 
 ### 1. The thing you can't demonstrate
 
@@ -19,7 +19,29 @@ For a lot of what we now ask models to do, you can't. Nobody can author the sing
 
 But you can do something easier. Show a person two answers and they will tell you which is better. They can't write the perfect summary, but they can point at the better of two summaries in a second. That gap, between what people can produce and what people can judge, is the whole reason preference tuning exists. It is a way to train on judgments instead of demonstrations: on "this one, not that one."
 
-{/* TODO: Fig 1: ImitationVsPreference - SFT copies one demonstration; preference picks between two candidates */}
+<figure>
+<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Imitation needs an authored target to copy; preference needs only a verdict between two candidates.">
+<defs><marker id="f1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="20" y="22" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">IMITATION (SFT)</text>
+<rect x="20" y="40" width="120" height="64" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="80" y="66" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">the answer</text>
+<text x="80" y="86" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">must be authored</text>
+<line x1="146" y1="72" x2="182" y2="72" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f1a)"/>
+<rect x="184" y="47" width="120" height="50" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="244" y="77" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">model copies</text>
+<text x="20" y="135" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">needs one perfect target to imitate</text>
+<line x1="340" y1="18" x2="340" y2="180" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="372" y="22" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">PREFERENCE</text>
+<rect x="372" y="40" width="150" height="40" fill="#D1FAE5" stroke="#15803D" stroke-width="1.5"/>
+<text x="420" y="64" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">answer A</text>
+<text x="540" y="67" font-family="serif" font-size="18" fill="#15803D">&#10003;</text>
+<rect x="372" y="90" width="150" height="40" fill="#FBE9CE" stroke="#B91C1C" stroke-width="1.2" opacity="0.85"/>
+<text x="420" y="114" text-anchor="middle" font-family="serif" font-size="12" fill="#1A1A1A">answer B</text>
+<text x="540" y="117" font-family="serif" font-size="18" fill="#B91C1C">&#10007;</text>
+<text x="372" y="158" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">needs only a verdict: this one, not that one</text>
+</svg>
+<figcaption><strong>Fig 1.</strong> Supervised fine-tuning needs a target good enough to copy. Preference tuning needs only a verdict between two candidates, which is far easier to get.</figcaption>
+</figure>
 
 The verdict is the unit we are going to follow. In a chatbot it is a labeler clicking the better of two replies. By the end of this post it is an annotator looking at a 3D shape a model reconstructed from a photo and saying whether it is good enough. Same verdict, same math underneath, twelve orders of magnitude apart in what it builds. The trip from one to the other is the post.
 
@@ -35,7 +57,32 @@ A raw verdict is binary: A won, B lost. Gradient descent can't do much with one 
 
 The trick is older than deep learning. In 1952 the statisticians Ralph Bradley and Milton Terry wrote down a model for exactly this: give each item a hidden score, and say the probability that A beats B is the logistic function of the gap between their scores. If the scores are equal, it's a coin flip. As A's score pulls ahead, the probability A wins slides up toward one; as it falls behind, down toward zero.
 
-{/* TODO: Fig 2: BradleyTerrySigmoid - P(A wins) = sigmoid(score gap), two marked points */}
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="The Bradley-Terry curve: probability A wins is the sigmoid of the score gap. Zero gap is a coin flip; a large gap is near-certain.">
+<line x1="60" y1="250" x2="630" y2="250" stroke="#8F8578" stroke-width="1"/>
+<line x1="60" y1="250" x2="60" y2="40" stroke="#8F8578" stroke-width="1"/>
+<g stroke="#C9BEAA" stroke-width="0.5" stroke-dasharray="2,3">
+<line x1="60" y1="150" x2="630" y2="150"/>
+<line x1="60" y1="50" x2="630" y2="50"/>
+</g>
+<text x="52" y="253" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#6B6258">0</text>
+<text x="52" y="154" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#6B6258">0.5</text>
+<text x="52" y="54" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#6B6258">1</text>
+<text x="345" y="270" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#6B6258">0</text>
+<polyline fill="none" stroke="#2563EB" stroke-width="2.5" points="60,249 153,246 200,240 247,226 293,196 340,150 387,104 433,74 480,60 527,54 630,50"/>
+<line x1="340" y1="150" x2="340" y2="250" stroke="#6B6258" stroke-width="0.8" stroke-dasharray="3,3"/>
+<circle cx="340" cy="150" r="4" fill="#2563EB"/>
+<text x="332" y="140" text-anchor="end" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">equal scores, a coin flip</text>
+<circle cx="527" cy="54" r="4" fill="#2563EB"/>
+<line x1="527" y1="54" x2="500" y2="78" stroke="#2563EB" stroke-width="0.8"/>
+<text x="495" y="92" text-anchor="end" font-family="serif" font-size="11" font-style="italic" fill="#2563EB">big gap, near-certain</text>
+<text x="345" y="252" text-anchor="middle" font-family="serif" font-size="11" fill="#6B6258"> </text>
+<text x="630" y="270" text-anchor="end" font-family="serif" font-size="11" fill="#6B6258">score gap (A favored)</text>
+<text x="74" y="234" text-anchor="start" font-family="serif" font-size="11" fill="#6B6258">B favored</text>
+<text x="20" y="40" font-family="serif" font-size="11" fill="#6B6258">P(A wins)</text>
+</svg>
+<figcaption><strong>Fig 2.</strong> The Bradley-Terry model turns a verdict into a probability: P(A beats B) is the sigmoid of the gap between their hidden scores. Equal scores give a coin flip; a wide gap is nearly certain. This sigmoid is the part doing the work inside every loss in this post.</figcaption>
+</figure>
 
 That single curve is the seed of everything that follows. Every method in this post is, underneath, a way of assigning scores so that the better answer gets the higher one, with the Bradley-Terry sigmoid converting the score gap into "how confident are we that this was the right call." Hold onto the shape: small gap, near 50/50; large gap, near certain. When we get to the loss functions, that sigmoid is the part doing the work.
 
@@ -51,7 +98,34 @@ Stage two trains a **reward model**: a learned judge. You collect comparisons, w
 
 Stage three is the reinforcement learning. The model produces answers (a **rollout**, just the model trying things), the reward model scores them, and you nudge the model toward higher-scoring answers. Two more pieces make this work. A **critic** is a second network that guesses, for a half-finished answer, how good the final score is likely to be; the **advantage** is then how much better an answer did than the critic expected, the extra credit beyond the baseline. And a **KL leash**: a penalty for drifting too far from the SFT reference, because a model chasing reward with no leash will find some degenerate text the reward model loves and normal readers hate. InstructGPT says it plainly: "we add a per-token KL penalty from the SFT model at each token to mitigate over-optimization of the reward model." The optimizer that takes the bounded uphill step is **PPO**, which clips each update so one step can't blow up the model.
 
-{/* TODO: Fig 3: RlhfPipeline - SFT -> reward model (human in stage 2) -> PPO loop with critic and KL leash to SFT */}
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="RLHF in three stages: SFT, a reward model trained on human comparisons, and PPO with a critic and a KL leash back to the SFT reference.">
+<defs><marker id="f3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="30" y="118" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">1. SFT</text>
+<text x="210" y="118" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">2. REWARD MODEL</text>
+<text x="430" y="118" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">3. PPO</text>
+<rect x="30" y="128" width="110" height="54" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="85" y="152" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">SFT model</text>
+<text x="85" y="170" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">the reference</text>
+<line x1="142" y1="155" x2="196" y2="155" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f3a)"/>
+<circle cx="218" cy="78" r="11" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2"/>
+<text x="236" y="74" font-family="serif" font-size="11" font-style="italic" fill="#B8651A">human picks A &gt; B</text>
+<line x1="225" y1="90" x2="248" y2="124" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f3a)"/>
+<rect x="200" y="128" width="120" height="54" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
+<text x="260" y="152" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#B8651A">reward model</text>
+<text x="260" y="170" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">a learned judge</text>
+<line x1="322" y1="155" x2="396" y2="155" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f3a)"/>
+<text x="360" y="148" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">scores answers</text>
+<rect x="400" y="128" width="130" height="48" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="465" y="150" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">policy (PPO)</text>
+<text x="465" y="167" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">rollout, score, step</text>
+<rect x="400" y="196" width="130" height="30" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="465" y="215" text-anchor="middle" font-family="serif" font-size="10" fill="#6B6258">critic: the baseline</text>
+<path d="M400,134 C 300,70 200,70 110,124" fill="none" stroke="#6B6258" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#f3a)"/>
+<text x="255" y="64" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">KL leash: stay near the SFT reference</text>
+</svg>
+<figcaption><strong>Fig 3.</strong> RLHF in three stages: fine-tune (SFT), train a reward model on human comparisons, then improve the policy with PPO, kept on a KL leash to the SFT reference. The reward model and the critic are the two extra networks the next methods set out to remove.</figcaption>
+</figure>
 
 It worked, and the headline result is still striking: a 1.3B-parameter InstructGPT model's answers were preferred over those of 175B GPT-3, a model more than a hundred times larger. Preference tuning bought more than a hundred-fold scale-up would have.
 
@@ -65,7 +139,35 @@ Direct Preference Optimization came from a sharp observation in its [2023 paper]
 
 The consequence is the whole pitch. The implicit reward of an answer is just β times the log-ratio log(π/π_ref), where π is the model you are training and π_ref is the frozen SFT reference. So you do not need a separate reward model, and you do not need the RL loop at all. You take your preference pairs, drop them straight into the Bradley-Terry sigmoid using that implicit reward, and train with one ordinary classification loss. The DPO paper's words: it eliminates "the need for fitting a reward model, sampling from the LM during fine-tuning, or performing significant hyperparameter tuning."
 
-{/* TODO: Fig 4: DpoCollapsesLoop - RLHF's reward-model + PPO-rollout loop vs DPO's single classification step */}
+<figure>
+<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="RLHF needs a reward model, a critic, and a sampling loop; DPO collapses all of it into one classification step on preference pairs.">
+<defs><marker id="f4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="20" y="24" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">RLHF</text>
+<rect x="40" y="48" width="96" height="38" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="88" y="71" text-anchor="middle" font-family="serif" font-size="11" fill="#2563EB">policy</text>
+<rect x="200" y="48" width="96" height="38" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2"/>
+<text x="248" y="71" text-anchor="middle" font-family="serif" font-size="11" fill="#B8651A">reward model</text>
+<rect x="120" y="140" width="96" height="38" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="168" y="163" text-anchor="middle" font-family="serif" font-size="11" fill="#6B6258">critic</text>
+<line x1="136" y1="62" x2="198" y2="62" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f4a)"/>
+<path d="M248,88 C 248,120 210,130 200,140" fill="none" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f4a)"/>
+<path d="M120,150 C 70,140 70,100 80,86" fill="none" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f4a)"/>
+<text x="168" y="208" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">two extra networks + a sampling loop</text>
+<line x1="330" y1="20" x2="330" y2="225" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="360" y="24" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">DPO</text>
+<rect x="360" y="78" width="120" height="48" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="420" y="100" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">preference pair</text>
+<text x="420" y="116" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">(chosen, rejected)</text>
+<line x1="482" y1="102" x2="516" y2="102" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f4a)"/>
+<rect x="518" y="78" width="80" height="48" fill="#D1FAE5" stroke="#15803D" stroke-width="1.5"/>
+<text x="558" y="106" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#15803D">DPO loss</text>
+<line x1="558" y1="128" x2="558" y2="156" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f4a)"/>
+<rect x="518" y="158" width="80" height="38" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+<text x="558" y="181" text-anchor="middle" font-family="serif" font-size="11" fill="#2563EB">model</text>
+<text x="478" y="220" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">one classification step, no reward model, no loop</text>
+</svg>
+<figcaption><strong>Fig 4.</strong> RLHF runs a policy, a reward model, and a critic in a sampling loop. DPO proves the optimal policy is already an implicit reward model, so it collapses the whole apparatus into a single classification loss on the preference pairs.</figcaption>
+</figure>
 
 Written out, the loss is one line, and it is worth being able to read it term by term:
 
@@ -73,7 +175,25 @@ Written out, the loss is one line, and it is worth being able to read it term by
 
 The `σ` is the Bradley-Terry sigmoid from section 2. Inside it is a difference of two log-ratios: how much more the model favors the winning answer than the reference does, minus the same for the losing answer. Push that difference up and the loss falls. `π_ref` is the frozen SFT model, present in both terms as the thing you are measured against. And β is a knob we need to look at on its own.
 
-{/* TODO: Fig 5: DpoLossAnatomy - annotated DPO loss: log-sigma, beta, win/lose log-ratios, frozen reference, implicit reward */}
+<figure>
+<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="The DPO loss, term by term: the Bradley-Terry sigmoid of beta times the difference of the winner and loser log-ratios against a frozen reference.">
+<rect x="20" y="30" width="640" height="70" fill="#F9F5EB" stroke="#C9BEAA" rx="4"/>
+<text x="40" y="62" font-family="JetBrains Mono" font-size="16" fill="#1A1A1A"><tspan>L = &#8722;log </tspan><tspan fill="#0E7490">&#963;</tspan><tspan>( </tspan><tspan fill="#B8651A">&#946;</tspan><tspan> &#183; ( </tspan><tspan fill="#15803D">r(win)</tspan><tspan> &#8722; </tspan><tspan fill="#B91C1C">r(lose)</tspan><tspan> ) )</tspan></text>
+<text x="40" y="88" font-family="JetBrains Mono" font-size="12" fill="#6B6258">where  r(y) = log[ &#960;(y) / &#960;_ref(y) ]   is the implicit reward</text>
+<g font-family="serif" font-size="12" fill="#1A1A1A">
+<rect x="40" y="120" width="14" height="14" fill="#0E7490"/>
+<text x="62" y="131">&#963;: the Bradley-Terry sigmoid from Fig 2.</text>
+<rect x="40" y="144" width="14" height="14" fill="#B8651A"/>
+<text x="62" y="155">&#946;: reference-leash strength. High &#946; keeps the model near &#960;_ref; low &#946; lets it drift.</text>
+<rect x="40" y="168" width="14" height="14" fill="#15803D"/>
+<text x="62" y="179">r(win): how much more the model favors the winner than the frozen reference does.</text>
+<rect x="40" y="192" width="14" height="14" fill="#B91C1C"/>
+<text x="62" y="203">r(lose): the same quantity, for the loser. Push r(win) above r(lose) and the loss falls.</text>
+</g>
+<text x="40" y="231" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">&#960;_ref is the frozen SFT model. It never trains; it is only the yardstick.</text>
+</svg>
+<figcaption><strong>Fig 5.</strong> The whole DPO loss in one line. The implicit reward of an answer is its log-probability under the model divided by its log-probability under the frozen reference. The loss just asks the Bradley-Terry sigmoid to rank the winner's implicit reward above the loser's.</figcaption>
+</figure>
 
 {/* Reader can now: read the DPO loss term by term and say what beta and the reference do. */}
 
@@ -83,7 +203,45 @@ The `σ` is the Bradley-Terry sigmoid from section 2. Inside it is a difference 
 
 The direction surprises people because "higher" sounds like "more aggressive." It isn't. The implicit reward is β times the log-ratio, so a higher β means even a small change in the model's probabilities produces a large reward signal, and the model reaches the same preference margin with less movement. More β, less drift. The DPO paper states it as "β is a parameter controlling the deviation from the base reference policy."
 
-{/* TODO: Fig 6: BetaLeash - three panels, low beta drifts far from reference / medium / high beta hugs reference */}
+<figure>
+<svg viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Three beta panels: low beta is a loose leash and the model drifts far from the reference; high beta is a tight leash and the model hugs the reference.">
+<g>
+<text x="20" y="28" font-family="JetBrains Mono" font-size="10" letter-spacing="1" fill="#6B6258">LOW &#946; (0.02)</text>
+<text x="245" y="28" font-family="JetBrains Mono" font-size="10" letter-spacing="1" fill="#6B6258">MEDIUM &#946; (0.1)</text>
+<text x="470" y="28" font-family="JetBrains Mono" font-size="10" letter-spacing="1" fill="#6B6258">HIGH &#946; (0.5)</text>
+</g>
+<g>
+<rect x="30" y="86" width="16" height="16" fill="#1A1A1A"/>
+<text x="38" y="120" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">ref</text>
+<line x1="46" y1="94" x2="196" y2="94" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="5,3"/>
+<circle cx="200" cy="94" r="9" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="200" y="120" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#2563EB">model</text>
+<text x="118" y="150" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">loose leash</text>
+<text x="118" y="168" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">drifts far, can overfit</text>
+</g>
+<line x1="232" y1="20" x2="232" y2="185" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="3,3"/>
+<g>
+<rect x="255" y="86" width="16" height="16" fill="#1A1A1A"/>
+<text x="263" y="120" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">ref</text>
+<line x1="271" y1="94" x2="351" y2="94" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="5,3"/>
+<circle cx="355" cy="94" r="9" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="355" y="120" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#2563EB">model</text>
+<text x="320" y="150" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">balanced</text>
+<text x="320" y="168" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">the usual range</text>
+</g>
+<line x1="455" y1="20" x2="455" y2="185" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="3,3"/>
+<g>
+<rect x="480" y="86" width="16" height="16" fill="#1A1A1A"/>
+<text x="488" y="120" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">ref</text>
+<line x1="496" y1="94" x2="526" y2="94" stroke="#B8651A" stroke-width="1.5" stroke-dasharray="5,3"/>
+<circle cx="530" cy="94" r="9" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="530" y="120" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#2563EB">model</text>
+<text x="540" y="150" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">tight leash</text>
+<text x="540" y="168" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">hugs reference, moves little</text>
+</g>
+</svg>
+<figcaption><strong>Fig 6.</strong> The β dial, in the direction that trips people up. A low β is a loose leash: the model wanders far from the SFT reference to fit the preferences, and can overfit. A high β is a tight leash: the model barely moves. More β means less drift.</figcaption>
+</figure>
 
 {/* Reader can now: state correctly which way beta moves the model relative to the SFT reference. */}
 
