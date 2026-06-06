@@ -2,7 +2,9 @@
 
 ## Spec
 
-**What / who / walk-away.** An explainer on preference optimization: the RLHF → DPO → GRPO lineage that came out of the LLM world, and how the same trick crossed over into vision — first into image generation (Diffusion-DPO), then into the model-in-the-loop data engine behind SAM 3D, where annotators who can only say "yes or no" break the 3D data barrier. The reader is an AI engineer who is comfortable with deep learning and supervised fine-tuning but has little or no reinforcement-learning background. They walk away able to: read the DPO loss and say what each term does; explain why DPO removes the reward model and the RL loop that PPO needs; see why the same preference signal adapts to a diffusion/flow-matching generator; and explain why binary preference annotation plus a model-in-the-loop loop is the data engine that produced SAM 3D.
+**What / who / walk-away.** An explainer on preference optimization: the RLHF → DPO → GRPO lineage that came out of the LLM world, and how the same trick crossed over into vision — first into image generation (Diffusion-DPO), then into the model-in-the-loop data engine behind SAM 3D, where annotators give cheap preference verdicts (verify / rank / rate model-generated options) instead of authoring 3D ground truth, and that breaks the 3D data barrier. The reader is an AI engineer who is comfortable with deep learning and supervised fine-tuning but has little or no reinforcement-learning background. They walk away able to: read the DPO loss and say what each term does; explain why DPO removes the reward model and the RL loop that PPO needs (and where DPO is NOT a free win — PPO can still beat it); see why the same preference signal adapts to a diffusion/flow-matching generator; and explain why a cheap-verdict + model-in-the-loop loop is the data engine that produced SAM 3D.
+
+**Gate-0 reframe (2026-06-05):** the strict "annotators only say yes or no" is Gkioxari's *talk* framing and is paper-backed only for 2D sparse annotation (Benenson). For SAM 3D the paper-backed primitive is "verify / rank / rate model-generated meshes rather than author ground truth." The post may quote the talk's yes/no framing explicitly (attributed to Gkioxari), but must not assert binary-yes/no as the SAM 3D annotation primitive in its own voice. The title can keep "yes or no" as a hook; the prose stays precise.
 
 **Topic-evolution classification:** actively-evolving (12-month bar). DPO (2023), GRPO (2025), Diffusion-DPO (2023), SAM 3D (2025) are all recent and the practice is moving. Foundational references locked by the field: PPO (Schulman 2017), Bradley-Terry (1952), SAM data engine (2023).
 
@@ -47,11 +49,11 @@
 The concrete atom that threads every act is one human verdict on a pair (or a single sample): *which output is better?* We follow that one signal across the whole post:
 
 - **Act 1 (LLM origin):** the verdict is a chatbot A/B click. A labeler reads two completions of the same prompt and picks one. InstructGPT turns ~tens of thousands of these into a reward model, then RL. (Citable numbers from InstructGPT/Stiennon.)
-- **Act 2 (the methods):** the same verdict feeds Bradley-Terry → the DPO loss directly (no reward model), → GRPO (group-relative, no critic).
-- **Act 3 (crossover to vision):** the verdict is now "which generated image looks better" (Diffusion-DPO, Pick-a-Pic pairs), then "is this reconstructed 3D shape good — yes or no" (SAM 3D annotators).
-- **Climax:** the SAM 3D model-in-the-loop data engine, where those yes/no verdicts retrain the model and the shape-quality Elo climbs version over version. (Citable Elo/win-rate numbers from SAM 3D paper — to confirm.)
+- **Act 2 (the methods):** the same verdict feeds Bradley-Terry → the DPO loss directly (no reward model), → GRPO (group-relative, no critic). Act 2 also has to say plainly where the verdict is NOT enough: DPO can overfit and PPO-style RLHF can still win (Xu 2024), the method that wins depends on misspecification (Shi 2025), and GRPO's normalization has a length bias (Dr. GRPO 2025).
+- **Act 3 (crossover to vision):** the verdict is now "which generated image looks better" (Diffusion-DPO, Pick-a-Pic pairs), then a cheap quality verdict on a model-generated 3D mesh — verify / rank / rate, not author the ground truth (SAM 3D annotators). The talk's "yes or no" phrasing is Gkioxari's, quoted as such.
+- **Climax:** the SAM 3D model-in-the-loop data engine, where those cheap verdicts feed SFT + DPO, the model retrains, and preference/Elo evaluation improves as the engine runs longer. No per-version Elo numbers asserted (Fig values not extractable); the climb is shown schematically.
 
-Ladder rung: **canonical-real** (named, public, citable at both ends: InstructGPT at the LLM end, SAM 3D at the vision end). Alternate if SAM 3D Elo numbers don't cite cleanly: fall back to composite-with-public-numbers for the data-engine climb.
+Ladder rung: **canonical-real** (named, public, citable at both ends: InstructGPT at the LLM end, SAM 3D at the vision end). The data-engine climb is shown as a schematic of the reported monotonic improvement, not as extracted per-version values.
 
 ## Research notes
 
@@ -116,6 +118,27 @@ DeepSeek-R1 is the scale proof:
 > "[GRPO] was originally proposed to simplify the training process and reduce the resource consumption of Proximal Policy Optimization (PPO)." Body: "Since the value model is usually of similar size as the policy model, it introduces a significant memory and computational overhead."
 > Source: DeepSeek-AI, arxiv:2501.12948 (v1 2025-01-22).
 
+### Sub-topic: where preference tuning is NOT a free win (counterweights, added at Gate 0)
+
+The post must not present preference tuning as a monotonic improvement path. Three verified counterweights:
+
+DPO is not strictly better than PPO — PPO-style RLHF can win:
+
+> "we first conduct both theoretical and empirical studies on the algorithmic properties of DPO and show that DPO may have fundamental limitations."
+> "Experiment results demonstrate that PPO is able to surpass other alignment methods in all cases and achieve state-of-the-art results in challenging code competitions."
+> Source: Xu et al, "Is DPO Superior to PPO for LLM Alignment? A Comprehensive Study," arxiv:2404.10719 (v1 2024-04-16). (ICLR 2025 per author claims; venue not independently confirmed.)
+
+Which method wins depends on the setting (a theory result):
+
+> "We show that RLHF, DPO, or online DPO can outperform one another depending on type of model mis-specifications."
+> "we provide a concrete construction where the ground-truth reward is sparse and show that RLHF requires significantly fewer samples than DPO to recover an effective reward model, highlighting a statistical advantage of two-stage learning."
+> Source: Shi et al, "Understanding the Performance Gap in Preference Learning: A Dichotomy of RLHF and DPO," arxiv:2505.19770 (v1 2025-05-26).
+
+GRPO has its own bias:
+
+> "we identify an optimization bias in Group Relative Policy Optimization (GRPO), which artificially increases response length (especially for incorrect outputs) during training. To address this, we introduce Dr. GRPO, an unbiased optimization method..."
+> Source: Liu et al, "Understanding R1-Zero-Like Training: A Critical Perspective" (introduces Dr. GRPO), arxiv:2503.20783 (v1 2025-03-26).
+
 ### Sub-topic: DPO crosses into generative vision
 
 Diffusion-DPO (the bridge — cited on Gkioxari's slide as "Wallace et al, 2023"):
@@ -162,7 +185,8 @@ SAM 3D (the climax). Authors include Georgia Gkioxari, Piotr Dollár, Jitendra M
 > "We achieve this with a human- and model-in-the-loop pipeline for annotating object shape, texture, and pose, providing visually grounded 3D reconstruction data at unprecedented scale."
 > "...combines synthetic pretraining with real-world alignment, breaking the 3D 'data barrier'."
 > "we obtain significant gains over recent work, with at least a 5:1 win rate in human preference tests on real-world objects and scenes." (Body: at least 5:1 objects, 6:1 scenes.)
-> Body (via Meta blog): "verifying or ranking meshes is a more accessible skill. We can thus scale by building a data engine asking annotators to rate multiple options generated by a suite of models in the loop." Scale: "almost 1 million distinct images and generating approximately 3.14 million model-in-the-loop meshes."
+> The "verify/rank/rate" framing is from Meta's official SAM 3D blog (https://ai.meta.com/blog/sam-3d/), first-party engineering content: "verifying or ranking meshes is a more accessible skill. We can thus scale by building a data engine asking annotators to rate multiple options generated by a suite of models in the loop." Scale (blog): "almost 1 million distinct images and generating approximately 3.14 million model-in-the-loop meshes." (Cited as the Meta blog, not the arxiv abstract — see matrix rows 20-21.)
+> NOTE (Gate 0): the paper/blog do NOT say annotators give strictly binary yes/no verdicts for 3D. They verify/rank/rate. The strict "yes or no" is Gkioxari's talk framing; attribute it to the talk, don't assert it in the post's own voice for SAM 3D.
 > Recipe: "SAM 3D collects training samples and preference data from humans and uses them in both supervised finetuning (SFT) and direct preference optimization (DPO). This alignment can be repeated... creating a virtuous cycle."
 > Elo definition: "a 400 point Elo difference corresponds to 10:1 odds in a preference test." Data-engine improvement curve is Fig 10b ("as the data engine runs longer, model performance steadily improves").
 > Source: SAM 3D Team (Meta), arxiv:2511.16624 (v1 2025-11-20).
@@ -188,24 +212,27 @@ Recency: topic is actively-evolving (12-month bar; cutoff ~2025-06-05). Sources 
 | 3 | InstructGPT's reward model was trained on ~33k prompts of human comparison data. | "the RM dataset has 33k training prompts" | arxiv:2203.02155 (2022-03-04) | foundational/canonical / passes |
 | 4 | The first clean RLHF result: a reward model from human comparisons beats the supervised/ROUGE objective for summarization. | "train a model to predict the human-preferred summary, and use that model as a reward function to fine-tune a summarization policy using reinforcement learning." | arxiv:2009.01325 (2020-09-02) | foundational (RLHF origin) / passes |
 | 5 | PPO optimizes a clipped surrogate objective that removes the incentive to move the policy ratio outside [1−ε,1+ε]. | "clip(rt(θ),1−ε,1+ε)Ât... removes the incentive for moving rt outside of the interval [1−ε,1+ε]." | arxiv:1707.06347 (2017-07-20) | foundational (RL algorithm) / passes |
-| 6 | PPO requires a separate learned value function (critic), roughly the size of the policy, to estimate advantages. | (DeepSeekMath, on what GRPO removes:) "obviates the need for additional value function approximation as in PPO"; (R1:) "the value model is usually of similar size as the policy model" | arxiv:2402.03300 (2024-02-05); arxiv:2501.12948 (2025-01-22) | foundational/canonical / passes |
+| 6 | PPO-style LLM RLHF trains a separate value model (critic), usually about the size of the policy; this is the overhead GRPO removes. (Stated as the GRPO-vs-PPO comparison, not a claim about PPO-2017 in the abstract.) | "[GRPO] obviates the need for additional value function approximation as in PPO"; "the value model is usually of similar size as the policy model, it introduces a significant memory and computational overhead." | arxiv:2402.03300 (2024-02-05); Nature 2025 DeepSeek-R1 (DOI 10.1038/s41586-025-09422-z) | foundational/canonical (GRPO-vs-PPO) / passes |
 | 7 | Human preference is modeled as a sigmoid of a score difference (Bradley-Terry): P(A≻B)=σ(s_A−s_B). | Bradley-Terry paired-comparison model: P(i beats j)=exp(s_i)/(exp(s_i)+exp(s_j)). | Bradley & Terry, Biometrika 39:324-345 (1952) | foundational / passes |
 | 8 | DPO eliminates the reward model and the RL sampling loop by mapping reward→policy analytically, leaving a simple classification loss. | "eliminating the need for fitting a reward model, sampling from the LM during fine-tuning, or performing significant hyperparameter tuning." | arxiv:2305.18290 (2023-05-29) | foundational/canonical (the topic's core method) / passes |
 | 9 | The DPO loss is log-σ of β times the difference of policy-vs-reference log-ratios on the chosen vs rejected response; β controls deviation from the SFT reference. | "β is a parameter controlling the deviation from the base reference policy π_ref, namely the initial SFT model." (loss eqn confirmed in body) | arxiv:2305.18290 (2023-05-29) | foundational/canonical / passes |
 | 10 | GRPO drops PPO's value network and uses the mean reward of a sampled group as the baseline, reducing training resources. | "GRPO foregoes the value model, instead estimating the baseline from group scores, significantly reducing training resources." | arxiv:2402.03300 (2024-02-05) | foundational/canonical / passes |
-| 11 | GRPO was adopted to train DeepSeek-R1 at scale for RL efficiency. | "To facilitate large-scale RL efficiency, we adopt Group Relative Policy Optimization (GRPO)." | arxiv:2501.12948 (2025-01-22) | canonical (GRPO-at-scale ref); 17mo, field-locked / passes |
+| 11 | GRPO was used to train DeepSeek-R1 at scale (peer-reviewed in Nature, Sept 2025). | "we build on DeepSeek-V3 Base and use Group Relative Policy Optimization (GRPO) as our RL framework." | Nature 645:633-638 (2025-09-17), DOI 10.1038/s41586-025-09422-z (preprint arxiv:2501.12948) | actively-evolving / 12-mo / passes (Nature version within bar) |
 | 12 | Diffusion-DPO reformulates DPO for diffusion via the ELBO and aligns SDXL on 851K Pick-a-Pic preference pairs, beating base SDXL on human preference. | "We re-formulate DPO to account for a diffusion model notion of likelihood, utilizing the evidence lower bound..."; "851K crowdsourced pairwise preferences"; "significantly outperforms both base SDXL-1.0 and the larger SDXL-1.0 model... in human evaluation." | arxiv:2311.12908 (2023-11-21) | foundational/canonical (first DPO-for-diffusion) / passes |
 | 13 | Pick-a-Pic is an open dataset of real users' pairwise preferences over text-to-image generations. | "a large, open dataset of text-to-image prompts and real users' preferences over generated images." | arxiv:2305.01569 (2023-05-02) | foundational (dataset ref) / passes |
 | 14 | Standard (sigmoid) DPO is mismatched to the regression nature of diffusion/flow-matching; its margin-maximization causes a pseudo-convergence trap. | "this 'margin-maximization' behavior is fundamentally ill-suited for the regression nature of diffusion and flow-matching models"; "rapid gradient decay... creates a 'pseudo-convergence' trap." | arxiv:2605.21123 (2026-05-20) | actively-evolving / 12-mo / passes |
-| 15 | DPO has been applied directly to image segmentation (dense prediction), where how preference pairs are mined strongly affects outcomes. | "We study Direct Preference Optimization (DPO) for segmentation... selecting the judge's top-ranked proposal can improve peak performance when the judge is reliable, but can amplify harmful errors under weaker judges." | arxiv:2601.23222 (2026-01-30) | actively-evolving / 12-mo / passes (fresh preprint, flagged) |
-| 16 | Dense annotation can be replaced by point-wise yes/no questions; this scaled to 22.6M point labels across 4,171 classes on Open Images. | annotation "where only point-wise yes/no questions are answered"; "22.6M point labels," "4,171 classes." | arxiv:2210.14142 (2022-10-25) | foundational (annotation-method ref) / passes |
+| 15 | DPO has been applied to medical image segmentation under noisy/weak judges (RN-DPO), where how preference pairs are mined strongly affects outcomes — one fresh preprint, not broad field adoption. | "We study Direct Preference Optimization (DPO) for segmentation... selecting the judge's top-ranked proposal can improve peak performance when the judge is reliable, but can amplify harmful errors under weaker judges." | arxiv:2601.23222 (2026-01-30) | actively-evolving / 12-mo / passes (single fresh preprint; do not generalize) |
+| 16 | (Background analogy, not load-bearing for the SAM 3D climax.) In 2D semantic segmentation, dense annotation can be replaced by point-wise yes/no questions, scaling to 22.6M point labels across 4,171 classes on Open Images. | annotation "where only point-wise yes/no questions are answered"; "22.6M point labels," "4,171 classes." | arxiv:2210.14142 (2022-10-25) | background analogy (2D sparse annotation); NOT a bridge proving SAM 3D's data engine |
 | 17 | SAM built its dataset with a model-in-the-loop data engine, yielding over 1 billion masks on 11M images. | "the largest segmentation dataset to date (by far), with over 1 billion masks on 11M licensed and privacy respecting images." | arxiv:2304.02643 (2023-04-05) | foundational (data-engine origin) / passes |
 | 18 | SAM 3D reconstructs 3D object shape/texture/pose from a single image, combining synthetic pretraining with real-world alignment to break the 3D "data barrier." | "...combines synthetic pretraining with real-world alignment, breaking the 3D 'data barrier'." | arxiv:2511.16624 (2025-11-20) | actively-evolving / 12-mo / passes |
 | 19 | SAM 3D's real-world alignment uses SFT + DPO on human preference data, repeated as a virtuous cycle (the data engine). | "uses them in both supervised finetuning (SFT) and direct preference optimization (DPO). This alignment can be repeated... creating a virtuous cycle." | arxiv:2511.16624 (2025-11-20) | actively-evolving / 12-mo / passes |
-| 20 | SAM 3D's data engine scales because annotators verify/rank model-generated meshes rather than author 3D ground truth. | "verifying or ranking meshes is a more accessible skill. We can thus scale by building a data engine asking annotators to rate multiple options generated by a suite of models in the loop." | arxiv:2511.16624 (2025-11-20) | actively-evolving / 12-mo / passes |
+| 20 | SAM 3D's data engine scales because annotators verify/rank/rate model-generated meshes rather than author 3D ground truth. | "verifying or ranking meshes is a more accessible skill. We can thus scale by building a data engine asking annotators to rate multiple options generated by a suite of models in the loop." | Meta SAM 3D blog https://ai.meta.com/blog/sam-3d/ (first-party, accessed 2026-06-05) | actively-evolving / 12-mo / passes (first-party blog, not arxiv abstract) |
 | 21 | SAM 3D produced its data at scale: ~1M images and ~3.14M model-in-the-loop meshes. | "almost 1 million distinct images and generating approximately 3.14 million model-in-the-loop meshes." | arxiv:2511.16624 (2025-11-20) | actively-evolving / 12-mo / passes |
 | 22 | SAM 3D beats recent work by at least 5:1 (objects) / 6:1 (scenes) in human preference tests. | "at least a 5:1 win rate in human preference tests on real-world objects and scenes." (body: 6:1 scenes) | arxiv:2511.16624 (2025-11-20) | actively-evolving / 12-mo / passes |
-| 23 | SAM 3D measures preference with Elo; a 400-point Elo gap equals 10:1 odds, and Elo rises as the data engine runs longer. | "a 400 point Elo difference corresponds to 10:1 odds in a preference test." (Fig 10b: improvement over rounds) | arxiv:2511.16624 (2025-11-20) | actively-evolving / 12-mo / passes (per-version values NOT cited; schematic only) |
+| 23 | SAM 3D measures preference with Elo; a 400-point Elo gap equals 10:1 odds, and preference performance improves as the data engine runs longer. | "a 400 point Elo difference corresponds to 10:1 odds in a preference test." (data-engine ablation: performance improves over rounds; exact figure number unverified — do not cite a figure number) | arxiv:2511.16624 (2025-11-20) | actively-evolving / 12-mo / passes (NO per-version values; climb shown schematically) |
+| 24 | DPO is not strictly better than PPO: DPO has fundamental limitations and PPO-style RLHF can outperform it. | "DPO may have fundamental limitations"; "PPO is able to surpass other alignment methods in all cases and achieve state-of-the-art results in challenging code competitions." | arxiv:2404.10719 (2024-04-16) | actively-evolving; canonical DPO-vs-PPO counterweight / passes |
+| 25 | Which preference method wins (RLHF / DPO / online-DPO) depends on model misspecification; RLHF can need fewer samples under sparse reward. | "RLHF, DPO, or online DPO can outperform one another depending on type of model mis-specifications"; "RLHF requires significantly fewer samples than DPO" under sparse reward. | arxiv:2505.19770 (2025-05-26) | actively-evolving / 12-mo / passes |
+| 26 | GRPO carries its own optimization bias (it inflates response length, especially for wrong outputs); Dr. GRPO removes it. | "we identify an optimization bias in Group Relative Policy Optimization (GRPO), which artificially increases response length (especially for incorrect outputs)..." | arxiv:2503.20783 (2025-03-26) | actively-evolving / 12-mo / passes |
 
 ## Related posts on augusteo.com
 
@@ -220,6 +247,12 @@ Scanned `src/content/blog/`. Strongest topical overlaps (will link inline in Pha
 ## Outline
 
 *(populated in Phase 3)*
+
+## Codex research review
+
+**Gate 0 fired 2026-06-05** (codex consult, gpt-5.5, internet-enabled). Outcome: **8 STRUCTURAL findings, all fixed**; 3 cosmetic notes. Codex confirmed both originally-suspect IDs are real and found no fabricated quotes. The two highest-value findings: (1) the "annotators only say yes/no" climax was overclaimed for SAM 3D (paper supports verify/rank/rate, not binary-only) — reframed, with yes/no kept only as Gkioxari's attributed talk framing; (8) the matrix was one-sided on DPO/GRPO — added three verified counterweight rows (DPO can underperform PPO; method-wins-depends-on-misspecification; GRPO length bias). Also: row 11 re-cited to the Nature 2025 DeepSeek-R1 (within the 12-month bar), row 6 reattributed to the GRPO-vs-PPO comparison, row 20 re-cited to the Meta blog, rows 15/16 narrowed, Elo climb locked to schematic with no per-version or figure numbers.
+
+Full findings + resolution: [notes/preference-tuning-vision-models-codex-research-20260605.md](preference-tuning-vision-models-codex-research-20260605.md). Findings: 8 STRUCTURAL (fixed), 3 COSMETIC.
 
 ## Resume here
 
@@ -241,6 +274,7 @@ Last touched: 2026-06-05.
 
 | Date | Gate | Outcome | Findings file |
 |---|---|---|---|
+| 2026-06-05 | 0 (research) | structural-fixed (8 STRUCTURAL fixed, 3 cosmetic) | `## Codex research review` / notes/preference-tuning-vision-models-codex-research-20260605.md |
 
 ### Phase 5 figure progress (populate at end of phase 3)
 
