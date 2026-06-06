@@ -391,9 +391,9 @@ Last touched: 2026-06-05.
 | 2. Research / fact-check | done (Gate 0 closed) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | done (Gate 1 closed) | `## Outline` |
 | 4. Draft prose | done | `src/content/blog/preference-tuning-vision-models/index.mdx` |
-| 5. Implement figures | pending | per-figure table below |
-| 6. Playwright review | pending | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
+| 5. Implement figures | done (12/12, all static) | per-figure table below |
+| 6. Playwright review | done (12/12 pass) | playwright snapshots reviewed |
+| 7. Freshness pass + Gate 2 + ship | in progress | hero image, dev verification, ship |
 
 ### Codex history
 
@@ -406,26 +406,26 @@ Last touched: 2026-06-05.
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | ImitationVsPreference | static-svg | TODO | |
-| 2 | BradleyTerrySigmoid | static-svg | TODO | |
-| 3 | RlhfPipeline | static-svg | TODO | |
-| 4 | DpoCollapsesLoop | static-svg | TODO | |
-| 5 | DpoLossAnatomy | static-svg | TODO | |
-| 6 | BetaLeash | static-svg (re-typed at Gate 1) | TODO | |
-| 7 | GrpoDropsCritic | static-svg | TODO | |
-| 8 | DiffusionDpoTrajectory | static-svg | TODO | |
-| 9 | CheapVerdictVsGroundTruth | static-svg | TODO | |
-| 10 | DataEngineLoop | static-svg | TODO | |
-| 11 | SamThreeDEloClimb | static-svg (schematic) | TODO | |
-| 12 | SamThreeDAssembled | static-svg | TODO | |
+| 1 | ImitationVsPreference | static-svg | done | figs 1-6 |
+| 2 | BradleyTerrySigmoid | static-svg | done | figs 1-6 |
+| 3 | RlhfPipeline | static-svg | done | figs 1-6 |
+| 4 | DpoCollapsesLoop | static-svg | done | figs 1-6 |
+| 5 | DpoLossAnatomy | static-svg | done | figs 1-6 |
+| 6 | BetaLeash | static-svg (re-typed at Gate 1) | done | figs 1-6 |
+| 7 | GrpoDropsCritic | static-svg | done | figs 7-12 |
+| 8 | DiffusionDpoTrajectory | static-svg | done | figs 7-12 |
+| 9 | CheapVerdictVsGroundTruth | static-svg | done | figs 7-12 |
+| 10 | DataEngineLoop | static-svg | done | figs 7-12 |
+| 11 | SamThreeDEloClimb | static-svg (schematic) | done | figs 7-12 |
+| 12 | SamThreeDAssembled | static-svg | done | figs 7-12 |
 
 ### Suggested next batch
 
-Phases 1-3 + Gates 0-1 DONE. Next: Phase 4 (draft prose). Draft section by section per the ## Outline (12 sections, 3 acts + coda):
-1. Create src/content/blog/preference-tuning-vision-models/index.mdx with frontmatter (draft: true, essay: true, no heroImage yet).
-2. Draft Act 1 (§1), commit. Then Act 2 (§2-7), one section per commit, figure placeholders as `{/* TODO: Fig N: ... */}`. Then Act 3 (§8-11), coda (§12).
-3. Voice-check clean before each commit. Per-section "Reader can now:" comment. Weave related-post links (image-generators-vision-models companion; generative-vision-stack; unified-vision-stack; ssl-pretraining-recipes). Emit ## References from the matrix.
-4. Then Phase 5 (implement the 12 static figures), Phase 6 (playwright), Phase 7 (freshness + Gate 2 + hero + ship).
+Phases 1-6 + Gates 0-1 DONE. Draft + all 12 figures landed; playwright review passed (figures on-palette, legible, no overlap; only benign height="auto" console notices, matching house convention). Next: Phase 7.
+1. Freshness re-check the 30-row matrix (budget: 1 Explore agent, ~5 min). Most sources are 2025-2026 or foundational; just confirm no v-bump changes a claim.
+2. Run Gate 2 (codex on full MDX + notes): claim-vs-matrix drift, References completeness, related-post cross-links (root-relative in prose, https in References).
+3. Hero hand-off: compose the hero prompt, surface to Vic (post stays draft:true; Vic supplies image + ships).
+4. Final voice-check. Vic flips draft:false himself.
 
 ### How to resume from a fresh context
 
