@@ -41,6 +41,7 @@ Before running type-specific checks, verify these on every figure:
 - **Contrast.** Text is `#1A1A1A` (or white on a dark fill), not `#6B6258` on a similar-toned background. Labels read at body font size when the figure is at column width.
 - **Caption matches figure.** The figcaption's claim is something the figure actually shows. If the caption says "the curve peaks early," the curve in the figure should visibly peak early.
 - **Palette compliance.** All fills and strokes are from the palette in `illustration-style.md`. No off-brand colors.
+- **Accessible text carries the load-bearing content.** The figure's `<svg>` has `role="img"` and an `aria-label`, and every load-bearing piece of the figure (an equation the prose dissects, an exact value, the axis a claim depends on, a before/after distinction) is present in the `aria-label`, the figcaption, or the surrounding prose — not only as SVG `<text>` nodes, which `role="img"` hides from screen readers. See "Accessibility (required)" in `illustration-style.md`. Quick programmatic check: `mcp__plugin_playwright_playwright__browser_evaluate` returning the figure's `svg.getAttribute('role')` and `aria-label`; confirm the label is non-empty and actually states the figure's takeaway, not a bare "diagram." Pay special attention to any figure that absorbed an equation or number lifted out of the prose during a cleanup edit.
 
 ## Type-specific checks: static SVG figures
 
@@ -113,6 +114,7 @@ Check:
 - Symbols don't collide. Subscripts and superscripts are at half-size and offset correctly.
 - Greek letters and operators render via the font, not as boxes (a missing-glyph box looks like a square; if you see one, the font fallback failed).
 - Color-coding (when an equation has annotated terms in different colors) matches the colors used elsewhere in the figure or post.
+- The exact equation is in the `aria-label`, spelled out in words (`"minus log sigmoid of ..."`), not only drawn as SVG `<text>`. An equation figure is the highest-risk case for the accessible-text rule above: if the prose points readers to the figure for the formula, the formula must be readable with the image hidden.
 
 ### Before / after comparison
 

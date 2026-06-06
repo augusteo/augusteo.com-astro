@@ -71,7 +71,7 @@ Always:
 
 ```mdx
 <figure>
-  <svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto">
+  <svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="...">
     ...
   </svg>
   <figcaption><strong>Fig N.</strong> Sentence describing what the figure shows. Maybe a second sentence pointing at what to notice.</figcaption>
@@ -81,6 +81,17 @@ Always:
 - Open the figcaption with `<strong>Fig N.</strong>` (period, not colon).
 - One or two sentences. Don't restate the prose; point at what to see in the figure.
 - Italicize a key term inside the caption (e.g. `<em>dense feature collapse</em>`) when the figure introduces it.
+- The `<svg>` always carries `role="img"` and an `aria-label` (see Accessibility below). Never ship a figure SVG without one.
+
+## Accessibility (required)
+
+A `role="img"` SVG is exposed to assistive tech as a single image: the screen reader announces the `aria-label` and nothing else. The `<text>` nodes inside the SVG are **not** read out. So any content that lives only as SVG `<text>` is invisible to screen-reader and text-only readers.
+
+The rule: **every load-bearing piece of a figure must exist in accessible text — the `aria-label`, the figcaption, or the surrounding prose — not only inside the SVG.** Load-bearing means the post's argument leans on it: an equation the next paragraph dissects, an exact value (`5:1`, `22.6M`), a labeled axis the claim depends on, the before/after distinction.
+
+- The `aria-label` is the figure's accessible substitute. Write it as a sentence (or few) a person could understand with the image hidden. For an equation figure, spell the equation out in words: `"L = minus log sigmoid of (beta times (r(win) minus r(lose))), where r(y) = log of [ pi(y) / pi_ref(y) ]"`. For a plot, state the trend and the crossing, not just "a chart."
+- Decorative-only labels (a tick number already implied by the axis title, a color-key swatch) don't need to be in the `aria-label`. Don't pad it with every glyph; capture what the reader must take away.
+- **Watch the prose↔figure handoff.** If you move an equation, exact number, or definition out of the prose and into a figure (a common cleanup when prose gets cluttered), the formula must land in the `aria-label` or caption in the same edit. Do not leave it reachable only by sighted readers. (This is the regression that prompted the rule: a DPO loss equation was lifted from the prose into Fig 5's SVG `<text>`, leaving screen-reader users without the loss the next paragraph explains.)
 
 ## viewBox conventions
 
