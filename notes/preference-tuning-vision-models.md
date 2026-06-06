@@ -426,6 +426,8 @@ Last touched: 2026-06-06.
 | 2026-06-05 | 0 (research) | structural-fixed, CLOSED after 3 invocations (8+1 STRUCTURAL fixed) | `## Codex research review` / notes/preference-tuning-vision-models-codex-research-20260605.md |
 | 2026-06-05 | 1 (outline) | structural-fixed, CLOSED after 2 invocations (9 STRUCTURAL + 1 TYPE-CHANGE; β direction confirmed correct by codex on re-run; last Fig-10-table-row dedup fixed) | `## Codex outline review` / notes/preference-tuning-vision-models-codex-outline-20260605.md |
 | 2026-06-05 | 2 (final) | structural-fixed, CLOSED after 2 invocations (11 STRUCTURAL + 4 cosmetic; inv 2 confirmed MDX fully clean incl. DPO math consistency; only a notes-only stale line remained, fixed) | `## Codex final review` / notes/preference-tuning-vision-models-codex-final-20260605.md |
+| 2026-06-06 | post-publish link audit follow-up (base 3e7a8d9) | 2 P2 fixed (851K attributed to Diffusion-DPO not Pick-a-Pic; stale "6:1 scenes" purged from notes Outline) | inline, commit 50aaf57 |
+| 2026-06-06 | coda-expansion review (base 50aaf57) | 2 P2 fixed (GRPO does not "multiply" token ratios → reworded §11 + reworked Fig 13 to per-token clipped ratios; Flow-GRPO bridge reason corrected from "no group" to "deterministic ODE is not a stochastic policy" → rewrote bridge); RE-REVIEW CLEAN (commit 02d035e): "factual claims internally consistent... math/SVG parses successfully" | inline, commits c8f0d8f→02d035e |
 
 ### Phase 5 figure progress (populate at end of phase 3)
 
