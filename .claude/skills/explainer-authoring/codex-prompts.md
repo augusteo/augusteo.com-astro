@@ -265,6 +265,20 @@ Find:
     X" audience needs the full intuitive treatment. Do not demand derivations — intuition,
     not proof, is the bar.
 
+11. CITATION FIDELITY AND RELEVANCE. A Phase-7 link audit has already fetched every source;
+    this is the backstop. For every external citation: (a) QUOTE FIDELITY — text in
+    quotation marks must be verbatim from the source, with no splicing of phrases from
+    different sentences into one quoted string and no quoting of a paraphrase; flag any
+    quoted string that reads like a conflation. (b) NUMBER ATTRIBUTION — a statistic must be
+    credited to the source that actually states it, not an adjacent one (e.g. a number paper
+    B reports about dataset A is B's number, not A's paper's). (c) RELEVANCE CLARITY — for
+    each cited source, can a knowledgeable reader tell WHY it is relevant from the prose
+    alone, especially when the source is from an adjacent area (a non-RL paper in an RL post,
+    a 2D result in a 3D post)? Flag any citation whose relevance the prose does not bridge in
+    a clause; the fix is to clarify the prose (name what the source does and does not do),
+    not to defend the citation. (d) IDENTITY — inline author/year and the References entry
+    agree with the actual work.
+
 For each finding, label it STRUCTURAL (must fix before shipping) or COSMETIC. Order by
 load-bearing-ness. Cite specific paragraph / sentence / matrix row.
 

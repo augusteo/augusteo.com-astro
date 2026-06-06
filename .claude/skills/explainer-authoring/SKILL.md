@@ -114,7 +114,9 @@ Phase 5: implement figures
 
 Phase 6: playwright per-figure visual review
 
-Phase 7: pre-ship freshness pass + Gate 2 + hero hand-off + ship
+Phase 7: pre-ship freshness pass + link/citation audit + Gate 2 + hero hand-off + ship
+   → link + citation audit (fetch every link; verify identity, verbatim quotes,
+     number attribution, claim support, relevance clarity — see research-protocol.md)
    → Gate 2 (codex on full draft, walks every claim against the matrix)
 ```
 
