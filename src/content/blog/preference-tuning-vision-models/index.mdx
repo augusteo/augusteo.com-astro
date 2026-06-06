@@ -104,7 +104,7 @@ Stage three is the reinforcement learning. The model produces answers (a **rollo
 <svg viewBox="0 0 680 270" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="RLHF in three stages: SFT, a reward model trained on human comparisons (a human picks A over B), and PPO with a critic and a KL leash back to the SFT reference.">
 <defs><marker id="f3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
 <text x="346" y="30" text-anchor="middle" font-family="serif" font-size="10.5" font-style="italic" fill="#6B6258">KL leash: stay near the SFT reference</text>
-<path d="M580,150 C495,58 195,58 114,148" fill="none" stroke="#6B6258" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#f3a)"/>
+<path d="M580,148 C500,30 180,30 114,146" fill="none" stroke="#6B6258" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#f3a)"/>
 <text x="340" y="88" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#B8651A">human picks A &gt; B</text>
 <circle cx="340" cy="110" r="10" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2"/>
 <line x1="340" y1="120" x2="340" y2="148" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f3a)"/>
@@ -318,7 +318,7 @@ The bridge is [Diffusion-DPO](https://arxiv.org/abs/2311.12908), and it is worth
 <text x="60" y="30" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">NOISE</text>
 <text x="600" y="30" text-anchor="end" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">IMAGE</text>
 <line x1="60" y1="135" x2="610" y2="135" stroke="#8F8578" stroke-width="1" marker-end="url(#f8a)"/>
-<text x="335" y="158" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">denoising trajectory (the model's likelihood proxy, the ELBO)</text>
+<text x="72" y="155" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">denoising trajectory &#8594;</text>
 <path d="M70,118 C 220,108 360,92 600,60" fill="none" stroke="#15803D" stroke-width="2.5"/>
 <path d="M70,118 C 220,128 360,150 600,196" fill="none" stroke="#B91C1C" stroke-width="2.5"/>
 <path d="M70,118 C 220,116 360,114 600,108" fill="none" stroke="#6B6258" stroke-width="1.2" stroke-dasharray="5,3"/>
@@ -418,7 +418,7 @@ Their answer is the whole post in one system. Start with synthetic pretraining, 
 <line x1="70" y1="240" x2="70" y2="40" stroke="#8F8578" stroke-width="1"/>
 <text x="40" y="150" font-family="serif" font-size="11" fill="#6B6258" transform="rotate(-90 40 150)">shape preference (Elo)</text>
 <line x1="70" y1="150" x2="640" y2="150" stroke="#B91C1C" stroke-width="1.2" stroke-dasharray="5,3"/>
-<text x="636" y="144" text-anchor="end" font-family="serif" font-size="10" font-style="italic" fill="#B91C1C">retrieval baseline</text>
+<text x="80" y="144" font-family="serif" font-size="10" font-style="italic" fill="#B91C1C">retrieval baseline</text>
 <g fill="#2563EB" opacity="0.85">
 <rect x="92" y="205" width="46" height="35"/>
 <rect x="170" y="180" width="46" height="60"/>
@@ -461,7 +461,7 @@ Their answer is the whole post in one system. Start with synthetic pretraining, 
 <rect x="452" y="48" width="120" height="50" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
 <text x="512" y="78" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">SAM 3D model</text>
 <path d="M512,100 C 512,150 353,150 353,102" fill="none" stroke="#6B6258" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#f12a)"/>
-<text x="432" y="142" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">data engine: repeat the alignment</text>
+<text x="432" y="158" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">data engine: repeat the alignment</text>
 <line x1="574" y1="73" x2="600" y2="73" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f12a)"/>
 <rect x="540" y="170" width="140" height="50" fill="#FEF3C7" stroke="#B8651A" stroke-width="1.5" rx="4"/>
 <text x="610" y="190" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#92400E">5:1 objects</text>
