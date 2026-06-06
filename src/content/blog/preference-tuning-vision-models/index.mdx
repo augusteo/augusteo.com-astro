@@ -141,7 +141,7 @@ Direct Preference Optimization came from a sharp observation in its [2023 paper]
 
 Unpack that phrase, because the whole method rests on it. The ratio is just "how many times more likely": if the model is twice as likely as the reference to produce the answer, the ratio is two; if half as likely, the ratio is one-half. Taking the log of it turns that into a tidy signed number, zero when the two agree, positive when the model favors the answer more than the reference does, negative when less (the ratio of two becomes about +0.7, the one-half becomes about −0.7). So the log-ratio is a single number that says, in one direction or the other, how far the model has moved away from the reference on this particular answer.
 
-The consequence is the whole pitch. The implicit reward of an answer is just β (beta, a single tuning knob we look at on its own in a moment) times that log-ratio, written log(π/π_ref), where π (pi) is the probability the model you are training assigns to the answer and π_ref is the frozen SFT reference's probability. So you do not need a separate reward model, and you do not need the RL loop at all. You take your preference pairs, drop them straight into the Bradley-Terry sigmoid using that implicit reward, and train with one ordinary classification loss. The DPO paper's words: it eliminates "the need for fitting a reward model, sampling from the LM during fine-tuning, or performing significant hyperparameter tuning."
+The consequence is the whole pitch. The implicit reward of an answer is just β (beta, a single tuning knob we look at on its own in a moment) times that log-ratio, written log(π/π_ref), where π (pi) is the probability the model you are training assigns to the answer and π_ref is the frozen SFT reference's probability. So you do not need a separate reward model, and you do not need the RL loop at all. You take your preference pairs, drop them straight into the Bradley-Terry sigmoid using that implicit reward, and train with one ordinary classification loss. The DPO paper's words: it works "without explicit reward modeling or reinforcement learning," and is "computationally lightweight, eliminating the need for sampling from the LM during fine-tuning or performing significant hyperparameter tuning."
 
 <figure>
 <svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="RLHF needs a reward model, a critic, and a sampling loop; DPO collapses all of it into one classification step on preference pairs.">
@@ -336,7 +336,7 @@ The bridge is [Diffusion-DPO](https://arxiv.org/abs/2311.12908), and it is worth
 <figcaption><strong>Fig 8.</strong> Diffusion-DPO keeps the DPO loss exactly, winner over loser against a frozen reference, and swaps just one term: the token log-ratio becomes the diffusion model's denoising-trajectory likelihood (the ELBO). The winning image's trajectory is pushed above the reference, the loser's below.</figcaption>
 </figure>
 
-It works in practice. Trained on the [Pick-a-Pic](https://arxiv.org/abs/2305.01569) dataset of 851,000 human preference pairs over generated images, Diffusion-DPO tuned Stable Diffusion XL until it "significantly outperforms" the base model on human preference for both visual appeal and prompt-faithfulness. It is the same kind of generator that [image generators are quietly becoming the best vision models](/blog/image-generators-vision-models) and [the generative vision stack](/blog/generative-vision-stack) put at the center of perception; preference tuning is how you give that generator taste.
+It works in practice. Trained on 851,000 crowdsourced preference pairs from the [Pick-a-Pic](https://arxiv.org/abs/2305.01569) dataset of human choices over generated images, Diffusion-DPO tuned Stable Diffusion XL until it "significantly outperforms" the base model on human preference for both visual appeal and prompt-faithfulness. It is the same kind of generator that [image generators are quietly becoming the best vision models](/blog/image-generators-vision-models) and [the generative vision stack](/blog/generative-vision-stack) put at the center of perception; preference tuning is how you give that generator taste.
 
 One subtlety worth flagging, because it is where the vision story stops being a copy of the language story. The plain sigmoid loss, designed for the clean "this token, not that token" world, turns out to be a slightly awkward fit for the smooth, regression-like job of generating an image. A [2026 paper](https://arxiv.org/abs/2605.21123) on flow-matching generators argues that standard DPO's "margin-maximization behavior is fundamentally ill-suited for the regression nature of diffusion and flow-matching models." The verdict still crosses over. It just doesn't land quite the same way.
 
@@ -346,7 +346,7 @@ One subtlety worth flagging, because it is where the vision story stops being a 
 
 Step back from the loss and look at the data. The expensive part of a vision dataset has always been authoring the target: tracing a segmentation mask by hand, modeling a 3D mesh, labeling every pixel. The cheap part is judging a model's attempt. And that asymmetry is the whole reason preference tuning matters for vision data, not just vision models.
 
-It showed up in plain 2D as well. A [2022 study](https://arxiv.org/abs/2210.14142) on segmentation labeling replaced mask-drawing with annotation "where only point-wise yes/no questions are answered," and scaled it to 22.6 million point labels across 4,171 classes. The annotators never drew a boundary. They answered a model's questions. The principle generalizes past segmentation: don't make the human author the answer, make the model propose and the human give a cheap verdict.
+This data-collection idea is older than the preference-tuning machinery, and it is worth being clear that it is a separate idea: not a training method like DPO, just a cheaper way to gather labels. It showed up in plain 2D segmentation, with no reinforcement learning anywhere in it. A [2022 study](https://arxiv.org/abs/2210.14142) replaced mask-drawing with annotation "where only point-wise yes/no questions are answered," and scaled it to 22.6 million point labels across 4,171 classes. The annotators never drew a boundary; they answered a model's yes/no questions. That is the same shape as the verdict from Act 1, "this one, not that one," now pointed at building a dataset instead of training a model directly: don't make the human author the answer, make the model propose and the human give a cheap verdict. Hold onto that distinction, because the next section wires the two back together.
 
 <figure>
 <svg viewBox="0 0 680 240" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Authoring a 3D mesh by hand is slow and needs an expert; judging a model's proposal is fast and anyone can do it.">
@@ -445,7 +445,7 @@ Their answer is the whole post in one system. Start with synthetic pretraining, 
 </figure>
 
 <figure>
-<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="SAM 3D assembled: synthetic pretraining, then SFT and DPO on cheap human verdicts, looped as a data engine, reaching at least a 5 to 1 object and 6 to 1 scene preference win.">
+<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="SAM 3D assembled: synthetic pretraining, then SFT and DPO on cheap human verdicts, looped as a data engine, reaching at least a 5 to 1 human-preference win over prior work on real-world objects and scenes.">
 <defs><marker id="f12a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
 <text x="20" y="36" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">SYNTHETIC PRETRAIN</text>
 <text x="300" y="36" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">REAL-WORLD ALIGNMENT</text>
@@ -466,17 +466,17 @@ Their answer is the whole post in one system. Start with synthetic pretraining, 
 <text x="432" y="158" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">data engine: repeat the alignment</text>
 <line x1="574" y1="73" x2="600" y2="73" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f12a)"/>
 <rect x="540" y="170" width="140" height="50" fill="#FEF3C7" stroke="#B8651A" stroke-width="1.5" rx="4"/>
-<text x="610" y="190" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#92400E">5:1 objects</text>
-<text x="610" y="208" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#92400E">6:1 scenes win</text>
+<text x="610" y="190" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#92400E">at least 5:1</text>
+<text x="610" y="208" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#92400E">objects + scenes</text>
 <path d="M512,100 C 540,150 580,160 600,168" fill="none" stroke="#6B6258" stroke-width="1.3" marker-end="url(#f12a)"/>
 <text x="40" y="180" font-family="serif" font-size="11" fill="#1A1A1A">Every mechanism in this post, in one system:</text>
 <text x="40" y="198" font-family="serif" font-size="11" fill="#6B6258">cheap pretraining, then the verdict (DPO) on a loop,</text>
 <text x="40" y="216" font-family="serif" font-size="11" fill="#6B6258">until a 3D model beats prior work by 5:1.</text>
 </svg>
-<figcaption><strong>Fig 12.</strong> SAM 3D, assembled. Synthetic data pretrains the model; cheap human verdicts then align it through SFT and DPO; the data engine repeats the alignment as the model improves. The result wins head-to-head human preference at least 5:1 on objects and 6:1 on scenes.</figcaption>
+<figcaption><strong>Fig 12.</strong> SAM 3D, assembled. Synthetic data pretrains the model; cheap human verdicts then align it through SFT and DPO; the data engine repeats the alignment as the model improves. The result wins head-to-head human preference at least 5:1 over prior work on real-world objects and scenes.</figcaption>
 </figure>
 
-The engine ran on almost 1 million images and produced roughly 3.14 million meshes, and the model it trained wins decisively: in head-to-head human preference tests against prior work, SAM 3D wins "at least 5:1" on objects and 6:1 on scenes. The team tracks quality with Elo, the chess rating, where "a 400 point Elo difference corresponds to 10:1 odds in a preference test," and reports that the rating keeps climbing as the data engine runs more rounds. The throughline has arrived at its destination. The same verdict that picked the better chatbot reply, "this one, not that one," picked the better 3D mesh, and enough of those verdicts, looped through a model that proposes and a human who judges, added up to a 3D foundation model.
+The engine ran on almost 1 million images and produced roughly 3.14 million meshes, and the model it trained wins decisively: in head-to-head human preference tests against prior work, SAM 3D reports "at least a 5:1 win rate in human preference tests on real-world objects and scenes." The team tracks quality with Elo, the chess rating, where "a 400 point Elo difference corresponds to 10:1 odds in a preference test," and reports that the rating keeps climbing as the data engine runs more rounds. The throughline has arrived at its destination. The same verdict that picked the better chatbot reply, "this one, not that one," picked the better 3D mesh, and enough of those verdicts, looped through a model that proposes and a human who judges, added up to a 3D foundation model.
 
 {/* Reader can now: explain how the LLM preference-tuning loop became a 3D foundation model's data engine. */}
 
@@ -516,4 +516,4 @@ The cheapest supervision signal we have, a person pointing at the better of two 
 - SAM 3D Team. "[SAM 3D: 3Dfy Anything in Images](https://arxiv.org/abs/2511.16624)." Meta, 2025. Also the [Meta blog](https://ai.meta.com/blog/sam-3d/).
 - Zheng et al. "[Group Sequence Policy Optimization](https://arxiv.org/abs/2507.18071)" (GSPO). 2025.
 - "[Pref-GRPO: Pairwise Preference Reward-based GRPO for Text-to-Image generation](https://arxiv.org/abs/2508.20751)." 2025.
-- Liu et al. "[MO-GRPO](https://arxiv.org/abs/2509.22047)." 2025.
+- Ichihara et al. "[MO-GRPO: Mitigating Reward Hacking of Group Relative Policy Optimization on Multi-Objective Problems](https://arxiv.org/abs/2509.22047)." 2025.
