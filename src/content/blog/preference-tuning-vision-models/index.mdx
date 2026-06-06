@@ -251,7 +251,42 @@ DPO removed the reward model and the RL loop. The other big simplification went 
 
 Recall the critic: a second network, about the size of the policy, whose only job is to guess the baseline an answer should beat. GRPO deletes it. Instead of learning a baseline, it samples a whole group of answers to the same prompt, scores them all, and uses the group's average score as the baseline. An answer's advantage is then simply how much it beat its siblings. The DeepSeekMath figure caption is blunt about the payoff: GRPO "foregoes the value model, instead estimating the baseline from group scores, significantly reducing training resources."
 
-{/* TODO: Fig 7: GrpoDropsCritic - PPO (policy + critic) vs GRPO (group mean as baseline), reward source feeds both */}
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="PPO needs a critic network to estimate the baseline; GRPO replaces it with the mean score of a sampled group.">
+<defs><marker id="f7a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<rect x="250" y="18" width="180" height="34" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2"/>
+<text x="340" y="33" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#B8651A">reward source</text>
+<text x="340" y="47" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">reward model OR rule check</text>
+<text x="20" y="80" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">PPO</text>
+<line x1="300" y1="52" x2="150" y2="96" stroke="#6B6258" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#f7a)"/>
+<rect x="60" y="98" width="120" height="44" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="120" y="125" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">policy</text>
+<rect x="60" y="170" width="120" height="44" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="120" y="192" text-anchor="middle" font-family="serif" font-size="11" fill="#6B6258">critic</text>
+<text x="120" y="206" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">estimates the baseline</text>
+<line x1="120" y1="142" x2="120" y2="168" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f7a)"/>
+<text x="120" y="240" text-anchor="middle" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">a second network, policy-sized</text>
+<line x1="340" y1="60" x2="340" y2="250" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="380" y="80" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">GRPO</text>
+<line x1="400" y1="52" x2="470" y2="96" stroke="#6B6258" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#f7a)"/>
+<rect x="420" y="98" width="120" height="44" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="480" y="125" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">policy</text>
+<g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+<circle cx="430" cy="172" r="6" fill="#DBEAFE" stroke="#2563EB"/><text x="442" y="175">0.8</text>
+<circle cx="430" cy="190" r="6" fill="#DBEAFE" stroke="#2563EB"/><text x="442" y="193">0.6</text>
+<circle cx="430" cy="208" r="6" fill="#DBEAFE" stroke="#2563EB"/><text x="442" y="211">0.4</text>
+<circle cx="430" cy="226" r="6" fill="#DBEAFE" stroke="#2563EB"/><text x="442" y="229">0.2</text>
+</g>
+<line x1="500" y1="165" x2="500" y2="235" stroke="#15803D" stroke-width="1.2" stroke-dasharray="4,3"/>
+<text x="508" y="203" font-family="serif" font-size="10" fill="#15803D">group mean</text>
+<text x="508" y="218" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">= the baseline</text>
+<text x="430" y="258" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">sample a group; advantage = score &#8722; mean</text>
+<line x1="600" y1="170" x2="640" y2="210" stroke="#B91C1C" stroke-width="2"/>
+<line x1="640" y1="170" x2="600" y2="210" stroke="#B91C1C" stroke-width="2"/>
+<text x="620" y="228" text-anchor="middle" font-family="serif" font-size="9" fill="#B91C1C">no critic</text>
+</svg>
+<figcaption><strong>Fig 7.</strong> PPO learns a separate critic, about the size of the policy, just to estimate the baseline an answer should beat. GRPO deletes it: sample a group of answers, and the group's mean score is the baseline. Both sit downstream of whatever produces the reward.</figcaption>
+</figure>
 
 Because GRPO sits downstream of the reward, the reward can be anything. In [DeepSeek-R1](https://www.nature.com/articles/s41586-025-09422-z), the reasoning model GRPO trained (peer-reviewed in Nature in 2025), the reward is often a plain rule: did the math answer come out correct? No human preferences, no reward model, just a checker. That is the cleanest illustration of the split this post keeps drawing: where the reward comes from is one decision, and how you estimate advantage from it is a separate one. Bradley-Terry and DPO are about the first. GRPO is about the second.
 
@@ -279,7 +314,27 @@ Everything so far has been about language, where an answer is a sequence of toke
 
 The bridge is [Diffusion-DPO](https://arxiv.org/abs/2311.12908), and it is worth walking in steps because the jump is where intuition usually breaks. One, DPO needs a likelihood ratio for the winning and losing outputs. Two, an image generator has no token log-probs to supply one. Three, but a diffusion model does expose a stand-in for likelihood: the training objective itself, the denoising loss that measures how well the model reconstructs an image along its noising trajectory (formally, a bound called the ELBO). Four, Diffusion-DPO swaps DPO's token-likelihood term for that denoising term. The winning image gets its denoising trajectory made more likely than the reference model's; the losing image, less likely. The skeleton of the loss, winner over loser, measured against a frozen reference, is exactly the same. Only the term inside changed.
 
-{/* TODO: Fig 8: DiffusionDpoTrajectory - map Fig 5's win/lose log-ratio onto winner/loser denoising trajectory vs frozen reference */}
+<figure>
+<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Diffusion-DPO keeps the DPO skeleton but swaps the token log-ratio for a denoising-trajectory term: the winner's trajectory is made more likely than the reference, the loser's less likely.">
+<defs><marker id="f8a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="60" y="30" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">NOISE</text>
+<text x="600" y="30" text-anchor="end" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">IMAGE</text>
+<line x1="60" y1="135" x2="610" y2="135" stroke="#8F8578" stroke-width="1" marker-end="url(#f8a)"/>
+<text x="335" y="158" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">denoising trajectory (the model's likelihood proxy, the ELBO)</text>
+<path d="M70,118 C 220,108 360,92 600,60" fill="none" stroke="#15803D" stroke-width="2.5"/>
+<path d="M70,118 C 220,128 360,150 600,196" fill="none" stroke="#B91C1C" stroke-width="2.5"/>
+<path d="M70,118 C 220,116 360,114 600,108" fill="none" stroke="#6B6258" stroke-width="1.2" stroke-dasharray="5,3"/>
+<circle cx="600" cy="60" r="4" fill="#15803D"/>
+<text x="596" y="52" text-anchor="end" font-family="serif" font-size="11" font-style="italic" fill="#15803D">x+ winner: made more likely</text>
+<circle cx="600" cy="196" r="4" fill="#B91C1C"/>
+<text x="596" y="212" text-anchor="end" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">x&#8722; loser: made less likely</text>
+<text x="610" y="112" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">reference</text>
+<rect x="60" y="195" width="300" height="40" fill="#F9F5EB" stroke="#C9BEAA" rx="4"/>
+<text x="70" y="212" font-family="serif" font-size="10" fill="#1A1A1A">Same skeleton as Fig 5's r(win) &#8722; r(lose).</text>
+<text x="70" y="228" font-family="serif" font-size="10" fill="#1A1A1A">Only r changed: denoising loss, not token log-probs.</text>
+</svg>
+<figcaption><strong>Fig 8.</strong> Diffusion-DPO keeps the DPO loss exactly, winner over loser against a frozen reference, and swaps just one term: the token log-ratio becomes the diffusion model's denoising-trajectory likelihood (the ELBO). The winning image's trajectory is pushed above the reference, the loser's below.</figcaption>
+</figure>
 
 It works in practice. Trained on the [Pick-a-Pic](https://arxiv.org/abs/2305.01569) dataset of 851,000 human preference pairs over generated images, Diffusion-DPO tuned Stable Diffusion XL until it "significantly outperforms" the base model on human preference for both visual appeal and prompt-faithfulness. This is the same move that put a generator at the center of the perception stack in [the generative vision stack](/blog/generative-vision-stack); preference tuning is how you give that generator taste.
 
@@ -293,7 +348,31 @@ Step back from the loss and look at the data. The expensive part of a vision dat
 
 It showed up first in plain 2D. A [2022 study](https://arxiv.org/abs/2210.14142) on segmentation labeling replaced mask-drawing with annotation "where only point-wise yes/no questions are answered," and scaled it to 22.6 million point labels across 4,171 classes. The annotators never drew a boundary. They answered a model's questions. The principle generalizes past segmentation: don't make the human author the answer, make the model propose and the human give a cheap verdict.
 
-{/* TODO: Fig 9: CheapVerdictVsGroundTruth - authoring a dense target (expensive) vs judging a proposal (cheap) */}
+<figure>
+<svg viewBox="0 0 680 240" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Authoring a 3D mesh by hand is slow and needs an expert; judging a model's proposal is fast and anyone can do it.">
+<defs><marker id="f9a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="20" y="26" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">AUTHOR THE TARGET</text>
+<circle cx="55" cy="90" r="14" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.2"/>
+<text x="55" y="120" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">expert</text>
+<line x1="72" y1="90" x2="104" y2="90" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f9a)"/>
+<path d="M120,70 L175,58 L210,82 L195,120 L135,118 Z" fill="#EDE5D4" stroke="#8F8578" stroke-width="1"/>
+<path d="M120,70 L195,120 M175,58 L195,120 M210,82 L135,118" stroke="#C9BEAA" stroke-width="0.8"/>
+<text x="165" y="140" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">hand-built 3D mesh</text>
+<text x="165" y="172" text-anchor="middle" font-family="serif" font-size="12" fill="#B91C1C">slow, expert, expensive</text>
+<line x1="330" y1="18" x2="330" y2="210" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="360" y="26" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5" fill="#6B6258">JUDGE A PROPOSAL</text>
+<rect x="360" y="66" width="84" height="40" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.3"/>
+<text x="402" y="90" text-anchor="middle" font-family="serif" font-size="11" font-weight="600" fill="#2563EB">model</text>
+<line x1="446" y1="86" x2="478" y2="86" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f9a)"/>
+<path d="M486,72 L520,64 L544,84 L532,108 L494,106 Z" fill="#EDE5D4" stroke="#8F8578" stroke-width="1"/>
+<text x="515" y="126" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">proposed mesh</text>
+<text x="566" y="78" font-family="serif" font-size="18" fill="#15803D">&#10003;</text>
+<text x="566" y="104" font-family="serif" font-size="18" fill="#B91C1C">&#10007;</text>
+<text x="500" y="172" text-anchor="middle" font-family="serif" font-size="12" fill="#15803D">fast, anyone, cheap</text>
+<text x="350" y="206" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">the verdict is the part you can collect at scale</text>
+</svg>
+<figcaption><strong>Fig 9.</strong> The expensive half of a vision dataset is authoring the target. The cheap half is judging a model's proposal. SAM 3D's bet is to ask annotators only to verify, rank, or rate model-generated meshes, never to build one, which is the skill almost anyone has.</figcaption>
+</figure>
 
 This is the shape that segmentation models like the ones in [the unified vision stack](/blog/unified-vision-stack) are built to consume, and it is exactly the bet [SAM 3D](https://arxiv.org/abs/2511.16624) makes for 3D. As the team puts it, "verifying or ranking meshes is a more accessible skill" than building them, so "we can thus scale by building a data engine asking annotators to rate multiple options generated by a suite of models in the loop." In her CVPR 2026 talk on the work, Georgia Gkioxari put the annotator's job even more bluntly: they only say yes or no. A non-expert can do it, which is the point: the verdict is cheap enough to collect at the scale a foundation model needs.
 
@@ -303,7 +382,27 @@ This is the shape that segmentation models like the ones in [the unified vision 
 
 A cheap verdict is only powerful if you wire it into a loop. The loop is the idea, going back to the original [Segment Anything](https://arxiv.org/abs/2304.02643) model, that the model and the dataset can improve each other. The model proposes labels; humans verify or correct them; the corrected labels retrain the model; the better model makes better proposals, so the humans correct less and approve more. SAM's loop produced over 1 billion masks across 11 million images, a dataset no team could have drawn by hand.
 
-{/* TODO: Fig 10: DataEngineLoop - generic loop: model proposes -> human/AI verifies/corrects/rates -> dataset improves -> model retrains */}
+<figure>
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="The data-engine loop: model proposes, humans or AI verify and rate, the dataset improves, the model retrains, repeat.">
+<defs><marker id="f10a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<rect x="270" y="28" width="140" height="42" rx="4" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="340" y="54" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">model proposes</text>
+<rect x="500" y="128" width="160" height="48" rx="4" fill="#FBE9CE" stroke="#B8651A" stroke-width="1.5"/>
+<text x="580" y="148" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#B8651A">human / AI verifies,</text>
+<text x="580" y="164" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#B8651A">corrects, rates</text>
+<rect x="270" y="232" width="140" height="42" rx="4" fill="#D1FAE5" stroke="#15803D" stroke-width="1.5"/>
+<text x="340" y="258" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#15803D">dataset improves</text>
+<rect x="20" y="128" width="150" height="48" rx="4" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="95" y="157" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">model retrains</text>
+<path d="M412,52 C 490,58 540,92 560,124" fill="none" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f10a)"/>
+<path d="M560,178 C 520,212 450,238 412,250" fill="none" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f10a)"/>
+<path d="M268,252 C 190,240 130,206 110,178" fill="none" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f10a)"/>
+<path d="M108,126 C 130,92 200,58 268,50" fill="none" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f10a)"/>
+<text x="340" y="148" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="1.5" fill="#6B6258">DATA</text>
+<text x="340" y="164" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="1.5" fill="#6B6258">ENGINE</text>
+</svg>
+<figcaption><strong>Fig 10.</strong> The data engine, in its generic form. Each turn of the loop makes the model better, so its proposals get better, so the humans correct less and approve more. By 2026 the verify step is itself partly automated: SAM 3 fine-tunes models into AI verifiers at near-human accuracy.</figcaption>
+</figure>
 
 By 2026 the loop has a new wrinkle: the model does some of the verifying too. [SAM 3](https://arxiv.org/abs/2511.16719) uses multimodal language models as "AI annotators" and then fine-tunes them into "AI verifiers that achieve near-human accuracy," which "more than doubled" annotation throughput over a human-only pipeline. The model now both proposes the label and checks it, and the human is reserved for the cases the machine is unsure about. The verdict didn't disappear. It got partly automated.
 
@@ -315,9 +414,67 @@ Now put every piece together, because SAM 3D is where they all meet. The problem
 
 Their answer is the whole post in one system. Start with synthetic pretraining, a flood of computer-generated 3D scenes, the way you might pretrain on cheap data before fine-tuning on the real thing, which is the same instinct behind picking [the right pretraining recipe](/blog/ssl-pretraining-recipes) for out-of-distribution data. Then align the model to reality using the cheap verdict: SAM 3D "collects training samples and preference data from humans and uses them in both supervised finetuning (SFT) and direct preference optimization (DPO)." That is the exact DPO from section 4, run on 3D shapes instead of chatbot replies, with the winning mesh as the chosen answer and a worse one as the rejected. And it is a loop: "this alignment can be repeated," each round's better model generating better mesh proposals for the next round of cheap human verdicts.
 
-{/* TODO: Fig 11: SamThreeDEloClimb - schematic of shape-quality preference climbing across data-engine rounds above a retrieval baseline (no numbers) */}
+<figure>
+<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Schematic: shape-preference quality climbs across data-engine rounds, crossing a retrieval baseline. No published per-round numbers.">
+<line x1="70" y1="240" x2="640" y2="240" stroke="#8F8578" stroke-width="1"/>
+<line x1="70" y1="240" x2="70" y2="40" stroke="#8F8578" stroke-width="1"/>
+<text x="40" y="150" font-family="serif" font-size="11" fill="#6B6258" transform="rotate(-90 40 150)">shape preference (Elo)</text>
+<line x1="70" y1="150" x2="640" y2="150" stroke="#B91C1C" stroke-width="1.2" stroke-dasharray="5,3"/>
+<text x="636" y="144" text-anchor="end" font-family="serif" font-size="10" font-style="italic" fill="#B91C1C">retrieval baseline</text>
+<g fill="#2563EB" opacity="0.85">
+<rect x="92" y="205" width="46" height="35"/>
+<rect x="170" y="180" width="46" height="60"/>
+<rect x="248" y="158" width="46" height="82"/>
+<rect x="326" y="132" width="46" height="108"/>
+<rect x="404" y="110" width="46" height="130"/>
+<rect x="482" y="86" width="46" height="154"/>
+<rect x="560" y="64" width="46" height="176"/>
+</g>
+<g font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="middle">
+<text x="115" y="254">pretrain</text>
+<text x="193" y="254">r1</text>
+<text x="271" y="254">r2</text>
+<text x="349" y="254">r3</text>
+<text x="427" y="254">r4</text>
+<text x="505" y="254">r5</text>
+<text x="583" y="254">r6</text>
+</g>
+<text x="355" y="272" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">data-engine rounds</text>
+</svg>
+<figcaption><strong>Fig 11.</strong> Schematic only. SAM 3D reports that shape quality climbs as the data engine runs more rounds, crossing the retrieval baseline. The shape of the climb is real; the per-round values are not published, so no numbers are shown here.</figcaption>
+</figure>
 
-{/* TODO: Fig 12: SamThreeDAssembled - synthetic pretrain -> SFT -> DPO on verify/rank/rate verdicts -> data engine loop -> 5:1/6:1 win */}
+<figure>
+<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="SAM 3D assembled: synthetic pretraining, then SFT and DPO on cheap human verdicts, looped as a data engine, reaching at least a 5 to 1 object and 6 to 1 scene preference win.">
+<defs><marker id="f12a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="20" y="36" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">SYNTHETIC PRETRAIN</text>
+<text x="300" y="36" font-family="JetBrains Mono" font-size="9" letter-spacing="1.5" fill="#6B6258">REAL-WORLD ALIGNMENT</text>
+<rect x="20" y="48" width="120" height="50" fill="#F9F5EB" stroke="#C9BEAA"/>
+<text x="80" y="72" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">synthetic</text>
+<text x="80" y="88" text-anchor="middle" font-family="serif" font-size="11" fill="#1A1A1A">pretrain</text>
+<line x1="142" y1="73" x2="172" y2="73" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f12a)"/>
+<rect x="174" y="48" width="80" height="50" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.3"/>
+<text x="214" y="78" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">SFT</text>
+<line x1="256" y1="73" x2="286" y2="73" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f12a)"/>
+<rect x="288" y="48" width="130" height="50" fill="#D1FAE5" stroke="#15803D" stroke-width="1.5"/>
+<text x="353" y="70" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#15803D">DPO</text>
+<text x="353" y="86" text-anchor="middle" font-family="serif" font-size="8.5" font-style="italic" fill="#6B6258">on verify/rank/rate verdicts</text>
+<line x1="420" y1="73" x2="450" y2="73" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f12a)"/>
+<rect x="452" y="48" width="120" height="50" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+<text x="512" y="78" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">SAM 3D model</text>
+<path d="M512,100 C 512,150 353,150 353,102" fill="none" stroke="#6B6258" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#f12a)"/>
+<text x="432" y="142" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">data engine: repeat the alignment</text>
+<line x1="574" y1="73" x2="600" y2="73" stroke="#6B6258" stroke-width="1.5" marker-end="url(#f12a)"/>
+<rect x="540" y="170" width="140" height="50" fill="#FEF3C7" stroke="#B8651A" stroke-width="1.5" rx="4"/>
+<text x="610" y="190" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#92400E">5:1 objects</text>
+<text x="610" y="208" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#92400E">6:1 scenes win</text>
+<path d="M512,100 C 540,150 580,160 600,168" fill="none" stroke="#6B6258" stroke-width="1.3" marker-end="url(#f12a)"/>
+<text x="40" y="180" font-family="serif" font-size="11" fill="#1A1A1A">Every mechanism in this post, in one system:</text>
+<text x="40" y="198" font-family="serif" font-size="11" fill="#6B6258">cheap pretraining, then the verdict (DPO) on a loop,</text>
+<text x="40" y="216" font-family="serif" font-size="11" fill="#6B6258">until a 3D model beats prior work by 5:1.</text>
+</svg>
+<figcaption><strong>Fig 12.</strong> SAM 3D, assembled. Synthetic data pretrains the model; cheap human verdicts then align it through SFT and DPO; the data engine repeats the alignment as the model improves. The result wins head-to-head human preference at least 5:1 on objects and 6:1 on scenes.</figcaption>
+</figure>
 
 The engine ran on almost 1 million images and produced roughly 3.14 million meshes, and the model it trained wins decisively: in head-to-head human preference tests against prior work, SAM 3D wins "at least 5:1" on objects and 6:1 on scenes. The team tracks quality with Elo, the chess rating, where "a 400 point Elo difference corresponds to 10:1 odds in a preference test," and reports that the rating keeps climbing as the data engine runs more rounds. The throughline has arrived at its destination. The same verdict that picked the better chatbot reply, "this one, not that one," picked the better 3D mesh, and enough of those verdicts, looped through a model that proposes and a human who judges, added up to a 3D foundation model.
 
