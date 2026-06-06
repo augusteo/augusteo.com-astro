@@ -345,7 +345,7 @@ Three acts + coda. Throughline (one human preference verdict, "this one, not tha
 
 ### Coda — where it's going (mid-2026)
 
-**12. The frontier moved.** GSPO (sequence-level importance ratios) fixed GRPO's instability and trained Qwen3; fresh examples of preference/reward optimization in vision keep appearing (Pref-GRPO, reward-guided I2V at CVPR 2026) — frame as "fresh examples keep appearing," NOT "now routine/across the field" (only two examples; Gate 1 flagged the overclaim); the model increasingly both proposes and verifies its own training data. Close on the throughline: the cheapest possible supervision signal — a human pointing at the better of two — turned out to scale further than anyone expected, from chatbots to 3D. [rows 27,28,29] Two sentences, concrete, no "in summary."
+**12. The frontier moved.** GSPO (sequence-level importance ratios) fixed GRPO's instability and trained Qwen3; fresh examples of preference optimization in vision keep appearing (the shipped coda names Pref-GRPO only — the CVPR I2V paper has no extractable quote, so it is NOT cited in the post; Gate 2 confirmed the coda is clean); frame as "fresh examples keep appearing," NOT "now routine/across the field"; the model increasingly both proposes and verifies its own training data. Close on the throughline: the cheapest possible supervision signal — a human pointing at the better of two — turned out to scale further than anyone expected, from chatbots to 3D. [rows 27,28,29] Two sentences, concrete, no "in summary."
 - {/* Reader can now: name what replaced GRPO at the frontier and why. */}
 
 ### Figure table
@@ -401,7 +401,7 @@ Last touched: 2026-06-05.
 | 4. Draft prose | done | `src/content/blog/preference-tuning-vision-models/index.mdx` |
 | 5. Implement figures | done (12/12, all static) | per-figure table below |
 | 6. Playwright review | done (12/12 pass) | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | in progress | hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + ship | Gates done; awaiting hero + Vic's draft flip | hero image, dev verification, ship |
 
 ### Codex history
 
@@ -409,7 +409,7 @@ Last touched: 2026-06-05.
 |---|---|---|---|
 | 2026-06-05 | 0 (research) | structural-fixed, CLOSED after 3 invocations (8+1 STRUCTURAL fixed) | `## Codex research review` / notes/preference-tuning-vision-models-codex-research-20260605.md |
 | 2026-06-05 | 1 (outline) | structural-fixed, CLOSED after 2 invocations (9 STRUCTURAL + 1 TYPE-CHANGE; β direction confirmed correct by codex on re-run; last Fig-10-table-row dedup fixed) | `## Codex outline review` / notes/preference-tuning-vision-models-codex-outline-20260605.md |
-| 2026-06-05 | 2 (final) | structural-fixed (11 STRUCTURAL + 4 cosmetic); re-run pending | `## Codex final review` / notes/preference-tuning-vision-models-codex-final-20260605.md |
+| 2026-06-05 | 2 (final) | structural-fixed, CLOSED after 2 invocations (11 STRUCTURAL + 4 cosmetic; inv 2 confirmed MDX fully clean incl. DPO math consistency; only a notes-only stale line remained, fixed) | `## Codex final review` / notes/preference-tuning-vision-models-codex-final-20260605.md |
 
 ### Phase 5 figure progress (populate at end of phase 3)
 
