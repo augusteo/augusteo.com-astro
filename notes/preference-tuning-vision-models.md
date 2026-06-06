@@ -272,6 +272,12 @@ Recency: topic is actively-evolving (12-month bar; cutoff ~2025-06-05). Sources 
 | 28 | The model-in-the-loop data engine is now a named multi-generation pattern: SAM 3 uses MLLMs as "AI annotators" plus "AI verifiers" at near-human accuracy, more than doubling annotation throughput. | "multimodal LLMs as 'AI annotators'"; "effective 'AI verifiers' that achieve near-human accuracy"; "the throughput is more than doubled compared to a human-only annotation pipeline." | arxiv:2511.16719 (2025-11) | actively-evolving / 12-mo / passes |
 | 29 | A fresh (2025) example of preference optimization in generative vision: Pref-GRPO reformulates text-to-image RL from pointwise score-maximization to pairwise preference fitting, fixing "illusory advantages" from reward normalization. | "minimal score differences between images are amplified after normalization, creating illusory advantages that drive the model to over-optimize"; shifts "the optimization objective from score maximization to preference fitting." | arxiv:2508.20751 (2025-08-28) | actively-evolving / 12-mo / passes (single example; do not generalize to "routine") |
 | 30 | RLHF keeps the policy near the SFT model with a per-token KL penalty, so chasing reward doesn't drift the model into gibberish. | "In addition, we add a per-token KL penalty from the SFT model at each token to mitigate over-optimization of the reward model." | arxiv:2203.02155 (2022-03-04), §3.5 | foundational/canonical (RLHF objective) / passes |
+| 31 | GSPO traces GRPO instability to per-token importance weights: each is "based on a single sample from each next-token distribution," so it "fails to perform the intended distribution-correction role," producing "high-variance training noise that progressively accumulates with increased response length... ultimately precipitating model collapse." | (quoted phrases) | arxiv:2507.18071 (2025-07-24) | actively-evolving / 12-mo / passes (mechanism rows backing §11 expansion) |
+| 32 | GSPO uses a single sequence-level importance ratio (length-normalized sequence likelihood = geometric mean of token ratios), motivated by "since the reward is granted to the entire sequence, applying off-policy correction at the token level appears problematic." Ratio form s_i(θ)=(π_θ(y_i\|x)/π_old(y_i\|x))^(1/\|y_i\|) confirmed in HTML body; abstract confirms "based on sequence likelihood" + length normalization. | "since the reward is granted to the entire sequence, applying off-policy correction at the token level appears problematic"; "notably stabilizes Mixture-of-Experts (MoE) RL training"; "contributed to the remarkable improvements in the latest Qwen3 models." | arxiv:2507.18071 (2025-07-24) | actively-evolving / 12-mo / passes (geometric-mean reading is exact math of the length-normalized-likelihood form, not a verbatim phrase) |
+| 33 | DAPO is GRPO plus four fixes (clip-higher, dynamic sampling, token-level loss, soft length penalty); most-reproduced GRPO successor. | "achieves 50 points on AIME 2024 using Qwen2.5-32B base model." | arxiv:2503.14476 (2025-03-18) | actively-evolving / 12-mo / passes (named as a sibling repair in §11) |
+| 34 | CISPO (MiniMax-M1) clips the importance-sampling weight rather than the token update, so rare reasoning tokens keep contributing a gradient. | "CISPO clips importance sampling weights rather than token updates, outperforming other competitive RL variants." | arxiv:2506.13585 (2025-06-16) | actively-evolving / 12-mo / passes (named as a sibling repair in §11; production-grounded in MiniMax-M1) |
+| 35 | Flow-GRPO is the bridge that puts GRPO onto a flow/diffusion model: it converts the deterministic ODE sampler to an SDE so one prompt yields a group of different images to compare. | "the first method to integrate online policy gradient reinforcement learning (RL) into flow matching models"; "an ODE-to-SDE conversion that transforms a deterministic Ordinary Differential Equation (ODE) into an equivalent Stochastic Differential Equation (SDE) that matches the original model's marginal distribution at all timesteps." | arxiv:2505.05470 (2025-05-08) | actively-evolving / 12-mo / passes (closes the DPO→GRPO-variant gap in §12) |
+| 36 | Pref-GRPO mechanism: GRPO's group-std normalization Â=(r−mean)/std blows up tiny score gaps when std is small ("illusory advantage"); Pref-GRPO replaces the score with each image's pairwise win rate w_i=(1/(G−1))Σ_{j≠i}1(i≻j), which spreads across [0,1] giving real std. | "even minor score gaps are disproportionately magnified after normalization"; "scores keep rising while image quality deteriorates, manifesting as oversaturation or unnaturally dark artifacts"; "reformulates the GRPO objective to pairwise preference fitting: image pairs within a group are compared by a Pairwise Preference Reward Model (PPRM), and each image's win rate serves as the reward"; "directly suppress[es] the illusory-advantage amplification mechanism." | arxiv:2508.20751 (2025-08-28) | actively-evolving / 12-mo / passes (win-rate formula = Eq 12 verified in HTML body; advantage-normalization formula is standard GRPO) |
 
 ## Related posts on augusteo.com
 
@@ -347,7 +353,13 @@ Three acts + coda. Throughline (one human preference verdict, "this one, not tha
 
 ### Coda — where it's going (mid-2026)
 
-**12. The frontier moved.** GSPO (sequence-level importance ratios) fixed GRPO's instability and trained Qwen3; fresh examples of preference optimization in vision keep appearing (the shipped coda names Pref-GRPO only — the CVPR I2V paper has no extractable quote, so it is NOT cited in the post; Gate 2 confirmed the coda is clean); frame as "fresh examples keep appearing," NOT "now routine/across the field"; the model increasingly both proposes and verifies its own training data. Close on the throughline: the cheapest possible supervision signal — a human pointing at the better of two — turned out to scale further than anyone expected, from chatbots to 3D. [rows 27,28,29] Two sentences, concrete, no "in summary."
+**EXPANDED 2026-06-06** (Vic: "expand GSPO and Pref-GRPO instead of just mentioning... explain the math formula... search for better RL techniques and why better than GRPO"). The one-paragraph coda became two real sections, each with a figure and KaTeX math:
+
+**11. The frontier, part one: GSPO.** Importance-sampling intuition (reuse stale samples, correct with a ratio) → GRPO applies it per token, variance compounds over length → collapse → GSPO uses one sequence-level ratio (length-normalized likelihood = geometric mean of token ratios). KaTeX: per-token ratio + sequence ratio, each symbol named. Then a sibling-repairs paragraph: DAPO (clip-higher + dynamic sampling, "50 points on AIME 2024"), CISPO ("clips importance sampling weights rather than token updates"), Dr. GRPO (length bias, already in §6). [rows 31,32,33,34] Fig 13. {/* Reader can now: explain why per-token importance weighting destabilizes GRPO and how GSPO fixes it at sequence granularity. */}
+
+**12. The frontier, part two: Pref-GRPO closes the loop.** Flow-GRPO bridge first (ODE→SDE so a diffusion model yields a comparable group at all — closes the DPO→GRPO-variant gap a research sweep flagged) → GRPO advantage Â=(r−mean)/std → illusory advantage (tiny std blows up gaps → reward hacking) → Pref-GRPO swaps score for pairwise win rate w_i (KaTeX, Eq 12), std becomes real. Throughline LANDS: the frontier threw the score away and went back to comparing two things, Bradley-Terry as referee. [rows 35,36] Fig 14. {/* Reader can now: explain how GRPO reaches a diffusion model and why pairwise win-rate beats pointwise score. */}
+
+Research sweep (2026-06-06) covered DAPO, Dr.GRPO, CISPO, VAPO, GMPO, ProRL, Lite-PPO, REINFORCE++/RLOO (LLM) and DDPO, DPOK, D3PO, SPO, Diffusion-KTO, Flow-GRPO, DanceGRPO, MixGRPO, T2I-R1, DiffusionNFT (vision). Decision: GSPO stays the LLM headline (trains Qwen3); DAPO+CISPO named as siblings; Flow-GRPO added as the vision bridge. Skipped (would dilute): VAPO (value-based tangent), GMPO/ProRL/Lite-PPO (niche), DanceGRPO (video, post is image), DiffusionNFT (forward-looking ICLR'26 oral — candidate for a future note, not added). Closing throughline paragraph retained.
 - {/* Reader can now: name what replaced GRPO at the frontier and why. */}
 
 ### Figure table
@@ -366,8 +378,10 @@ Three acts + coda. Throughline (one human preference verdict, "this one, not tha
 | 10 | DataEngineLoop | static-svg | GENERIC loop: model proposes → human/AI verifies/corrects/rates → dataset improves → model retrains → loop (NO SFT+DPO box — that's Fig 12) | the virtuous cycle, arrow by arrow |
 | 11 | SamThreeDEloClimb | static-svg (schematic) | preference/Elo rising across data-engine rounds above retrieval baseline | the loop compounds; SCHEMATIC, no numbers |
 | 12 | SamThreeDAssembled | static-svg | synthetic pretrain → SFT → DPO on verdicts → data engine → at least 5:1 win | every earlier mechanism in one picture |
+| 13 | GspoTokenVsSequence | static-svg | GRPO's per-token importance ratios multiply into compounding noise → collapse; GSPO's single length-normalized sequence ratio stays stable | why token-level correction destabilizes; sequence-level fixes it |
+| 14 | PrefGrpoIllusoryAdvantage | static-svg | near-identical pointwise scores ÷ tiny std → blown-up "illusory" advantages (reward hacking); pairwise win rates spread 0-1 → honest advantages | the pairwise verdict returns to settle the frontier |
 
-Figure-type locks: 12 static-svg, 0 interactive (Fig 6 re-typed interactive→static at Gate 1 — codex TYPE-CHANGE STRUCTURAL; a three-state static panel teaches low/med/high β without a slider implying a precise dynamic sim that could make the reader "feel" the wrong direction). Fig 11 is static-svg NOT plot — it's a schematic with no real per-round data, so the Plot primitive (which implies plotted data) would imply false precision. No `plot` figures: the Bradley-Terry curve (Fig 2) is a single fixed curve, cleaner as static SVG.
+Figure-type locks: 14 static-svg, 0 interactive (Fig 6 re-typed interactive→static at Gate 1 — codex TYPE-CHANGE STRUCTURAL; a three-state static panel teaches low/med/high β without a slider implying a precise dynamic sim that could make the reader "feel" the wrong direction). Fig 11 is static-svg NOT plot — it's a schematic with no real per-round data, so the Plot primitive (which implies plotted data) would imply false precision. No `plot` figures: the Bradley-Terry curve (Fig 2) is a single fixed curve, cleaner as static SVG.
 
 ## Codex research review
 
@@ -391,19 +405,19 @@ Full findings + resolution: [notes/preference-tuning-vision-models-codex-final-2
 
 ## Resume here
 
-Last touched: 2026-06-05.
+Last touched: 2026-06-06.
 
 ### Phase status
 
 | Phase | Status | Output |
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
-| 2. Research / fact-check | done (Gate 0 closed) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | done (Gate 1 closed) | `## Outline` |
-| 4. Draft prose | done | `src/content/blog/preference-tuning-vision-models/index.mdx` |
-| 5. Implement figures | done (12/12, all static) | per-figure table below |
-| 6. Playwright review | done (12/12 pass) | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | Gates done; awaiting hero + Vic's draft flip | hero image, dev verification, ship |
+| 2. Research / fact-check | done (Gate 0 closed; +2026-06-06 sweep of post-GRPO + generative-vision RL methods, matrix rows 31-36) | `## Research notes`, `## Claim-source matrix` |
+| 3. Outline + figure list | done (Gate 1 closed; coda expanded 2026-06-06 to §11 GSPO + §12 Pref-GRPO, +Figs 13-14) | `## Outline` |
+| 4. Draft prose | done (+2026-06-06 coda expansion: GSPO/DAPO/CISPO/Dr.GRPO + Flow-GRPO bridge + Pref-GRPO, with KaTeX math for 4 formulas) | `src/content/blog/preference-tuning-vision-models/index.mdx` |
+| 5. Implement figures | done (14/14, all static; Figs 13-14 added 2026-06-06) | per-figure table below |
+| 6. Playwright review | done (14/14 pass; Figs 13-14 verified clean, KaTeX renders as display math, no overflow) | playwright snapshots reviewed |
+| 7. Freshness pass + Gate 2 + ship | Gates done; coda-expansion codex review pending this turn; awaiting hero + Vic's draft flip | hero image, ship |
 
 ### Codex history
 
@@ -429,6 +443,8 @@ Last touched: 2026-06-05.
 | 10 | DataEngineLoop | static-svg | done | figs 7-12 |
 | 11 | SamThreeDEloClimb | static-svg (schematic) | done | figs 7-12 |
 | 12 | SamThreeDAssembled | static-svg | done | figs 7-12 |
+| 13 | GspoTokenVsSequence | static-svg | done | coda expansion 2026-06-06 |
+| 14 | PrefGrpoIllusoryAdvantage | static-svg | done | coda expansion 2026-06-06 |
 
 ### Suggested next batch
 

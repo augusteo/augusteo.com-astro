@@ -482,11 +482,140 @@ The engine ran on almost 1 million images and produced roughly 3.14 million mesh
 
 ## Coda
 
-### 11. Where it goes next
+### 11. The frontier, part one: GSPO
 
-The frontier has already moved past the methods in this post. GRPO's instability got diagnosed and fixed: [GSPO](https://arxiv.org/abs/2507.18071), from the Qwen team, traced the trouble to GRPO applying its importance weights at the wrong granularity and switched to "sequence-level clipping, rewarding, and optimization," and that is what trained the Qwen3 models. On the vision side, fresh examples of preference optimization keep landing, like [Pref-GRPO](https://arxiv.org/abs/2508.20751), which brings the same pairwise-preference idea to text-to-image generation. And the data engines keep automating the verdict, with the model proposing and, increasingly, verifying its own training data.
+Two threads run past the methods in this post, and both are the same throughline pushed one notch further. The first is a repair to GRPO.
 
-The cheapest supervision signal we have, a person pointing at the better of two things, turned out to scale further than almost anyone expected. It went from making chatbots polite to building 3D from a single photo, and the skeleton of the loss barely changed along the way.
+Recall that GRPO, like PPO, reuses each batch of sampled answers for several gradient steps, because sampling answers from the model is the expensive part. The catch is that after the first step the model has already shifted, so those answers were drawn from a version of the model that no longer exists. The standard fix is importance sampling: scale each piece of the update by a correction factor, the ratio of how likely the current model is to produce that piece to how likely the old model was. Twice as likely now, count it double; half as likely, count it half. It is the bookkeeping that lets you keep using slightly stale samples without bias.
+
+The Qwen team's [GSPO](https://arxiv.org/abs/2507.18071) traces GRPO's training instability to where that correction is applied. GRPO computes the ratio per token, one for every word in the answer, and "since this weight is based on a single sample from each next-token distribution, it fails to perform the intended distribution-correction role." A single noisy ratio is survivable. Multiplying hundreds of them across a long answer is not. The paper describes "high-variance training noise that progressively accumulates with increased response length and is further amplified by the clipping mechanism, ultimately precipitating model collapse," and pins the whole problem on "the fundamental misapplication and invalidation of importance sampling weights." For mixture-of-experts models, where which experts fire can change between updates, it is worse still.
+
+GSPO's fix is one observation: "since the reward is granted to the entire sequence, applying off-policy correction at the token level appears problematic." So it computes a single ratio for the whole answer, "based on sequence likelihood," and does "sequence-level clipping, rewarding, and optimization."
+
+It helps to see the two ratios side by side. GRPO's per-token correction is
+
+$$
+r_{i,t}(\theta) = \frac{\pi_\theta(y_{i,t} \mid x,\, y_{i,<t})}{\pi_{\theta_\text{old}}(y_{i,t} \mid x,\, y_{i,<t})}
+$$
+
+one fraction for every token position $t$: the probability the current model $\pi_\theta$ puts on that token, over the probability the old model $\pi_{\theta_\text{old}}$ put on it, given the prompt $x$ and the tokens already written, $y_{i,<t}$. If the model has not moved, the fraction is one and the token's update passes through unchanged; if the model now likes that token twice as much, the fraction is two. GSPO swaps all of those for a single fraction over the whole answer $y_i$,
+
+$$
+s_i(\theta) = \left( \frac{\pi_\theta(y_i \mid x)}{\pi_{\theta_\text{old}}(y_i \mid x)} \right)^{1/|y_i|}
+$$
+
+the new model's probability of the entire answer over the old model's, raised to the power one over the answer's length $|y_i|$. That exponent is the quiet workhorse. A sequence's probability is the product of its token probabilities, so taking the $|y_i|$-th root of the ratio is exactly the geometric mean of the per-token ratios: it folds the whole noisy product into one number on a stable scale, the way the $n$-th root of a product of $n$ numbers reports their typical size instead of their runaway product. A long answer and a short one now land in the same range, and one freak token can no longer detonate the correction. The result, in the team's words, "notably stabilizes Mixture-of-Experts (MoE) RL training" and "contributed to the remarkable improvements in the latest Qwen3 models."
+
+<figure>
+<svg viewBox="0 0 680 285" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Top: GRPO multiplies one noisy importance ratio per token across an answer, so variance compounds with length and training can collapse. Bottom: GSPO uses a single length-normalized sequence-level ratio, the geometric mean of the per-token ratios, so training stays stable.">
+<defs><marker id="f13a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="24" y="34" font-family="JetBrains Mono" font-size="11" letter-spacing="1.5" fill="#6B6258">GRPO</text>
+<text x="24" y="50" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">one noisy ratio per token, then multiply</text>
+<g font-family="JetBrains Mono" font-size="11" fill="#B91C1C" text-anchor="middle">
+<text x="85" y="66">1.4</text><text x="161" y="66">0.6</text><text x="237" y="66">1.9</text><text x="313" y="66">0.3</text><text x="389" y="66">1.7</text><text x="465" y="66">0.5</text>
+</g>
+<g fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1">
+<rect x="56" y="72" width="58" height="30"/><rect x="132" y="72" width="58" height="30"/><rect x="208" y="72" width="58" height="30"/><rect x="284" y="72" width="58" height="30"/><rect x="360" y="72" width="58" height="30"/><rect x="436" y="72" width="58" height="30"/>
+</g>
+<g font-family="JetBrains Mono" font-size="12" fill="#6B6258" text-anchor="middle">
+<text x="123" y="91">&#215;</text><text x="199" y="91">&#215;</text><text x="275" y="91">&#215;</text><text x="351" y="91">&#215;</text><text x="427" y="91">&#215;</text>
+</g>
+<text x="275" y="124" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">tokens of one answer</text>
+<line x1="500" y1="89" x2="520" y2="89" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f13a)"/>
+<polyline points="524,89 538,80 552,99 566,75 580,103 594,71 608,111 622,65" fill="none" stroke="#B91C1C" stroke-width="1.5"/>
+<text x="573" y="128" text-anchor="middle" font-family="serif" font-size="9" fill="#B91C1C">variance compounds &#8594; collapse</text>
+<line x1="40" y1="158" x2="640" y2="158" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="2,4"/>
+<text x="24" y="184" font-family="JetBrains Mono" font-size="11" letter-spacing="1.5" fill="#6B6258">GSPO</text>
+<text x="24" y="200" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">one ratio for the whole sequence</text>
+<rect x="48" y="211" width="454" height="40" rx="6" fill="none" stroke="#15803D" stroke-width="1.3" stroke-dasharray="5,3"/>
+<g fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1">
+<rect x="56" y="216" width="58" height="30"/><rect x="132" y="216" width="58" height="30"/><rect x="208" y="216" width="58" height="30"/><rect x="284" y="216" width="58" height="30"/><rect x="360" y="216" width="58" height="30"/><rect x="436" y="216" width="58" height="30"/>
+</g>
+<text x="275" y="270" text-anchor="middle" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">a single sequence ratio = geometric mean of the token ratios, length-normalized</text>
+<line x1="502" y1="231" x2="522" y2="231" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f13a)"/>
+<polyline points="526,238 556,234 588,228 622,221" fill="none" stroke="#15803D" stroke-width="1.6"/>
+<text x="574" y="256" text-anchor="middle" font-family="serif" font-size="9" fill="#15803D">training stays stable</text>
+</svg>
+<figcaption><strong>Fig 13.</strong> GRPO corrects each token with its own importance ratio and multiplies them, so over a long answer the noise compounds until training can collapse. GSPO uses one ratio for the whole sequence, the length-normalized sequence likelihood, which equals the geometric mean of the per-token ratios and averages the noise out. This is what trained the Qwen3 models.</figcaption>
+</figure>
+
+Nothing about the verdict changed here. This is the section-5 advantage machinery, corrected at the granularity the reward actually lives at.
+
+GSPO is not the only repair, and the cluster is worth a glance, because each one names a different way naive GRPO breaks. [DAPO](https://arxiv.org/abs/2503.14476), the most reproduced of them, is GRPO plus four engineering fixes: an asymmetric clip that protects exploration, dynamic sampling that throws out prompts where every answer is right or every answer is wrong, token-level loss, and a soft length penalty. ByteDance used it to reach "50 points on AIME 2024 using Qwen2.5-32B base model." MiniMax's [CISPO](https://arxiv.org/abs/2506.13585) goes after the clip itself, and "clips importance sampling weights rather than token updates," so a rare but load-bearing reasoning token like "Wait" or "However" keeps contributing a gradient instead of being zeroed out, the same granularity instinct as GSPO aimed at a different symptom. And the length bias from section 6, diagnosed by Dr. GRPO, is a third: delete two of GRPO's normalizers and the model stops padding wrong answers. Four papers, four different failures of the same algorithm, which is what a method looks like when it is being pushed hard enough to be worth fixing.
+
+### 12. The frontier, part two: Pref-GRPO closes the loop
+
+The second thread runs through vision, and it ends where the post began.
+
+There is a step to fill in first, because GRPO does not obviously fit an image generator at all. GRPO needs a group of different samples for one prompt, scored against each other. A language model hands you that for free, since it samples a different answer each time. A diffusion or flow model, run normally, does not: it is deterministic, so the same prompt and the same starting noise retrace the same path to the same image, and there is no group to compare. [Flow-GRPO](https://arxiv.org/abs/2505.05470), the paper that first put "online policy gradient reinforcement learning (RL) into flow matching models," supplies the missing piece with "an ODE-to-SDE conversion that transforms a deterministic Ordinary Differential Equation (ODE) into an equivalent Stochastic Differential Equation (SDE) that matches the original model's marginal distribution at all timesteps." In plain terms, it stirs a controlled dose of randomness into the generation path so the model yields a spread of different images for one prompt, without changing what it produces on average. Now there is a group, and GRPO has something to work on.
+
+With a group in hand, the obvious way to run GRPO on images is to score each generated image with a reward model, then turn those scores into advantages the section-5 way, by centering and scaling within the group:
+
+$$
+\hat{A}_i = \frac{r_i - \text{mean}(r_1, \dots, r_G)}{\text{std}(r_1, \dots, r_G)}
+$$
+
+take image $i$'s reward $r_i$, subtract the group's average reward, then divide by the group's standard deviation, its spread. The subtraction is just the baseline from section 3; the division is meant to put every group on a comparable scale. [Pref-GRPO](https://arxiv.org/abs/2508.20751) shows that the division is also a trap. A reward model handed several images for one prompt tends to score them very close together, because they are all reasonable attempts, so $\text{std}(r)$ is tiny. Dividing by a tiny number is the same as multiplying by a huge one, so "even minor score gaps are disproportionately magnified after normalization." A 7.21 and a 7.19 turn into a confident verdict that one image is far better, when the gap is noise. The paper names this the illusory advantage, and it shows where the model goes with it: "scores keep rising while image quality deteriorates, manifesting as oversaturation or unnaturally dark artifacts." The model is gaming the reward model's quirks, plain reward hacking, and you cannot clip your way out, because clipping "cannot remove the underlying tendency to optimize toward unreliable absolute-score increments."
+
+The repair is the move this whole post has been about. Instead of asking what score each image gets, Pref-GRPO asks which of two images is better, the same pairwise verdict from section 1. It "reformulates the GRPO objective to pairwise preference fitting: image pairs within a group are compared by a Pairwise Preference Reward Model (PPRM), and each image's win rate serves as the reward." An image's reward becomes its win rate, the fraction of its group-mates it beats head to head:
+
+$$
+w_i = \frac{1}{G-1} \sum_{j \neq i} \mathbb{1}\big( i \succ j \big)
+$$
+
+for a group of $G$ images, compare image $i$ against each of the other $G-1$, count how many it wins (the indicator $\mathbb{1}$ is one when $i$ is preferred over $j$, zero otherwise), and divide by the number of comparisons. An image that beats every rival scores one; one that loses every time scores zero. Feed those win rates into the same advantage formula and the trap springs open: because win rates spread across the full range from zero to one, a clear winner near one and a clear loser near zero, $\text{std}(w)$ is genuinely large instead of vanishing, which "directly suppress[es] the illusory-advantage amplification mechanism."
+
+<figure>
+<svg viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Left: a group of generated images gets nearly identical pointwise scores around 7.2; dividing by the tiny standard deviation produces large illusory advantages and reward hacking. Right: Pref-GRPO scores each image by its pairwise win rate against its group-mates, which spreads from zero to one and yields honest advantages.">
+<defs><marker id="f14a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<line x1="340" y1="16" x2="340" y2="206" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="30" y="30" font-family="JetBrains Mono" font-size="10" letter-spacing="1" fill="#6B6258">GRPO &#183; pointwise score</text>
+<g fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1">
+<rect x="30" y="44" width="44" height="44"/><rect x="92" y="44" width="44" height="44"/><rect x="154" y="44" width="44" height="44"/><rect x="216" y="44" width="44" height="44"/>
+</g>
+<g fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8">
+<path d="M36,82 L48,66 L56,74 L64,62 L70,82 Z"/><path d="M98,82 L110,66 L118,74 L126,62 L132,82 Z"/><path d="M160,82 L172,66 L180,74 L188,62 L194,82 Z"/><path d="M222,82 L234,66 L242,74 L250,62 L256,82 Z"/>
+</g>
+<g fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8">
+<circle cx="42" cy="56" r="4"/><circle cx="104" cy="56" r="4"/><circle cx="166" cy="56" r="4"/><circle cx="228" cy="56" r="4"/>
+</g>
+<g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A" text-anchor="middle">
+<text x="52" y="104">7.21</text><text x="114" y="104">7.19</text><text x="176" y="104">7.23</text><text x="238" y="104">7.20</text>
+</g>
+<line x1="145" y1="112" x2="145" y2="148" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f14a)"/>
+<text x="158" y="134" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">&#247; tiny &#963;</text>
+<g font-family="JetBrains Mono" font-size="11" fill="#B91C1C" text-anchor="middle">
+<text x="52" y="166">+0.2</text><text x="114" y="166">&#8722;1.2</text><text x="176" y="166">+1.5</text><text x="238" y="166">&#8722;0.5</text>
+</g>
+<text x="145" y="190" text-anchor="middle" font-family="serif" font-size="10" font-weight="600" fill="#B91C1C">illusory advantage</text>
+<text x="145" y="204" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">near-identical scores, blown up</text>
+<text x="380" y="30" font-family="JetBrains Mono" font-size="10" letter-spacing="1" fill="#6B6258">Pref-GRPO &#183; pairwise win rate</text>
+<g fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1">
+<rect x="380" y="44" width="44" height="44"/><rect x="442" y="44" width="44" height="44"/><rect x="504" y="44" width="44" height="44"/><rect x="566" y="44" width="44" height="44"/>
+</g>
+<g fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8">
+<path d="M386,82 L398,66 L406,74 L414,62 L420,82 Z"/><path d="M448,82 L460,66 L468,74 L476,62 L482,82 Z"/><path d="M510,82 L522,66 L530,74 L538,62 L544,82 Z"/><path d="M572,82 L584,66 L592,74 L600,62 L606,82 Z"/>
+</g>
+<g fill="#FBE9CE" stroke="#B8651A" stroke-width="0.8">
+<circle cx="392" cy="56" r="4"/><circle cx="454" cy="56" r="4"/><circle cx="516" cy="56" r="4"/><circle cx="578" cy="56" r="4"/>
+</g>
+<g font-family="JetBrains Mono" font-size="10" fill="#15803D" text-anchor="middle">
+<text x="402" y="104">0.67</text><text x="464" y="104">0.00</text><text x="526" y="104">1.00</text><text x="588" y="104">0.33</text>
+</g>
+<line x1="495" y1="112" x2="495" y2="148" stroke="#6B6258" stroke-width="1.2" marker-end="url(#f14a)"/>
+<text x="508" y="134" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">&#247; &#963;</text>
+<g font-family="JetBrains Mono" font-size="11" fill="#15803D" text-anchor="middle">
+<text x="402" y="166">+0.5</text><text x="464" y="166">&#8722;1.3</text><text x="526" y="166">+1.3</text><text x="588" y="166">&#8722;0.5</text>
+</g>
+<text x="495" y="190" text-anchor="middle" font-family="serif" font-size="10" font-weight="600" fill="#15803D">honest advantage</text>
+<text x="495" y="204" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">win rates spread 0 to 1</text>
+</svg>
+<figcaption><strong>Fig 14.</strong> Pointwise GRPO scores a group of similar images almost identically, then normalizing by the tiny group standard deviation blows those non-differences into large, illusory advantages the model learns to hack. Pref-GRPO replaces the score with each image's pairwise win rate, the fraction of its group-mates it beats, which spreads across zero to one and gives an honest advantage. The verdict from the opening of the post, returned to settle the frontier.</figcaption>
+</figure>
+
+That is the arc folded shut. The post opened on a verdict between two answers, turned it into a score with Bradley-Terry, and rode that score through RLHF, DPO, and GRPO and across into vision. At the frontier, when the score itself started to lie, the cure was to throw the score away and compare two things directly again, with a preference model standing in as the referee, the Bradley-Terry idea from section 2 now judging image generation.
+
+The cheapest supervision signal we have, a person pointing at the better of two things, turned out to scale further than almost anyone expected. It went from making chatbots polite to building 3D from a single photo, and when the fancier signals broke it was still the move people reached for. The skeleton of the loss barely changed the whole way.
 
 ## References
 
@@ -515,5 +644,8 @@ The cheapest supervision signal we have, a person pointing at the better of two 
 - "[SAM 3: Segment Anything with Concepts](https://arxiv.org/abs/2511.16719)." Meta, 2025.
 - SAM 3D Team. "[SAM 3D: 3Dfy Anything in Images](https://arxiv.org/abs/2511.16624)." Meta, 2025. Also the [Meta blog](https://ai.meta.com/blog/sam-3d/).
 - Zheng et al. "[Group Sequence Policy Optimization](https://arxiv.org/abs/2507.18071)" (GSPO). 2025.
-- "[Pref-GRPO: Pairwise Preference Reward-based GRPO for Text-to-Image generation](https://arxiv.org/abs/2508.20751)." 2025.
+- Yu et al. "[DAPO: An Open-Source LLM Reinforcement Learning System at Scale](https://arxiv.org/abs/2503.14476)." 2025.
+- MiniMax. "[MiniMax-M1: Scaling Test-Time Compute Efficiently with Lightning Attention](https://arxiv.org/abs/2506.13585)" (introduces CISPO). 2025.
+- Liu et al. "[Flow-GRPO: Training Flow Matching Models via Online RL](https://arxiv.org/abs/2505.05470)." 2025.
+- Wang et al. "[Pref-GRPO: Pairwise Preference Reward-based GRPO for Stable Text-to-Image Reinforcement Learning](https://arxiv.org/abs/2508.20751)." 2025.
 - Ichihara et al. "[MO-GRPO: Mitigating Reward Hacking of Group Relative Policy Optimization on Multi-Objective Problems](https://arxiv.org/abs/2509.22047)." 2025.
