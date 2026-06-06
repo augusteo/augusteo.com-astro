@@ -280,7 +280,82 @@ Scanned `src/content/blog/`. Strongest topical overlaps (will link inline in Pha
 
 ## Outline
 
-*(populated in Phase 3)*
+Three acts + coda. Throughline (one human preference verdict, "this one, not that one") opens and closes every act. Audience: AI engineer, little RL background — so every RL term is introduced from zero (reward model, advantage, critic, rollout, KL leash) the first time it appears, with a metaphor.
+
+### Act 1 — The thing you can't demonstrate
+
+**1. The gap: you can't write the perfect answer, but you can pick the better of two.** (Opens on the throughline atom.) SFT teaches by imitation: show the model a good answer, it copies. But for "good taste" — a helpful reply, an appealing image, a clean 3D mesh — nobody can author the perfect target, yet anyone can look at two and point. State the whole post in two sentences: preference tuning is how you train on "this one, not that one." Metaphor: teaching by grading, not by dictating. Throughline close: that one verdict is what we follow from a chatbot A/B click all the way to a 3D-shape verdict.
+- Fig 1 (static): imitation (copy one demonstration) vs preference (pick between two candidates). [rows: framing; no number claim]
+- {/* Reader can now: say why SFT can't capture "good taste" and why a pairwise verdict can. */}
+
+### Act 2 — The methods (LLM lineage)
+
+**2. Turning a verdict into a number (Bradley-Terry).** A single "A beats B" is binary; learning needs a gradient. Bradley-Terry: give each candidate a hidden score, and the probability A wins is the sigmoid of the score gap. Small gap → coin flip; big gap → near-certain. This one equation is the seed of every method that follows. [rows 7]
+- Fig 2 (static): the Bradley-Terry sigmoid, P(A≻B) vs score gap, two marked points (gap≈0 → 0.5; large gap → ~1). 
+- {/* Reader can now: read "preference = sigmoid of a score difference" and predict the curve's shape. */}
+
+**3. The first recipe: RLHF and PPO.** The three-stage pipeline (InstructGPT): SFT, then a reward model that learns to predict the human's pick (a learned stand-in for the grader), then reinforcement learning (PPO) that pushes the model up the reward — kept on a KL leash to the SFT model so it doesn't wander into gibberish. Introduce, from zero: reward model, rollout, advantage, the critic (a second network that estimates how good a state is), PPO's clipped step. The payoff/throughline number: a 1.3B RLHF model beat 175B GPT-3. The cost: two extra networks (reward model + critic), online sampling, and finicky stability. [rows 1,2,3,4,5,6]
+- Fig 3 (static): RLHF three-stage pipeline, human sits in stage 2 (the comparison), PPO loop with the KL leash drawn.
+- {/* Reader can now: name the three RLHF stages and why PPO needs a reward model + a critic. */}
+
+**4. The shortcut: DPO.** The key insight (the "secretly a reward model" trick): the optimal RLHF policy is itself an implicit reward model — the implicit reward is β·log(π/π_ref). So you can skip the reward model AND the RL loop and train directly on preference pairs with one classification loss. Collapse the whole apparatus into a single gradient step. [rows 8,9]
+- Fig 4 (static): DPO collapses the loop — left: RLHF's reward-model + PPO-rollout loop; right: DPO's single classification step on (chosen, rejected). Same inputs, far less machinery.
+- Fig 5 (static): DPO loss anatomy — the annotated equation. Label the log-sigmoid (Bradley-Terry, callback to Fig 2), β (how hard to move), the chosen/rejected log-ratios, the frozen reference π_ref, the implicit reward.
+- {/* Reader can now: read the DPO loss term by term and say what β and π_ref do. */}
+
+**5. Feeling β: the leash.** β is the dial between "fit the preferences hard" and "stay close to the model you started from." Too high and the model overfits the preference data and degrades; too low and it barely moves. [rows 8,9; sets up caveat section]
+- Fig 6 (interactive-canvas, β slider — continuous-sweep override clause): drag β; watch the chosen completion's log-prob rise and the rejected one fall, with a visible "leash" to the reference that tightens as β drops. Reader sees the tradeoff move.
+- {/* Reader can now: predict what happens to the model as β goes up or down. */}
+
+**6. Dropping the critic: GRPO.** PPO's critic is a second network roughly the size of the policy — expensive. GRPO removes it: sample a group of answers to the same prompt, and use the group's mean reward as the baseline, so "advantage" is just how much better than your siblings you did. This is what trained DeepSeek-R1 (peer-reviewed in Nature, 2025). [rows 6,10,11]
+- Fig 7 (static): PPO (policy + separate critic estimating value) vs GRPO (one policy, sample a group, advantage = reward − group mean). The critic box is crossed out on the GRPO side.
+- {/* Reader can now: explain how GRPO estimates advantage without a value network. */}
+
+**7. Where the verdict is not enough (the honest section).** Preference tuning is not a free lunch. DPO can overfit and PPO-style RLHF can still win (Xu 2024); which method wins depends on the setting (Shi 2025); GRPO has its own bias — it inflates response length, especially for wrong answers (Dr. GRPO; MO-GRPO reward hacking). No figure (prose; avoids dead weight). [rows 24,25,26]
+- {/* Reader can now: name three concrete ways preference tuning can go wrong. */}
+
+### Act 3 — The crossover to vision
+
+**8. The same verdict, now on images (Diffusion-DPO).** A generated image has no log-prob the way a sentence does, so you can't plug it straight into DPO. Diffusion-DPO reformulates the loss over the diffusion model's likelihood proxy (the ELBO): the winning image x⁺ gets its denoising trajectory made more likely, the losing image x⁻ less likely, both judged against a frozen reference model. Trained on 851K Pick-a-Pic preference pairs, it beat base SDXL on human preference. Note the subtlety: standard DPO's sigmoid margin is mismatched to the regression nature of image generation (Linear-DPO) — it's not the clean mode-drop you see in LLMs. [rows 12,13,14]
+- Fig 8 (static): the winner/loser pair over a denoising trajectory — x⁺ pulled up, x⁻ pushed down, both measured against the frozen reference. Callback to Fig 5's chosen/rejected.
+- {/* Reader can now: say how DPO is adapted to a generator that has no token log-probs. */}
+
+**9. The annotation insight: a cheap verdict beats authoring ground truth.** The expensive part of vision data is authoring the target (drawing a mask, modeling a 3D mesh). The cheap part is judging a model's proposal. In 2D, this already showed up as point-wise yes/no annotation at huge scale (Benenson, background analogy). The principle generalizes: don't make the human author the answer; make the model propose and the human give a cheap verdict (verify/rank/rate). In Gkioxari's CVPR 2026 talk she put it as "annotators only say yes or no" (her framing; the SAM 3D paper says verify/rank/rate). [rows 15 (narrow), 16 (background), 20]
+- Fig 9 (static): left, an annotator painstakingly authoring a dense target (expensive); right, an annotator giving a thumbs verdict on model proposals (cheap). The asymmetry is the whole point.
+- {/* Reader can now: explain why "judge a proposal" scales where "author the target" doesn't. */}
+
+**10. The model-in-the-loop data engine.** Tie the verdict to a loop. SAM's original data engine (model proposes masks → humans correct/verify → model retrains) produced 1B masks. By 2026 it's a named pattern: SAM 3 uses MLLMs as AI annotators AND AI verifiers, more than doubling throughput. The model now both proposes and checks. [rows 17, 28]
+- Fig 10 (static): the virtuous cycle — model proposes → human (and now AI) verdicts → preference data → SFT + DPO → better model → back to propose. A loop diagram.
+- {/* Reader can now: trace the data-engine loop and say what each arrow carries. */}
+
+**11. The climax: SAM 3D.** Everything assembled. 3D is the hardest data barrier — you can't crowdsource 3D ground truth. SAM 3D's answer: synthetic pretraining, then real-world alignment via SFT + DPO on cheap human verdicts over model-generated meshes, repeated as a data engine. Result: ~1M images / ~3.14M meshes, and at least a 5:1 (objects) / 6:1 (scenes) human-preference win over prior work. The throughline lands: one verdict — "this mesh, not that one" — scaled into a 3D foundation model. [rows 18,19,20,21,22,23]
+- Fig 11 (static, SCHEMATIC): shape-quality preference (Elo) climbing across data-engine rounds, above a "retrieval baseline" line. Explicitly schematic — no numbers on the y-axis, caption says "schematic of the reported monotonic improvement; per-round values not published."
+- Fig 12 (static): SAM 3D assembled — synthetic pretrain → SFT → DPO on verify/rank/rate verdicts → data-engine loop → 5:1/6:1 win. The reassembly figure; every earlier mechanism appears as a labeled block.
+- {/* Reader can now: explain how the LLM preference-tuning loop became a 3D foundation model's data engine. */}
+
+### Coda — where it's going (mid-2026)
+
+**12. The frontier moved.** GSPO (sequence-level importance ratios) fixed GRPO's instability and trained Qwen3; preference/reward optimization now appears across CVPR 2026 vision work; the model increasingly both proposes and verifies its own training data. Close on the throughline: the cheapest possible supervision signal — a human pointing at the better of two — turned out to scale further than anyone expected, from chatbots to 3D. [rows 27,28,29] Two sentences, concrete, no "in summary."
+- {/* Reader can now: name what replaced GRPO at the frontier and why. */}
+
+### Figure table
+
+| # | Figure | Type | Mechanism | Reader notices |
+|---|---|---|---|---|
+| 1 | ImitationVsPreference | static-svg | SFT copies one demonstration; preference picks between two candidates | you can't author "taste" but you can compare |
+| 2 | BradleyTerrySigmoid | static-svg | P(A≻B) = σ(score gap) | small gap → coin flip; big gap → near-certain |
+| 3 | RlhfPipeline | static-svg | SFT → reward model → PPO, with KL leash; human in stage 2 | RLHF needs two extra networks + online sampling |
+| 4 | DpoCollapsesLoop | static-svg | RLHF's RM+PPO loop vs DPO's single classification step | same inputs, far less machinery |
+| 5 | DpoLossAnatomy | static-svg | annotated DPO loss: log-σ, β, chosen/rejected log-ratios, frozen π_ref, implicit reward | what each term in the loss does |
+| 6 | BetaSweep | interactive-canvas | β slider: chosen log-prob ↑, rejected ↓, leash-to-reference tightens as β drops | the fit-vs-stay-close tradeoff, felt |
+| 7 | GrpoDropsCritic | static-svg | PPO (policy + critic) vs GRPO (group mean as baseline) | advantage without a value network |
+| 8 | DiffusionDpoTrajectory | static-svg | winner x⁺ pulled up / loser x⁻ pushed down over the denoise trajectory vs frozen reference | DPO adapted to a generator with no token log-probs |
+| 9 | CheapVerdictVsGroundTruth | static-svg | authoring a dense target (expensive) vs judging a proposal (cheap) | judge-a-proposal scales; author-the-target doesn't |
+| 10 | DataEngineLoop | static-svg | model proposes → human/AI verdicts → preference data → SFT+DPO → better model → loop | the virtuous cycle, arrow by arrow |
+| 11 | SamThreeDEloClimb | static-svg (schematic) | preference/Elo rising across data-engine rounds above retrieval baseline | the loop compounds; SCHEMATIC, no numbers |
+| 12 | SamThreeDAssembled | static-svg | synthetic pretrain → SFT → DPO on verdicts → data engine → 5:1/6:1 win | every earlier mechanism in one picture |
+
+Figure-type locks: 11 static-svg + 1 interactive-canvas (Fig 6, justified by the continuous-parameter-sweep override clause). Fig 11 is static-svg NOT plot — it's a schematic with no real per-round data, so the Plot primitive (which implies plotted data) would imply false precision. No `plot` figures: the Bradley-Terry curve (Fig 2) is a single fixed curve, cleaner as static SVG.
 
 ## Codex research review
 
@@ -300,7 +375,7 @@ Last touched: 2026-06-05.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | pending | `## Outline` |
+| 3. Outline + figure list | done (Gate 1 pending) | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/preference-tuning-vision-models/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
@@ -316,6 +391,18 @@ Last touched: 2026-06-05.
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
+| 1 | ImitationVsPreference | static-svg | TODO | |
+| 2 | BradleyTerrySigmoid | static-svg | TODO | |
+| 3 | RlhfPipeline | static-svg | TODO | |
+| 4 | DpoCollapsesLoop | static-svg | TODO | |
+| 5 | DpoLossAnatomy | static-svg | TODO | |
+| 6 | BetaSweep | interactive-canvas | TODO | |
+| 7 | GrpoDropsCritic | static-svg | TODO | |
+| 8 | DiffusionDpoTrajectory | static-svg | TODO | |
+| 9 | CheapVerdictVsGroundTruth | static-svg | TODO | |
+| 10 | DataEngineLoop | static-svg | TODO | |
+| 11 | SamThreeDEloClimb | static-svg (schematic) | TODO | |
+| 12 | SamThreeDAssembled | static-svg | TODO | |
 
 ### Suggested next batch
 
