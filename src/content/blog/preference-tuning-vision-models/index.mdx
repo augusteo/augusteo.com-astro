@@ -492,19 +492,27 @@ The Qwen team's [GSPO](https://arxiv.org/abs/2507.18071) traces GRPO's training 
 
 GSPO's fix is one observation: "since the reward is granted to the entire sequence, applying off-policy correction at the token level appears problematic." So it computes a single ratio for the whole answer, "based on sequence likelihood," and does "sequence-level clipping, rewarding, and optimization."
 
-It helps to see the two ratios side by side. GRPO's per-token correction is
+It helps to see the two ratios side by side, with each piece labeled. Fig 13 lays them out. GRPO's correction is one fraction for every token: how likely the current model is to produce that token, over how likely the old model was. If the model has not moved the fraction is one and nothing changes; if the current model likes the token twice as much, the fraction is two. GSPO swaps all of those for a single fraction over the whole answer, raised to the power one over the answer's length.
 
-$$
-r_{i,t}(\theta) = \frac{\pi_\theta(y_{i,t} \mid x,\, y_{i,<t})}{\pi_{\theta_\text{old}}(y_{i,t} \mid x,\, y_{i,<t})}
-$$
+<figure>
+<svg viewBox="0 0 680 236" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Two importance ratios, color-coded. GRPO's is per token: r equals pi-theta of the token (current model, blue) over pi-old of the token (old model, rust). GSPO's is per answer: s equals (pi-theta of the answer over pi-old of the answer) to the power one over the answer length (green). Pi-theta is the model being trained, pi-old the model the samples came from, and the one-over-length exponent makes the sequence ratio the geometric mean of the per-token ratios.">
+<rect x="20" y="24" width="640" height="92" fill="#F9F5EB" stroke="#C9BEAA" rx="4"/>
+<text x="40" y="58" font-family="JetBrains Mono" font-size="15" fill="#1A1A1A"><tspan>GRPO, per token:&#160; r = </tspan><tspan fill="#2563EB">&#960;&#952;(token)</tspan><tspan> / </tspan><tspan fill="#B8651A">&#960;old(token)</tspan></text>
+<text x="40" y="100" font-family="JetBrains Mono" font-size="15" fill="#1A1A1A"><tspan>GSPO, per answer: s = ( </tspan><tspan fill="#2563EB">&#960;&#952;(answer)</tspan><tspan> / </tspan><tspan fill="#B8651A">&#960;old(answer)</tspan><tspan> )</tspan><tspan fill="#15803D"> ^(1/length)</tspan></text>
+<g font-family="serif" font-size="12" fill="#1A1A1A">
+<rect x="40" y="134" width="14" height="14" fill="#2563EB"/>
+<text x="62" y="145">&#960;&#952; (current model): how likely the model being trained is to produce this.</text>
+<rect x="40" y="158" width="14" height="14" fill="#B8651A"/>
+<text x="62" y="169">&#960;old (old model): the version the samples came from, now slightly out of date.</text>
+<rect x="40" y="182" width="14" height="14" fill="#15803D"/>
+<text x="62" y="193">^(1/length): length-normalize, which makes it the geometric mean of the per-token ratios.</text>
+</g>
+<text x="40" y="221" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">GRPO uses the top ratio once per token; GSPO uses the bottom ratio once per whole answer.</text>
+</svg>
+<figcaption><strong>Fig 13.</strong> The two importance ratios, side by side. GRPO computes the blue-over-rust fraction once for every token; GSPO computes it once for the whole answer and takes the length-th root (green), which is the geometric mean of all those per-token ratios. πθ is the model being trained, πold the slightly stale model the samples came from.</figcaption>
+</figure>
 
-one fraction for every token position $t$: the probability the current model $\pi_\theta$ puts on that token, over the probability the old model $\pi_{\theta_\text{old}}$ put on it, given the prompt $x$ and the tokens already written, $y_{i,<t}$. If the model has not moved, the fraction is one and the token's update passes through unchanged; if the model now likes that token twice as much, the fraction is two. GSPO swaps all of those for a single fraction over the whole answer $y_i$,
-
-$$
-s_i(\theta) = \left( \frac{\pi_\theta(y_i \mid x)}{\pi_{\theta_\text{old}}(y_i \mid x)} \right)^{1/|y_i|}
-$$
-
-the new model's probability of the entire answer over the old model's, raised to the power one over the answer's length $|y_i|$. That exponent is the quiet workhorse. A sequence's probability is the product of its token probabilities, so taking the $|y_i|$-th root of the ratio is exactly the geometric mean of the per-token ratios: it folds the whole noisy product into one number on a stable scale, the way the $n$-th root of a product of $n$ numbers reports their typical size instead of their runaway product. A long answer and a short one now land in the same range, and one freak token can no longer detonate the correction. The result, in the team's words, "notably stabilizes Mixture-of-Experts (MoE) RL training" and "contributed to the remarkable improvements in the latest Qwen3 models."
+That exponent is the quiet workhorse. A sequence's probability is the product of its token probabilities, so taking the length-th root of the ratio is exactly the geometric mean of the per-token ratios: it folds the whole noisy product into one number on a stable scale, the way the n-th root of a product of n numbers reports their typical size instead of their runaway product. A long answer and a short one now land in the same range, and one freak token can no longer detonate the correction. The result, in the team's words, "notably stabilizes Mixture-of-Experts (MoE) RL training" and "contributed to the remarkable improvements in the latest Qwen3 models."
 
 <figure>
 <svg viewBox="0 0 680 285" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Top: GRPO applies a separate noisy importance ratio to each token's own loss term and clips each one; across a long answer the high-variance one-sample ratios accumulate and training can collapse. Bottom: GSPO uses a single length-normalized sequence-level ratio, the geometric mean of the per-token ratios, so the correction stays on a stable scale.">
@@ -536,7 +544,7 @@ the new model's probability of the entire answer over the old model's, raised to
 <polyline points="526,238 556,234 588,228 622,221" fill="none" stroke="#15803D" stroke-width="1.6"/>
 <text x="574" y="256" text-anchor="middle" font-family="serif" font-size="9" fill="#15803D">training stays stable</text>
 </svg>
-<figcaption><strong>Fig 13.</strong> GRPO corrects each token with its own importance ratio, clipped per token; across a long answer those high-variance one-sample ratios accumulate until training can collapse. GSPO uses one ratio for the whole sequence, the length-normalized sequence likelihood, which equals the geometric mean of the per-token ratios and keeps the correction on a stable scale. This is what trained the Qwen3 models.</figcaption>
+<figcaption><strong>Fig 14.</strong> GRPO corrects each token with its own importance ratio, clipped per token; across a long answer those high-variance one-sample ratios accumulate until training can collapse. GSPO uses one ratio for the whole sequence, the length-normalized sequence likelihood, which equals the geometric mean of the per-token ratios and keeps the correction on a stable scale. This is what trained the Qwen3 models.</figcaption>
 </figure>
 
 Nothing about the verdict changed here. This is the section-5 advantage machinery, corrected at the granularity the reward actually lives at.
@@ -549,21 +557,47 @@ The second thread runs through vision, and it ends where the post began.
 
 There is a step to fill in first, because GRPO does not obviously fit an image generator. GRPO is a policy-gradient method: it needs the generator to be a stochastic policy, one that makes a real random choice at every step and assigns each choice a probability it can then nudge up or down, the way a language model assigns a probability to each token it samples. A flow-matching image model, sampled the normal way, is not that. Its sampler is a deterministic ordinary differential equation: fix the starting noise and the path to the finished image is fixed, with no per-step choice to take a gradient through. You can still get a spread of different images by starting from different noise, but you cannot do the step-by-step credit assignment a policy gradient runs on. [Flow-GRPO](https://arxiv.org/abs/2505.05470), the paper that first put "online policy gradient reinforcement learning (RL) into flow matching models," supplies the missing piece with "an ODE-to-SDE conversion that transforms a deterministic Ordinary Differential Equation (ODE) into an equivalent Stochastic Differential Equation (SDE) that matches the original model's marginal distribution at all timesteps." In plain terms, it makes each denoising step genuinely random, turning the fixed path into a stochastic policy GRPO can optimize, and it does so "matching the original model's marginal distribution," so the images the model produces on average do not change. Now GRPO has something to work on.
 
-With the sampler turned into a policy, the obvious way to run GRPO on images is to sample a group for one prompt, score each image with a reward model, then turn those scores into advantages the section-5 way, by centering and scaling within the group:
+With the sampler turned into a policy, the obvious way to run GRPO on images is to sample a group for one prompt, score each image with a reward model, then turn those scores into advantages the section-5 way, by centering and scaling within the group, shown term by term in Fig 15: subtract the group's average reward from this image's reward, then divide by the group's spread. The subtraction is the baseline from section 3; the division is meant to put every group on a comparable scale.
 
-$$
-\hat{A}_i = \frac{r_i - \text{mean}(r_1, \dots, r_G)}{\text{std}(r_1, \dots, r_G)}
-$$
+<figure>
+<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="The GRPO advantage, color-coded. A-hat for image i equals (r-i, this image's reward, in green, minus mean of r, the group average, in teal) divided by std of r, the group's spread, in red. When all images score nearly the same, that spread is tiny, and dividing by it blows small gaps into large advantages: the illusory advantage.">
+<rect x="20" y="24" width="640" height="58" fill="#F9F5EB" stroke="#C9BEAA" rx="4"/>
+<text x="40" y="62" font-family="JetBrains Mono" font-size="16" fill="#1A1A1A"><tspan>A&#770;&#7522; = ( </tspan><tspan fill="#15803D">r&#7522;</tspan><tspan> &#8722; </tspan><tspan fill="#0E7490">mean(r)</tspan><tspan> ) / </tspan><tspan fill="#B91C1C">std(r)</tspan></text>
+<g font-family="serif" font-size="12" fill="#1A1A1A">
+<rect x="40" y="100" width="14" height="14" fill="#15803D"/>
+<text x="62" y="111">r&#7522;: the reward this image got.</text>
+<rect x="40" y="124" width="14" height="14" fill="#0E7490"/>
+<text x="62" y="135">mean(r): the group's average reward, the baseline to beat (from section 3).</text>
+<rect x="40" y="148" width="14" height="14" fill="#B91C1C"/>
+<text x="62" y="159">std(r): the group's spread. When the scores are nearly equal this is tiny, and dividing by it magnifies meaningless gaps.</text>
+</g>
+<text x="40" y="189" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">Center on the baseline, then scale by the spread. The scaling is the step that backfires.</text>
+</svg>
+<figcaption><strong>Fig 15.</strong> GRPO turns a reward into an advantage by centering and scaling. Subtract the group mean (teal) from this image's reward (green), then divide by the group's spread (red). When the images score almost the same, that spread is tiny, and dividing by it magnifies meaningless gaps. That is where the trouble starts.</figcaption>
+</figure>
 
-take image $i$'s reward $r_i$, subtract the group's average reward, then divide by the group's standard deviation, its spread. The subtraction is just the baseline from section 3; the division is meant to put every group on a comparable scale. [Pref-GRPO](https://arxiv.org/abs/2508.20751) shows that the division is also a trap. A reward model handed several images for one prompt tends to score them very close together, because they are all reasonable attempts, so $\text{std}(r)$ is tiny. Dividing by a tiny number is the same as multiplying by a huge one, so "even minor score gaps are disproportionately magnified after normalization." A 7.21 and a 7.19 turn into a confident verdict that one image is far better, when the gap is noise. The paper names this the illusory advantage, and it shows where the model goes with it: "scores keep rising while image quality deteriorates, manifesting as oversaturation or unnaturally dark artifacts." The model is gaming the reward model's quirks, plain reward hacking, and you cannot clip your way out, because clipping "cannot remove the underlying tendency to optimize toward unreliable absolute-score increments."
+[Pref-GRPO](https://arxiv.org/abs/2508.20751) shows that the division is exactly the trap. A reward model handed several images for one prompt tends to score them very close together, because they are all reasonable attempts, so the spread is tiny. Dividing by a tiny number is the same as multiplying by a huge one, so "even minor score gaps are disproportionately magnified after normalization." A 7.21 and a 7.19 turn into a confident verdict that one image is far better, when the gap is noise. The paper names this the illusory advantage, and it shows where the model goes with it: "scores keep rising while image quality deteriorates, manifesting as oversaturation or unnaturally dark artifacts." The model is gaming the reward model's quirks, plain reward hacking, and you cannot clip your way out, because clipping "cannot remove the underlying tendency to optimize toward unreliable absolute-score increments."
 
-The repair is the move this whole post has been about. Instead of asking what score each image gets, Pref-GRPO asks which of two images is better, the same pairwise verdict from section 1. It "reformulates the GRPO objective to pairwise preference fitting: image pairs within a group are compared by a Pairwise Preference Reward Model (PPRM), and each image's win rate serves as the reward." An image's reward becomes its win rate, the fraction of its group-mates it beats head to head:
+The repair is the move this whole post has been about. Instead of asking what score each image gets, Pref-GRPO asks which of two images is better, the same pairwise verdict from section 1. It "reformulates the GRPO objective to pairwise preference fitting: image pairs within a group are compared by a Pairwise Preference Reward Model (PPRM), and each image's win rate serves as the reward." An image's reward becomes its win rate, the fraction of its group-mates it beats head to head, broken down in Fig 16.
 
-$$
-w_i = \frac{1}{G-1} \sum_{j \neq i} \mathbb{1}\big( i \succ j \big)
-$$
+<figure>
+<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="The Pref-GRPO win rate, color-coded. w-i equals one over (G minus one), in rust, times the sum over all j not equal to i, in blue, of the indicator that image i is preferred over image j, in green. The indicator is the pairwise verdict, one when i beats j; the sum counts wins across the group of G images; one over G minus one turns the count into a fraction.">
+<rect x="20" y="24" width="640" height="58" fill="#F9F5EB" stroke="#C9BEAA" rx="4"/>
+<text x="40" y="62" font-family="JetBrains Mono" font-size="16" fill="#1A1A1A"><tspan>w&#7522; = </tspan><tspan fill="#B8651A">1/(G&#8722;1)</tspan><tspan> &#183; </tspan><tspan fill="#2563EB">&#8721;</tspan><tspan fill="#2563EB" font-size="11" dy="4">j&#8800;i</tspan><tspan dy="-4"> </tspan><tspan fill="#15803D">&#120793;(i &#8827; j)</tspan></text>
+<g font-family="serif" font-size="12" fill="#1A1A1A">
+<rect x="40" y="100" width="14" height="14" fill="#15803D"/>
+<text x="62" y="111">&#120793;(i &#8827; j): the pairwise verdict, one when image i beats image j, zero otherwise. The "this one, not that one" from section 1.</text>
+<rect x="40" y="124" width="14" height="14" fill="#2563EB"/>
+<text x="62" y="135">&#8721; over j&#8800;i: add that up across every other image in the group.</text>
+<rect x="40" y="148" width="14" height="14" fill="#B8651A"/>
+<text x="62" y="159">1/(G&#8722;1): divide by the number of comparisons (G is the group size), turning the count into a fraction.</text>
+</g>
+<text x="40" y="189" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">w&#7522; is the share of its group-mates that image i beats: 1 if it wins them all, 0 if it loses them all.</text>
+</svg>
+<figcaption><strong>Fig 16.</strong> Pref-GRPO's reward is a win rate. The indicator (green) is the pairwise verdict, one when image i beats image j; sum it (blue) over every other image in the group; divide by the number of comparisons (rust). The result is the fraction of its group-mates image i beats, the same "this one, not that one" verdict the post opened on.</figcaption>
+</figure>
 
-for a group of $G$ images, compare image $i$ against each of the other $G-1$, count how many it wins (the indicator $\mathbb{1}$ is one when $i$ is preferred over $j$, zero otherwise), and divide by the number of comparisons. An image that beats every rival scores one; one that loses every time scores zero. Feed those win rates into the same advantage formula and the trap springs open: because win rates spread across the full range from zero to one, a clear winner near one and a clear loser near zero, $\text{std}(w)$ is genuinely large instead of vanishing, which "directly suppress[es] the illusory-advantage amplification mechanism."
+An image that beats every rival scores one; one that loses every time scores zero. Feed those win rates into the same advantage formula and the trap springs open: because win rates spread across the full range from zero to one, a clear winner near one and a clear loser near zero, the spread is genuinely large instead of vanishing, which "directly suppress[es] the illusory-advantage amplification mechanism."
 
 <figure>
 <svg viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Left: a group of generated images gets nearly identical pointwise scores around 7.2; dividing by the tiny standard deviation produces large illusory advantages and reward hacking. Right: Pref-GRPO scores each image by its pairwise win rate against its group-mates, which spreads from zero to one and yields honest advantages.">
@@ -610,7 +644,7 @@ for a group of $G$ images, compare image $i$ against each of the other $G-1$, co
 <text x="495" y="190" text-anchor="middle" font-family="serif" font-size="10" font-weight="600" fill="#15803D">honest advantage</text>
 <text x="495" y="204" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">win rates spread 0 to 1</text>
 </svg>
-<figcaption><strong>Fig 14.</strong> Pointwise GRPO scores a group of similar images almost identically, then normalizing by the tiny group standard deviation blows those non-differences into large, illusory advantages the model learns to hack. Pref-GRPO replaces the score with each image's pairwise win rate, the fraction of its group-mates it beats, which spreads across zero to one and gives an honest advantage. The verdict from the opening of the post, returned to settle the frontier.</figcaption>
+<figcaption><strong>Fig 17.</strong> Pointwise GRPO scores a group of similar images almost identically, then normalizing by the tiny group standard deviation blows those non-differences into large, illusory advantages the model learns to hack. Pref-GRPO replaces the score with each image's pairwise win rate, the fraction of its group-mates it beats, which spreads across zero to one and gives an honest advantage. The verdict from the opening of the post, returned to settle the frontier.</figcaption>
 </figure>
 
 That is the arc folded shut. The post opened on a verdict between two answers, turned it into a score with Bradley-Terry, and rode that score through RLHF, DPO, and GRPO and across into vision. At the frontier, when the score itself started to lie, the cure was to throw the score away and compare two things directly again, with a preference model standing in as the referee, the Bradley-Terry idea from section 2 now judging image generation.
