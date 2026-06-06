@@ -191,7 +191,7 @@ SAM 3D (the climax). Authors include Georgia Gkioxari, Piotr Dollár, Jitendra M
 > Elo definition: "a 400 point Elo difference corresponds to 10:1 odds in a preference test." The paper reports a data-engine ablation showing performance improves "as the data engine runs longer" (figure number varies across PDF/extract versions — do NOT cite a figure number).
 > Source: SAM 3D Team (Meta), arxiv:2511.16624 (v1 2025-11-20).
 
-CAUTION: the per-version shape-Elo numbers (pretrain→v6) live in a data-engine ablation figure in the PDF and could NOT be extracted from any accessible text (PDF too large, no HTML mirror yet). DO NOT publish specific per-version Elo values as fact, and do NOT cite a figure number (numbering drifts across PDF/extract versions). The Elo-climb figure is a SCHEMATIC of the reported monotonic climb above the retrieval baseline (sourced to the talk slide + Fig 10b), with no asserted numeric values. Only "400 Elo = 10:1 odds" and "5:1/6:1 win rates" are quoted as hard numbers.
+CAUTION: the per-version shape-Elo numbers (pretrain→v6) live in a data-engine ablation figure in the PDF and could NOT be extracted from any accessible text (PDF too large, no HTML mirror yet). DO NOT publish specific per-version Elo values as fact, and do NOT cite a figure number (numbering drifts across PDF/extract versions). The Elo-climb figure is a SCHEMATIC of the reported monotonic climb above the retrieval baseline (sourced to the talk slide + the paper's data-engine ablation), with no asserted numeric values. Only "400 Elo = 10:1 odds" and "5:1/6:1 win rates" are quoted as hard numbers.
 
 ### Sub-topic: mid-2026 SOTA / where the field is going (added 2026-06-05 per Vic's "check CVPR 2026 SOTA")
 
@@ -218,7 +218,7 @@ MO-GRPO (fresh reward-hacking critique, sharper than Dr. GRPO on the multi-objec
 > "we identify that GRPO is vulnerable to reward hacking, optimizing only one of the objectives at the cost of the others."
 > Source: MO-GRPO, arxiv:2509.22047 (v1 2025-09-26).
 
-CVPR 2026 vision-RL beyond SAM 3D (the field has normalized preference/reward optimization): "Identity-Preserving Image-to-Video Generation via Reward-Guided Optimization" (CVPR 2026, OpenAccess PDF confirmed; no arxiv quote extractable). Use as a "preference/reward optimization is now routine across CVPR 2026" data point, not a quoted claim.
+CVPR 2026 vision-RL beyond SAM 3D: "Identity-Preserving Image-to-Video Generation via Reward-Guided Optimization" (CVPR 2026, OpenAccess PDF confirmed; no arxiv quote extractable). Use only as one concrete data point that preference/reward optimization appears in multiple CVPR 2026 vision papers (alongside Pref-GRPO) — NOT as a claim that it is "routine" or field-normalized, which the two examples don't support.
 
 NOTE: the agent's claim "nothing supersedes Xu et al's DPO<PPO headline" stands — the 2024-2025 counterweights remain the canonical references; the 2026 critiques are narrower/mechanistic (length bias, reward hacking, importance-sampling instability), so cite the canonical ones for the headline caveat and the fresh ones for the specific mechanism.
 
@@ -266,7 +266,7 @@ Recency: topic is actively-evolving (12-month bar; cutoff ~2025-06-05). Sources 
 | 26 | GRPO carries its own optimization bias (it inflates response length, especially for wrong outputs); fixes have been proposed (Dr. GRPO; reward-hacking diagnosed by MO-GRPO). | "we identify an optimization bias in Group Relative Policy Optimization (GRPO), which artificially increases response length (especially for incorrect outputs)..."; (MO-GRPO:) "GRPO is vulnerable to reward hacking, optimizing only one of the objectives at the cost of the others." | arxiv:2503.20783 (2025-03-26); arxiv:2509.22047 (2025-09-26) | actively-evolving / 12-mo / passes (MO-GRPO is fresh) |
 | 27 | The "post-GRPO" frontier (mid-2026): GSPO uses sequence-level (not token-level) importance ratios to fix GRPO's importance-sampling instability, and trained Qwen3. | "GSPO defines the importance ratio based on sequence likelihood and performs sequence-level clipping, rewarding, and optimization"; GRPO instability "stems from the fundamental misapplication and invalidation of importance sampling weights." | arxiv:2507.18071 (2025-07-24) | actively-evolving / 12-mo / passes |
 | 28 | The model-in-the-loop data engine is now a named multi-generation pattern: SAM 3 uses MLLMs as "AI annotators" plus "AI verifiers" at near-human accuracy, more than doubling annotation throughput. | "multimodal LLMs as 'AI annotators'"; "effective 'AI verifiers' that achieve near-human accuracy"; "the throughput is more than doubled compared to a human-only annotation pipeline." | arxiv:2511.16719 (2025-11) | actively-evolving / 12-mo / passes |
-| 29 | Preference/reward optimization is now routine in generative vision: Pref-GRPO reformulates T2I RL from pointwise score-maximization to pairwise preference fitting, fixing "illusory advantages" from reward normalization. | "minimal score differences between images are amplified after normalization, creating illusory advantages that drive the model to over-optimize"; shifts "the optimization objective from score maximization to preference fitting." | arxiv:2508.20751 (2025-08-28) | actively-evolving / 12-mo / passes |
+| 29 | A fresh (2025) example of preference optimization in generative vision: Pref-GRPO reformulates text-to-image RL from pointwise score-maximization to pairwise preference fitting, fixing "illusory advantages" from reward normalization. | "minimal score differences between images are amplified after normalization, creating illusory advantages that drive the model to over-optimize"; shifts "the optimization objective from score maximization to preference fitting." | arxiv:2508.20751 (2025-08-28) | actively-evolving / 12-mo / passes (single example; do not generalize to "routine") |
 
 ## Related posts on augusteo.com
 
@@ -288,6 +288,8 @@ Scanned `src/content/blog/`. Strongest topical overlaps (will link inline in Pha
 
 Full findings + resolution: [notes/preference-tuning-vision-models-codex-research-20260605.md](preference-tuning-vision-models-codex-research-20260605.md). Findings: 8 STRUCTURAL (fixed), 3 COSMETIC.
 
+**Gate 0 ran 3 invocations (the cap), now CLOSED.** Inv 2: 7/8 closed, caught row-21 source mismatch (fixed). Inv 3: all substantive items confirmed closed (row 21, counterweight recency, row 19 SAM-3D-uses-DPO consistency, new rows 27-29 GSPO/SAM 3/Pref-GRPO all sound); one last structural — row 29's "now routine in generative vision" overclaim — narrowed to "a fresh example" per codex's prescribed fix, plus the final stray figure-number reference removed. No 4th adversarial pass run (at cap; remaining items were trivial wording fixes codex itself specified). Matrix is sound for drafting: 29 rows, every load-bearing claim quoted, counterweights present so the post can't read as "preference tuning is monotonically dominant."
+
 ## Resume here
 
 Last touched: 2026-06-05.
@@ -297,7 +299,7 @@ Last touched: 2026-06-05.
 | Phase | Status | Output |
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
-| 2. Research / fact-check | done (Gate 0 pending) | `## Research notes`, `## Claim-source matrix` |
+| 2. Research / fact-check | done (Gate 0 closed) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | pending | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/preference-tuning-vision-models/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
@@ -308,7 +310,7 @@ Last touched: 2026-06-05.
 
 | Date | Gate | Outcome | Findings file |
 |---|---|---|---|
-| 2026-06-05 | 0 (research) | structural-fixed (8 STRUCTURAL fixed, 3 cosmetic) | `## Codex research review` / notes/preference-tuning-vision-models-codex-research-20260605.md |
+| 2026-06-05 | 0 (research) | structural-fixed, CLOSED after 3 invocations (8+1 STRUCTURAL fixed) | `## Codex research review` / notes/preference-tuning-vision-models-codex-research-20260605.md |
 
 ### Phase 5 figure progress (populate at end of phase 3)
 
@@ -317,9 +319,10 @@ Last touched: 2026-06-05.
 
 ### Suggested next batch
 
-1. Phase 2: verify every starter source by fetching it and pulling a direct quote; kill the two SUSPECT arxiv IDs if they don't resolve.
-2. Dispatch parallel fact-check subagents grouped by sub-topic (LLM preference tuning / generative-vision DPO / SAM 3D data engine).
-3. Build the claim-source matrix; scan src/content/blog for related posts; run Gate 0.
+Phase 2 + Gate 0 are DONE. Next:
+1. Phase 3: draft the three-act outline (section list, numbered) per narrative-template.md; thread the throughline through every act.
+2. Build the figure table (default static-svg; flag the Bradley-Terry sigmoid + Elo-climb as plots, DPO beta-sweep as the one interactive candidate). Lock figure types.
+3. Run Gate 1 (codex on outline + figure table).
 
 ### How to resume from a fresh context
 
