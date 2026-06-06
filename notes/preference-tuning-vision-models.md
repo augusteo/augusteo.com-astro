@@ -390,7 +390,7 @@ Last touched: 2026-06-05.
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | done (Gate 1 closed) | `## Outline` |
-| 4. Draft prose | pending | `src/content/blog/preference-tuning-vision-models/index.mdx` |
+| 4. Draft prose | done | `src/content/blog/preference-tuning-vision-models/index.mdx` |
 | 5. Implement figures | pending | per-figure table below |
 | 6. Playwright review | pending | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |

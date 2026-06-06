@@ -1,0 +1,204 @@
+---
+title: "Preference tuning, from chatbots to 3D"
+description: "How preference optimization grew up in chatbots (RLHF, DPO, GRPO) and became the data engine behind Meta's SAM 3D. One human verdict, followed from an A/B click to a 3D-shape judgment."
+pubDate: 2026-06-05T12:00:00Z
+heroAlt: "TODO: hero image not yet selected"
+tags: ["AI", "ML"]
+featured: false
+draft: true
+essay: true
+---
+
+*Preference tuning is how you train a model on "this one, not that one" instead of "copy this." It grew up in chatbots, as RLHF and then DPO and GRPO, and it has quietly become the data engine behind Meta's [SAM 3D](https://arxiv.org/abs/2511.16624). This post follows a single human verdict the whole way: from a chatbot A/B click to a thumbs-up on a reconstructed 3D shape. Written for engineers who know deep learning and fine-tuning but not much reinforcement learning. About a 35-minute read.*
+
+### 1. The thing you can't demonstrate
+
+Supervised fine-tuning teaches by example. You hand the model a prompt and the answer you want, and it learns to copy. That works as long as you can write the answer down.
+
+For a lot of what we now ask models to do, you can't. Nobody can author the single best reply to "explain recursion to a nervous beginner." Nobody can paint the one correct image for "a cozy reading nook, golden hour." Nobody can hand-model the exact 3D mesh of the chair in a photo. There is no target to imitate, because "good" here is a matter of taste, and taste doesn't come as a worked example.
+
+But you can do something easier. Show a person two answers and they will tell you which is better. They can't write the perfect summary, but they can point at the better of two summaries in a second. That gap, between what people can produce and what people can judge, is the whole reason preference tuning exists. It is a way to train on judgments instead of demonstrations: on "this one, not that one."
+
+{/* TODO: Fig 1: ImitationVsPreference - SFT copies one demonstration; preference picks between two candidates */}
+
+The verdict is the unit we are going to follow. In a chatbot it is a labeler clicking the better of two replies. By the end of this post it is an annotator looking at a 3D shape a model reconstructed from a photo and saying whether it is good enough. Same verdict, same math underneath, twelve orders of magnitude apart in what it builds. The trip from one to the other is the post.
+
+{/* Reader can now: say why SFT can't capture "good taste" and why a pairwise verdict can. */}
+
+## Act 1 — From a click to a loss
+
+*How a single "A beats B" becomes a number a model can train on, and the two ways the field learned to use it.*
+
+### 2. Turning a verdict into a number
+
+A raw verdict is binary: A won, B lost. Gradient descent can't do much with one bit. To train on preferences you need to turn "A beats B" into a smooth quantity you can push on.
+
+The trick is older than deep learning. In 1952 the statisticians Ralph Bradley and Milton Terry wrote down a model for exactly this: give each item a hidden score, and say the probability that A beats B is the logistic function of the gap between their scores. If the scores are equal, it's a coin flip. As A's score pulls ahead, the probability A wins slides up toward one; as it falls behind, down toward zero.
+
+{/* TODO: Fig 2: BradleyTerrySigmoid - P(A wins) = sigmoid(score gap), two marked points */}
+
+That single curve is the seed of everything that follows. Every method in this post is, underneath, a way of assigning scores so that the better answer gets the higher one, with the Bradley-Terry sigmoid converting the score gap into "how confident are we that this was the right call." Hold onto the shape: small gap, near 50/50; large gap, near certain. When we get to the loss functions, that sigmoid is the part doing the work.
+
+{/* Reader can now: read "preference = sigmoid of a score difference" and predict the curve's shape. */}
+
+### 3. The first recipe: RLHF and PPO
+
+The first system to make preference tuning work at scale was [InstructGPT](https://arxiv.org/abs/2203.02155), the model line behind the first useful ChatGPT. Its recipe, reinforcement learning from human feedback, has three stages. Because the rest of the post leans on every piece of it, here is the whole vocabulary, one rung at a time.
+
+Start with the **SFT model**: a base model fine-tuned on demonstrations. This is the model we improve, and, importantly, the model we keep measuring everything against later. Call it the reference.
+
+Stage two trains a **reward model**: a learned judge. You collect comparisons, where a labeler picks the better of two model outputs, and you train a network to predict those picks. It is the human's taste, distilled into something you can call a billion times a second. Under the hood it scores each output and fits the Bradley-Terry sigmoid from the last section to the human's choices.
+
+Stage three is the reinforcement learning. The model produces answers (a **rollout**, just the model trying things), the reward model scores them, and you nudge the model toward higher-scoring answers. Two more pieces make this work. A **critic** is a second network that guesses, for a half-finished answer, how good the final score is likely to be; the **advantage** is then how much better an answer did than the critic expected, the extra credit beyond the baseline. And a **KL leash**: a penalty for drifting too far from the SFT reference, because a model chasing reward with no leash will find some degenerate text the reward model loves and normal readers hate. InstructGPT says it plainly: "we add a per-token KL penalty from the SFT model at each token to mitigate over-optimization of the reward model." The optimizer that takes the bounded uphill step is **PPO**, which clips each update so one step can't blow up the model.
+
+{/* TODO: Fig 3: RlhfPipeline - SFT -> reward model (human in stage 2) -> PPO loop with critic and KL leash to SFT */}
+
+It worked, and the headline result is still striking: a 1.3B-parameter InstructGPT model's answers were preferred over those of 175B GPT-3, a model more than a hundred times larger. Preference tuning bought more than a hundred-fold scale-up would have.
+
+It also cost a lot. You are training and serving two extra networks, the reward model and the critic, both roughly policy-sized. You are sampling fresh rollouts every step. And the whole RL loop is fiddly enough that the people who came next described their main selling point as not having to do it.
+
+{/* Reader can now: name the three RLHF stages, define reward model / critic / advantage / KL leash, and see that everything is measured against a frozen reference. */}
+
+### 4. The shortcut: DPO
+
+Direct Preference Optimization came from a sharp observation in its [2023 paper](https://arxiv.org/abs/2305.18290), captured in its subtitle: your language model is secretly a reward model. The full RLHF objective, maximize reward while staying near the reference, has a known closed-form optimum, and you can run the algebra backwards. When you do, the reward drops out and you are left with a quantity the model already computes: the log-ratio of how likely the model is to produce an answer versus how likely the reference is.
+
+The consequence is the whole pitch. The implicit reward of an answer is just β times the log-ratio log(π/π_ref), where π is the model you are training and π_ref is the frozen SFT reference. So you do not need a separate reward model, and you do not need the RL loop at all. You take your preference pairs, drop them straight into the Bradley-Terry sigmoid using that implicit reward, and train with one ordinary classification loss. The DPO paper's words: it eliminates "the need for fitting a reward model, sampling from the LM during fine-tuning, or performing significant hyperparameter tuning."
+
+{/* TODO: Fig 4: DpoCollapsesLoop - RLHF's reward-model + PPO-rollout loop vs DPO's single classification step */}
+
+Written out, the loss is one line, and it is worth being able to read it term by term:
+
+`L = −log σ( β · [ log(π(win)/π_ref(win)) − log(π(lose)/π_ref(lose)) ] )`
+
+The `σ` is the Bradley-Terry sigmoid from section 2. Inside it is a difference of two log-ratios: how much more the model favors the winning answer than the reference does, minus the same for the losing answer. Push that difference up and the loss falls. `π_ref` is the frozen SFT model, present in both terms as the thing you are measured against. And β is a knob we need to look at on its own.
+
+{/* TODO: Fig 5: DpoLossAnatomy - annotated DPO loss: log-sigma, beta, win/lose log-ratios, frozen reference, implicit reward */}
+
+{/* Reader can now: read the DPO loss term by term and say what beta and the reference do. */}
+
+### 4½. The β leash, and which way it points
+
+β is the same leash from RLHF, now living inside the DPO loss, and it is easy to get backwards, so here it is carefully. β controls how far the model is allowed to drift from the reference. A **high** β is a strong leash: the model stays close to the SFT model and moves only a little. A **low** β is a loose leash: the model is free to wander far from the reference to fit the preference data harder, and with it comes the risk of overfitting the comparisons and degrading.
+
+The direction surprises people because "higher" sounds like "more aggressive." It isn't. The implicit reward is β times the log-ratio, so a higher β means even a small change in the model's probabilities produces a large reward signal, and the model reaches the same preference margin with less movement. More β, less drift. The DPO paper states it as "β is a parameter controlling the deviation from the base reference policy."
+
+{/* TODO: Fig 6: BetaLeash - three panels, low beta drifts far from reference / medium / high beta hugs reference */}
+
+{/* Reader can now: state correctly which way beta moves the model relative to the SFT reference. */}
+
+### 5. Dropping the critic: GRPO
+
+DPO removed the reward model and the RL loop. The other big simplification went the other way, keeping the RL loop but cutting the critic, and it is worth being precise about where it sits. Group Relative Policy Optimization, introduced in DeepSeek's [DeepSeekMath](https://arxiv.org/abs/2402.03300), is not a way to turn a verdict into a reward. It assumes a reward already exists and is a cheaper way to estimate the advantage from section 3.
+
+Recall the critic: a second network, about the size of the policy, whose only job is to guess the baseline an answer should beat. GRPO deletes it. Instead of learning a baseline, it samples a whole group of answers to the same prompt, scores them all, and uses the group's average score as the baseline. An answer's advantage is then simply how much it beat its siblings. The DeepSeekMath figure caption is blunt about the payoff: GRPO "foregoes the value model, instead estimating the baseline from group scores, significantly reducing training resources."
+
+{/* TODO: Fig 7: GrpoDropsCritic - PPO (policy + critic) vs GRPO (group mean as baseline), reward source feeds both */}
+
+Because GRPO sits downstream of the reward, the reward can be anything. In [DeepSeek-R1](https://www.nature.com/articles/s41586-025-09422-z), the reasoning model GRPO trained (peer-reviewed in Nature in 2025), the reward is often a plain rule: did the math answer come out correct? No human preferences, no reward model, just a checker. That is the cleanest illustration of the split this post keeps drawing: where the reward comes from is one decision, and how you estimate advantage from it is a separate one. Bradley-Terry and DPO are about the first. GRPO is about the second.
+
+{/* Reader can now: explain how GRPO estimates advantage without a value network, and that GRPO sits downstream of wherever the reward comes from. */}
+
+### 6. Where the verdict is not enough
+
+It would be easy to read this far and conclude that preference tuning is a clean win that keeps getting cleaner. It isn't, and a post that pretended otherwise would be lying by omission. Three honest caveats.
+
+DPO is not strictly better than the RL loop it replaces. A careful [2024 study](https://arxiv.org/abs/2404.10719) found that "DPO may have fundamental limitations" and that PPO-style RLHF, run properly, "is able to surpass other alignment methods in all cases" on their benchmarks, including the hard ones. The shortcut is cheaper and often good enough, not universally superior.
+
+Which method wins is not even fixed. A [2025 analysis](https://arxiv.org/abs/2505.19770) showed that "RLHF, DPO, or online DPO can outperform one another depending on type of model mis-specifications," and that when the reward is sparse, the two-stage RLHF route can need far fewer samples than DPO to find a good model. The right answer is "it depends on your setup," which is unsatisfying and true.
+
+And GRPO has its own pathologies. One [2025 paper](https://arxiv.org/abs/2503.20783) identified an optimization bias that "artificially increases response length (especially for incorrect outputs)," the model learning to ramble because the math rewards it; another found GRPO "vulnerable to reward hacking, optimizing only one of the objectives at the cost of the others." None of this sinks preference tuning. It just means the verdict is a powerful signal, not a magic one.
+
+{/* Reader can now: name three concrete ways preference tuning can go wrong. */}
+
+## Act 2 — The crossover to vision
+
+*The same verdict, the same loss, now pointed at pixels and shapes instead of tokens.*
+
+### 7. The same verdict, now on images
+
+Everything so far has been about language, where an answer is a sequence of tokens and the model assigns each one a probability. The DPO loss leaned hard on that: it needs the model's likelihood of the winning answer and the losing answer, the `π(win)` and `π(lose)` in the equation. An image generator does not produce tokens with neat probabilities. So how do you plug a picture into a loss built for log-probabilities?
+
+The bridge is [Diffusion-DPO](https://arxiv.org/abs/2311.12908), and it is worth walking in steps because the jump is where intuition usually breaks. One, DPO needs a likelihood ratio for the winning and losing outputs. Two, an image generator has no token log-probs to supply one. Three, but a diffusion model does expose a stand-in for likelihood: the training objective itself, the denoising loss that measures how well the model reconstructs an image along its noising trajectory (formally, a bound called the ELBO). Four, Diffusion-DPO swaps DPO's token-likelihood term for that denoising term. The winning image gets its denoising trajectory made more likely than the reference model's; the losing image, less likely. The skeleton of the loss, winner over loser, measured against a frozen reference, is exactly the same. Only the term inside changed.
+
+{/* TODO: Fig 8: DiffusionDpoTrajectory - map Fig 5's win/lose log-ratio onto winner/loser denoising trajectory vs frozen reference */}
+
+It works in practice. Trained on the [Pick-a-Pic](https://arxiv.org/abs/2305.01569) dataset of 851,000 human preference pairs over generated images, Diffusion-DPO tuned Stable Diffusion XL until it "significantly outperforms" the base model on human preference for both visual appeal and prompt-faithfulness. This is the same move that put a generator at the center of the perception stack in [the generative vision stack](/blog/generative-vision-stack); preference tuning is how you give that generator taste.
+
+One subtlety worth flagging, because it is where the vision story stops being a copy of the language story. The plain sigmoid loss, designed for the clean "this token, not that token" world, turns out to be a slightly awkward fit for the smooth, regression-like job of generating an image. A [2026 paper](https://arxiv.org/abs/2605.21123) on flow-matching generators argues that standard DPO's "margin-maximization behavior is fundamentally ill-suited for the regression nature of diffusion and flow-matching models." The verdict still crosses over. It just doesn't land quite the same way.
+
+{/* Reader can now: say exactly which term in the DPO loss gets swapped to make it work on an image generator. */}
+
+### 8. A cheap verdict beats authoring the answer
+
+Step back from the loss and look at the data. The expensive part of a vision dataset has always been authoring the target: tracing a segmentation mask by hand, modeling a 3D mesh, labeling every pixel. The cheap part is judging a model's attempt. And that asymmetry is the whole reason preference tuning matters for vision data, not just vision models.
+
+It showed up first in plain 2D. A [2022 study](https://arxiv.org/abs/2210.14142) on segmentation labeling replaced mask-drawing with annotation "where only point-wise yes/no questions are answered," and scaled it to 22.6 million point labels across 4,171 classes. The annotators never drew a boundary. They answered a model's questions. The principle generalizes past segmentation: don't make the human author the answer, make the model propose and the human give a cheap verdict.
+
+{/* TODO: Fig 9: CheapVerdictVsGroundTruth - authoring a dense target (expensive) vs judging a proposal (cheap) */}
+
+This is the shape that segmentation models like the ones in [the unified vision stack](/blog/unified-vision-stack) are built to consume, and it is exactly the bet [SAM 3D](https://arxiv.org/abs/2511.16624) makes for 3D. As the team puts it, "verifying or ranking meshes is a more accessible skill" than building them, so "we can thus scale by building a data engine asking annotators to rate multiple options generated by a suite of models in the loop." In her CVPR 2026 talk on the work, Georgia Gkioxari put the annotator's job even more bluntly: they only say yes or no. A non-expert can do it, which is the point: the verdict is cheap enough to collect at the scale a foundation model needs.
+
+{/* Reader can now: explain why "judge a proposal" scales where "author the target" doesn't. */}
+
+### 9. The model-in-the-loop data engine
+
+A cheap verdict is only powerful if you wire it into a loop. The loop is the idea, going back to the original [Segment Anything](https://arxiv.org/abs/2304.02643) model, that the model and the dataset can improve each other. The model proposes labels; humans verify or correct them; the corrected labels retrain the model; the better model makes better proposals, so the humans correct less and approve more. SAM's loop produced over 1 billion masks across 11 million images, a dataset no team could have drawn by hand.
+
+{/* TODO: Fig 10: DataEngineLoop - generic loop: model proposes -> human/AI verifies/corrects/rates -> dataset improves -> model retrains */}
+
+By 2026 the loop has a new wrinkle: the model does some of the verifying too. [SAM 3](https://arxiv.org/abs/2511.16719) uses multimodal language models as "AI annotators" and then fine-tunes them into "AI verifiers that achieve near-human accuracy," which "more than doubled" annotation throughput over a human-only pipeline. The model now both proposes the label and checks it, and the human is reserved for the cases the machine is unsure about. The verdict didn't disappear. It got partly automated.
+
+{/* Reader can now: trace the generic data-engine loop and say what each arrow carries. */}
+
+### 10. The climax: SAM 3D
+
+Now put every piece together, because SAM 3D is where they all meet. The problem is the hardest version of the data gap: SAM 3D reconstructs the full 3D shape, texture, and pose of an object from a single ordinary photo, and there is no way to crowdsource 3D ground truth for real photos. You cannot ask a worker to hand-model the chair in a snapshot. The team calls it "breaking the 3D data barrier."
+
+Their answer is the whole post in one system. Start with synthetic pretraining, a flood of computer-generated 3D scenes, the way you might pretrain on cheap data before fine-tuning on the real thing, which is the same instinct behind picking [the right pretraining recipe](/blog/ssl-pretraining-recipes) for out-of-distribution data. Then align the model to reality using the cheap verdict: SAM 3D "collects training samples and preference data from humans and uses them in both supervised finetuning (SFT) and direct preference optimization (DPO)." That is the exact DPO from section 4, run on 3D shapes instead of chatbot replies, with the winning mesh as the chosen answer and a worse one as the rejected. And it is a loop: "this alignment can be repeated," each round's better model generating better mesh proposals for the next round of cheap human verdicts.
+
+{/* TODO: Fig 11: SamThreeDEloClimb - schematic of shape-quality preference climbing across data-engine rounds above a retrieval baseline (no numbers) */}
+
+{/* TODO: Fig 12: SamThreeDAssembled - synthetic pretrain -> SFT -> DPO on verify/rank/rate verdicts -> data engine loop -> 5:1/6:1 win */}
+
+The engine ran on almost 1 million images and produced roughly 3.14 million meshes, and the model it trained wins decisively: in head-to-head human preference tests against prior work, SAM 3D wins "at least 5:1" on objects and 6:1 on scenes. The team tracks quality with Elo, the chess rating, where "a 400 point Elo difference corresponds to 10:1 odds in a preference test," and reports that the rating keeps climbing as the data engine runs more rounds. The throughline has arrived at its destination. The same verdict that picked the better chatbot reply, "this one, not that one," picked the better 3D mesh, and enough of those verdicts, looped through a model that proposes and a human who judges, added up to a 3D foundation model.
+
+{/* Reader can now: explain how the LLM preference-tuning loop became a 3D foundation model's data engine. */}
+
+## Coda
+
+### 11. Where it goes next
+
+The frontier has already moved past the methods in this post. GRPO's instability got diagnosed and fixed: [GSPO](https://arxiv.org/abs/2507.18071), from the Qwen team, traced the trouble to GRPO applying its importance weights at the wrong granularity and switched to "sequence-level clipping, rewarding, and optimization," and that is what trained the Qwen3 models. On the vision side, fresh examples of preference and reward optimization keep landing, from [Pref-GRPO](https://arxiv.org/abs/2508.20751) for text-to-image to reward-guided video generation at CVPR 2026. And the data engines keep automating the verdict, with the model proposing and, increasingly, verifying its own training data.
+
+The cheapest supervision signal we have, a person pointing at the better of two things, turned out to scale further than almost anyone expected. It went from making chatbots polite to building 3D from a single photo, and the loss function barely changed along the way.
+
+## References
+
+{/* voice-check note: "Comprehensive" below is a verbatim paper title (Xu et al), not prose; it stays. The two em-dash hits are `## Act` dividers, exempt per the act-divider rule. */}
+
+- [Image generators are quietly becoming the best vision models](https://augusteo.com/blog/image-generators-vision-models). Companion in the vision cluster on generator-at-the-center perception, Augusteo 2026.
+- [The generative vision stack](https://augusteo.com/blog/generative-vision-stack). Putting an image generator at the center of the perception pipeline, Augusteo 2026.
+- [The unified vision stack](https://augusteo.com/blog/unified-vision-stack). The discriminative encoder stack and segmentation outputs, Augusteo 2026.
+- [SSL pretraining recipes](https://augusteo.com/blog/ssl-pretraining-recipes). Choosing a pretraining recipe for out-of-distribution data, Augusteo 2026.
+- Bradley, R. A. and Terry, M. E. "Rank Analysis of Incomplete Block Designs I: The Method of Paired Comparisons." Biometrika 39 (1952): 324-345.
+- Schulman et al. "[Proximal Policy Optimization Algorithms](https://arxiv.org/abs/1707.06347)." 2017.
+- Stiennon et al. "[Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325)." 2020.
+- Ouyang et al. "[Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155)" (InstructGPT). 2022.
+- Rafailov et al. "[Direct Preference Optimization: Your Language Model is Secretly a Reward Model](https://arxiv.org/abs/2305.18290)." 2023.
+- Shao et al. "[DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://arxiv.org/abs/2402.03300)" (introduces GRPO). 2024.
+- DeepSeek-AI. "[DeepSeek-R1 incentivizes reasoning in LLMs through reinforcement learning](https://www.nature.com/articles/s41586-025-09422-z)." Nature 645 (2025): 633-638.
+- Xu et al. "[Is DPO Superior to PPO for LLM Alignment? A Comprehensive Study](https://arxiv.org/abs/2404.10719)." 2024.
+- Shi et al. "[Understanding the Performance Gap in Preference Learning: A Dichotomy of RLHF and DPO](https://arxiv.org/abs/2505.19770)." 2025.
+- Liu et al. "[Understanding R1-Zero-Like Training: A Critical Perspective](https://arxiv.org/abs/2503.20783)" (Dr. GRPO). 2025.
+- Wallace et al. "[Diffusion Model Alignment Using Direct Preference Optimization](https://arxiv.org/abs/2311.12908)" (Diffusion-DPO). 2023.
+- Kirstain et al. "[Pick-a-Pic: An Open Dataset of User Preferences for Text-to-Image Generation](https://arxiv.org/abs/2305.01569)." 2023.
+- Li et al. "[Linear-DPO: Linear Direct Preference Optimization for Diffusion and Flow-Matching Generative Models](https://arxiv.org/abs/2605.21123)." 2026.
+- Kalisch et al. "[Region-Normalized DPO for Medical Image Segmentation under Noisy Judges](https://arxiv.org/abs/2601.23222)." 2026.
+- Benenson and Ferrari. "[From colouring-in to pointillism: revisiting semantic segmentation supervision](https://arxiv.org/abs/2210.14142)." 2022.
+- Kirillov et al. "[Segment Anything](https://arxiv.org/abs/2304.02643)" (SAM). 2023.
+- "[SAM 3: Segment Anything with Concepts](https://arxiv.org/abs/2511.16719)." Meta, 2025.
+- SAM 3D Team. "[SAM 3D: 3Dfy Anything in Images](https://arxiv.org/abs/2511.16624)." Meta, 2025. Also the [Meta blog](https://ai.meta.com/blog/sam-3d/).
+- Zheng et al. "[Group Sequence Policy Optimization](https://arxiv.org/abs/2507.18071)" (GSPO). 2025.
+- "[Pref-GRPO: Pairwise Preference Reward-based GRPO for Text-to-Image generation](https://arxiv.org/abs/2508.20751)." 2025.
+- Liu et al. "[MO-GRPO](https://arxiv.org/abs/2509.22047)." 2025.
