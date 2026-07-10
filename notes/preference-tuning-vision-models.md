@@ -332,7 +332,7 @@ Recency: topic is actively-evolving (12-month bar; cutoff ~2025-06-05). Sources 
 | 32 | GSPO uses a single sequence-level importance ratio (length-normalized sequence likelihood = geometric mean of token ratios), motivated by "since the reward is granted to the entire sequence, applying off-policy correction at the token level appears problematic." Ratio form s_i(θ)=(π_θ(y_i\|x)/π_old(y_i\|x))^(1/\|y_i\|) confirmed in HTML body; abstract confirms "based on sequence likelihood" + length normalization. | "since the reward is granted to the entire sequence, applying off-policy correction at the token level appears problematic"; "notably stabilizes Mixture-of-Experts (MoE) RL training"; "contributed to the remarkable improvements in the latest Qwen3 models." | arxiv:2507.18071 (2025-07-24) | actively-evolving / 12-mo / passes (geometric-mean reading is exact math of the length-normalized-likelihood form, not a verbatim phrase) |
 | 33 | DAPO is GRPO plus four fixes (clip-higher, dynamic sampling, token-level loss, soft length penalty); most-reproduced GRPO successor. | "achieves 50 points on AIME 2024 using Qwen2.5-32B base model." | arxiv:2503.14476 (2025-03-18) | actively-evolving / 12-mo / passes (named as a sibling repair in §11) |
 | 34 | CISPO (MiniMax-M1) clips the importance-sampling weight rather than the token update, so rare reasoning tokens keep contributing a gradient. | "CISPO clips importance sampling weights rather than token updates, outperforming other competitive RL variants." | arxiv:2506.13585 (2025-06-16) | actively-evolving / 12-mo / passes (named as a sibling repair in §11; production-grounded in MiniMax-M1) |
-| 35 | Flow-GRPO is the bridge that puts GRPO onto a flow/diffusion model: it converts the deterministic ODE sampler to an SDE so one prompt yields a group of different images to compare. | "the first method to integrate online policy gradient reinforcement learning (RL) into flow matching models"; "an ODE-to-SDE conversion that transforms a deterministic Ordinary Differential Equation (ODE) into an equivalent Stochastic Differential Equation (SDE) that matches the original model's marginal distribution at all timesteps." | arxiv:2505.05470 (2025-05-08) | actively-evolving / 12-mo / passes (closes the DPO→GRPO-variant gap in §12) |
+| 35 | Flow-GRPO is the bridge that puts GRPO onto a flow/diffusion model: it converts the deterministic ODE sampler to an SDE so one prompt yields a group of different images to compare. | "the first method to integrate online policy gradient reinforcement learning (RL) into flow matching models"; "an ODE-to-SDE conversion that transforms a deterministic Ordinary Differential Equation (ODE) into an equivalent Stochastic Differential Equation (SDE) that matches the original model's marginal distribution at all timesteps." | arxiv:2505.05470 (2025-05-08) | actively-evolving / 12-mo / passes (closes the DPO→GRPO-variant gap in §13) |
 | 36 | Pref-GRPO mechanism: GRPO's group-std normalization Â=(r−mean)/std blows up tiny score gaps when std is small ("illusory advantage"); Pref-GRPO replaces the score with each image's pairwise win rate w_i=(1/(G−1))Σ_{j≠i}1(i≻j), which spreads across [0,1] giving real std. | "even minor score gaps are disproportionately magnified after normalization"; "scores keep rising while image quality deteriorates, manifesting as oversaturation or unnaturally dark artifacts"; "reformulates the GRPO objective to pairwise preference fitting: image pairs within a group are compared by a Pairwise Preference Reward Model (PPRM), and each image's win rate serves as the reward"; "directly suppress[es] the illusory-advantage amplification mechanism." | arxiv:2508.20751 (2025-08-28) | actively-evolving / 12-mo / passes (win-rate formula = Eq 12 verified in HTML body; advantage-normalization formula is standard GRPO) |
 | 37 | Asynchronous RL updates the model as rollouts arrive (more efficient for long-horizon agentic tasks than synchronous batch-interleaved RL), but GRPO's group-wise sampling does not fit it: the group must wait for the slowest rollout, and online/agentic settings often give only one trajectory per prompt. | "group-wise sampling in the widely-used GRPO framework does not naturally fit asynchronous agentic training"; "The group-wise sampling induces latency-driven off-policy behavior because the group has to wait for the slower one to finish before fed into training. In addition, group-wise sampling is incompatible with online or complex agentic settings where the environment often provides only a single trajectory feedback per prompt." | arxiv:2607.07508 (2026-07-08) | actively-evolving / 12-mo / passes (fresh, 2 days old at pubDate) |
 | 38 | SAO replaces GRPO's group-wise sampling with single-rollout sampling (one rollout per prompt) to reduce off-policy effects. | "To reduce off-policy effects and improve generalization, we replace group-wise sampling with single-rollout sampling, that is, using one rollout per prompt." | arxiv:2607.07508 (2026-07-08) | actively-evolving / 12-mo / passes |
@@ -475,19 +475,19 @@ Full findings + resolution: [notes/preference-tuning-vision-models-codex-final-2
 
 ## Resume here
 
-Last touched: 2026-06-06.
+Last touched: 2026-07-10.
 
 ### Phase status
 
 | Phase | Status | Output |
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
-| 2. Research / fact-check | done (Gate 0 closed; +2026-06-06 sweep of post-GRPO + generative-vision RL methods, matrix rows 31-36) | `## Research notes`, `## Claim-source matrix` |
-| 3. Outline + figure list | done (Gate 1 closed; coda expanded 2026-06-06 to §11 GSPO + §12 Pref-GRPO, +Figs 13-17 incl. 3 annotated equation-anatomy figures) | `## Outline` |
-| 4. Draft prose | done (+2026-06-06 coda expansion: GSPO/DAPO/CISPO/Dr.GRPO + Flow-GRPO bridge + Pref-GRPO, with KaTeX math for 4 formulas) | `src/content/blog/preference-tuning-vision-models/index.mdx` |
-| 5. Implement figures | done (17/17, all static; Figs 13-17 added 2026-06-06, incl. 3 annotated equation-anatomy figures replacing display KaTeX) | per-figure table below |
-| 6. Playwright review | done (17/17 pass; Figs 13/15/16 anatomy verified clean & color-coded, Σ-subscript renders; Figs 14/17 concept clean) | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | Gates done; coda-expansion codex review pending this turn; awaiting hero + Vic's draft flip | hero image, ship |
+| 2. Research / fact-check | done (Gate 0 closed; +2026-06-06 sweep rows 31-36; +2026-07-10 SAO paper rows 37-43, primary PDF + external-analysis scan) | `## Research notes`, `## Claim-source matrix` |
+| 3. Outline + figure list | done (Gate 1 closed; coda §11 GSPO + §13 Pref-GRPO; +2026-07-10 new §12 SAO, Pref-GRPO renumbered §12→§13, +Figs 18-19) | `## Outline` |
+| 4. Draft prose | done (+2026-07-10 §12 SAO: single-rollout async RL brings the critic back; the counter-beat to §5) | `src/content/blog/preference-tuning-vision-models/index.mdx` |
+| 5. Implement figures | done (19/19, all static; +2026-07-10 Fig 18 async timeline, Fig 19 critic round trip) | per-figure table below |
+| 6. Playwright review | done (19/19 pass; Figs 18-19 verified clean, on-palette, no overflow) | playwright snapshots reviewed |
+| 7. Freshness pass + Gate 2 + ship | Gates done; +2026-07-10 SAO-section codex review CLEAN after fixes; awaiting hero + Vic's draft flip | hero image, ship |
 
 ### Codex history
 
@@ -501,6 +501,7 @@ Last touched: 2026-06-06.
 | 2026-06-06 | math-anatomy review (base 50aaf57) | CLEAN, no findings (commit bd09a97): "added MDX and note updates are internally consistent, bun run build completes... no discrete correctness issue." Replaced 4 display-KaTeX formulas with color-coded annotated SVG equation figures (Figs 13/15/16, Fig-5 style); concept figures renumbered 13→14, 14→17 | inline, commit bd09a97 |
 | 2026-06-06 | formula re-verification vs papers (Vic: "make sure we are representing the correct one") | All 4 coda formulas confirmed EXACT against sources: GSPO ratio = Eq 7 of 2507.18071 (sᵢ=(πθ(yᵢ\|x)/πθold)^(1/\|yᵢ\|), written by the paper as exp((1/\|yᵢ\|)Σlog[...]) = geometric mean, paper does NOT use term "geometric mean" so we state it as a math fact only); GRPO advantage = DeepSeekMath §4.1.2 ((r−mean)/std, std-division is standard not optional); win rate = Pref-GRPO Eq 12; win-rate advantage = Eq 13. FIX: §5+Fig 7 had simplified GRPO advantage to "score−mean" (dropped /std) → corrected to "(score−mean)/spread" for consistency with the verified coda | inline, commit db073c0 |
 | 2026-06-06 | consistency-fix codex double-check (base 50aaf57) | CLEAN, no findings (commit db073c0): "builds successfully... no discrete correctness issues... would not break the site or materially mislead readers." Both passes complete (paper-verify + codex). | inline, commit db073c0 |
+| 2026-07-10 | SAO-section review (codex exec, gpt-5.5 via Bedrock, base HEAD~1) | 4 findings, all fixed: (1) "GPUs idle" softened to "fast rollouts stalled" / "no group barrier"; (2) Frozen-Attention drift — "freezes most of the critic"/"expert layers" → "freezes part"/"attention modules"/"MoE projections" (matches paper); (3) exact model ID Qwen3-30B → Qwen3-30B-A3B; (4) stale notes §12→§13 Flow-GRPO row. Codex confirmed GRPO caveat present + not undercut, Fig 18/19 labels match, bun run build passes. | inline, commit (this turn) |
 
 ### Phase 5 figure progress (populate at end of phase 3)
 
@@ -523,14 +524,14 @@ Last touched: 2026-06-06.
 | 15 | GrpoAdvantageAnatomy | static-svg (annotated eqn) | done | math-anatomy figures 2026-06-06 |
 | 16 | PrefGrpoWinRateAnatomy | static-svg (annotated eqn) | done | math-anatomy figures 2026-06-06 |
 | 17 | PrefGrpoIllusoryAdvantage | static-svg | done | coda expansion 2026-06-06 |
+| 18 | SaoAsyncTimeline | static-svg | done | SAO section 2026-07-10 |
+| 19 | SaoCriticRoundTrip | static-svg | done | SAO section 2026-07-10 |
 
 ### Suggested next batch
 
-Phases 1-6 + Gates 0-1 DONE. Draft + all 12 figures landed; playwright review passed (figures on-palette, legible, no overlap; only benign height="auto" console notices, matching house convention). Next: Phase 7.
-1. Freshness re-check the 30-row matrix (budget: 1 Explore agent, ~5 min). Most sources are 2025-2026 or foundational; just confirm no v-bump changes a claim.
-2. Run Gate 2 (codex on full MDX + notes): claim-vs-matrix drift, References completeness, related-post cross-links (root-relative in prose, https in References).
-3. Hero hand-off: compose the hero prompt, surface to Vic (post stays draft:true; Vic supplies image + ships).
-4. Final voice-check. Vic flips draft:false himself.
+Phases 1-6 + all Gates DONE. Draft + all 19 figures landed; playwright review passed (figures on-palette, legible, no overlap; only benign height="auto" console notices, matching house convention). SAO section (§12) added + codex-reviewed CLEAN 2026-07-10. Next: Phase 7 ship steps (Vic-owned).
+1. Hero hand-off: compose the hero prompt, surface to Vic (post stays draft:true; Vic supplies image + ships).
+2. Final voice-check (passes clean as of 2026-07-10). Vic flips draft:false himself.
 
 ### How to resume from a fresh context
 
