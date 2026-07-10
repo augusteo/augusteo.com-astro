@@ -9,7 +9,7 @@ draft: true
 essay: true
 ---
 
-*Preference tuning is how you train a model on "this one, not that one" instead of "copy this." It grew up in chatbots, as RLHF and then DPO and GRPO, and it has quietly become the data engine behind Meta's [SAM 3D](https://arxiv.org/abs/2511.16624). This post follows a single human verdict the whole way: from a chatbot A/B click to a verdict on a reconstructed 3D shape. Written for engineers who know deep learning and fine-tuning but not much reinforcement learning. About a 25-minute read.*
+*Preference tuning is how you train a model on "this one, not that one" instead of "copy this." It grew up in chatbots, as RLHF and then DPO and GRPO, and it has quietly become the data engine behind Meta's [SAM 3D](https://arxiv.org/abs/2511.16624). This post follows a single human verdict the whole way: from a chatbot A/B click to a verdict on a reconstructed 3D shape. Written for engineers who know deep learning and fine-tuning but not much reinforcement learning. About a 28-minute read.*
 
 ### 1. The thing you can't demonstrate
 
@@ -484,7 +484,7 @@ The engine ran on almost 1 million images and produced roughly 3.14 million mesh
 
 ### 11. The frontier, part one: GSPO
 
-Two threads run past the methods in this post, and both are the same throughline pushed one notch further. The first is a repair to GRPO.
+Three threads run past the methods in this post, and all three are the same throughline pushed one notch further. The first is a repair to GRPO.
 
 Recall that GRPO, like PPO, reuses each batch of sampled answers for several gradient steps, because sampling answers from the model is the expensive part. The catch is that after the first step the model has already shifted, so those answers were drawn from a version of the model that no longer exists. The standard fix is importance sampling: scale each piece of the update by a correction factor, the ratio of how likely the current model is to produce that piece to how likely the old model was. Twice as likely now, count it double; half as likely, count it half. It is the bookkeeping that lets you keep using slightly stale samples without bias.
 
@@ -551,9 +551,97 @@ Nothing about the verdict changed here. This is the section-5 advantage machiner
 
 GSPO is not the only repair, and the cluster is worth a glance, because each one names a different way naive GRPO breaks. [DAPO](https://arxiv.org/abs/2503.14476), the most reproduced of them, is GRPO plus four engineering fixes: an asymmetric clip that protects exploration, dynamic sampling that throws out prompts where every answer is right or every answer is wrong, token-level loss, and a soft length penalty. ByteDance used it to reach "50 points on AIME 2024 using Qwen2.5-32B base model." MiniMax's [CISPO](https://arxiv.org/abs/2506.13585) goes after the clip itself, and "clips importance sampling weights rather than token updates," so a rare but load-bearing reasoning token like "Wait" or "However" keeps contributing a gradient instead of being zeroed out, the same granularity instinct as GSPO aimed at a different symptom. And the length bias from section 6, diagnosed by Dr. GRPO, is a third: delete two of GRPO's normalizers and the model stops padding wrong answers. Four papers, four different failures of the same algorithm, which is what a method looks like when it is being pushed hard enough to be worth fixing.
 
-### 12. The frontier, part two: Pref-GRPO closes the loop
+### 12. The frontier, part two: when the critic comes back
 
-The second thread runs through vision, and it ends where the post began.
+The second thread doubles back on the post's own plot. Read the lineage as a story of throwing machinery away: RLHF ran a reward model, a critic, and a sampling loop; DPO dropped the reward model and the loop; GRPO dropped the critic. Less apparatus at every step. The GLM team's [SAO](https://arxiv.org/abs/2607.07508), the asynchronous RL method they used to train GLM-5.2, is where the trend reverses, because the hardest new setting cannot afford one of the pieces we deleted.
+
+The setting is asynchronous agentic RL. When a model is doing long-horizon agentic work, calling tools, writing code, taking many turns, the answers take wildly different times to finish, and a synchronous loop that waits for the whole batch leaves most of the GPUs idle behind the slowest trajectory. Asynchronous RL fixes the idling by "updating the model as rollouts arrive" instead of in locked batches. But that efficiency collides with GRPO. GRPO needs a group of answers to the same prompt to compute its baseline, and, in the paper's words, "the group has to wait for the slower one to finish before fed into training." The group is a synchronization barrier bolted onto a pipeline whose whole point was to remove one. Worse, "group-wise sampling is incompatible with online or complex agentic settings where the environment often provides only a single trajectory feedback per prompt": sometimes there is no group to be had, because the world hands you one attempt and moves on.
+
+<figure>
+<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Top: GRPO waits for a whole group of rollouts of different lengths to finish before any training can start, so the fast ones sit idle behind the slowest. Bottom: SAO feeds each single rollout into training the moment it finishes, with no waiting.">
+<defs><marker id="f18a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="24" y="30" font-family="JetBrains Mono" font-size="11" letter-spacing="1.5" fill="#6B6258">GRPO</text>
+<text x="24" y="46" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">a group for one prompt; train only when the slowest finishes</text>
+<g>
+<rect x="70" y="56" width="90" height="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/>
+<rect x="70" y="74" width="150" height="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/>
+<rect x="70" y="92" width="60" height="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/>
+<rect x="70" y="110" width="290" height="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/>
+</g>
+<g fill="#B8651A" opacity="0.5">
+<rect x="160" y="56" width="200" height="14"/>
+<rect x="220" y="74" width="140" height="14"/>
+<rect x="130" y="92" width="230" height="14"/>
+</g>
+<text x="250" y="66" font-family="serif" font-size="8" font-style="italic" fill="#8A5A1A">idle, waiting</text>
+<line x1="360" y1="50" x2="360" y2="132" stroke="#B91C1C" stroke-width="1.3" stroke-dasharray="4,3"/>
+<text x="366" y="120" font-family="serif" font-size="9" fill="#B91C1C">slowest gates the group</text>
+<rect x="372" y="86" width="70" height="26" fill="#D1FAE5" stroke="#15803D" stroke-width="1.2"/>
+<text x="407" y="103" text-anchor="middle" font-family="serif" font-size="10" font-weight="600" fill="#15803D">train</text>
+<line x1="130" y1="176" x2="640" y2="176" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="2,4"/>
+<text x="24" y="150" font-family="JetBrains Mono" font-size="11" letter-spacing="1.5" fill="#6B6258">SAO</text>
+<text x="24" y="166" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">one rollout per prompt; train the instant each finishes</text>
+<g>
+<rect x="70" y="192" width="90" height="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/>
+<rect x="70" y="210" width="150" height="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/>
+<rect x="70" y="228" width="60" height="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="0.8"/>
+</g>
+<g fill="#15803D">
+<rect x="162" y="192" width="30" height="14"/>
+<rect x="222" y="210" width="30" height="14"/>
+<rect x="132" y="228" width="30" height="14"/>
+</g>
+<g font-family="serif" font-size="8" fill="#15803D" text-anchor="middle">
+<text x="177" y="202">train</text><text x="237" y="220">train</text><text x="147" y="238">train</text>
+</g>
+<text x="470" y="217" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">no barrier, no idle GPUs</text>
+</svg>
+<figcaption><strong>Fig 18.</strong> GRPO's group is a synchronization barrier: rollouts to the same prompt finish at different times, and none can train until the slowest arrives, so the fast ones sit idle. SAO uses one rollout per prompt and trains on each the moment it finishes, which is what asynchronous RL was built to do.</figcaption>
+</figure>
+
+So SAO makes the obvious cut: "we replace group-wise sampling with single-rollout sampling, that is, using one rollout per prompt." One prompt, one answer, straight into training. But that reopens a problem section 5 had closed. GRPO could drop the critic only because the group gave it a baseline, the average score of the siblings. With a single rollout there are no siblings, so there is no group mean, and a bare reward with nothing to compare it against is exactly the high-variance signal that made naive policy gradients unusable. The paper says it plainly: single-rollout optimization "inherently suffers from high variance in gradient estimation, similar to REINFORCE. To reduce variance requires a sufficiently good value model."
+
+That last sentence is the reversal. The value model is the critic, the second network section 5 celebrated GRPO for deleting. To make single-rollout training work, SAO brings it back. The baseline has now made a full round trip: PPO learned it with a critic, GRPO replaced the critic with a group mean, and SAO, having given up the group, returns to a learned critic.
+
+<figure>
+<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="The baseline's round trip across three methods. PPO estimates the advantage baseline with a learned critic network. GRPO deletes the critic and uses the group mean instead. SAO, using a single rollout with no group, brings the critic back, kept cheap with faster value updates and frozen attention.">
+<defs><marker id="f19a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B6258"/></marker></defs>
+<text x="90" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="1" fill="#6B6258">PPO</text>
+<text x="340" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="1" fill="#6B6258">GRPO</text>
+<text x="590" y="30" text-anchor="middle" font-family="JetBrains Mono" font-size="11" letter-spacing="1" fill="#6B6258">SAO</text>
+<rect x="30" y="44" width="120" height="56" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1.3"/>
+<text x="90" y="68" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#1A1A1A">learned critic</text>
+<text x="90" y="86" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">a second network</text>
+<rect x="280" y="44" width="120" height="56" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.3"/>
+<text x="340" y="68" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#2563EB">group mean</text>
+<text x="340" y="86" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">no critic</text>
+<rect x="530" y="44" width="120" height="56" fill="#F9F5EB" stroke="#C9BEAA" stroke-width="1.3"/>
+<text x="590" y="66" text-anchor="middle" font-family="serif" font-size="12" font-weight="600" fill="#1A1A1A">learned critic</text>
+<text x="590" y="83" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">back again, kept cheap</text>
+<line x1="150" y1="72" x2="276" y2="72" stroke="#6B6258" stroke-width="1.3" marker-end="url(#f19a)"/>
+<text x="213" y="64" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#B91C1C">delete it</text>
+<line x1="400" y1="72" x2="526" y2="72" stroke="#6B6258" stroke-width="1.3" marker-end="url(#f19a)"/>
+<text x="463" y="64" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#15803D">no group left</text>
+<path d="M590,100 C 590,150 340,150 340,102" fill="none" stroke="#C9BEAA" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="465" y="140" text-anchor="middle" font-family="serif" font-size="9" font-style="italic" fill="#6B6258">single rollout has no siblings to average</text>
+<rect x="470" y="168" width="200" height="30" fill="#FEF3C7" stroke="#B8651A" stroke-width="1" rx="3"/>
+<text x="570" y="182" text-anchor="middle" font-family="serif" font-size="9" fill="#92400E">faster value updates (K=2),</text>
+<text x="570" y="193" text-anchor="middle" font-family="serif" font-size="9" fill="#92400E">frozen attention</text>
+</svg>
+<figcaption><strong>Fig 19.</strong> The baseline's round trip. PPO estimated the advantage with a learned critic; GRPO deleted it and used the group mean; SAO, having given up the group to fit asynchronous training, brings the critic back. To keep it affordable it updates the value model more often than the policy (two steps to one) and freezes the value model's attention, training only its expert layers.</figcaption>
+</figure>
+
+The reason this is not simply undoing GRPO's gains is that SAO makes the critic cheap. Two tricks do the work. It updates the value model more often than the policy, "for every single gradient update applied to the policy, we enforce K updates to the value network," with K set to two, so the critic keeps up with a policy that is moving under it. And it freezes most of the critic: a "Frozen-Attention" scheme holds the value model's attention layers fixed and trains only its mixture-of-experts projections, on the finding that the attention layers were the source of the unstable gradients. A critic you can afford is a different proposition from PPO's full second network.
+
+One more piece connects straight back to the first thread. To stay stable when rollouts are generated by a slightly stale model, SAO leans on the same importance-sampling correction GSPO was about, and pushes it further: it "directly uses the log-probabilities from the rollout engine" and drops the separate old-policy term entirely, keeping a strict double-sided clip that masks any token whose ratio wanders too far. Same disease as section 11, off-policy drift, treated with a close cousin of the same medicine.
+
+Does it work? On the paper's own asynchronous setup, training a Qwen3-30B model, SAO "can stably train for one thousand steps" while "standard GRPO suffers from a performance collapse at approximately 160 training steps," and it beats the GRPO baselines across the board, 97.3 against 84.2 on AIME 2025, 29.8 against 27.0 on SWE-Bench Verified. One caveat kept honest: this is GRPO collapsing in an aggressive asynchronous regime that stresses off-policy drift, not GRPO failing in general. The same GRPO trained DeepSeek-R1 without incident in section 5. The lesson is not that one method dethroned another; it is that the right amount of machinery depends on the setting, and the critic that looked obsolete turns out to be exactly what the newest, hardest setting needed back.
+
+{/* Reader can now: explain why single-rollout asynchronous RL brings the critic back, and that GRPO's group baseline is a liability under aggressive asynchronous off-policy training, not a flaw in general. */}
+
+### 13. The frontier, part three: Pref-GRPO closes the loop
+
+The third thread runs through vision, and it ends where the post began.
 
 There is a step to fill in first, because GRPO does not obviously fit an image generator. GRPO is a policy-gradient method: it needs the generator to be a stochastic policy, one that makes a real random choice at every step and assigns each choice a probability it can then nudge up or down, the way a language model assigns a probability to each token it samples. A flow-matching image model, sampled the normal way, is not that. Its sampler is a deterministic ordinary differential equation: fix the starting noise and the path to the finished image is fixed, with no per-step choice to take a gradient through. You can still get a spread of different images by starting from different noise, but you cannot do the step-by-step credit assignment a policy gradient runs on. [Flow-GRPO](https://arxiv.org/abs/2505.05470), the paper that first put "online policy gradient reinforcement learning (RL) into flow matching models," supplies the missing piece with "an ODE-to-SDE conversion that transforms a deterministic Ordinary Differential Equation (ODE) into an equivalent Stochastic Differential Equation (SDE) that matches the original model's marginal distribution at all timesteps." In plain terms, it makes each denoising step genuinely random, turning the fixed path into a stochastic policy GRPO can optimize, and it does so "matching the original model's marginal distribution," so the images the model produces on average do not change. Now GRPO has something to work on.
 
@@ -678,6 +766,7 @@ The cheapest supervision signal we have, a person pointing at the better of two 
 - "[SAM 3: Segment Anything with Concepts](https://arxiv.org/abs/2511.16719)." Meta, 2025.
 - SAM 3D Team. "[SAM 3D: 3Dfy Anything in Images](https://arxiv.org/abs/2511.16624)." Meta, 2025. Also the [Meta blog](https://ai.meta.com/blog/sam-3d/).
 - Zheng et al. "[Group Sequence Policy Optimization](https://arxiv.org/abs/2507.18071)" (GSPO). 2025.
+- Hou et al. "[Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning](https://arxiv.org/abs/2607.07508)" (SAO; used to train GLM-5.2). 2026.
 - Yu et al. "[DAPO: An Open-Source LLM Reinforcement Learning System at Scale](https://arxiv.org/abs/2503.14476)." 2025.
 - MiniMax. "[MiniMax-M1: Scaling Test-Time Compute Efficiently with Lightning Attention](https://arxiv.org/abs/2506.13585)" (introduces CISPO). 2025.
 - Liu et al. "[Flow-GRPO: Training Flow Matching Models via Online RL](https://arxiv.org/abs/2505.05470)." 2025.
