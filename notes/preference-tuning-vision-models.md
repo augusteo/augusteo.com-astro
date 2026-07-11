@@ -445,11 +445,13 @@ Research sweep (2026-06-06) covered DAPO, Dr.GRPO, CISPO, VAPO, GMPO, ProRL, Lit
 | 12 | SamThreeDAssembled | static-svg | synthetic pretrain → SFT → DPO on verdicts → data engine → at least 5:1 win | every earlier mechanism in one picture |
 | 13 | GspoRatioAnatomy | static-svg (annotated equation, Fig-5 style) | color-coded GRPO per-token ratio vs GSPO sequence ratio: πθ (current model), πold (old model), ^(1/length) = geometric mean | what each symbol in the two ratios means |
 | 14 | GspoTokenVsSequence | static-svg | GRPO's per-token ratios, each clipped, variance accumulates → collapse; GSPO's single length-normalized sequence ratio stays stable | why token-level correction destabilizes; sequence-level fixes it |
-| 15 | GrpoAdvantageAnatomy | static-svg (annotated equation, Fig-5 style) | color-coded Â=(r−mean)/std: rᵢ (this reward), mean(r) (baseline), std(r) (spread, the divisor that backfires) | what each term in the GRPO advantage means; why ÷std is the trap |
-| 16 | PrefGrpoWinRateAnatomy | static-svg (annotated equation, Fig-5 style) | color-coded wᵢ=1/(G−1)·Σ1(i≻j): indicator (pairwise verdict), Σ (count wins), 1/(G−1) (normalizer) | what each term in the win-rate means; ties to the §1 verdict |
-| 17 | PrefGrpoIllusoryAdvantage | static-svg | near-identical pointwise scores ÷ tiny std → blown-up "illusory" advantages (reward hacking); pairwise win rates spread 0-1 → honest advantages | the pairwise verdict returns to settle the frontier |
-| 18 | SaoAsyncTimeline | static-svg | GRPO's group barrier (fast rollouts wait for the slowest before any training) vs SAO's single-rollout streaming (each trajectory trains the instant it finishes) | why group-wise sampling stalls async RL and single-rollout doesn't |
-| 19 | SaoCriticRoundTrip | static-svg | the baseline's round trip: PPO learns a critic → GRPO deletes it for a group mean → SAO (single rollout, no group) brings the critic back, kept cheap (faster updates K=2, frozen attention) | the removed machinery returns for the hardest setting |
+| 15 | SaoAsyncTimeline | static-svg | GRPO's group barrier (fast rollouts wait for the slowest before any training) vs SAO's single-rollout streaming (each trajectory trains the instant it finishes) | why group-wise sampling stalls async RL and single-rollout doesn't |
+| 16 | SaoCriticRoundTrip | static-svg | the baseline's round trip: PPO learns a critic → GRPO deletes it for a group mean → SAO (single rollout, no group) brings the critic back, kept cheap (faster updates K=2, frozen attention) | the removed machinery returns for one of the hardest settings |
+| 17 | GrpoAdvantageAnatomy | static-svg (annotated equation, Fig-5 style) | color-coded Â=(r−mean)/std: rᵢ (this reward), mean(r) (baseline), std(r) (spread, the divisor that backfires) | what each term in the GRPO advantage means; why ÷std is the trap |
+| 18 | PrefGrpoWinRateAnatomy | static-svg (annotated equation, Fig-5 style) | color-coded wᵢ=1/(G−1)·Σ1(i≻j): indicator (pairwise verdict), Σ (count wins), 1/(G−1) (normalizer) | what each term in the win-rate means; ties to the §1 verdict |
+| 19 | PrefGrpoIllusoryAdvantage | static-svg | near-identical pointwise scores ÷ tiny std → blown-up "illusory" advantages (reward hacking); pairwise win rates spread 0-1 → honest advantages | the pairwise verdict returns to settle the frontier |
+
+NOTE (2026-07-11): figures renumbered into reading order after §12 SAO insertion. SAO figs are 15/16 (were 18/19); Pref-GRPO §13 figs are 17/18/19 (were 15/16/17). Internal SVG marker IDs (f18a, f19a) left as-is — they are unique and not reader-visible.
 
 Figure-type locks: 19 static-svg, 0 interactive (Fig 6 re-typed interactive→static at Gate 1 — codex TYPE-CHANGE STRUCTURAL; a three-state static panel teaches low/med/high β without a slider implying a precise dynamic sim that could make the reader "feel" the wrong direction). Fig 11 is static-svg NOT plot — it's a schematic with no real per-round data, so the Plot primitive (which implies plotted data) would imply false precision. No `plot` figures: the Bradley-Terry curve (Fig 2) is a single fixed curve, cleaner as static SVG.
 
@@ -501,7 +503,8 @@ Last touched: 2026-07-10.
 | 2026-06-06 | math-anatomy review (base 50aaf57) | CLEAN, no findings (commit bd09a97): "added MDX and note updates are internally consistent, bun run build completes... no discrete correctness issue." Replaced 4 display-KaTeX formulas with color-coded annotated SVG equation figures (Figs 13/15/16, Fig-5 style); concept figures renumbered 13→14, 14→17 | inline, commit bd09a97 |
 | 2026-06-06 | formula re-verification vs papers (Vic: "make sure we are representing the correct one") | All 4 coda formulas confirmed EXACT against sources: GSPO ratio = Eq 7 of 2507.18071 (sᵢ=(πθ(yᵢ\|x)/πθold)^(1/\|yᵢ\|), written by the paper as exp((1/\|yᵢ\|)Σlog[...]) = geometric mean, paper does NOT use term "geometric mean" so we state it as a math fact only); GRPO advantage = DeepSeekMath §4.1.2 ((r−mean)/std, std-division is standard not optional); win rate = Pref-GRPO Eq 12; win-rate advantage = Eq 13. FIX: §5+Fig 7 had simplified GRPO advantage to "score−mean" (dropped /std) → corrected to "(score−mean)/spread" for consistency with the verified coda | inline, commit db073c0 |
 | 2026-06-06 | consistency-fix codex double-check (base 50aaf57) | CLEAN, no findings (commit db073c0): "builds successfully... no discrete correctness issues... would not break the site or materially mislead readers." Both passes complete (paper-verify + codex). | inline, commit db073c0 |
-| 2026-07-10 | SAO-section review (codex exec, gpt-5.5 via Bedrock, base HEAD~1) | 4 findings, all fixed: (1) "GPUs idle" softened to "fast rollouts stalled" / "no group barrier"; (2) Frozen-Attention drift — "freezes most of the critic"/"expert layers" → "freezes part"/"attention modules"/"MoE projections" (matches paper); (3) exact model ID Qwen3-30B → Qwen3-30B-A3B; (4) stale notes §12→§13 Flow-GRPO row. Codex confirmed GRPO caveat present + not undercut, Fig 18/19 labels match, bun run build passes. | inline, commit (this turn) |
+| 2026-07-10 | SAO-section review (codex exec, gpt-5.5 via Bedrock, base HEAD~1) | 4 findings, all fixed: (1) "GPUs idle" softened to "fast rollouts stalled" / "no group barrier"; (2) Frozen-Attention drift — "freezes most of the critic"/"expert layers" → "freezes part"/"attention modules"/"MoE projections" (matches paper); (3) exact model ID Qwen3-30B → Qwen3-30B-A3B; (4) stale notes §12→§13 Flow-GRPO row. Codex confirmed GRPO caveat present + not undercut, Fig 18/19 labels match, bun run build passes. | inline, commit a5f11ea |
+| 2026-07-11 | Fable adversarial review (whole post, focus §12 SAO) | 9 findings, all applied. CORRECTNESS: C1 "pushes it further" mischaracterized SAO-vs-GSPO (rewrote to parallel token-level treatment); C2 ELBO "closely" → "lower bound"; C3 "twelve orders of magnitude" false precision → "worlds apart"; C4 misquote "can stably train" → exact "is able to train stably"; C5 SAM 3D verify/rank quote linked to blog not arxiv. CLARITY: I1 figures renumbered into reading order (SAO 18/19→15/16, Pref-GRPO 15/16/17→17/18/19); I2 added throughline anchor to §12 ("none of this touched the verdict... furthest from the pairwise verdict"); I3 added running-mean ablation (79.8 vs 97.3) to justify full critic; I4 "across the board" → "strongest GRPO baseline on both". NITS: "hardest"→"one of the hardest", "GLM team's" reattributed, clip/mask disambiguated. Fable confirmed §5→§12 critic round-trip sound + well-sourced. bun run build passes; voice-check clean. | inline, commit (this turn) |
 
 ### Phase 5 figure progress (populate at end of phase 3)
 
@@ -521,11 +524,11 @@ Last touched: 2026-07-10.
 | 12 | SamThreeDAssembled | static-svg | done | figs 7-12 |
 | 13 | GspoRatioAnatomy | static-svg (annotated eqn) | done | math-anatomy figures 2026-06-06 |
 | 14 | GspoTokenVsSequence | static-svg | done | coda expansion 2026-06-06 |
-| 15 | GrpoAdvantageAnatomy | static-svg (annotated eqn) | done | math-anatomy figures 2026-06-06 |
-| 16 | PrefGrpoWinRateAnatomy | static-svg (annotated eqn) | done | math-anatomy figures 2026-06-06 |
-| 17 | PrefGrpoIllusoryAdvantage | static-svg | done | coda expansion 2026-06-06 |
-| 18 | SaoAsyncTimeline | static-svg | done | SAO section 2026-07-10 |
-| 19 | SaoCriticRoundTrip | static-svg | done | SAO section 2026-07-10 |
+| 15 | SaoAsyncTimeline | static-svg | done | SAO section 2026-07-10 (renumbered 18→15 on 2026-07-11) |
+| 16 | SaoCriticRoundTrip | static-svg | done | SAO section 2026-07-10 (renumbered 19→16 on 2026-07-11) |
+| 17 | GrpoAdvantageAnatomy | static-svg (annotated eqn) | done | math-anatomy figures 2026-06-06 (renumbered 15→17) |
+| 18 | PrefGrpoWinRateAnatomy | static-svg (annotated eqn) | done | math-anatomy figures 2026-06-06 (renumbered 16→18) |
+| 19 | PrefGrpoIllusoryAdvantage | static-svg | done | coda expansion 2026-06-06 (renumbered 17→19) |
 
 ### Suggested next batch
 
