@@ -486,7 +486,7 @@ Last touched: 2026-07-10.
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done (Gate 0 closed; +2026-06-06 sweep rows 31-36; +2026-07-10 SAO paper rows 37-43, primary PDF + external-analysis scan) | `## Research notes`, `## Claim-source matrix` |
 | 3. Outline + figure list | done (Gate 1 closed; coda §11 GSPO + §13 Pref-GRPO; +2026-07-10 new §12 SAO, Pref-GRPO renumbered §12→§13, +Figs 18-19) | `## Outline` |
-| 4. Draft prose | done (+2026-07-10 §12 SAO: single-rollout async RL brings the critic back; the counter-beat to §5) | `src/content/blog/preference-tuning-vision-models/index.mdx` |
+| 4. Draft prose | done (+2026-07-10 §12 SAO: single-rollout async RL brings the critic back; +2026-07-12 §14 "which method for which job" decision table before the close, leads with "no single winner / not a ranking") | `src/content/blog/preference-tuning-vision-models/index.mdx` |
 | 5. Implement figures | done (19/19, all static; +2026-07-10 Fig 18 async timeline, Fig 19 critic round trip) | per-figure table below |
 | 6. Playwright review | done (19/19 pass; Figs 18-19 verified clean, on-palette, no overflow) | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | Gates done; +2026-07-10 SAO-section codex review CLEAN after fixes; awaiting hero + Vic's draft flip | hero image, ship |

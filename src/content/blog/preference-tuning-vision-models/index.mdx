@@ -737,6 +737,20 @@ An image that beats every rival scores one; one that loses every time scores zer
 <figcaption><strong>Fig 19.</strong> Pointwise GRPO scores a group of similar images almost identically, then normalizing by the tiny group standard deviation blows those non-differences into large, illusory advantages the model learns to hack. Pref-GRPO replaces the score with each image's pairwise win rate, the fraction of its group-mates it beats, which spreads across zero to one and gives an honest advantage. The verdict from the opening of the post, returned to settle the frontier.</figcaption>
 </figure>
 
+### 14. Which method for which job
+
+A reader who made it here wants the practical takeaway: which one do I reach for? The honest answer is the through-line of section 6 and section 12. There is no single winner. Every method on this list is the right choice for some setting and the wrong choice for others, and the newest is not the best by default. What follows is a map from setting to method, not a ranking.
+
+| Your setting | Reach for | Why, and the catch |
+|---|---|---|
+| A fixed dataset of preference pairs, and you want cheap and stable | **DPO** | No reward model, no RL loop, one classification loss (section 4). The catch: a well-run PPO can still beat it, and DPO can overfit (section 6). |
+| A reward you can model or a sparse reward signal, and you can afford the loop | **PPO-style RLHF** | The reward-model-plus-critic pipeline that started it all (section 3). Under a sparse reward it can need far fewer samples than DPO. The catch: two extra networks and a fiddly loop. |
+| Verifiable rule-based rewards (math, code), trained synchronously | **GRPO** | Drops the critic for a group baseline (section 5); trained DeepSeek-R1. For long sequences or mixture-of-experts, add the stability fixes: GSPO, DAPO, CISPO (section 11). |
+| Asynchronous agentic RL at scale, or online settings with one trajectory per prompt | **SAO** | Single-rollout, with the value critic brought back cheap (section 12). The catch: it is one lab's very recent result, and it earns its keep only when the group baseline is unavailable or a liability. |
+| Aligning an image or flow generator | **Diffusion-DPO, Flow-GRPO, Pref-GRPO** | The preference loss adapted to generators (sections 7 and 13). Pick by whether you have preference pairs (Diffusion-DPO) or a reward to optimize online (the GRPO variants). |
+
+The pattern across the table is the lesson: the choice is set by what your reward looks like, how your rollouts are collected, and what you can afford to run. Match the method to that, not to its release date.
+
 That is the arc folded shut. The post opened on a verdict between two answers, turned it into a score with Bradley-Terry, and rode that score through RLHF, DPO, and GRPO and across into vision. At the frontier, when the score itself started to lie, the cure was to throw the score away and compare two things directly again, with a preference model standing in as the referee, the Bradley-Terry idea from section 2 now judging image generation.
 
 The cheapest supervision signal we have, a person pointing at the better of two things, turned out to scale further than almost anyone expected. It went from making chatbots polite to building 3D from a single photo, and when the fancier signals broke it was still the move people reached for. The skeleton of the loss barely changed the whole way.
