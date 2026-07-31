@@ -1,0 +1,215 @@
+---
+title: "Claude Code and Codex: Work and Personal, One Keystroke Apart"
+description: "How I run Claude Code and Codex against two backends at once (company Bedrock for work, my own subscription for personal) with isolated config homes and a few shell aliases."
+pubDate: 2026-07-12
+heroImage: "@assets/blog/split-claude-code-codex-work-personal/hero.png"
+heroAlt: "Watercolor and ink sketch of one wooden desk divided down its centre by a seam of light. The left side is cool green with a banker's lamp, a ledger, a filing cabinet and a drawer tagged WORK; the right side is warm pink with an enamel mug, an open sketchbook, a sunlit window and a drawer tagged PERSONAL. A single keyboard bridges the seam with its middle keys glowing, and two brass keys on a ring hang above beside a torn paper note reading 404."
+tags: ["Tech","Claude Code","Codex","AI"]
+featured: false
+draft: false
+---
+
+I use both Claude Code and Codex all day, but not against the same backend.
+
+Work runs through my company's AWS Bedrock account. Personal projects run on my own subscription. And I got tired of re-authenticating (or hand-editing a config file) every single time I switched hats.
+
+Turns out the fix is the same for both tools, and it's dead simple. Give each mode its own config directory, then hide that directory behind an alias. Now `cc`/`cx` is work and `ccp`/`cxp` is personal. Same binary, but the provider, settings, and history are completely separate.
+
+*This is Claude Code 2.1.220 and Codex 0.146.0. Both move fast, so some of this will drift.*
+
+## The one idea that makes it work
+
+Both CLIs read their config from a single directory. Settings, provider, session history, project trust. Point that directory somewhere else and you get a completely separate setup.
+
+One thing to be clear about, because it bites later: this only separates what lives in those directories. Your shell environment, your per-repo config, and your AWS credentials sit outside them and are still shared.
+
+The env var is different per tool:
+
+| Tool | Env var | Default home |
+|---|---|---|
+| Claude Code | `CLAUDE_CONFIG_DIR` | `~/.claude` |
+| Codex | `CODEX_HOME` | `~/.codex` |
+
+The important part is that which backend you're talking to is part of the home. Claude Code's Bedrock setup lives in `$CLAUDE_CONFIG_DIR/settings.json`. Codex's provider lives in `$CODEX_HOME/config.toml`. On file-based storage, its login token goes in `$CODEX_HOME/auth.json`. It can use the OS keyring instead, and `codex doctor` tells you which. Change the env var and you get a different provider, different credentials, different history.
+
+One caveat: on macOS, Claude Code keeps the actual OAuth token in the Keychain, not in the config dir. What moves with `CLAUDE_CONFIG_DIR` is `settings.json` and `.claude.json` (session state, project trust, MCP config). That doesn't matter for me, because my work side logs in through AWS and never has an Anthropic token to begin with. If you want two Anthropic logins side by side, test it first.
+
+## Claude Code
+
+I keep work on the default home and give personal its own:
+
+- **Work** is plain `~/.claude`, pointed at Bedrock.
+- **Personal** is `~/.claude-personal`, logged into Anthropic directly on my Max subscription. A Console API key works too, but that bills per token instead of coming out of the subscription.
+
+Put these in `~/.zshrc` (or whatever your shell uses) and open a new terminal:
+
+```bash
+# work: default home, Bedrock
+alias cc='claude'
+
+# personal: separate home, direct Anthropic
+alias ccp='CLAUDE_CONFIG_DIR=~/.claude-personal claude'
+```
+
+If that home isn't logged in yet, `ccp` will ask you. Or do it up front:
+
+```bash
+CLAUDE_CONFIG_DIR=~/.claude-personal claude auth login
+CLAUDE_CONFIG_DIR=~/.claude-personal claude auth status --text
+```
+
+The part I glossed over for too long: "pointed at Bedrock" isn't automatic. You need AWS credentials that work:
+
+```bash
+aws sso login --profile your-bedrock-profile
+aws sts get-caller-identity --profile your-bedrock-profile
+```
+
+And the model has to be enabled in that account and region. Then you tell Claude Code to use Bedrock, in `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "AWS_REGION": "us-east-1",
+    "AWS_PROFILE": "your-bedrock-profile",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "us.anthropic.claude-opus-5[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "us.anthropic.claude-sonnet-5[1m]"
+  }
+}
+```
+
+You don't have to write that by hand. Run `/setup-bedrock` inside Claude Code and it walks you through the profile, region, and model pinning. The useful bit: it writes to `$CLAUDE_CONFIG_DIR/settings.json`, so run it under `cc` and only work gets configured. Your personal home never hears about Bedrock.
+
+Pinning the models is worth the extra two lines. If you don't, `opus` and `sonnet` point at whatever default Claude Code ships for Bedrock, and that can be a model your account isn't approved for yet. It does tell you when it falls back, but only for that session, so you'll see the same message tomorrow. Pin it once and it's done.
+
+**One thing will undo all of this:** put those Bedrock variables in `~/.zshrc` instead of `settings.json`. Exported shell variables follow you into every home, so `ccp` would send your personal work through the company Bedrock account. That's the exact thing I set this up to avoid. Keep them in `settings.json`, and if you already have `CLAUDE_CODE_USE_BEDROCK` or `ANTHROPIC_API_KEY` exported somewhere, unset them. `/status` in a session shows you which provider you actually got.
+
+A couple of bonus aliases I'd have anyway:
+
+```bash
+alias ccc='claude --dangerously-skip-permissions --chrome'   # yolo mode + browser
+alias ccw='claude --worktree'                                 # isolated git worktree
+```
+
+## Codex
+
+Exact same pattern, different env var. The fun part with Codex is that work and personal can run totally different models from different providers:
+
+- **Work** is `~/.codex`, provider `amazon-bedrock`, running whatever model Bedrock actually serves.
+- **Personal** is `~/.codex-personal`, the default OpenAI backend on my ChatGPT subscription.
+
+```bash
+# work: default home, Bedrock
+alias cx='codex'
+
+# personal: separate home, ChatGPT subscription
+alias cxp='CODEX_HOME=~/.codex-personal codex'
+```
+
+Work config lives in `~/.codex/config.toml`:
+
+```toml
+model_provider = "amazon-bedrock"
+model = "openai.gpt-5.6-sol"      # must be a model Bedrock actually serves
+model_reasoning_effort = "high"
+
+[model_providers.amazon-bedrock.aws]
+profile = "your-bedrock-profile"  # same AWS named profile as above
+region = "us-east-1"
+```
+
+Personal config lives in `~/.codex-personal/config.toml`, and it's much shorter because I'm just riding the OpenAI default:
+
+```toml
+model = "gpt-5.6-sol"             # direct from OpenAI, no provider block needed
+model_reasoning_effort = "high"
+```
+
+Then log in once for the personal home (it's an interactive browser flow):
+
+```bash
+CODEX_HOME=~/.codex-personal codex login
+```
+
+## The mistake that cost me an afternoon
+
+Here's the one that got me, and it's obvious in hindsight: a model that exists on one provider doesn't necessarily exist on the other.
+
+I'd set up the personal home first, liked the model, and copied the ID straight into my work config. Then every session died on this:
+
+```
+unexpected status 404 Not Found: The model 'openai.gpt-5.6-...' does not exist,
+url: https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses
+```
+
+That model just wasn't on Bedrock yet. It is now. Both my homes run `sol` today, which is why the two configs above look almost the same.
+
+It isn't that Bedrock is behind. The two model lists just change at different times and nobody tells you when. They match this month. They didn't in June. So when a new model shows up on the personal side, check the work side and actually run something before you assume it's there.
+
+The lesson I wish I'd started with: don't guess model IDs, and don't assume a config that parses is a config that works.
+
+```bash
+# work home
+codex doctor
+
+# personal home
+CODEX_HOME=~/.codex-personal codex doctor
+```
+
+`codex doctor` is the one I lean on. Under Configuration it shows the model and provider it resolved to, which config file that came from, whether it parsed, and whether auth is satisfied:
+
+```
+Configuration
+  ✓ config       loaded
+      model                    openai.gpt-5.6-sol · amazon-bedrock
+      config.toml              ~/.codex/config.toml
+      config.toml parse        ok
+  ✓ auth         OpenAI auth is not required for the active model provider
+```
+
+That last line is the one I care about. It tells me the work home isn't reaching for a ChatGPT token.
+
+But `doctor` never calls AWS, so it won't catch expired SSO, a missing IAM permission, or a model your account can't invoke. For that you have to actually send something:
+
+```bash
+codex exec --sandbox read-only "reply with ok"
+```
+
+Takes ten seconds. Beats finding out forty minutes in.
+
+To see what models exist, use `/model` in the TUI or `codex debug models` for raw JSON. Both show what Codex knows about, not what your AWS account can actually invoke. That's how I got that 404. And there's no top-level `codex models`. Type that and you'll just start a session with "models" as your prompt.
+
+## Why I skip the `--profile` flag
+
+Codex has a `-p <name>` profile flag, and Claude has settings layers. Both are fine for what they do, but read what the Codex flag actually promises:
+
+```
+-p, --profile <CONFIG_PROFILE_V2>
+        Layer $CODEX_HOME/<name>.config.toml on top of the base user config
+```
+
+`$CODEX_HOME/<name>.config.toml`. The profile lives inside the home. And to be fair, it can override `model_provider`, so a profile really can switch you from Bedrock to OpenAI. If that were all I wanted, `-p work` and `-p personal` would work fine, and I'd put those behind aliases the same way.
+
+But settings aren't the only thing I wanted split. One home means one credential store, one session history, one set of plugins, one pile of logs. My work transcripts and my personal transcripts would end up in the same folder. With two homes I don't have to think about any of it. The separation is just a directory.
+
+So it's a trade. Profiles are lighter and share more. Separate homes are heavier and share nothing. I wanted the one where work and personal never touch.
+
+## The short version
+
+```bash
+# Claude Code
+alias cc='claude'                                        # work / Bedrock
+alias ccp='CLAUDE_CONFIG_DIR=~/.claude-personal claude'  # personal / Anthropic
+
+# Codex
+alias cx='codex'                                         # work / Bedrock
+alias cxp='CODEX_HOME=~/.codex-personal codex'           # personal / ChatGPT
+```
+
+1. Give each mode its own config home with an env var.
+2. Log in once per home. Provider and session state stay separate after that.
+3. Set each home's model to what that provider actually serves. Don't copy an ID across.
+4. Run `codex doctor` or `/status`, then actually send one request, before you need it to work.
+
+That's it. Two homes, four aliases, and I don't have to think about which account I'm on. I still check `/status` after an upgrade, but that takes two seconds.
