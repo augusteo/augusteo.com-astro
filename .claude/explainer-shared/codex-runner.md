@@ -29,7 +29,9 @@ The runner executes these steps in order for any gate.
 3. Append the gate's "What you provide to codex" content as inline embedded sections (named by the skill).
 4. The result is a single string ready to pass to the codex skill.
 
-### Step 2: Invoke the codex skill
+### Step 2: Invoke codex
+
+**Preferred, if a project-local `codex` skill is installed:**
 
 ```
 Skill tool call:
@@ -37,7 +39,23 @@ Skill tool call:
   args: consult <full prompt string built in Step 1>
 ```
 
-The codex skill's `consult` mode handles the heavy lifting (boundary instructions, prompt safety, output capture). Do not invoke `codex exec` directly from any explainer-family skill; route through the codex skill.
+The codex skill's `consult` mode handles the heavy lifting (boundary instructions, prompt safety, output capture).
+
+**Fallback, when no `codex` skill is present** (verified 2026-08-06: `.claude/skills/` and `~/.claude/skills/` have no `codex` entry, so this is currently the live path). Write the Step-1 prompt to a scratchpad file, then from the repo root:
+
+```bash
+CODEX_HOME=~/.codex-personal codex exec --sandbox read-only -c tools.web_search=true \
+  -o <scratchpad>/codex-last.md "$(cat <scratchpad>/codex-prompt.md)"
+```
+
+`CODEX_HOME=~/.codex-personal` is Vic's `cxp` alias: his personal codex account, which is the one to use for blog gates. Omitting it falls back to `~/.codex`, the work Bedrock profile.
+
+Gotchas, each of which has burned a run:
+
+- **Do not pass `-m gpt-5.5`.** Codex history rows before 2026-08-06 cite gpt-5.5; that model now 404s on the Bedrock endpoint. Omit `-m` entirely and let `~/.codex/config.toml` supply the default (`openai.gpt-5.6-sol`, provider `amazon-bedrock`).
+- **There is no `--search` flag.** Web search is `-c tools.web_search=true`.
+- **Read the verdict from `-o`, not stdout.** stdout stays empty; stderr carries streamed reasoning and fetched source text.
+- Run it backgrounded. A gate with source-fetching takes several minutes.
 
 ### Step 3: Apply size policy to codex's output
 
