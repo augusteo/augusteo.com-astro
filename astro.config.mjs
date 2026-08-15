@@ -16,6 +16,9 @@ export default defineConfig({
   },
   image: {
     layout: "constrained",
+    // Default ladder runs to 6016px and mints ~7 widths per image, most of which no
+    // page ever links to. Site content maxes out well under 1600px.
+    breakpoints: [400, 800, 1200, 1920],
   },
   integrations: [mdx(), sitemap(), svelte()],
   vite: {
