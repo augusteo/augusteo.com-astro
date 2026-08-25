@@ -286,3 +286,63 @@ Here is the part nobody frames as what it is. They are not running a graph. Thei
 Graph traversal is a sequence of dependent lookups: you cannot know your third hop until you've made your second. That is fine at RAM latency and fatal at 100ms per roundtrip. So moving the index to object storage did not just change where the bytes live. In this case it changed the family of index that makes sense, back toward the centroid approach that graphs had displaced. Not a universal law about storage tiers, but a documented case where the tier chose the algorithm.
 
 {/* Reader can now: trace a filter repair through to a storage-tier decision, and know why the compressed index finds candidates while the uncompressed vectors decide the order */}
+
+## Act 4 — The reconvergence
+
+### 10. What you write into the index
+
+For most of this post the two camps have looked like opposites. Terms on one side, vectors on the other. That framing is about to stop working, and the thing that breaks it is unglamorous: people started using neural models to decide what goes into an inverted index.
+
+The framing that makes it click is [Lin and Ma's](https://arxiv.org/abs/2106.14807): sparse against dense is one axis, and unsupervised against learned is a different one. Nothing says a sparse representation has to be produced by counting words. You can learn the term weights.
+
+That is what SPLADE does, and the punchline is in the implementation note rather than the method: their code "is built on the Lucene search library and thus fully compatible with standard inverted indexes." The model runs, produces weights, and writes them into postings. Everything downstream, the skipping from section 4 included, works unchanged.
+
+{/* TODO: Fig 9: LearnedPostings. The Fig 2 posting list holding learned term weights, beside the BM25 version. */}
+
+[SPLADE-v3](https://arxiv.org/abs/2403.06789) reports that "it is statistically significantly more effective than both BM25 and SPLADE++", getting "more than 40 MRR@10 on the MS MARCO dev set" and improving BEIR out-of-domain results by 2%.
+
+Then comes the part that inverts everyone's intuition about where the cost is.
+
+You would assume the expensive bit is the neural network. It isn't. Query expansion turns a five-term query into a hundred-term query, and traversing an inverted index gets more expensive with more query terms. The [efficiency study](https://arxiv.org/abs/2207.03834) says it directly: the main gain came from "the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure", because "query size is then a major bottleneck." The neural half was cheap. The 1970s half was what blew up.
+
+The same lesson shows up on the document side, and harder. doc2query generates queries a document might answer and appends them before indexing. It works. It also hallucinates. Gospodinov, MacAvaney and Macdonald [filtered the generated text](https://arxiv.org/abs/2301.03266) with a relevance model and found you can "improve the retrieval effectiveness of Doc2Query by up to 16%, while simultaneously reducing mean query execution time by 23% and cutting the index size by 33%." That is from keeping only 30% of what the model generated. Throwing away seven-tenths of your generated text made retrieval better, the index smaller, and queries faster, all at once.
+
+Which raises the question this whole section is really about: what is the unit you index?
+
+For a product catalog it's obvious, one document per boot. For a 200-page PDF it isn't, and this is the most-asked practical question in retrieval. The published evidence is thinner than the volume of advice suggests, but 2026 finally produced controlled sweeps, and one of them killed a piece of folklore outright.
+
+The [chunking study](https://arxiv.org/abs/2601.14123) varied method, size, overlap and context budget on Natural Questions with SPLADE retrieval and a Mistral-8B generator. On overlap, the standard advice for years has been 10 to 20%. Their finding: "overlap provides no measurable benefit and increases indexing cost." It also found "sentence chunking is the most cost-effective method, matching semantic chunking up to ~5k tokens", and a ceiling: "a 'context cliff' reduces quality beyond ~2.5k tokens."
+
+There is an apparent contradiction in this literature worth resolving, because you will run into both papers. One study concludes semantic chunking isn't worth its cost. Another concludes content-aware chunking beats fixed-size chunking decisively. They are not in conflict; they define the baseline differently. The first compares semantic chunking against a baseline that already splits on sentence boundaries with overlap. The second compares against fixed-size splitting by *character*, which cuts words in half. Both are consistent with one reading: respect sentence and paragraph boundaries, and don't pay extra for embedding-similarity segmentation on top of that.
+
+One caution on the second study, and it matters more than it looks. Its relevance judgments come from "a state-of-the-art LLM evaluator" with no human anchor. Hold that thought; section 19 is about exactly what that costs you.
+
+{/* Reader can now: see that the index structure survived the neural turn, that the classical half is the expensive one, and what the controlled chunking evidence actually says */}
+
+### 11. Two lists, one order
+
+You now have two retrievers with different failure modes. Lexical is superb on `Salomon Quest 4 GTX wide 10.5` and helpless on `wide toe box`. Dense is the reverse. Running both is obvious. Combining their output is not.
+
+The problem is that their scores are not comparable. BM25 produces an unbounded sum whose scale depends on your corpus statistics. Cosine similarity lives in [-1, 1]. Adding them is meaningless, and normalizing them requires knowing something about each distribution that you often don't.
+
+Reciprocal rank fusion sidesteps all of it by throwing the scores away and keeping only the ranks. Each document scores `1/(k + rank)` in each list, and you sum. No calibration, no distributions, nothing to tune.
+
+Almost nothing to tune. There is `k`, and it is set to 60 essentially everywhere. That number comes from [Cormack, Clarke and Buettcher in 2009](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf), and they are candid about its provenance: "k = 60 was fixed during a pilot investigation and not altered during subsequent validation." Their pilot "indicated that k = 60 was near-optimal, but that the choice was not critical."
+
+So it was chosen, on TREC data, in 2009, using a search engine most people reading this have never run. Elasticsearch ships it as `rank_constant`, defaulting to 60, and sells the method on exactly the property that made it attractive then: "RRF requires no tuning, and the different relevance indicators do not have to be related to each other to achieve high-quality results."
+
+Then someone checked.
+
+Bruch, Gai and Ingber [analysed fusion functions properly](https://arxiv.org/abs/2210.11934) and their abstract opens with the word "Contrary": "we find RRF to be sensitive to its parameters; that the learning of a CC fusion is generally agnostic to the choice of score normalization; that CC outperforms RRF in in-domain and out-of-domain settings; and finally, that CC is sample efficient, requiring only a small set of training examples to tune its only parameter."
+
+Every clause there cuts against the received wisdom. The method sold as needing no tuning is the parameter-sensitive one. The normalization problem that rank-based fusion exists to avoid turns out not to matter much. And a plain weighted combination of scores wins, in and out of domain, and needs only a few hundred labelled examples to fit its single parameter.
+
+A 2026 [benchmark on 23,088 financial queries](https://arxiv.org/abs/2604.01733) reran the comparison and got the same direction: "CC with α=0.5 (equal weighting of BM25 and dense scores) achieves Recall@5 of 0.726, outperforming RRF (k=60) at 0.695." Note what that does and does not say. Equal weighting beat default RRF on that benchmark. It does not say 0.5 is the right weight for your corpus; it says the untuned linear thing beat the untuned rank thing.
+
+What should you actually expect from hybrid? Less than the enthusiasm suggests, and that is fine, because the value isn't in the average. A [SIGIR 2026 reproducibility study](https://arxiv.org/abs/2509.02558) tested a promising lexical variant across benchmarks and found "its gains largely specific to BRIGHT, while fusion with standard BM25 provides the most consistent improvements across datasets." Fusion buys consistency across corpora rather than a large win on any one of them. If you are hoping hybrid will add five points, it probably won't. If you are hoping it will stop you falling off a cliff on the corpus you didn't anticipate, that is the documented benefit.
+
+That same study is worth one more paragraph, because it is a small scandal. In reproducing the benchmark's own published lexical baseline, the authors found they couldn't, until they identified "a key under-documented detail: query-side BM25 (BM25Q), which applies BM25 weighting to the query itself." They also audited the corpus and uncovered "data quality issues that impact evaluation."
+
+A number in a paper is not the same object as a reproducible result. Keep that handy; it comes back.
+
+{/* Reader can now: pick a fusion strategy for a stated reason, and expect consistency rather than a headline gain */}
