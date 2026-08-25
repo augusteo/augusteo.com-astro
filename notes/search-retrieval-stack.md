@@ -42,7 +42,7 @@ Bucket 2 is the one that invites abuse. It means "cited for the mechanism this w
 
 **Figure mix:** 13 figures, all `static-svg` as of Gate 1 (2026-08-24). Both figures originally typed `interactive-canvas` were re-typed through the unlock protocol with Vic's approval: neither's intuition depended on the reader moving a control. Details in the figure table.
 
-**Title sketch:** *The Index Is Not the System*.
+**Title:** *How Search Actually Works* (Vic's call, 2026-08-24). Earlier candidates were "The Index Is Not the System" and "The Part Nobody Benchmarks"; both were vague and undersold the history half. The dek carries the argument, since the title no longer does.
 
 **Tags:** `["Tech", "AI", "ML"]`.
 
