@@ -646,3 +646,137 @@ There is no clause about how many queries you need to detect a given effect, bec
 And there is no clause telling you to use late chunking, or not to. The technique's own paper claims "superior results across various retrieval tasks"; independent controlled evidence is thinner than that claim, and I would rather say so than pick a side I cannot support.
 
 {/* Reader can now: defend a default stack clause by clause in a design review, including which clauses are weakly evidenced */}
+
+### 21. The surface where editability decided it
+
+Kuaishou runs e-commerce search. Their retrieval stage had several branches feeding a common pool, in the shape section 16 described, and one of those branches was a plain inverted index.
+
+By the obvious metric, that branch should have been retired years ago. It converted below the platform average. A dense retriever beat it. A generative retriever beat it. And it stayed, for a reason the team eventually wrote down while removing it:
+
+> "the inverted-index branch converts below the platform average yet persists because it is almost the only branch where operations can inject a new term within hours without any model update; a one-model substitute must preserve this real-time editability."
+
+Somebody notices at 10am that a new product line is not surfacing for the query customers actually type. With an inverted index, someone adds a term and it is live by lunch. With a learned retriever, the fix is a training run and a deploy.
+
+That capability appears in no benchmark in this post. Not in nDCG, not in Recall@K, not in MRR. It is not a relevance property at all. And it kept a below-average branch alive across the entire period this post has been describing.
+
+The paper that documents it is called [OneRetrieval](https://arxiv.org/abs/2606.13533), and its own section heading states the finding more bluntly than I would have dared: *The Decisive Axis Is Editability, Not Retrieval Quality*.
+
+So how do you replace something whose value is a property your architecture cannot express? You build the property in. Their contribution is editable generative retrieval, where identifier positions are tied to interpretable attribute words and codebook slots are reserved so new terms can be bound after deployment without retraining. The entire design exists because of what it was replacing.
+
+Two details keep this honest.
+
+The rebuild did not reach parity. On intervention effectiveness, "OneRetrieval reaches an IAR@350 of 0.553 against 0.761 for the inverted index." They recovered most of the capability, not all of it.
+
+And the deployment is an experiment, not a platform. The online results come from buckets "each serving 20.0% relative traffic (about 8.2% absolute)", measured over an 11-day window. In the first configuration they "replaced the production inverted-index branch"; in a second, they "replaced both the inverted-index and the dense (vector) branches". The paper reports that replacing the inverted-index branch lifted order volume, and that extending further held conversion while improving click-through.
+
+That is a real replacement of a real inverted index in production e-commerce search, and it is a genuine counterexample to any story where the old machinery simply persists forever. It also took until 2026, and it required rebuilding a property nobody was measuring.
+
+There is one more thing in that paper that reframes the whole post, and it is easy to miss:
+
+> "Its editability resides not in the index structure but in the upstream resources that feed it."
+
+The thing that survived thirty years was never the data structure. Posting lists are not editable; the dictionary and refresh pipeline around them is. What outlasted every challenger was an operational capability that happened to live next to an inverted index, and that everyone, including me for most of this post's drafting, has been crediting to the index itself.
+
+{/* Reader can now: name a capability their own stack has that no metric they run would notice */}
+
+### 22. The surface where it did not
+
+Same company. Same year. Same technology family. Different surface, opposite outcome.
+
+[OneSearch](https://arxiv.org/abs/2509.03236) is described by its authors as "the first industrial-deployed end-to-end generative framework for e-commerce search", positioned explicitly against the multi-stage cascading architecture this post spent act 6 on. Its deployment, from the introduction:
+
+> "It has been successfully deployed for the entire traffic on the detail page search, 50% traffic on the mall search, and 20% traffic on the homepage search platform"
+
+The entire traffic of one surface. Half of another. And it cut operational expenditure by 75.40%, with online gains of "+1.67% item CTR, +2.40% buyer, and +3.22% order volume".
+
+Now put the two papers next to each other, because the OneRetrieval authors classify OneSearch directly:
+
+> "OneSearch is a closed-codebook method and therefore carries essentially no real-time intervention capability"
+
+A system with essentially none of the capability that section 21 said was decisive took all of one surface's traffic.
+
+Both of these are true. That is the point.
+
+On out-of-mall search, editability was the gate, the incumbent survived below-average conversion because of it, and the replacement had to rebuild it and still fell short of parity. On detail-page search, the same capability was not the gate, and a system without it took everything.
+
+If you want a tidy rule, there isn't one, and I have tried three times to write one that survives its own evidence. What these two deployments establish is narrower and more useful than a rule. The thing that decided whether a component could be replaced was not its retrieval quality. It was an operational property that no relevance metric measured. And which property mattered was a fact about the surface, not about the technology: two teams at one company, in one year, using the same family of model, reached opposite answers because the surfaces needed different things.
+
+Detail-page search is a user who has already chosen a product and wants that page. Out-of-mall search is a merchandising surface where somebody in operations needs to intervene when the catalog moves. Those are not the same problem wearing different URLs.
+
+{/* Reader can now: see that the deciding variable was operational and surface-specific, from two documented cases rather than an assertion */}
+
+### 23. The test
+
+The claim in this post is falsifiable and I would like to say how.
+
+It is wrong wherever a retrieval component gets replaced purely on measured quality, with no operational capability recovered and none needed. If you find that case, the argument does not survive it. I looked, and what I found instead was a team writing "a one-model substitute must preserve this real-time editability" and then spending a paper's worth of engineering doing exactly that.
+
+One boundary. Kuaishou also reports a generative system taking 100% of QPS in a Local Life Service scenario, which is recommendation rather than search, and therefore outside what I have argued here. I mention it because leaving it out would be the kind of tidy omission this post has spent seven acts objecting to.
+
+So the useful thing to take away is not a rule about indexes. It is a question to ask about your own stack, and it is the question nobody's evaluation is set up to answer.
+
+What is your incumbent quietly doing that nothing you measure would notice if it stopped?
+
+For a lot of teams the answer is that somebody can fix a bad result before lunch. That capability will not show up in your next model comparison, and it is worth knowing whether you are about to trade it away.
+
+## References
+
+- [Efficient Query Evaluation using a Two-Level Retrieval Process](https://research.ibm.com/publications/efficient-query-evaluation-using-a-two-level-retrieval-process). Broder, Carmel, Herscovici, Soffer & Zien. CIKM 2003.
+- [Faster Top-k Document Retrieval Using Block-Max Indexes](https://research.engineering.nyu.edu/~suel/papers/bmw.pdf). Ding & Suel. SIGIR 2011.
+- [The Probabilistic Relevance Framework: BM25 and Beyond](https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf). Robertson & Zaragoza. Foundations and Trends in Information Retrieval, 2009.
+- [Which BM25 Do You Mean? A Large-Scale Reproducibility Study of Scoring Variants](https://cs.uwaterloo.ca/~jimmylin/publications/Kamphuis_etal_ECIR2020_preprint.pdf). Kamphuis, de Vries, Boytsov & Lin. ECIR 2020.
+- [The Vocabulary Problem in Human-System Communication](https://dl.acm.org/doi/10.1145/32206.32212). Furnas, Landauer, Gomez & Dumais. CACM 30(11), 1987.
+- [A Quantitative Analysis and Performance Study for Similarity-Search Methods in High-Dimensional Spaces](https://www.vldb.org/conf/1998/p194.pdf). Weber, Schek & Blott. VLDB 1998.
+- [Dense Passage Retrieval for Open-Domain Question Answering](https://arxiv.org/abs/2004.04906). Karpukhin et al. EMNLP 2020.
+- [Simple Entity-Centric Questions Challenge Dense Retrievers](https://arxiv.org/abs/2109.08535). Sciavolino, Zhong, Lee & Chen. EMNLP 2021.
+- [Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs](https://arxiv.org/abs/1603.09320). Malkov & Yashunin. 2016.
+- [Down with the Hierarchy: The "H" in HNSW Stands for "Hubs"](https://arxiv.org/abs/2412.01940). Munyampirwa, Lakshman & Coleman. 2025.
+- [Filtered Vector Search: State-of-the-art and Research Opportunities](https://www.vldb.org/pvldb/vol18/p5488-caminal.pdf). Chronis, Caminal, Papakonstantinou, Ozcan & Ailamaki. PVLDB 18(12), 2025.
+- [ACORN: Performant and Predicate-Agnostic Search Over Vector Embeddings and Structured Data](https://arxiv.org/abs/2403.04871). Patel, Kraft, Guestrin & Zaharia. SIGMOD 2024.
+- [Filtered Vector Search: What ACORN Fixes, and What Fixes ACORN](https://qdrant.tech/articles/filtered-vector-search-acorn/). Couzon & Ghafouri, Qdrant, August 2026.
+- [RaBitQ: Quantizing High-Dimensional Vectors with a Theoretical Error Bound](https://arxiv.org/abs/2405.12497). Gao & Long. SIGMOD 2024.
+- [Better Binary Quantization (BBQ) in Lucene and Elasticsearch](https://www.elastic.co/search-labs/blog/better-binary-quantization-lucene-elasticsearch). Elastic Search Labs, November 2024.
+- [To MRL or not to MRL](https://arxiv.org/abs/2605.16608). Takeshita, Takeshita, Ponzetto & Ruffinelli. 2026.
+- [turbopuffer architecture](https://turbopuffer.com/architecture). Accessed August 2026.
+- [A Few Brief Notes on DeepImpact, COIL, and a Conceptual Framework for Information Retrieval Techniques](https://arxiv.org/abs/2106.14807). Lin & Ma. 2021.
+- [SPLADE-v3: New baselines for SPLADE](https://arxiv.org/abs/2403.06789). Lassance, Dejean, Formal & Clinchant. 2024.
+- [An Efficiency Study for SPLADE Models](https://arxiv.org/abs/2207.03834). Lassance & Clinchant. SIGIR 2022.
+- [Doc2Query--: When Less is More](https://arxiv.org/abs/2301.03266). Gospodinov, MacAvaney & Macdonald. ECIR 2023.
+- [A Systematic Analysis of Chunking Strategies for Reliable Question Answering](https://arxiv.org/abs/2601.14123). Bennani & Moslonka. 2026.
+- [Is Semantic Chunking Worth the Computational Cost?](https://arxiv.org/abs/2410.13070) Qu, Tu & Bao. Findings of NAACL 2025.
+- [A Systematic Investigation of Document Chunking Strategies](https://arxiv.org/abs/2603.06976). Shaukat, Adnan & Kuhn. 2026.
+- [Reciprocal Rank Fusion outperforms Condorcet and Individual Rank Learning Methods](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf). Cormack, Clarke & Buettcher. SIGIR 2009.
+- [Reciprocal rank fusion](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion). Elasticsearch reference documentation. Accessed August 2026.
+- [An Analysis of Fusion Functions for Hybrid Retrieval](https://arxiv.org/abs/2210.11934). Bruch, Gai & Ingber. ACM TOIS.
+- [From BM25 to Corrective RAG: Benchmarking Retrieval Strategies for Text-and-Table Documents](https://arxiv.org/abs/2604.01733). Akarsu, Karaman & Mierbach. 2026.
+- [Lighting the Way for BRIGHT: Reproducible Baselines with Anserini, Pyserini, and RankLLM](https://arxiv.org/abs/2509.02558). Sharifymoghaddam, Ge & Lin. SIGIR 2026 Reproducibility Track.
+- [ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT](https://arxiv.org/abs/2004.12832). Khattab & Zaharia. SIGIR 2020.
+- [PLAID: An Efficient Engine for Late Interaction Retrieval](https://arxiv.org/abs/2205.09707). Santhanam, Khattab, Potts & Zaharia. CIKM 2022.
+- [Drowning in Documents: Consequences of Scaling Reranker Inference](https://arxiv.org/abs/2411.11767). Jacob, Lindgren, Zaharia, Carbin, Khattab & Drozdov. 2025.
+- [Are LLM-Based Retrievers Worth Their Cost?](https://arxiv.org/abs/2604.03676) Abdallah, Holdcroft, Ali & Jatowt. SIGIR 2026.
+- [Learning Transferable Visual Models From Natural Language Supervision](https://arxiv.org/abs/2103.00020). Radford et al. ICML 2021.
+- [Winoground: Probing Vision and Language Models for Visio-Linguistic Compositionality](https://arxiv.org/abs/2204.03162). Thrush et al. CVPR 2022.
+- [When and why vision-language models behave like bags-of-words](https://arxiv.org/abs/2210.01936). Yuksekgonul, Bianchi, Kalluri, Jurafsky & Zou. ICLR 2023.
+- [SugarCrepe: Fixing Hackable Benchmarks for Vision-Language Compositionality](https://arxiv.org/abs/2306.14610). Hsieh, Zhang, Ma, Kembhavi & Krishna. NeurIPS 2023.
+- [SigLIP 2](https://arxiv.org/abs/2502.14786). Tschannen et al. 2025.
+- [ColPali: Efficient Document Retrieval with Vision Language Models](https://arxiv.org/abs/2407.01449). Faysse et al. ICLR 2025.
+- [ViDoRe V3](https://arxiv.org/abs/2601.08620). Loison et al. 2026.
+- [Empirical Evaluation of PDF Parsing and Chunking for Financial Question Answering with RAG](https://arxiv.org/abs/2604.12047). El Bachyr et al. 2026.
+- [OmniSearchSage: Multi-Task Multi-Entity Embeddings for Pinterest Search](https://arxiv.org/abs/2404.16260). Agarwal et al. WWW 2024.
+- [MIEB: Massive Image Embedding Benchmark](https://arxiv.org/abs/2504.10471). Xiao et al. 2025.
+- [BRIGHT: A Realistic and Challenging Benchmark for Reasoning-Intensive Retrieval](https://arxiv.org/abs/2407.12883). Su et al. ICLR 2025.
+- [Embedding-based Retrieval in Facebook Search](https://arxiv.org/abs/2006.11632). Huang et al. KDD 2020.
+- [COLD: Towards the Next Generation of Pre-Ranking System](https://arxiv.org/abs/2007.16122). Wang et al. DLP-KDD 2020.
+- [Sampling-Bias-Corrected Neural Modeling for Large Corpus Item Recommendations](https://doi.org/10.1145/3298689.3346996). Yi et al. RecSys 2019.
+- [On Ranking Consistency of Pre-ranking Stage](https://arxiv.org/abs/2205.01289). Gu & Sheng. 2022.
+- [Learning Cascade Ranking as One Network](https://arxiv.org/abs/2503.09492). Wang et al. ICML 2025.
+- [Cascade Ranking for Operational E-commerce Search](https://arxiv.org/abs/1706.02093). Liu, Xiao, Ou & Si. KDD 2017.
+- [Improving Deep Learning For Airbnb Search](https://arxiv.org/abs/2002.05515). Haldar et al. KDD 2020.
+- [UMBRELA: UMbrela is the (Open-Source Reproduction of the) Bing RELevance Assessor](https://arxiv.org/abs/2406.06519). Upadhyay, Pradeep, Thakur, Craswell & Lin. 2024.
+- [LLM-based relevance assessment still can't replace human relevance assessment](https://arxiv.org/abs/2412.17156). Clarke & Dietz. 2026.
+- [Overview of the TREC 2025 RAG Track](https://arxiv.org/abs/2603.09891). Upadhyay et al. 2026.
+- [Revisiting Human-vs-LLM judgments using the TREC Podcast Track](https://arxiv.org/abs/2601.05603). Mansour, Culpepper, Mackenzie & Yates. ECIR 2026.
+- [Harnessing the Power of Interleaving and Counterfactual Evaluation for Airbnb Search Ranking](https://arxiv.org/abs/2508.00751). Zhang et al. KDD 2025.
+- [OneRetrieval: Unifying Multi-Branch E-commerce Retrieval with an Editable Generative Model](https://arxiv.org/abs/2606.13533). Zhang et al. 2026.
+- [OneSearch: A Preliminary Exploration of the Unified End-to-End Generative Framework for E-commerce Search](https://arxiv.org/abs/2509.03236). Chen et al. 2025.
+- [OneRec Technical Report](https://arxiv.org/abs/2506.13695). Kuaishou. 2025.
