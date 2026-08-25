@@ -63,9 +63,16 @@ for f in "$@"; do
   hit=0
 
   # Em dash check.
-  if grep -nF "$EM_DASH" "$f" >/dev/null 2>&1; then
+  #
+  # Exemption: act-divider headings. voice-rules.md and the explainer skills
+  # both permit U+2014 in lines beginning "## Act " (e.g. "## Act 2 — The
+  # lexical machine"), and shipped posts use that form. The check previously
+  # flagged them, which made "voice-check clean before every commit"
+  # impossible to satisfy for any post with act dividers. Everything else
+  # still fails on a single em dash.
+  if grep -nF "$EM_DASH" "$f" | grep -vE '^[0-9]+:## Act ' >/dev/null 2>&1; then
     echo "==> em dashes in $f:"
-    grep -nF "$EM_DASH" "$f"
+    grep -nF "$EM_DASH" "$f" | grep -vE '^[0-9]+:## Act '
     hit=1
   fi
 
