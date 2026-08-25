@@ -1124,8 +1124,8 @@ Last touched: 2026-08-24.
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done; Gate 0 closed at cap after 3 runs, all findings applied | `## Research notes`, matrix (~161 rows), `## Codex research review` |
 | 3. Outline + figure list | done; Gate 1 closed at cap after 3 runs, all findings applied | `## Outline` |
-| 4. Draft prose | next | `src/content/blog/search-retrieval-stack/index.mdx` |
-| 5. Implement figures | 0 of 13 | per-figure table below |
+| 4. Draft prose | done, 23 sections, ~15.8k words, voice-check clean | `src/content/blog/search-retrieval-stack/index.mdx` |
+| 5. Implement figures | in progress | per-figure table below |
 | 6. Playwright review | 0 of 13 | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
