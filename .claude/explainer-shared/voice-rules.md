@@ -151,6 +151,125 @@ Don't force these. One or two per document is enough.
 
 Read the draft out loud in your head. If a sentence sounds like a press release, rewrite it. If it sounds like something you'd say to a colleague, keep it.
 
+## Banned rhetorical moves (added 2026-08-24 after a live rejection)
+
+The banned-word list above catches vocabulary. It does not catch the thing that actually gets a draft rejected, which is **performing insight instead of delivering information**. Every example below passed the word check and was still cringe.
+
+Vic's own words on the three that broke him: "no one writes like this", "so fucking LLM-ism", "oh for fuck sake". Treat this section as higher priority than the word list.
+
+### 1. The false reveal
+
+Setting up a discovery so the reader feels let in on something.
+
+- Bad: "Here is the part that took me a while to see."
+- Bad: "Here's the thing I expected to matter and doesn't."
+- Bad: "Now the detail I find genuinely funny."
+- Bad: "And here is the part worth sitting with."
+- Bad: "But here's where it gets interesting."
+- Better: delete the setup and state the fact. If the fact is interesting, the reader will notice without being told to.
+
+The test: if you can cut the sentence and the next sentence still lands, it was throat-clearing dressed as intimacy.
+
+### 2. Fake-plain folksiness
+
+Reaching for a homely phrasing to sound unpretentious, and landing contrived.
+
+- Bad: "It's slow by an amount somebody wrote down."
+- Bad: "the 1970s half was what blew up"
+- Bad: "and that's the whole ballgame"
+- Better: "Ding and Suel measured it: 225.7 ms per query."
+
+Plain means using ordinary words for the real thing. It does not mean adopting a folksy register you would not use out loud.
+
+### 3. "Quiet" and its family
+
+Reported as one of the strongest 2026 tells across Claude, ChatGPT and Gemini. The model reaches for it to add weight to an ordinary observation.
+
+Banned: quiet, quietly, the quiet truth, quietly doing, unspoken, invisible (figurative), hidden (figurative), the part nobody talks about.
+
+- Bad: "what the incumbent was quietly doing"
+- Better: "what the incumbent was doing that nothing measured"
+
+### 4. The honesty flourish
+
+Announcing your own integrity instead of just being accurate.
+
+Banned: "the honest version", "the honest answer", "the honest claim", "to be honest", "I want to be careful here", "let me be precise", "the truthful framing".
+
+- Bad: "The honest position is that the failure is real and the benchmarks were broken."
+- Better: "The failure is real. Several benchmarks built to measure it were broken."
+
+State the caveat. Do not narrate that you are being scrupulous.
+
+### 5. Intensifier crutches
+
+Words used for emphasis rather than meaning. Cut on sight unless the sentence is false without them.
+
+genuinely, actually (as emphasis), simply, precisely, exactly (as emphasis), truly, really, deeply, fundamentally, entirely, completely, absolutely.
+
+- Bad: "That is genuinely the most interesting result here."
+- Better: "That result is the one to remember."
+
+"Actually" is allowed when it marks a real contrast with a stated belief ("BM25 actually beats it out of domain"), not as a volume knob.
+
+### 6. The portentous one-line paragraph
+
+One short sentence alone on a line, used as a drumbeat. Fine once in a long piece. A tic by the third time.
+
+- Bad, three times in one act: "Nobody does that." / "They are about to stop." / "Remember it."
+- Budget: at most one per 3,000 words, and only where the sentence is doing real work.
+
+Note this rule modifies the "vary paragraph length" advice elsewhere in this file. Vary length, yes. Do not use the one-line paragraph as a rhythm instrument.
+
+### 7. Significance tails
+
+A participial or relative clause bolted on to tell the reader what the fact means. Confirmed as a top AI tell by Wikipedia's own signs-of-AI-writing guide.
+
+- Bad: "...which is the argument for running both."
+- Bad: "...marking the point where the two camps meet."
+- Bad: "...highlighting why the cascade exists."
+- Better: end the sentence. If the significance needs saying, make it its own sentence with an actual claim in it.
+
+### 8. Rhetorical question as a transition
+
+- Bad: "So how do you replace something whose value is a property your architecture cannot express? You build the property in."
+- Better: "They rebuilt the capability first."
+
+### 9. "That is what X is about" / "That is the point"
+
+Telling the reader the thesis of the paragraph they just read.
+
+- Bad: "That is the point of this section."
+- Bad: "Both of these are true. That is the point."
+- Better: cut it. If the paragraph did not make the point, fix the paragraph.
+
+### 10. "Worth" constructions
+
+worth noting, worth knowing, worth having, worth one paragraph, worth sitting with. All are the writer telling the reader how much to care.
+
+- Bad: "One caution here is worth a paragraph."
+- Better: state the caution.
+
+### 11. Over-narrating your own process
+
+Some process is honest and useful, especially when a correction changed the argument. Too much is navel-gazing and belongs in a research log.
+
+- Keep: "I had the percolation threshold in an earlier draft and took it out, because it does not survive contact with the actual graphs."
+- Cut: "I nearly wrote X and that was simply wrong." "I have tried three times to write a rule that survives its own evidence."
+
+Budget: at most two process asides in a long post, and each must change what the reader should believe.
+
+### 12. Cadence uniformity
+
+Reported as the single biggest 2026 tell, and the one that survives the most rewriting. Runs of 18-to-24-word sentences all in a row read as machine-written even when every word is fine.
+
+After drafting, read a page and count sentence lengths. If five consecutive sentences are all within a few words of each other, break the run: merge two into a long one, or cut one to four words.
+
+### The self-check for this section
+
+Read any paragraph you are pleased with. Ask: am I telling the reader something, or am I performing having-something-to-tell-them? If the second, rewrite it as a plain declarative and see what is left. Usually the plain version is the whole content, and the performance was the padding.
+
+
 ## Quick self-check before sending
 
 Run these checks before you consider the draft done:
@@ -162,5 +281,8 @@ Run these checks before you consider the draft done:
 5. Check the last paragraph. Is it a restatement? If yes, delete it.
 6. Look at paragraph lengths. Are they all roughly the same? If yes, merge or split until they aren't.
 7. Read it out loud. Flag any sentence you wouldn't actually say to a person.
+8. Search for the rhetorical moves: "here is the part", "here's the thing", "the honest", "quiet", "genuinely", "worth noting", "that is the point", "which is why", "the thing is".
+9. Count sentence lengths on one page. Break any run of five similar-length sentences.
+10. For every sentence you are pleased with, check whether you are informing the reader or performing insight at them.
 
 If the draft still reads too polished after all that, it probably is. Rewrite the smoothest paragraph in plainer words.

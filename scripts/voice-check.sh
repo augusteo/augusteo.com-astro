@@ -48,8 +48,16 @@ BANNED_FILLERS='(it\s+is\s+worth\s+noting|it\s+is\s+important\s+to\s+note|that\s
 
 BANNED_STOCK='(in\s+today.s\s+(fast.paced|rapidly.evolving)|in\s+the\s+ever.evolving|at\s+its\s+core,|when\s+it\s+comes\s+to|in\s+the\s+realm\s+of|plays\s+a\s+(key|pivotal)\s+role|stands\s+as\s+a\s+testament|a\s+rich\s+tapestry|navigate\s+the\s+complexities|unlock\s+the\s+potential|take\s+a\s+deep\s+dive|at\s+the\s+end\s+of\s+the\s+day|the\s+beauty\s+of\s+\S+\s+lies\s+in)'
 
+# Banned rhetorical moves. Added 2026-08-24 after a draft was rejected for
+# prose that passed every word check and was still cringe. These catch the
+# *moves*, not the vocabulary: false reveals, honesty flourishes, the "quiet"
+# family, intensifier crutches, significance tails and thesis-restatement.
+# See the "Banned rhetorical moves" section of voice-rules.md for why each
+# one is here and what to write instead.
+BANNED_MOVES='(here(.s| is) the (part|thing|bit)|here.s where it gets|the (honest|truthful) (version|answer|claim|position|framing)|to be honest,|i want to be careful|let me be precise|\bquietly\b|\bthe quiet\b|worth (noting|knowing|having|sitting)|that is the point\.|that.s the point\.|that is what (this|the) (post|section|act) is about|\bgenuinely\b|\btruly\b|\bdeeply\b|the part nobody (talks about|frames))'
+
 # Combined banned-word regex.
-BANNED_RE="${BANNED_VERBS}|${BANNED_ADJECTIVES}|${BANNED_NOUNS}|${BANNED_FIGURATIVE}|${BANNED_TRANSITIONS}|${BANNED_FILLERS}|${BANNED_STOCK}"
+BANNED_RE="${BANNED_VERBS}|${BANNED_ADJECTIVES}|${BANNED_NOUNS}|${BANNED_FIGURATIVE}|${BANNED_TRANSITIONS}|${BANNED_FILLERS}|${BANNED_STOCK}|${BANNED_MOVES}"
 
 exit_code=0
 
