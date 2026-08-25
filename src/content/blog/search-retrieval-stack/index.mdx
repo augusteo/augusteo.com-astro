@@ -148,3 +148,65 @@ One more thing before we leave. Let's say the first result set disappoints, and 
 Term matching is superb at this. Every token is rare, the brand and model are nearly unique, and the posting lists are short. This query is the best case for an inverted index and it will stay the best case for the rest of the post. Remember it. In act 3 we will build something that handles the first query beautifully and this one noticeably worse.
 
 {/* Reader can now: name the two distinct failures, meaning and structure, and hold a second query form where lexical is strongest */}
+
+## Act 3 — The vector turn
+
+### 6. One vector per document, and the objective that puts meaning in it
+
+The response to the vocabulary problem is to stop matching words and start matching positions in a space.
+
+The architecture is simple enough to describe in a sentence. [Karpukhin and colleagues](https://arxiv.org/abs/2004.04906) used "two independent BERT (Devlin et al., 2019) networks (base, uncased)" and took the `[CLS]` output, giving 768 numbers per query and 768 per passage. Score is the dot product. Two encoders, no interaction between them, which is the property that makes the whole thing possible: you can encode every document offline and store the results, because encoding a document doesn't depend on the query.
+
+What people skip is why nearby vectors mean anything at all. Nothing about a neural network makes similar text land in similar places. That has to be trained in, and the training objective states the goal outright: "The goal is to create a vector space such that relevant pairs of questions and passages will have smaller distance (i.e., higher similarity) than the irrelevant ones, by learning a better embedding function."
+
+The loss is the negative log likelihood of the correct passage against a set of wrong ones, and the trick that makes it cheap is that the wrong ones come free. In a batch of B questions and B passages you compute all B by B similarities, the diagonal is your positives, and everything off the diagonal is a negative you didn't have to go find.
+
+So the space is not discovered. It is built, by repeatedly pushing correct pairs together and incorrect pairs apart, and it will only be good at the kinds of relatedness that were in the training pairs.
+
+The reported gains are real and worth stating precisely: DPR "outperforms a strong Lucene-BM25 system largely by 9%-19% absolute in terms of top-20 passage retrieval accuracy", and on Natural Questions specifically, 78.4% against 59.1%.
+
+Those are aggregate results on open-domain question answering. They are not a measurement of our boots. I want to be careful here, because it would be easy to write that the paraphrase problem is now solved and let the earlier example quietly borrow the credit. What the objective is *designed* to do is put `wide toe box` and `roomy forefoot` near each other. Whether it does that for your catalog is a question about your data and your model, and the honest answer is that you'd have to measure it.
+
+{/* TODO: Fig 5: DenseVsLexical. Form A and form B against two documents, showing which terms match and which don't. Qualitative match structure only, no invented scores. */}
+
+Now the second query. `Salomon Quest 4 GTX wide 10.5`, the one term matching was superb at.
+
+A bi-encoder compresses that entire string into 768 floats, and `Quest 4` and `Quest 5` land very close together, because they are textually and semantically almost identical. Nothing in the training objective taught the model that the difference between them is the whole point. [Sciavolino and colleagues](https://arxiv.org/abs/2109.08535) measured this directly, using simple questions about specific named entities, and found that "dense retrievers drastically underperform sparse methods", and, more damningly, that "dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training."
+
+That is a Wikidata entity study, not a product catalog. But the mechanism transfers cleanly, and if you have ever watched a semantic search return the wrong model number with great confidence, you have seen it.
+
+And `under $150` is exactly where it was. The vector space has no notion of a price constraint. We have traded one of our two failures for a different one, and left the other untouched.
+
+{/* Reader can now: say what the training objective builds and what it never asked the model to preserve */}
+
+### 7. Why not a tree, and what a graph does instead
+
+You have a hundred million vectors and a query vector. The obvious move is a tree: cut the space into regions, descend into the right one, ignore the rest.
+
+This does not work, and the reason is a formal result rather than a folk observation. Weber, Schek and Blott proved it in [1998](https://www.vldb.org/conf/1998/p194.pdf): "We show formally that these methods exhibit linear complexity at high dimensionality, and that existing methods are outperformed on average by a simple sequential scan if the number of dimensions exceeds around 10." And more sweepingly: "There is no organization of HDVS based on partitioning or clustering which does not degenerate to a sequential scan if dimensionality exceeds a certain threshold."
+
+Ten dimensions. We have 768.
+
+What works instead is a graph you walk. Link each vector to some of its neighbours, start somewhere, and repeatedly step to whichever neighbour is closer to the query until none of them is. You are not pruning a search space. You are navigating one.
+
+[HNSW](https://arxiv.org/abs/1603.09320) is the version everyone runs, and it has two ideas, only one of which is the one it's famous for.
+
+The famous one is the layers. Higher layers hold a shrinking sample of the points, so you enter at the top, take huge steps across a nearly empty graph, drop down, refine, and drop again. It is a skip list generalized to a metric space, and the paper says so in as many words: the layer-assignment parameter is `1/ln(M)`, and "this corresponds to the skip list parameter p=1/M".
+
+The other idea is the one that does more work, and it's in how neighbours get chosen. If you connect each node to its M nearest neighbours, you get a graph that can't route: in a cluster, all your links point into the cluster, and a walk that enters gets stuck. So HNSW keeps a candidate only if it's closer to the new node than to any neighbour already selected. The result approximates a known object, "the exact relative neighborhood graph, a minimal subgraph of the Delaunay graph deducible by using only the distances between the nodes", and the property it buys is that your links point in different directions. The paper's own phrasing is "connections in diverse directions". Without it, "the Hierarchical NSW algorithm fails to achieve a high recall for clustered data because the search stucks at the clusters boundaries."
+
+{/* TODO: Fig 6: HnswAnatomy. Panels: skip-list layers; the pruning heuristic choosing diverse directions vs nearest; the three degree numbers side by side. */}
+
+Which of the two matters more? The authors answer this themselves, about real data, and it is not the answer their algorithm's name suggests: on SIFT vectors, "the performance improvement by increasing the mL is higher, but less prominent at current settings compared to improvement from the heuristic."
+
+In 2024 someone finished that sentence. Munyampirwa, Lakshman and Coleman [removed the hierarchy entirely](https://arxiv.org/abs/2412.01940) and found "a flat navigable small world graph graph retains all of the benefits of HNSW on high-dimensional datasets, with latency and recall performance essentially identical to the original algorithm but with less memory overhead", saving roughly 38% and 39% of peak construction memory on two Big-ANN datasets. Their explanation is that hub nodes emerge naturally and do the long-range routing the layers were credited with. They are also honest that they don't fully know why: "Perhaps most importantly, we still have no satisfactory understanding of why hierarchy does not help."
+
+Now the numbers, because three different ones get quoted interchangeably and they are not the same number.
+
+`M` is the parameter you set, typically 16. The base layer allocates twice that: "2∙M is a good choice for Mmax0", so 32 slots per node. Averaged across all layers the paper's own formula gives about 37.8 link slots per element, which at four bytes each is roughly 151 bytes of connection-ID capacity per vector. That formula reproduces the paper's stated range of "about 60-450 bytes per object" at both ends, so it's trustworthy.
+
+But allocated capacity is not realized degree. The pruning heuristic rejects candidates, and most nodes never fill their slots. Qdrant measured their own one-million-point collection and reported that "at Qdrant's default m=16, the one-million-point collection benchmarked below averaged about 21 links per node on layer 0."
+
+Thirty-two allocated. Thirty-eight slots on average across layers. Twenty-one actually used, on one measured dataset. When someone quotes a degree number at you, ask which one they mean, because the next section turns on it.
+
+{/* Reader can now: predict an index's memory from a formula, and say which part of HNSW is doing the routing work */}
