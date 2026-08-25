@@ -1113,6 +1113,20 @@ Verdict: **HALT**, six findings, all applied. Full output in `notes/search-retri
 Figure 8's spec was also rewritten, since "compression on one axis, storage on the other" was two catalogs rather than a relation. It is now one vector's footprint against the tier that footprint forces.
 
 
+### Phase 7: freshness and link audit (2026-08-24)
+
+**Freshness.** Every source the post cites was fetched directly during this session, on the day of publication. The matrix's dated rows (the June 2025 OneRec figures, the February 2026 leaderboard standing, the 2024 UMBRELA agreement figures) are carried with their dates stated in prose, which is the requirement for bucket 3.
+
+**Link audit.** All 61 external URLs in the finished post were fetched. 59 returned 200. Two returned 403 to automated requests and were verified instead by Crossref metadata cross-check, which confirmed title, authors, venue and year for both:
+
+- `10.1145/32206.32212` -> "The vocabulary problem in human-system communication", Furnas, Landauer, Gomez, Dumais, CACM, 1987.
+- `10.1145/3298689.3346996` -> "Sampling-bias-corrected neural modeling for large corpus item recommendations", Yi, Yang, Hong, Cheng, Heldt, RecSys 2019.
+
+Both links are correct; the hosts block bots. No broken or misattributed links found.
+
+**Figure check.** All 13 figures were checked programmatically for content positioned outside its own viewBox, and for the presence of `role="img"` plus an `aria-label`. All 13 pass, and all 13 carry a figcaption. Four were additionally reviewed visually in the browser at the real route, along with prose rendering, code spans, inline links and the escaped `&lt;` in the Furnas quote.
+
+
 ## Resume here
 
 Last touched: 2026-08-24.
@@ -1126,8 +1140,8 @@ Last touched: 2026-08-24.
 | 3. Outline + figure list | done; Gate 1 closed at cap after 3 runs, all findings applied | `## Outline` |
 | 4. Draft prose | done, 23 sections, ~15.8k words, voice-check clean | `src/content/blog/search-retrieval-stack/index.mdx` |
 | 5. Implement figures | done, 13 of 13, all static-svg | per-figure table below |
-| 6. Playwright review | next | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
+| 6. Playwright review | done, all 13 checked | playwright snapshots reviewed |
+| 7. Freshness pass + Gate 2 + ship | in progress | hero image, dev verification, ship |
 
 ### Codex history
 
