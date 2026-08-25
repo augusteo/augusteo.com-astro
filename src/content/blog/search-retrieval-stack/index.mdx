@@ -409,7 +409,53 @@ The famous one is the layers. Higher layers hold a shrinking sample of the point
 
 The other idea is the one that does more work, and it's in how neighbours get chosen. If you connect each node to its M nearest neighbours, you get a graph that can't route: in a cluster, all your links point into the cluster, and a walk that enters gets stuck. So HNSW keeps a candidate only if it's closer to the new node than to any neighbour already selected. The result approximates a known object, "the exact relative neighborhood graph, a minimal subgraph of the Delaunay graph deducible by using only the distances between the nodes", and the property it buys is that your links point in different directions. The paper's own phrasing is "connections in diverse directions". Without it, "the Hierarchical NSW algorithm fails to achieve a high recall for clustered data because the search stucks at the clusters boundaries."
 
-{/* TODO: Fig 6: HnswAnatomy. Panels: skip-list layers; the pruning heuristic choosing diverse directions vs nearest; the three degree numbers side by side. */}
+<figure>
+<svg viewBox="0 0 680 330" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Three panels explaining HNSW. Panel one shows three stacked layers with progressively more nodes, a search entering at the sparse top layer, taking long steps, then descending to refine, which is the skip-list structure. Panel two contrasts two ways of choosing a node's neighbours: picking the M nearest puts every link into the same cluster so a walk entering that cluster gets stuck, while the pruning heuristic keeps a candidate only if it is closer to the new node than to any already-chosen neighbour, producing links that point in different directions. Panel three lists the three degree numbers that get quoted interchangeably: 32 slots allocated at the base layer, about 38 average slots across layers from the paper's formula, and about 21 links per node actually realized on one measured million-point collection.">
+  <rect x="0" y="0" width="680" height="330" fill="#F9F5EB"/>
+
+  <text x="24" y="24" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">1. THE LAYERS ARE A SKIP LIST</text>
+  <g>
+    <rect x="24" y="34" width="270" height="26" fill="#F4EEE3" stroke="#C9BEAA"/>
+    <circle cx="60" cy="47" r="4" fill="#2563EB"/><circle cx="230" cy="47" r="4" fill="#2563EB"/>
+    <line x1="60" y1="47" x2="230" y2="47" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="300" y="51" font-family="JetBrains Mono" font-size="9" fill="#6B6258">layer 2: few nodes, long steps</text>
+
+    <rect x="24" y="66" width="270" height="26" fill="#F4EEE3" stroke="#C9BEAA"/>
+    <g fill="#2563EB"><circle cx="60" cy="79" r="4"/><circle cx="120" cy="79" r="4"/><circle cx="175" cy="79" r="4"/><circle cx="230" cy="79" r="4"/></g>
+    <line x1="60" y1="79" x2="230" y2="79" stroke="#2563EB" stroke-width="1"/>
+    <text x="300" y="83" font-family="JetBrains Mono" font-size="9" fill="#6B6258">layer 1</text>
+
+    <rect x="24" y="98" width="270" height="26" fill="#F4EEE3" stroke="#C9BEAA"/>
+    <g fill="#2563EB"><circle cx="45" cy="111" r="3"/><circle cx="75" cy="111" r="3"/><circle cx="105" cy="111" r="3"/><circle cx="135" cy="111" r="3"/><circle cx="165" cy="111" r="3"/><circle cx="195" cy="111" r="3"/><circle cx="225" cy="111" r="3"/><circle cx="255" cy="111" r="3"/></g>
+    <text x="300" y="115" font-family="JetBrains Mono" font-size="9" fill="#6B6258">layer 0: every node</text>
+    <path d="M 60,47 L 60,79 L 120,79 L 135,111" fill="none" stroke="#B8651A" stroke-width="2" stroke-dasharray="4 2"/>
+    <text x="300" y="130" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">the walk enters at the top and descends</text>
+  </g>
+
+  <text x="24" y="164" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">2. THE PRUNING HEURISTIC IS THE PART THAT MATTERS</text>
+  <rect x="24" y="174" width="300" height="110" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="34" y="190" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">M nearest neighbours</text>
+  <circle cx="90" cy="240" r="5" fill="#1A1A1A"/>
+  <g fill="#93C5FD"><circle cx="130" cy="222" r="4"/><circle cx="138" cy="238" r="4"/><circle cx="132" cy="254" r="4"/><circle cx="145" cy="230" r="4"/></g>
+  <g stroke="#B91C1C" stroke-width="1"><line x1="90" y1="240" x2="130" y2="222"/><line x1="90" y1="240" x2="138" y2="238"/><line x1="90" y1="240" x2="132" y2="254"/><line x1="90" y1="240" x2="145" y2="230"/></g>
+  <text x="34" y="276" font-family="serif" font-size="10" font-style="italic" fill="#B91C1C">every link points the same way</text>
+
+  <rect x="336" y="174" width="320" height="110" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="346" y="190" font-family="JetBrains Mono" font-size="9" fill="#059669">kept only if closer to me than to my other neighbours</text>
+  <circle cx="420" cy="240" r="5" fill="#1A1A1A"/>
+  <g fill="#93C5FD"><circle cx="460" cy="222" r="4"/><circle cx="470" cy="252" r="4"/><circle cx="400" cy="205" r="4"/><circle cx="378" cy="262" r="4"/></g>
+  <g stroke="#059669" stroke-width="1"><line x1="420" y1="240" x2="460" y2="222"/><line x1="420" y1="240" x2="470" y2="252"/><line x1="420" y1="240" x2="400" y2="205"/><line x1="420" y1="240" x2="378" y2="262"/></g>
+  <text x="346" y="276" font-family="serif" font-size="10" font-style="italic" fill="#059669">links point in different directions, so a walk can leave</text>
+
+  <text x="24" y="308" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">3. THREE DEGREE NUMBERS, ALL DIFFERENT, ALL QUOTED AS &quot;THE&quot; DEGREE</text>
+  <g font-family="JetBrains Mono" font-size="10">
+    <text x="24" y="324" fill="#1A1A1A">32 allocated at layer 0 (2M)</text>
+    <text x="250" y="324" fill="#1A1A1A">~38 avg slots (paper formula)</text>
+    <text x="490" y="324" fill="#B8651A">~21 realized (measured)</text>
+  </g>
+</svg>
+<figcaption><strong>Fig 6.</strong> The layers get the name and the heuristic does more of the work: on real high-dimensional data the paper's own comparison found the hierarchy's contribution "less prominent" than the neighbour-selection rule's. The three numbers at the bottom are allocated capacity, average allocated slots, and measured realized degree on one collection. They are not interchangeable, and the next section turns on which one you mean.</figcaption>
+</figure>
 
 Which of the two matters more? The authors answer this themselves, about real data, and it is not the answer their algorithm's name suggests: on SIFT vectors, "the performance improvement by increasing the mL is higher, but less prominent at current settings compared to improvement from the heuristic."
 
@@ -443,7 +489,46 @@ Both results come with an assumption printed right next to them: they hold "For 
 
 So nobody has the theorem. What everyone has is measurements, and they are ugly.
 
-{/* TODO: Fig 7: FilteredDegreeCollapse. Expected surviving degree against M; a random-filter topology; a correlated-filter topology. Assumption printed on the figure. */}
+<figure>
+<svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Three panels on what a filter does to a proximity graph. The first plots expected surviving neighbours per node against filter selectivity, for a node with about 21 links: the line falls linearly, passing below one surviving neighbour at roughly five percent selectivity. The second shows a filter that removes nodes at random, thinning the graph evenly. The third shows a filter correlated with position in the embedding space, which removes a whole region and leaves the rest dense, so the random-removal assumption does not hold. A note states that ACORN's analysis assumes no predicate clustering and that neither HNSW nor ACORN provides a connectivity guarantee for arbitrary datasets.">
+  <rect x="0" y="0" width="680" height="340" fill="#F9F5EB"/>
+  <text x="24" y="24" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">EXPECTED SURVIVING NEIGHBOURS = DEGREE x SELECTIVITY</text>
+
+  <rect x="60" y="40" width="240" height="110" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <path d="M 60.0,149.9 L 62.0,149.5 L 64.0,149.1 L 66.0,148.7 L 68.0,148.2 L 70.0,147.8 L 72.0,147.4 L 74.0,147.0 L 76.0,146.6 L 78.0,146.2 L 80.0,145.7 L 82.0,145.3 L 84.0,144.9 L 86.0,144.5 L 88.0,144.1 L 90.0,143.7 L 92.0,143.2 L 94.0,142.8 L 96.0,142.4 L 98.0,142.0 L 100.0,141.6 L 102.0,141.2 L 104.0,140.8 L 106.0,140.3 L 108.0,139.9 L 110.0,139.5 L 112.0,139.1 L 114.0,138.7 L 116.0,138.3 L 118.0,137.8 L 120.0,137.4 L 122.0,137.0 L 124.0,136.6 L 126.0,136.2 L 128.0,135.8 L 130.0,135.3 L 132.0,134.9 L 134.0,134.5 L 136.0,134.1 L 138.0,133.7 L 140.0,133.3 L 142.0,132.9 L 144.0,132.4 L 146.0,132.0 L 148.0,131.6 L 150.0,131.2 L 152.0,130.8 L 154.0,130.4 L 156.0,129.9 L 158.0,129.5 L 160.0,129.1 L 162.0,128.7 L 164.0,128.3 L 166.0,127.9 L 168.0,127.4 L 170.0,127.0 L 172.0,126.6 L 174.0,126.2 L 176.0,125.8 L 178.0,125.4 L 180.0,124.9 L 182.0,124.5 L 184.0,124.1 L 186.0,123.7 L 188.0,123.3 L 190.0,122.9 L 192.0,122.5 L 194.0,122.0 L 196.0,121.6 L 198.0,121.2 L 200.0,120.8 L 202.0,120.4 L 204.0,120.0 L 206.0,119.5 L 208.0,119.1 L 210.0,118.7 L 212.0,118.3 L 214.0,117.9 L 216.0,117.5 L 218.0,117.0 L 220.0,116.6 L 222.0,116.2 L 224.0,115.8 L 226.0,115.4 L 228.0,115.0 L 230.0,114.6 L 232.0,114.1 L 234.0,113.7 L 236.0,113.3 L 238.0,112.9 L 240.0,112.5 L 242.0,112.1 L 244.0,111.6 L 246.0,111.2 L 248.0,110.8 L 250.0,110.4 L 252.0,110.0 L 254.0,109.6 L 256.0,109.1 L 258.0,108.7 L 260.0,108.3 L 262.0,107.9 L 264.0,107.5 L 266.0,107.1 L 268.0,106.7 L 270.0,106.2 L 272.0,105.8 L 274.0,105.4 L 276.0,105.0 L 278.0,104.6 L 280.0,104.2 L 282.0,103.7 L 284.0,103.3 L 286.0,102.9 L 288.0,102.5 L 290.0,102.1 L 292.0,101.7 L 294.0,101.2 L 296.0,100.8 L 298.0,100.4 L 300.0,100.0" fill="none" stroke="#2563EB" stroke-width="2"/>
+  <line x1="60" y1="145" x2="300" y2="145" stroke="#B91C1C" stroke-dasharray="3 2"/>
+  <text x="306" y="149" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">1 neighbour</text>
+  <line x1="60" y1="40" x2="60" y2="150" stroke="#8F8578"/>
+  <line x1="60" y1="150" x2="300" y2="150" stroke="#8F8578"/>
+  <text x="52" y="38" font-family="JetBrains Mono" font-size="9" fill="#6B6258" text-anchor="end">21</text>
+  <text x="60" y="166" font-family="JetBrains Mono" font-size="9" fill="#6B6258">0.1%</text>
+  <text x="280" y="166" font-family="JetBrains Mono" font-size="9" fill="#6B6258">50%</text>
+  <text x="150" y="166" font-family="JetBrains Mono" font-size="9" fill="#6B6258">selectivity</text>
+  <text x="330" y="70" font-family="serif" font-size="11" fill="#1A1A1A">A node with 21 links keeps about</text>
+  <text x="330" y="86" font-family="serif" font-size="11" fill="#1A1A1A">21 x s of them after a filter.</text>
+  <text x="330" y="110" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">Qdrant measured recall on a plain graph</text>
+  <text x="330" y="126" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">at 62.9%, 20.6% and 0.1% for filters</text>
+  <text x="330" y="142" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">keeping 20%, 10% and 1%.</text>
+
+  <text x="24" y="200" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">BUT A REAL PREDICATE IS NOT RANDOM REMOVAL</text>
+
+  <rect x="60" y="212" width="240" height="96" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="70" y="228" font-family="JetBrains Mono" font-size="9" fill="#6B6258">random removal (assumed)</text>
+  <g fill="#93C5FD"><circle cx="95" cy="252" r="3"/><circle cx="135" cy="246" r="3"/><circle cx="175" cy="258" r="3"/><circle cx="215" cy="248" r="3"/><circle cx="255" cy="262" r="3"/><circle cx="115" cy="282" r="3"/><circle cx="195" cy="288" r="3"/><circle cx="245" cy="284" r="3"/></g>
+  <g fill="#C9BEAA"><circle cx="115" cy="252" r="3"/><circle cx="155" cy="272" r="3"/><circle cx="235" cy="252" r="3"/><circle cx="95" cy="284" r="3"/><circle cx="175" cy="284" r="3"/><circle cx="215" cy="278" r="3"/></g>
+  <text x="70" y="302" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">thins evenly everywhere</text>
+
+  <rect x="336" y="212" width="240" height="96" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="346" y="228" font-family="JetBrains Mono" font-size="9" fill="#9333EA">correlated predicate (actual)</text>
+  <ellipse cx="400" cy="266" rx="46" ry="34" fill="#EDE0FC" stroke="#9333EA" stroke-dasharray="3 2"/>
+  <g fill="#C9BEAA"><circle cx="380" cy="252" r="3"/><circle cx="405" cy="248" r="3"/><circle cx="392" cy="272" r="3"/><circle cx="418" cy="268" r="3"/><circle cx="400" cy="288" r="3"/></g>
+  <g fill="#93C5FD"><circle cx="480" cy="248" r="3"/><circle cx="510" cy="262" r="3"/><circle cx="540" cy="250" r="3"/><circle cx="495" cy="284" r="3"/><circle cx="530" cy="288" r="3"/><circle cx="555" cy="272" r="3"/></g>
+  <text x="346" y="302" font-family="serif" font-size="10" font-style="italic" fill="#9333EA">removes a region, leaves the rest dense</text>
+
+  <text x="24" y="330" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">ACORN's degree analysis assumes no predicate clustering, and the paper states that neither HNSW nor ACORN guarantees connectivity for arbitrary datasets.</text>
+</svg>
+<figcaption><strong>Fig 7.</strong> Why filtered recall falls, and why the tidy version of this story is wrong. Expected surviving degree really does fall linearly with selectivity, but the analysis behind that line assumes the filter removes nodes independently of where they sit. A price filter does not: it takes out a region. That is the assumption the arithmetic needs and reality declines to supply.</figcaption>
+</figure>
 
 Qdrant published a [benchmark](https://qdrant.tech/articles/filtered-vector-search-acorn/) on a million-point collection, and the plain graph's recall against filter selectivity reads as follows. At a filter keeping 20% of the collection, 62.9%. At 10%, 20.6%. At 1%, 0.1%.
 
