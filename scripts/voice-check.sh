@@ -86,9 +86,16 @@ for f in "$@"; do
   # from prose), so when a banned word sits inside an inline quote, either
   # promote it to a blockquote or trim the quotation to the clause that
   # carries the claim.
-  if grep -niE "$BANNED_RE" "$f" | grep -vE '^[0-9]+:[[:space:]]*>' >/dev/null 2>&1; then
+  # Exemptions applied below, in addition to blockquotes:
+  #   - bibliography entries of the form "- [Title](http...)". A cited work's
+  #     title is its title. "Efficient and robust approximate nearest neighbor
+  #     search..." is a real paper and editing that string to satisfy a style
+  #     check would introduce a citation error, which is a worse defect than
+  #     the style violation it fixes.
+  EXEMPT='^[0-9]+:[[:space:]]*>|^[0-9]+:[[:space:]]*-[[:space:]]*\[[^]]*\]\(http'
+  if grep -niE "$BANNED_RE" "$f" | grep -vE "$EXEMPT" >/dev/null 2>&1; then
     echo "==> banned words/patterns in $f:"
-    grep -niE "$BANNED_RE" "$f" | grep -vE '^[0-9]+:[[:space:]]*>'
+    grep -niE "$BANNED_RE" "$f" | grep -vE "$EXEMPT"
     hit=1
   fi
 
