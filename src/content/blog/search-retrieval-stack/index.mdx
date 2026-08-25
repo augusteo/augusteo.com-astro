@@ -384,3 +384,57 @@ All of it, the postings, the fused lists, the interaction axis, assumes the quer
 They are about to stop.
 
 {/* Reader can now: place any retrieval model on the interaction axis, pick a rerank depth for a reason, and stop using retrieval scores as confidence */}
+
+## Act 5 — Searching with a picture
+
+### 13. One space for pixels and words
+
+Our user is standing in a shop holding a boot. They photograph the outsole.
+
+For that photo to retrieve anything, an image and a piece of text have to be comparable, which means they have to land in the same space. [CLIP](https://arxiv.org/abs/2103.00020) built one, and the mechanism is the same shape as section 6's, one modality wider: "CLIP learns a multi-modal embedding space by jointly training an image encoder and text encoder to maximize the cosine similarity of the image and text embeddings of the N real pairs in the batch while minimizing the cosine similarity of the embeddings of the N²−N incorrect pairings." Four hundred million image-text pairs, and the same batch trick as DPR, where every mismatched pairing in the batch is a free negative.
+
+So the shared space is not a discovery about images and language. It is the direct consequence of an objective that rewarded exactly this.
+
+Which also tells you what it never rewarded.
+
+Nothing in that objective asks the model to distinguish `a red bag with a black strap` from `a black bag with a red strap`. Both captions contain the same words, both plausibly describe a scene with a bag and two colours, and a training signal built on batch-level matching almost never has to tell them apart. [Winoground](https://arxiv.org/abs/2204.03162) tested precisely this, pairing two images with two captions built from identical words in different orders, and found that of a diverse range of state-of-the-art models, "none of them do much better than chance." [ARO](https://arxiv.org/abs/2210.01936) found the same shape at scale: "a severe lack of order sensitivity", along with attribute-binding failures.
+
+{/* TODO: Fig 11: SharedSpaceBlindSpot. Two images and two captions with identical words in different order, in one space. The measured failure, not an asserted internal mechanism. */}
+
+Now the correction, because this is a case where the literature policed itself and the summary version usually gets it wrong.
+
+[SugarCrepe](https://arxiv.org/abs/2306.14610) went back and examined the benchmarks that had been built to measure compositional failure, and found many of them broken: "we find significant biases in all these benchmarks rendering them hackable. This hackability is so dire that blind models with no access to the image outperform state-of-the-art vision-language models." A model that never sees the picture beats a real vision-language model, which means the benchmark was measuring an artifact of how the wrong answers were generated.
+
+The scope of that correction matters, and it is narrower than people repeat. SugarCrepe's finding covers the procedurally generated image-to-text benchmarks, and its own framing is about "all these image-to-text compositionality benchmarks". Winoground is handled separately and survives, because its hard negatives are human-curated reorderings rather than machine-generated ones. So the honest position is: the compositional weakness is real and Winoground still demonstrates it, and several of the benchmarks built to measure it at scale were themselves broken.
+
+The 2025 response is instructive about how the problem got attacked. [SigLIP 2](https://arxiv.org/abs/2502.14786) did not invent a better contrastive loss. It kept the objective and surrounded it: "we extend the original image-text training objective with several prior, independently developed techniques into a unified recipe -- this includes captioning-based pretraining, self-supervised losses (self-distillation, masked prediction) and online data curation."
+
+Back to the shop. The photo retrieves visually similar boots, which is genuinely useful and is the thing the outsole tread is good for. It cannot express `under $150`. It cannot express `wide`. It cannot express size `10.5`. Changing the input modality did not remove a single one of the structured constraints from section 5; it removed the words that used to carry the rest of the query.
+
+{/* Reader can now: state the compositional failure and the state of the evidence for it without overclaiming either, and see that modality change does not dissolve structured predicates */}
+
+### 14. Retrieving the page instead of parsing it
+
+There is a version of this move one level up, and it is the most interesting architectural idea in retrieval right now.
+
+Most document retrieval starts by destroying the document. You take a PDF, run a parser, get text, and index the text. Everything the layout was doing, which column this belongs to, which row of which table, what this heading governs, is gone before retrieval begins.
+
+How much does that cost? Enough that it is the dominant failure mode in at least one careful study. A 2026 benchmark over 23,088 queries against financial documents did an error analysis on its failures and found: "Table structure mismatch is the dominant failure mode (73%): the answer resides in a table whose markdown representation does not embed well." Not the retriever. The representation the retriever was handed.
+
+That is an LLM-produced categorization of a 100-item sample, so treat the exact 73% as directional. The direction is unambiguous, and if you have ever watched a retriever fail to connect `net income in 2019` to a table where `net income` and `2019` sit in different cells, you already knew.
+
+This part of the stack does get studied, incidentally. I nearly wrote in an earlier draft that nobody had measured parser choice as an isolated variable, and that was simply wrong: a 2026 paper [systematically examines it](https://arxiv.org/abs/2604.12047), stating that "We systematically examine multiple PDF parsers and chunking strategies (with varied overlap), along with their potential synergies in preserving document structure and ensuring answer correctness."
+
+The more radical answer is to stop parsing. [ColPali](https://arxiv.org/abs/2407.01449) embeds the page as an image and retrieves it with late interaction over patch embeddings, and it is the section 13 move applied to documents: treat the artifact as a picture rather than as extracted text, and you keep everything the layout was encoding.
+
+On the ViDoRe benchmark it scores 81.3 average nDCG@5 against 67.0 for the strongest text pipeline they tested, which combined a parser, captioning and BGE-M3.
+
+I want to be careful about what that is and isn't. It is an evaluated architecture with a benchmark result. It is not a documented production replacement of anybody's ingestion pipeline, and I have no source that says it is. The distinction matters in a post whose whole argument is about the difference between winning a benchmark and displacing an incumbent.
+
+And it has a bill. The page's multi-vector representation costs "256 KB per page", which for a million-page corpus is 256 GB before you index anything. That is the interaction axis from section 12 presenting its invoice: late interaction bought the layout information, and it paid in storage.
+
+The follow-up is where it gets honest. The same group built a harder benchmark, [ViDoRe V3](https://arxiv.org/abs/2601.08620), with about 26,000 pages and 3,099 human-verified queries across six languages, and their finding both vindicates and deflates: "visual retrievers outperform textual ones, late-interaction models and textual reranking substantially improve performance" and yet "current models still struggle with non-textual elements, open-ended queries, and fine-grained visual grounding." The best model on that leaderboard as of February 2026 scored 63.42 average nDCG@10.
+
+A paradigm won, and the reward for winning was a benchmark that shows how far there is to go. That is roughly what healthy progress looks like.
+
+{/* Reader can now: say when to skip parsing, what it costs in storage, and tell an evaluated architecture apart from a production replacement */}
