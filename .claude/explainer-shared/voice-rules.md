@@ -105,7 +105,7 @@ AI writes four paragraphs that each have the same shape: topic sentence, three s
 
 ## Punctuation rules
 
-**No em dashes.** At all. Not one. Use a comma if the break is light, a period if the break is hard, parentheses if it's a true aside, or a colon if you're introducing something. Em dashes are the single most infamous AI tell in 2025-2026. This applies even if the sentence "feels like it needs one."
+**No em dashes.** At all. Not one. Use a comma if the break is light, a period if the break is hard, parentheses if it's a true aside, or a colon if you're introducing something. This is house style, and it is enforced as house style rather than on the theory that the mark itself is bad writing: plenty of good human writers use em dashes well, and models overuse them. Vic's blog does not use them, so neither do you. Applies even if the sentence "feels like it needs one."
 
 **Use straight quotes** ("like this"), not curly quotes (“like this”). Same for apostrophes: use ' not ’.
 
@@ -151,124 +151,216 @@ Don't force these. One or two per document is enough.
 
 Read the draft out loud in your head. If a sentence sounds like a press release, rewrite it. If it sounds like something you'd say to a colleague, keep it.
 
-## Banned rhetorical moves (added 2026-08-24 after a live rejection)
+## Banned rhetorical moves
 
-The banned-word list above catches vocabulary. It does not catch the thing that actually gets a draft rejected, which is **performing insight instead of delivering information**. Every example below passed the word check and was still cringe.
+The banned-word list above catches vocabulary. It does not catch what actually gets a draft rejected: **performing insight instead of delivering information**. Every example below passes the word check and is still bad.
 
-Vic's own words on the three that broke him: "no one writes like this", "so fucking LLM-ism", "oh for fuck sake". Treat this section as higher priority than the word list.
+Added 2026-08-24 after Vic rejected a draft mid-read, then revised after an adversarial review of these rules. His three examples were "It's slow by an amount somebody wrote down", "Here is the part that took me a while to see", and "In the cases I found, the thing each generation gave up was not the thing its benchmark measured".
+
+**The governing principle, which matters more than any individual rule below:** ban empty performance, not emphasis, rhythm, personality or ordinary syntax. The question for any device is whether it carries information or merely changes the lighting. Nothing here is a quota. Every rule is a test.
 
 ### 1. The false reveal
 
-Setting up a discovery so the reader feels let in on something.
+Manufacturing anticipation instead of supplying information.
 
 - Bad: "Here is the part that took me a while to see."
 - Bad: "Here's the thing I expected to matter and doesn't."
-- Bad: "Now the detail I find genuinely funny."
-- Bad: "And here is the part worth sitting with."
 - Bad: "But here's where it gets interesting."
-- Better: delete the setup and state the fact. If the fact is interesting, the reader will notice without being told to.
+- Better: delete it and state the fact.
 
-The test: if you can cut the sentence and the next sentence still lands, it was throat-clearing dressed as intimacy.
+It also borrows credibility from an undocumented struggle: this took me a while, therefore it must be subtle. Test: cut the sentence. If the next one still lands, it was throat-clearing.
 
 ### 2. Fake-plain folksiness
 
-Reaching for a homely phrasing to sound unpretentious, and landing contrived.
+Sacrificing precision to advertise informality.
 
 - Bad: "It's slow by an amount somebody wrote down."
-- Bad: "the 1970s half was what blew up"
-- Bad: "and that's the whole ballgame"
-- Better: "Ding and Suel measured it: 225.7 ms per query."
+- Better: "Ding and Suel measured 225.7 ms per query."
 
-Plain means using ordinary words for the real thing. It does not mean adopting a folksy register you would not use out loud.
+Note what the bad version destroys: "an amount" replaces a number, "somebody" replaces a source, "wrote down" replaces measured. **Never make a technical claim less specific in order to sound casual.** Plain means ordinary words for the real thing, not a register you would not use aloud.
 
-### 3. "Quiet" and its family
+### 3. The thesis-shaped abstraction
 
-Reported as one of the strongest 2026 tells across Claude, ChatGPT and Gemini. The model reaches for it to add weight to an ordinary observation.
+Compressing a concrete relationship into a symmetrical sentence built from placeholders. This is the one that caught Vic's third example, and the first version of these rules missed it.
 
-Banned: quiet, quietly, the quiet truth, quietly doing, unspoken, invisible (figurative), hidden (figurative), the part nobody talks about.
+- Bad: "The thing each generation gave up was not the thing its benchmark measured."
+- Bad: "What the system gained in scale, it lost in legibility."
+- Bad: "The constraint became the capability."
+- Better: name both sides. "OneRetrieval replaced the inverted-index branch, and had to rebuild same-day term intervention first, reaching 0.553 activation against the index's 0.761."
+
+Test: circle every instance of thing, what, this, that, capability, constraint, property. If the reader must unpack two or more to recover the claim, put the real nouns back.
+
+### 4. The synthetic aphorism
+
+Writing a portable maxim where the argument needs a bounded claim.
+
+- Bad: "Every optimization is a bet about the future."
+- Bad: "A benchmark is a theory wearing numbers."
+- Better: say what happened in this case, with the specifics attached.
+
+Test: could the sentence work as a pull quote with no surrounding paragraph? If yes, check whether it is explaining or just sounding quotable.
+
+### 5. Hiding the mechanism inside a smooth causal sentence
+
+The most damaging failure in a technical explainer, and the easiest to miss because the sentence reads well.
+
+- Bad: "The denser representation improves performance by reducing overhead."
+- Bad: "Caching enables the system to scale more efficiently."
+- Better: "The index stores document IDs as gaps between adjacent values. The smaller integers need fewer bytes, so each posting list costs fewer cache-line reads."
+
+Test: underline every causal connector and verb (because, therefore, so, allows, enables, drives, leads to, results in, improves, reduces, trades). For each, ask what concrete operation carries A into B. If the sentence does not name it, the explanation skipped the step the reader came for.
+
+### 6. Atmospheric "quiet"
+
+Reported as a top 2026 tell across Claude, ChatGPT and Gemini: the model reaches for it to add weight to an ordinary observation.
 
 - Bad: "what the incumbent was quietly doing"
-- Better: "what the incumbent was doing that nothing measured"
+- Better: "what the incumbent could do that nothing measured"
 
-### 4. The honesty flourish
+**Scope: ban the atmospheric use, not the words.** Hidden state, hidden layers, invisible Unicode characters, quiet periods and silent corruption are exact technical terms and stay.
 
-Announcing your own integrity instead of just being accurate.
+### 7. The honesty flourish
 
-Banned: "the honest version", "the honest answer", "the honest claim", "to be honest", "I want to be careful here", "let me be precise", "the truthful framing".
+Announcing your own integrity instead of being accurate.
 
-- Bad: "The honest position is that the failure is real and the benchmarks were broken."
+- Bad: "The honest version is that the failure is real and the benchmarks were broken."
 - Better: "The failure is real. Several benchmarks built to measure it were broken."
 
 State the caveat. Do not narrate that you are being scrupulous.
 
-### 5. Intensifier crutches
+### 8. Intensifiers that request emphasis
 
-Words used for emphasis rather than meaning. Cut on sight unless the sentence is false without them.
+genuinely, truly, deeply, really, simply, fundamentally, entirely, completely, precisely, exactly.
 
-genuinely, actually (as emphasis), simply, precisely, exactly (as emphasis), truly, really, deeply, fundamentally, entirely, completely, absolutely.
+Keep an intensifier when it adds a measurable distinction ("the file is completely empty" distinguishes zero bytes from nearly empty), corrects an expectation ("BM25 actually beats it out of domain"), or is speech the author would naturally use. Cut it when it is only a volume knob.
 
 - Bad: "That is genuinely the most interesting result here."
 - Better: "That result is the one to remember."
 
-"Actually" is allowed when it marks a real contrast with a stated belief ("BM25 actually beats it out of domain"), not as a volume knob.
+### 9. Tour-guide transitions
 
-### 6. The portentous one-line paragraph
+Narrating movement through the article instead of making the next claim.
 
-One short sentence alone on a line, used as a drumbeat. Fine once in a long piece. A tic by the third time.
+- Bad: "To understand why, we need to step back." / "This brings us to the second problem." / "Let's unpack what is happening."
+- Better: begin with the cause, problem or example.
 
-- Bad, three times in one act: "Nobody does that." / "They are about to stop." / "Remember it."
-- Budget: at most one per 3,000 words, and only where the sentence is doing real work.
+Test: delete it. If the section still makes sense, leave it deleted.
 
-Note this rule modifies the "vary paragraph length" advice elsewhere in this file. Vary length, yes. Do not use the one-line paragraph as a rhythm instrument.
+### 10. Reader stage directions
 
-### 7. Significance tails
+- Bad: "Notice what happened here." / "Keep that number in mind." / "It is easy to miss how strange this is."
+- Better: put the important fact where it will be noticed, and refer back to the number when it matters.
 
-A participial or relative clause bolted on to tell the reader what the fact means. Confirmed as a top AI tell by Wikipedia's own signs-of-AI-writing guide.
+Keep only commands needed to perform an actual procedure ("drag the slider").
 
-- Bad: "...which is the argument for running both."
-- Bad: "...marking the point where the two camps meet."
-- Bad: "...highlighting why the cascade exists."
-- Better: end the sentence. If the significance needs saying, make it its own sentence with an actual claim in it.
+### 11. The fragment drumroll
 
-### 8. Rhetorical question as a transition
+- Bad: "No migration. No fallback. No second chance." / "The result? Total failure."
+- Test: join the fragments into a normal sentence. If no meaning disappears, the fragmentation was theatrical.
 
-- Bad: "So how do you replace something whose value is a property your architecture cannot express? You build the property in."
-- Better: "They rebuilt the capability first."
+### 12. Anaphora by template
 
-### 9. "That is what X is about" / "That is the point"
+- Bad: "It works because the data is small. It works because the writes are rare."
+- Test: underline the first four words of each sentence in a paragraph. Three matching openings need a rhetorical reason beyond rhythm.
 
-Telling the reader the thesis of the paragraph they just read.
+### 13. The concession reflex
 
-- Bad: "That is the point of this section."
-- Bad: "Both of these are true. That is the point."
-- Better: cut it. If the paragraph did not make the point, fix the paragraph.
+Staging an imaginary objection.
 
-### 10. "Worth" constructions
+- Bad: "Yes, the model is faster. But speed is not the whole story." / "To be fair, the authors could not have predicted this workload."
+- Test: who made the objection, and does answering it change the argument? If nobody did, cut the exchange.
 
-worth noting, worth knowing, worth having, worth one paragraph, worth sitting with. All are the writer telling the reader how much to care.
+### 14. Synonym rotation
 
-- Bad: "One caution here is worth a paragraph."
-- Better: state the caution.
+Changing terms to avoid repetition, accidentally implying distinctions.
 
-### 11. Over-narrating your own process
+- Bad: calling one component the engine, the platform, the system, the layer and the machinery within a page.
+- Test: list the labels for each major component. If several point at the same thing, pick one and keep it.
 
-Some process is honest and useful, especially when a correction changed the argument. Too much is navel-gazing and belongs in a research log.
+### 15. Generic personification
+
+- Bad: "The benchmark wants throughput." / "The cache knows which objects matter."
+- Better: "The benchmark rewards throughput." / "The cache retains objects by access-frequency count."
+- Test: if a nonhuman subject wants, knows, believes, prefers, forgets or refuses, name the actual mechanism.
+
+### 16. Fake quotations from an imagined reader
+
+- Bad: "You might be thinking, 'Why not just add another index?'"
+- Better: state the objection declaratively if it is real. "A second index would double write amplification."
+
+### 17. Exhaustive preview prose
+
+- Bad: "We will first look at indexing, then retrieval, and finally evaluation."
+- Better: start with indexing. If headings already provide the map, delete the preview.
+
+### 18. The appositive stack
+
+- Bad: "BM25, the classic probabilistic ranking function, a fixture of modern search systems, remains the baseline."
+- Test: if a noun takes two comma-delimited descriptions before the main verb arrives, split the sentence.
+
+### 19. Thesis restatement
+
+- Bad: "That is the point of this section." / "Both of these are true. That is the point."
+- If the paragraph did not make the point, fix the paragraph.
+
+### 20. "Worth" constructions
+
+worth noting, worth knowing, worth sitting with. The writer telling the reader how much to care. State the thing.
+
+### The one-line paragraph: a test, not a quota
+
+An earlier version of this file capped these at one per 3,000 words. That was the wrong instrument, and the adversarial review was right to reject it. A long essay may legitimately contain six sharp turns; another may contain one and use it badly.
+
+A one-line paragraph is earned when the break marks a real change in the argument: a conclusion, a reversal, a consequence, or a shift of subject that would otherwise blur. "And yet." works when everything before establishes an expectation and everything after demonstrates the exception. The words are not carrying it alone; the structure on both sides earns the pause.
+
+It is a tic when the isolation manufactures importance: the sentence is vague enough to fit anywhere, the surrounding prose has not earned the drama, several sections use the same beat, or the line previews the next point rather than making one.
+
+The test:
+
+1. Put the sentence back into the preceding paragraph.
+2. Read both aloud.
+3. Name the exact conceptual boundary the break represents.
+4. Ask what the white space adds. If the answer is only "emphasis", put it back.
+5. Substitution check: could another punchy sentence from the essay sit in that slot without damaging the logic? If yes, the break is decorative.
+
+### Process asides: a test, not a quota
+
+Keep a process note when it does at least one of these: explains why evidence was excluded, reveals a material correction, defines the limit of your knowledge, or helps the reader avoid repeating your mistake.
+
+Cut it when it merely acts out diligence, surprise or humility.
 
 - Keep: "I had the percolation threshold in an earlier draft and took it out, because it does not survive contact with the actual graphs."
-- Cut: "I nearly wrote X and that was simply wrong." "I have tried three times to write a rule that survives its own evidence."
+- Cut: "I nearly wrote X and that was simply wrong."
 
-Budget: at most two process asides in a long post, and each must change what the reader should believe.
+### Cadence
 
-### 12. Cadence uniformity
+Reported as the single biggest 2026 tell and the one that survives the most rewriting. But sentence length is only half of it: ten sentences varying from 10 to 30 words still read as machine-made if all ten are subject-verb-object followed by a qualifying clause. And a mechanical short-medium-long pattern just replaces one generated rhythm with another.
 
-Reported as the single biggest 2026 tell, and the one that survives the most rewriting. Runs of 18-to-24-word sentences all in a row read as machine-written even when every word is fine.
+The editing pass:
 
-After drafting, read a page and count sentence lengths. If five consecutive sentences are all within a few words of each other, break the run: merge two into a long one, or cut one to four words.
+1. Take two representative pages, not only the opening.
+2. Mark each sentence S (1-8 words), M (9-20) or L (21+).
+3. Mark each sentence's opening shape: declaration, dependent clause, list, question, fragment, compound.
+4. Flag four consecutive sentences in the same length band.
+5. Flag three consecutive sentences with the same opening or clause structure.
+6. Read the paragraph aloud before changing anything.
+7. Revise according to the argument, not the chart: combine sentences developing one thought, shorten the actual conclusion, split sentences carrying separate claims.
 
-### The self-check for this section
+Do not vary length just to make the distribution look noisy. Cadence should follow the reasoning. Explanation lengthens; findings and consequences can be short; a qualification belongs beside the claim it qualifies.
 
-Read any paragraph you are pleased with. Ask: am I telling the reader something, or am I performing having-something-to-tell-them? If the second, rewrite it as a plain declarative and see what is left. Usually the plain version is the whole content, and the performance was the padding.
+### On "use small idiosyncrasies"
 
+Elsewhere this file suggests adding occasional informalisms, self-corrections and offhand comments to make text feel written. **For a language model that advice is dangerous, and it produces exactly the false intimacy Vic rejected.** "I'll be honest", cute parentheticals and references to rewriting are model costumes.
+
+Preserve idiosyncrasies that arise from the author's actual experience. Never add them as texture.
+
+### What the regex cannot do
+
+`scripts/voice-check.sh` greps the greppable subset of these rules. It catches stored phrasings and misses every paraphrase, and it will flag legitimate technical uses of words like hidden, quiet and exactly. A clean exit means the obvious tells are gone. It is not evidence the prose is good.
+
+### The self-check
+
+Read any paragraph you are pleased with. Are you telling the reader something, or performing having-something-to-tell-them? If the second, rewrite it as a plain declarative and see what is left. Usually the plain version was the whole content.
 
 ## Quick self-check before sending
 
