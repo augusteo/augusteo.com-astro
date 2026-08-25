@@ -44,9 +44,7 @@ Bucket 2 is the one that invites abuse. It means "cited for the mechanism this w
 
 **Length:** ~24,000 words, ~55-minute read. Comparable to `ssl-pretraining-recipes` (22.8k words, 13 figures).
 
-**Figure mix:** 13 figures. 11 `static-svg`, 2 `interactive-canvas`. The two interactive figures clear the override rule under clause 1 (continuous parameter sweep the reader cannot simulate mentally):
-- BM25 `k1` / `b` saturation and length-normalization sweep.
-- Filtered-subgraph degree collapse: as selectivity `s` falls, watch expected surviving degree per node fall with it, against ACORN's `M` threshold. NOT named percolation and NOT drawn as a percolation threshold, because Gate 0 rejected that model twice. The figure visualizes ACORN's expected-degree result and its disconnection bound with the no-predicate-clustering assumption stated on the figure itself, plus a second panel showing that a filter correlated with the embedding geometry breaks the random-removal assumption.
+**Figure mix:** 13 figures, all `static-svg` as of Gate 1 (2026-08-24). Both figures originally typed `interactive-canvas` were re-typed through the unlock protocol with Vic's approval: neither's intuition depended on the reader moving a control. Details in the figure table.
 
 **Title sketch:** *The Index Is Not the System*.
 
@@ -1095,7 +1093,7 @@ Full findings in `notes/search-retrieval-stack-codex-outline-20260824.md`. The r
 
 1. Run Gate 0: codex against Spec + Throughline + Research notes + Claim-source matrix. 10-20 min. Per the `codex-gate-invocation` project memory: `CODEX_HOME=~/.codex-personal codex exec --sandbox read-only -c tools.web_search=true -o <out.md> "$(cat prompt.md)" < /dev/null`. No `-m` flag.
 2. Apply STRUCTURAL findings; record in a `## Codex research review` section and the Codex history table.
-3. Phase 3: outline plus figure table, 13 figures (11 static-svg, 2 interactive-canvas). Number sections; verify the throughline threads every act.
+3. Phase 3: outline plus figure table, 13 figures, all static-svg. Number sections; verify the throughline threads every act.
 4. Gate 1.
 
 ### How to resume from a fresh context
