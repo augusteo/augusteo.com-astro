@@ -733,7 +733,50 @@ A cross-encoder says: completely, at query time. Concatenate them, run the whole
 
 ColBERT sits in between and the trick is timing. Encode both sides independently, keeping one vector per token rather than one per document, then do a cheap interaction at the end. The paper describes the payoff as "gaining the ability to pre-compute document representations offline, considerably speeding up query processing", while keeping the fine-grained comparison that a cross-encoder does. The reported result is "two orders-of-magnitude faster and requiring four orders-of-magnitude fewer FLOPs per query" than the cross-encoder it approximates.
 
-{/* TODO: Fig 10: InteractionAxis. Bi-encoder, late interaction, cross-encoder, and what each precomputes. */}
+<figure>
+<svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Three architectures along one axis running from no query-document interaction to full interaction. A bi-encoder encodes query and document separately into one vector each and compares with a dot product, so documents can be encoded offline and indexed, and it can retrieve from the whole corpus. Late interaction encodes both sides separately but keeps one vector per token and compares at the end, so documents are still precomputable but storage multiplies, and it can retrieve or rerank. A cross-encoder concatenates query and document and runs them through a transformer together, so nothing can be precomputed and it can only rerank a shortlist another system produced.">
+  <rect x="0" y="0" width="680" height="260" fill="#F9F5EB"/>
+  <text x="24" y="24" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">INTERACTION BOUGHT, PRECOMPUTATION SOLD</text>
+
+  <line x1="60" y1="44" x2="620" y2="44" stroke="#8F8578" stroke-width="1"/>
+  <polygon points="620,44 612,40 612,48" fill="#8F8578"/>
+  <text x="60" y="38" font-family="JetBrains Mono" font-size="9" fill="#6B6258">no interaction</text>
+  <text x="540" y="38" font-family="JetBrains Mono" font-size="9" fill="#6B6258">full interaction</text>
+
+  <rect x="40" y="60" width="180" height="160" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="52" y="82" font-family="JetBrains Mono" font-size="10" fill="#2563EB">bi-encoder</text>
+  <circle cx="80" cy="112" r="12" fill="#DBEAFE" stroke="#2563EB"/><text x="72" y="116" font-family="JetBrains Mono" font-size="8" fill="#2563EB">q</text>
+  <circle cx="160" cy="112" r="12" fill="#DBEAFE" stroke="#2563EB"/><text x="152" y="116" font-family="JetBrains Mono" font-size="8" fill="#2563EB">d</text>
+  <line x1="92" y1="112" x2="148" y2="112" stroke="#2563EB" stroke-dasharray="2 2"/>
+  <text x="100" y="106" font-family="JetBrains Mono" font-size="8" fill="#2563EB">dot</text>
+  <text x="52" y="152" font-family="serif" font-size="11" fill="#1A1A1A">one vector each</text>
+  <text x="52" y="170" font-family="serif" font-size="11" fill="#059669">docs precomputable</text>
+  <text x="52" y="192" font-family="JetBrains Mono" font-size="9" fill="#059669">CAN RETRIEVE</text>
+  <text x="52" y="210" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">cannot see the pair</text>
+
+  <rect x="250" y="60" width="180" height="160" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="262" y="82" font-family="JetBrains Mono" font-size="10" fill="#0E7490">late interaction</text>
+  <g fill="#CFF0F6" stroke="#0E7490"><rect x="266" y="100" width="14" height="14"/><rect x="284" y="100" width="14" height="14"/><rect x="302" y="100" width="14" height="14"/></g>
+  <g fill="#CFF0F6" stroke="#0E7490"><rect x="360" y="100" width="14" height="14"/><rect x="378" y="100" width="14" height="14"/><rect x="396" y="100" width="14" height="14"/></g>
+  <g stroke="#0E7490" stroke-width="0.75"><line x1="280" y1="114" x2="367" y2="114"/><line x1="298" y1="114" x2="385" y2="114"/><line x1="316" y1="114" x2="403" y2="114"/></g>
+  <text x="262" y="152" font-family="serif" font-size="11" fill="#1A1A1A">one vector per token</text>
+  <text x="262" y="170" font-family="serif" font-size="11" fill="#059669">docs precomputable</text>
+  <text x="262" y="192" font-family="JetBrains Mono" font-size="9" fill="#059669">CAN RETRIEVE</text>
+  <text x="262" y="210" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">storage multiplies</text>
+
+  <rect x="460" y="60" width="180" height="160" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="472" y="82" font-family="JetBrains Mono" font-size="10" fill="#B8651A">cross-encoder</text>
+  <rect x="486" y="98" width="120" height="20" fill="#FBE9CE" stroke="#B8651A"/>
+  <text x="496" y="112" font-family="JetBrains Mono" font-size="8" fill="#B8651A">[ q + d ] together</text>
+  <text x="472" y="152" font-family="serif" font-size="11" fill="#1A1A1A">one score, per pair</text>
+  <text x="472" y="170" font-family="serif" font-size="11" fill="#B91C1C">nothing precomputable</text>
+  <text x="472" y="192" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">RERANK ONLY</text>
+  <text x="472" y="210" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">sees everything</text>
+
+  <text x="24" y="246" font-family="serif" font-size="12" fill="#1A1A1A">Where a model sits on this axis decides where it can sit in a stack. That is why the funnel has the shape it does.</text>
+</svg>
+<figcaption><strong>Fig 10.</strong> One axis explains three architectures. A cross-encoder cannot retrieve, not because it is slow but because its representation does not exist until the query arrives, so there is nothing to index. Everything a stack does downstream is a consequence of that trade.</figcaption>
+</figure>
 
 So the axis is: interaction bought, precomputation sold. You cannot have both, and where you sit on it determines where in a stack you can be. That is the whole reason the next act's cascade has the shape it does.
 
@@ -773,7 +816,41 @@ Which also tells you what it never rewarded.
 
 Nothing in that objective asks the model to distinguish `a red bag with a black strap` from `a black bag with a red strap`. Both captions contain the same words, both plausibly describe a scene with a bag and two colours, and a training signal built on batch-level matching almost never has to tell them apart. [Winoground](https://arxiv.org/abs/2204.03162) tested precisely this, pairing two images with two captions built from identical words in different orders, and found that of a diverse range of state-of-the-art models, "none of them do much better than chance." [ARO](https://arxiv.org/abs/2210.01936) found the same shape at scale: "a severe lack of order sensitivity", along with attribute-binding failures.
 
-{/* TODO: Fig 11: SharedSpaceBlindSpot. Two images and two captions with identical words in different order, in one space. The measured failure, not an asserted internal mechanism. */}
+<figure>
+<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Two photographs and two captions built from identical words in different orders: a red bag with a black strap, and a black bag with a red strap. Both captions and both images are mapped into one shared embedding space, where all four land close together, because a training objective that matches images to captions across a batch is almost never required to tell word orderings apart. A note records that on this kind of test no state-of-the-art model did much better than chance, and that several benchmarks built to measure the failure at scale were later found hackable by models that never see the image.">
+  <rect x="0" y="0" width="680" height="250" fill="#F9F5EB"/>
+  <text x="24" y="24" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">IDENTICAL WORDS, DIFFERENT ORDER</text>
+
+  <rect x="24" y="38" width="110" height="70" fill="#EDE5D4" stroke="#8F8578"/>
+  <rect x="48" y="58" width="62" height="34" rx="4" fill="#B91C1C"/>
+  <rect x="44" y="52" width="70" height="8" fill="#1A1A1A"/>
+  <text x="24" y="124" font-family="JetBrains Mono" font-size="9" fill="#6B6258">red bag, black strap</text>
+
+  <rect x="24" y="140" width="110" height="70" fill="#EDE5D4" stroke="#8F8578"/>
+  <rect x="48" y="160" width="62" height="34" rx="4" fill="#1A1A1A"/>
+  <rect x="44" y="154" width="70" height="8" fill="#B91C1C"/>
+  <text x="24" y="226" font-family="JetBrains Mono" font-size="9" fill="#6B6258">black bag, red strap</text>
+
+  <rect x="250" y="38" width="300" height="172" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="262" y="58" font-family="JetBrains Mono" font-size="9" fill="#6B6258">one shared embedding space</text>
+  <circle cx="392" cy="124" r="30" fill="#DBEAFE" opacity="0.55"/>
+  <circle cx="382" cy="116" r="5" fill="#2563EB"/>
+  <circle cx="398" cy="120" r="5" fill="#0E7490"/>
+  <circle cx="388" cy="134" r="5" fill="#B8651A"/>
+  <circle cx="402" cy="132" r="5" fill="#9333EA"/>
+  <text x="300" y="180" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">both images and both captions,</text>
+  <text x="300" y="196" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">all in nearly the same place</text>
+
+  <text x="570" y="100" font-family="serif" font-size="11" fill="#1A1A1A">Nothing in a</text>
+  <text x="570" y="116" font-family="serif" font-size="11" fill="#1A1A1A">batch-matching</text>
+  <text x="570" y="132" font-family="serif" font-size="11" fill="#1A1A1A">objective ever</text>
+  <text x="570" y="148" font-family="serif" font-size="11" fill="#1A1A1A">had to tell</text>
+  <text x="570" y="164" font-family="serif" font-size="11" fill="#1A1A1A">these apart.</text>
+
+  <text x="24" y="244" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">Measured: no state-of-the-art model beat chance on this test. Separately, several benchmarks built to measure it at scale turned out to be solvable without the image.</text>
+</svg>
+<figcaption><strong>Fig 11.</strong> The compositional blind spot, and why it is a property of the objective rather than a bug. Training rewarded matching an image to its caption against other captions in the batch, a task you can win without ever attending to word order. The correction matters too: the failure is real, and several benchmarks built to measure it were later shown to be beatable by models that never look at the picture.</figcaption>
+</figure>
 
 Now the correction, because this is a case where the literature policed itself and the summary version usually gets it wrong.
 
@@ -865,7 +942,45 @@ They also chose a radius condition over top-K, and the reason is the one section
 
 So: the retrieval stage is not one thing. It is several sources, feeding a common pool.
 
-{/* TODO: Fig 12: CascadeBudget. The funnel. Only sourced boxes carry numbers, each labelled with its domain. */}
+<figure>
+<svg viewBox="0 0 680 330" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="A retrieval funnel drawn as five stages. Query understanding feeds several parallel candidate sources: a term index, a dense index, and behavioural sources. Those feed a first-pass ranker, then a full ranker, then blending and policy. Only two boxes carry numbers, both labelled as coming from a display advertising system rather than from search: about ten thousand candidates entering the first-pass ranker and several hundred leaving it, under a stated ten to twenty millisecond limit covering both ranking stages. A note records that in one search deployment the nearest-neighbour condition was implemented as an operator inside the term index rather than as a separate service.">
+  <rect x="0" y="0" width="680" height="330" fill="#F9F5EB"/>
+  <text x="24" y="22" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">THE FUNNEL. NUMBERS ONLY WHERE A SOURCE GIVES ONE.</text>
+
+  <rect x="24" y="34" width="140" height="34" fill="#EDE5D4" stroke="#8F8578"/>
+  <text x="36" y="55" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">query understanding</text>
+
+  <g stroke="#8F8578"><line x1="94" y1="68" x2="94" y2="86"/><line x1="94" y1="86" x2="330" y2="86"/></g>
+
+  <rect x="24" y="98" width="140" height="30" fill="#CFF0F6" stroke="#0E7490"/><text x="36" y="118" font-family="JetBrains Mono" font-size="9" fill="#0E7490">term index</text>
+  <rect x="180" y="98" width="140" height="30" fill="#DBEAFE" stroke="#2563EB"/><text x="192" y="118" font-family="JetBrains Mono" font-size="9" fill="#2563EB">dense index</text>
+  <rect x="336" y="98" width="140" height="30" fill="#D1FAE5" stroke="#15803D"/><text x="348" y="118" font-family="JetBrains Mono" font-size="9" fill="#15803D">behavioural sources</text>
+  <text x="492" y="118" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">several sources, one pool</text>
+
+  <g stroke="#8F8578"><line x1="94" y1="128" x2="94" y2="142"/><line x1="250" y1="128" x2="250" y2="142"/><line x1="406" y1="128" x2="406" y2="142"/><line x1="94" y1="142" x2="406" y2="142"/><line x1="250" y1="142" x2="250" y2="156"/></g>
+
+  <rect x="150" y="156" width="200" height="38" fill="#FBE9CE" stroke="#B8651A"/>
+  <text x="162" y="180" font-family="JetBrains Mono" font-size="10" fill="#B8651A">L1: first-pass ranker</text>
+  <text x="366" y="172" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">~10,000 candidates in</text>
+  <text x="366" y="188" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">several hundred out</text>
+
+  <line x1="250" y1="194" x2="250" y2="212" stroke="#8F8578"/>
+  <rect x="150" y="212" width="200" height="38" fill="#FBE9CE" stroke="#B8651A"/>
+  <text x="162" y="236" font-family="JetBrains Mono" font-size="10" fill="#B8651A">L2: full ranker</text>
+  <text x="366" y="236" font-family="JetBrains Mono" font-size="9" fill="#6B6258">cross features live here</text>
+
+  <line x1="250" y1="250" x2="250" y2="266" stroke="#8F8578"/>
+  <rect x="150" y="266" width="200" height="34" fill="#EDE5D4" stroke="#8F8578"/>
+  <text x="162" y="288" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">blending and policy</text>
+
+  <rect x="366" y="200" width="290" height="46" fill="#F4EEE3" stroke="#C9BEAA"/>
+  <text x="376" y="218" font-family="JetBrains Mono" font-size="9" fill="#6B6258">10-20 ms limit, both ranking stages</text>
+  <text x="376" y="236" font-family="JetBrains Mono" font-size="9" fill="#B8651A">source: a display advertising system, not search</text>
+
+  <text x="24" y="320" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">In one search deployment the nearest-neighbour condition was added as an operator inside the term index, so other clauses of the query could prune it.</text>
+</svg>
+<figcaption><strong>Fig 12.</strong> The stack, with the fan-out figures carrying the domain they came from. The budget is what forces a cheap model at L1, and the cheap model is the one that structurally cannot see the query and the document together, which is why L2 exists. Note where the dense index sits: one source among several, not the retrieval layer.</figcaption>
+</figure>
 
 And then everything downstream has to be paid for. Alibaba published the numbers for their display advertising system, which is adjacent to search rather than search itself, and the shape transfers even where the exact figures shouldn't be borrowed. In [that system](https://arxiv.org/abs/2007.16122), "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand" and it "selects top N candidates", where "The magnitude of N is usually several hundred". The budget: "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds."
 
@@ -939,7 +1054,44 @@ That is the same constraint as section 16's, viewed from the evaluation side. Th
 
 They also give the sensitivity floor, which is worth memorizing before you dismiss a small number: "we have observed statistically significant differences in online bookings from models that differed in NDCG by as little as 0.7%."
 
-{/* TODO: Fig 13: OfflineOnlineGap. Airbnb's online losses against what offline reported, drawing only what the rows support. */}
+<figure>
+<svg viewBox="0 0 680 290" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Three model changes at Airbnb plotted against their online booking outcomes: minus 1.5 percent, minus 1.6 percent, and minus 0.67 percent. For the third, offline NDCG was deliberately tuned to match the baseline, so it looked neutral before launch. Below, a diagram explains why: the offline evaluation can only score documents that the previous model already showed and logged, so any change that surfaces different documents is invisible to it.">
+  <rect x="0" y="0" width="680" height="290" fill="#F9F5EB"/>
+  <text x="24" y="24" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">THREE CHANGES, ONLINE BOOKING OUTCOME</text>
+
+  <line x1="200" y1="40" x2="200" y2="140" stroke="#8F8578"/>
+  <text x="206" y="52" font-family="JetBrains Mono" font-size="9" fill="#6B6258">0%</text>
+  <g font-family="JetBrains Mono" font-size="9" fill="#6B6258">
+    <text x="24" y="66">monotonic price term</text>
+    <text x="24" y="98">generalized monotonicity</text>
+    <text x="24" y="130">soft monotonicity</text>
+  </g>
+  <rect x="110" y="56" width="90" height="16" fill="#B91C1C"/><text x="60" y="68" font-family="JetBrains Mono" font-size="9" fill="#B91C1C" text-anchor="end"> </text>
+  <rect x="104" y="88" width="96" height="16" fill="#B91C1C"/>
+  <rect x="160" y="120" width="40" height="16" fill="#B91C1C"/>
+  <g font-family="JetBrains Mono" font-size="10" fill="#B91C1C">
+    <text x="206" y="68">-1.5% bookings</text>
+    <text x="206" y="100">-1.6% bookings</text>
+    <text x="206" y="132">-0.67% bookings</text>
+  </g>
+  <text x="330" y="132" font-family="serif" font-size="11" font-style="italic" fill="#1A1A1A">and this one was tuned so offline NDCG matched the baseline exactly</text>
+
+  <text x="24" y="176" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">WHY OFFLINE COULD NOT SEE IT</text>
+  <rect x="24" y="188" width="280" height="76" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="36" y="208" font-family="JetBrains Mono" font-size="9" fill="#6B6258">what the log contains</text>
+  <g fill="#93C5FD"><rect x="36" y="218" width="26" height="26"/><rect x="68" y="218" width="26" height="26"/><rect x="100" y="218" width="26" height="26"/><rect x="132" y="218" width="26" height="26"/></g>
+  <text x="36" y="258" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">only what the old model showed</text>
+
+  <rect x="336" y="188" width="320" height="76" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="348" y="208" font-family="JetBrains Mono" font-size="9" fill="#6B6258">what the new model would surface</text>
+  <g fill="#93C5FD"><rect x="348" y="218" width="26" height="26"/><rect x="380" y="218" width="26" height="26"/></g>
+  <g fill="#FEF3C7" stroke="#B8651A"><rect x="412" y="218" width="26" height="26"/><rect x="444" y="218" width="26" height="26"/><rect x="476" y="218" width="26" height="26"/></g>
+  <text x="348" y="258" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">the orange ones are not in the log, so they cannot be scored</text>
+
+  <text x="24" y="284" font-family="serif" font-size="12" fill="#1A1A1A">An offline evaluation re-ranks history. A retrieval change edits what history would have been.</text>
+</svg>
+<figcaption><strong>Fig 13.</strong> The most expensive failure in this post, because nothing warns you. Three changes looked acceptable or neutral before launch and lost bookings, and the third was deliberately tuned to be offline-neutral. The reason is structural rather than a tuning mistake: a log-replay evaluation can only score documents your previous model chose to show.</figcaption>
+</figure>
 
 Now the 2026 version of the problem, which is worse, because the industry's response to expensive human judgments has been to generate them with a model.
 

@@ -1125,8 +1125,8 @@ Last touched: 2026-08-24.
 | 2. Research / fact-check | done; Gate 0 closed at cap after 3 runs, all findings applied | `## Research notes`, matrix (~161 rows), `## Codex research review` |
 | 3. Outline + figure list | done; Gate 1 closed at cap after 3 runs, all findings applied | `## Outline` |
 | 4. Draft prose | done, 23 sections, ~15.8k words, voice-check clean | `src/content/blog/search-retrieval-stack/index.mdx` |
-| 5. Implement figures | in progress | per-figure table below |
-| 6. Playwright review | 0 of 13 | playwright snapshots reviewed |
+| 5. Implement figures | done, 13 of 13, all static-svg | per-figure table below |
+| 6. Playwright review | next | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
 
 ### Codex history
@@ -1144,19 +1144,19 @@ Last touched: 2026-08-24.
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
-| 1 | ScanCost | static-svg | TODO | |
-| 2 | PostingList | static-svg | TODO | |
-| 3 | Bm25Dials | static-svg | TODO | |
-| 4 | BlockMaxSkip | static-svg | TODO | |
-| 5 | DenseVsLexical | static-svg | TODO | |
-| 6 | HnswAnatomy | static-svg | TODO | |
-| 7 | FilteredDegreeCollapse | static-svg | TODO | |
-| 8 | VectorResidence | static-svg | TODO | |
-| 9 | LearnedPostings | static-svg | TODO | |
-| 10 | InteractionAxis | static-svg | TODO | |
-| 11 | SharedSpaceBlindSpot | static-svg | TODO | |
-| 12 | CascadeBudget | static-svg | TODO | |
-| 13 | OfflineOnlineGap | static-svg | TODO | |
+| 1 | ScanCost | static-svg | done | |
+| 2 | PostingList | static-svg | done | |
+| 3 | Bm25Dials | static-svg | done | |
+| 4 | BlockMaxSkip | static-svg | done | |
+| 5 | DenseVsLexical | static-svg | done | |
+| 6 | HnswAnatomy | static-svg | done | |
+| 7 | FilteredDegreeCollapse | static-svg | done | |
+| 8 | VectorResidence | static-svg | done | |
+| 9 | LearnedPostings | static-svg | done | |
+| 10 | InteractionAxis | static-svg | done | |
+| 11 | SharedSpaceBlindSpot | static-svg | done | |
+| 12 | CascadeBudget | static-svg | done | |
+| 13 | OfflineOnlineGap | static-svg | done | |
 
 ### Suggested next batch
 
