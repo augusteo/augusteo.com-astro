@@ -1,0 +1,48 @@
+---
+title: "The Part Nobody Benchmarks"
+description: "Thirty years of search indexes, from posting lists to generative retrieval, and the operational property that decided which ones actually got replaced."
+pubDate: 2026-08-24
+heroAlt: "TODO: hero image not yet selected"
+tags: ["Tech", "AI", "ML"]
+featured: false
+draft: true
+essay: true
+---
+
+*A walk through the history of search indexes, ending at two production deployments from the same company in the same year that reached opposite conclusions about replacing the same component. About a 55-minute read.*
+
+## Act 1 — The only question
+
+### 1. One query, and the scan you cannot afford
+
+Type `waterproof hiking boots wide toe box under $150` into a search box and something answers in a couple of hundred milliseconds. Behind the box is a pile of documents. Call it a hundred million, which is small for a web index and large for a product catalog.
+
+The obvious way to answer is to score every document and sort. Nobody does that, and the reason isn't that it's slow in some hand-wavy sense. It's slow by an amount somebody wrote down.
+
+Ding and Suel measured it in 2011 on GOV2, a crawl of 25.2 million government web pages. Scoring every document containing any query term cost 225.7 milliseconds per query and fully scored 3,815,676 documents. Their [block-max index](https://research.engineering.nyu.edu/~suel/papers/bmw.pdf) answered the same queries in 27.9 milliseconds, fully scoring 21,921 of them.
+
+Look at those two ratios, because they are not the same ratio. The work fell by a factor of about 174. The time fell by a factor of about 8. Skipping documents is enormously effective and nowhere near free, and the distance between those two numbers is where most of the last thirty years of engineering went.
+
+{/* TODO: Fig 1: ScanCost. Documents fully scored, and separately latency, for exhaustive OR vs WAND vs block-max on GOV2, dated. Two axes, not one. */}
+
+So every index ever built answers one question: how do you avoid comparing the query to everything? Trees answer it by cutting space into regions. Inverted indexes answer it by only visiting documents that contain your words. Graphs answer it by walking toward the answer instead of scanning for it. Different answers, same question, and each one buys its speed by giving something up.
+
+Here is the part that took me a while to see.
+
+The thing each generation gives up is almost never the thing its benchmark measures.
+
+An inverted index is not only a fast way to match text. It also sits inside an operational pipeline where someone can inject a term at two in the afternoon and have it take effect by three, without retraining anything. That capability does not appear in nDCG. It does not appear in recall@100. It does not appear in any leaderboard. And in at least one documented production system, it is the reason the inverted index outlived a model that beat it on the metrics anyone had bothered to run.
+
+That is what this post is about. We will walk the history from posting lists to generative retrieval, and at every step ask the same four questions.
+
+What was the incumbent quietly doing that no benchmark measured? What did the challenger win on? Did the challenger preserve that property, or route around it? And what actually happened when someone tried to ship it?
+
+Two notes on how to read what follows, both of which matter.
+
+The boot query is a worked example. It carries the mechanics: it will show you what each generation of machinery can and cannot do, and I will run it through every act. It is not evidence for anything. When I claim something about production systems, the evidence is a cited deployment, not the boots.
+
+And the metrics arrive as they become necessary rather than in a primer up front. When a number appears, I will say what it measures and, where it matters, what it fails to measure. That second half turns out to be the more interesting one: by the end of this post there is a documented case where an automated evaluation ranked systems in almost exactly the reverse of how humans ranked them, and it did so precisely among the systems anyone would actually be choosing between.
+
+The answers are more interesting than "vectors won."
+
+{/* Reader can now: say why an index exists at all, in cost terms, and knows the four questions the rest of the post answers */}
