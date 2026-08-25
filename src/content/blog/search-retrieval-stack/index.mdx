@@ -46,3 +46,51 @@ And the metrics arrive as they become necessary rather than in a primer up front
 The answers are more interesting than "vectors won."
 
 {/* Reader can now: say why an index exists at all, in cost terms, and knows the four questions the rest of the post answers */}
+
+## Act 2 — The lexical machine
+
+### 2. The posting list, and why rare words are the whole trick
+
+The structure that answers the boot query has not changed much since the 1970s. Ding and Suel describe it in one sentence: "An inverted index consists of many inverted lists, where each inverted list Lw is a list of postings describing all places where term w occurs in the collection."
+
+That's it. For every word in the vocabulary, keep a list of the documents containing it. To answer `waterproof hiking boots wide toe box under $150`, you don't look at a hundred million documents. You look at the list for `waterproof`, the list for `hiking`, the list for `toe`, and you work with what's on them.
+
+Why this is fast has nothing to do with clever data structures and everything to do with English. Most words are rare. The list for `waterproof` is a tiny slice of the corpus, and the list for a brand name is smaller still. You skipped the scan because your query happened to name a few uncommon things.
+
+{/* TODO: Fig 2: PostingList. Term to posting list, docID plus frequency, decompressible blocks of 64 or 128. */}
+
+Which tells you exactly where it stops being fast. Some words are not rare at all, and the same paper says so plainly: "The inverted lists of common query terms may consist of many millions or even billions of postings." Add `the` to your query and you have undone the trick. This is why every production system carries a stopword policy, and why the interesting engineering is always about the frequent terms rather than the rare ones.
+
+Two implementation details matter later, so they are worth noticing now.
+
+The lists are compressed, and the compression is not an optimization someone added at the end. On GOV2, 426 GB of raw pages became an 8,759 MB index. Twenty-fold, before anyone talks about vectors.
+
+And the compressed lists are cut into blocks, "of, say, 64 or 128 docIDs, such that each block can be decompressed separately." Nothing in this section needs that fact. Section 4 is built on it.
+
+{/* Reader can now: predict which queries are cheap and which are not, from term frequency alone */}
+
+### 3. BM25's two dials
+
+Having found the documents, you have to order them, and the function that does it is thirty years old and still the thing you have to beat.
+
+BM25 has more moving parts than it needs, but only two of them are ideas. The rest is bookkeeping.
+
+The first idea is that a term should stop paying out. If a page says `waterproof` once, that tells you something. If it says `waterproof` forty times, that tells you almost nothing more, and quite possibly tells you the page is trying too hard. Robertson and Zaragoza name the behaviour directly: "any one term's contribution to the document score cannot exceed a saturation point (the asymptotic limit), however, frequently it occurs in the document."
+
+The dial that controls how fast the payout flattens is `k1`, and the two extremes are worth holding in your head, because the middle follows from them. "for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly." High `k1`, repetition keeps helping. Low `k1`, the second mention is nearly worthless.
+
+{/* TODO: Fig 3: Bm25Dials. Small multiples: three k1 saturation curves, three b length-normalization states. */}
+
+The second idea is that longer documents need handicapping, but not fully, and the reason it's not fully is the interesting bit. A document can be long because it's padded, in which case its term counts are inflated and should be divided down. Or it can be long because it genuinely covers more ground, in which case dividing down is exactly wrong. The paper calls these the verbosity and scope hypotheses and refuses to pick: "The verbosity hypothesis suggests that we should simply normalise any observed tf s by dividing by document length. The scope hypothesis, on the other hand, at least in its extreme version, suggests the opposite."
+
+So you get a dial instead of a decision. "setting b = 1 will perform full document-length normalisation, while b = 0 will switch normalisation off."
+
+Now the part people find unsatisfying. The model does not tell you what to set either dial to. "Concerning the internal parameters, the model provides no guidance on how these should be set. This may be regarded as a limitation of the model." Thirty years of empirical work has landed on roughly `0.5 < b < 0.8` and `1.2 < k1 < 2`, with the honest caveat that the optimum depends on your documents and your queries.
+
+Here's the thing I expected to matter and doesn't.
+
+You may have heard that BM25 is not one algorithm, that implementations differ, and that this is why your numbers never match the paper's. The first half is true. Kamphuis and colleagues took eight variants and tested them properly, and the answer to their own title question is in their conclusion: "no, it does not". Their measurement: "Both an ANOVA and Tukey's HSD show no significant differences between any variant, on all test collections." Differences from something as mundane as your stopword list are larger.
+
+What does differ is more boring and more actionable. Lucene compresses document length into a single byte so it can precompute the normalization term for all 256 possible values. And Anserini, the research toolkit built on Lucene, ships `k1 = 0.9, b = 0.4` where Lucene itself ships `1.2` and `0.75`. Same algorithm, same library underneath, different numbers out. If your BM25 doesn't match a published BM25, look there before you go looking at the formula.
+
+{/* Reader can now: set k1 and b with a reason, and stop blaming variant choice for mismatched numbers */}
