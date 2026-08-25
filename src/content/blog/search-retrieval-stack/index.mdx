@@ -606,3 +606,43 @@ You now know that number cannot tell you whether the ordering is good.
 That is why the last act is not another benchmark.
 
 {/* Reader can now: design an evaluation that would catch the failure they are currently shipping, and know exactly which comparison their automated metric is worst at */}
+
+## Act 7 — Two surfaces, two answers
+
+### 20. The default, clause by clause
+
+Here is what I would build in August 2026, with the reason and the limit attached to each clause. Where the evidence is thin I say so rather than rounding up, and where a finding was measured under conditions unlike yours, those conditions are printed next to it. A recommendation you cannot check is not a recommendation.
+
+**Start with BM25 and make it good.** Not as a nostalgia exercise. Out of domain it is hard to beat. Across 18 datasets and 10 systems, [BEIR](https://arxiv.org/abs/2104.08663) reported:
+
+> "Our results show BM25 is a robust baseline and re-ranking and late-interaction-based models on average achieve the best zero-shot performances, however, at high computational costs."
+
+Note the scope: zero-shot. In-domain, with training data, dense models win, and this clause is not an argument against them. It is an argument against skipping the baseline.
+
+**Tune `k1` and `b` rather than inheriting them.** The model gives no guidance, empirically useful ranges are roughly `1.2 < k1 < 2` and `0.5 < b < 0.8`, and your corpus decides. If your numbers don't match a published result, check your library's defaults before you check the formula: Lucene ships `1.2`/`0.75` and Anserini ships `0.9`/`0.4`.
+
+**Run both retrievers, and expect consistency rather than a jump.** Hybrid's demonstrated benefit is that it stops you falling off a cliff on the corpus you didn't anticipate: in a SIGIR 2026 reproducibility study, a promising lexical variant's "gains largely specific to BRIGHT, while fusion with standard BM25 provides the most consistent improvements across datasets." Scope worth knowing: the fusion measured there was lexical with lexical, not lexical with dense.
+
+**Treat the fusion constant as a parameter.** RRF is fine and it is the default everywhere, but the claim that it needs no tuning does not survive testing: it is "sensitive to its parameters", while a learned convex combination "outperforms RRF in in-domain and out-of-domain settings" and needs only a small labelled set to fit its single weight. On one 23,088-query benchmark, even an equal-weighted combination beat default RRF, 0.726 against 0.695 Recall@5. If you have a few hundred labelled queries, spend them here.
+
+**Rerank, but pick the depth deliberately and verify it helps.** The gains are largest over a weak or lexical first stage, which is the setting most published comparisons use. Against a strong dense first stage, measured for full retrieval rather than re-scoring, "the best existing rerankers provide initial improvements when scoring progressively more documents, but their effectiveness gradually declines and can even degrade quality beyond a certain limit." Deeper is not safer. There is an interior optimum and you have to find yours.
+
+**Choose an embedding model on your own data, not on a leaderboard.** Across 130 tasks and 50 models, "no single method dominates across all task categories", and the failure can be spectacular: the MTEB leader scoring 59.0 there produced 18.3 on reasoning-heavy retrieval. Shortlist on license, latency and dimension; rank the shortlist on a few hundred of your own labelled pairs.
+
+**Truncate by percentage, not to a number.** Embeddings tolerate truncation without special training until you cut deep: "truncated embeddings of non-MRL models are competitive with, and often outperform models trained with MRL" unless reduced by at least 80%. So 1024 to 256 is inside the safe zone and 1536 to 256 is not. "Truncate to 256" is not advice.
+
+**Compress the index, then rescore the survivors at full precision.** This is the shipped pattern and it is not optional: naive binary quantization "requires gathering 10x or 100x additional neighbors to rerank", while a bounded method reaches "above 90% recall with only 3x oversampling" when the oversampled candidates are rescored against the original vectors. The compressed index finds candidates; the uncompressed vectors decide the order.
+
+**Chunk on structure, and skip the overlap.** Respect sentence and paragraph boundaries. Do not pay for embedding-similarity segmentation on top of that. And overlap, the most repeated constant in RAG, "provides no measurable benefit and increases indexing cost" in the one controlled sweep I could find. Scope, and it matters: Natural Questions, SPLADE retrieval, an 8B generator, no reranker. That is one corpus and one pipeline, and it is one more controlled result than the advice it contradicts has.
+
+**Do not use retrieval scores as confidence.** "Confidence calibration is consistently weak across model families, indicating that raw retrieval scores are unreliable for downstream routing without additional calibration." If your abstention logic is a score threshold, it has no evidential basis.
+
+**Build the evaluation before the pipeline, and know which comparison it fails at.** Use an LLM judge for coarse work and system-level ordering, where the correlation is genuinely high. Do not use it to pick between your top few candidates, where Kendall's tau falls to 0.51 among the top 20 and, in a simulated circularity scenario, inverts to −0.40 among the top 5. Keep the judge's model family different from your ranker's. Hand-label the final bake-off. And treat offline metrics as a regression filter rather than a predictor, because the correlation between them and online outcomes does not appear to have been published by anyone.
+
+Two things are missing from that list that you might expect.
+
+There is no clause about how many queries you need to detect a given effect, because I could not verify a number for it. The standard reference reports its power analysis in figures I cannot read as text, and the paper that answers the question directly is one I did not obtain. If someone tells you fifty queries is enough, ask them where that comes from.
+
+And there is no clause telling you to use late chunking, or not to. The technique's own paper claims "superior results across various retrieval tasks"; independent controlled evidence is thinner than that claim, and I would rather say so than pick a side I cannot support.
+
+{/* Reader can now: defend a default stack clause by clause in a design review, including which clauses are weakly evidenced */}
