@@ -4,17 +4,13 @@
 
 **What / who / walk-away.** A long-form explainer on how search actually works, told as the history of the index and the system built on top of it. Scope: search (web, site, product, document), not recommendation or advertising.
 
-**The argument, fourth revision, after three Gate 0 halts:**
+**The argument, fifth revision, after three Gate 0 halts and three Gate 1 halts:**
 
-> Benchmark relevance is not what decides whether a retrieval component gets replaced. What decides it is operational: what the incumbent does that the benchmark never measured, and whether the surface being served actually needs that. The same technology replaces the incumbent on one surface and cannot touch it on another.
+> Two search surfaces at one company, in one year, reached opposite conclusions about replacing the same component. On one, the incumbent branch converted below platform average and survived anyway, because it was the only place operations could inject a term within hours; the system that displaced it had to rebuild that capability first, and got most of the way. On the other, a system with essentially no such capability took the entire traffic. Whether a retrieval component can be replaced turned on an operational property that no relevance benchmark measures, and the two surfaces needed different things.
 
-Two deployments by the same team, in the same company, in the same year, make the point better than any general claim could. In Kuaishou out-of-mall search, the inverted-index branch persisted despite converting below platform average, because it was the only branch where operations could inject a term within hours without retraining; the generative system that finally replaced it had to rebuild that editing path first, and reached 0.553 intervention activation against the inverted index's 0.761. On detail-page search, a system the same authors classify as carrying "essentially no real-time intervention capability" took the entire traffic. Editability was decisive in one place and irrelevant in the other.
+Gate 1 run 3 was right that this cannot be inflated into "benchmark relevance never decides replacement". Two surfaces are two surfaces. What they establish is that the deciding variable was operational rather than benchmark quality **in these documented cases**, and that it differed between surfaces of the same product. The post argues that, shows the mechanics that make it plausible across five earlier acts, and does not claim a law.
 
-The falsification test is per-case and stated in advance: the thesis is wrong wherever a component is replaced purely on benchmark quality, with no operational capability recovered and none needed. It is not a law about all replacements, and the post does not dress it as one. Three prior revisions of this thesis were killed at this gate for exactly that.
-
-Revision history, kept because it is why this version is worth trusting. v1 claimed nothing was ever replaced; killed by OneRec. v2 scoped to search to dodge that; killed by OneSearch and OneRetrieval, both in scope. v3 claimed replacement waits until a successor reimplements the incumbent's operational properties; killed by OneSearch taking the entire detail-page-search traffic while carrying, in the same authors' words, "essentially no real-time intervention capability", which is precisely the observation v3 had named as its own falsifier. v4 stops claiming a general gate and claims surface-dependence, which is what the evidence shows.
-
-One nuance that has to reach the prose, because it sharpens everything: editability was never a property of the inverted index as a data structure. OneRetrieval says "Its editability resides not in the index structure but in the upstream resources that feed it." What survived all those years was the operational pipeline around the index, not the index.
+The reader's takeaway is a question to ask, not a rule to apply: what is my incumbent doing that nothing in my evaluation measures, and does this surface need it?
 
 What the reader walks away able to do: name every stage of a real retrieval stack and what it costs in latency and memory; attribute a relevance failure to the right stage; say what a given index is good at beyond its benchmark score; and explain why the obvious replacement for a component has not happened yet, or what it took when it did.
 
@@ -952,29 +948,31 @@ Each section below names which form it runs and what happens to it.
 **3. BM25's two dials.** Saturation and length normalization, neither constant supplied by the model (L8-L15). The variants question settled (L16-L21).
 **4. Pruning fixed the cost, and could not fix the meaning.** WAND and block-max (L22-L29). Explicit handoff, which is what run 2 asked for: dynamic pruning made term matching affordable at scale and left its semantic limits exactly where they were. That is why section 5 exists.
 **5. The two things term matching cannot do.** Form A hits the vocabulary wall (L34); form B is introduced here and term matching handles it *well*, which is the point. `under $150` is not a term at all (T1, L31, L32).
-*Act 2 ledger. Q1 (unmeasured property): exact match on form B, and cheap structured filtering, via the operational pipeline around the index rather than the index itself (C43 scope). Q2-Q4: deferred to acts 3 and 6.*
+*Act 2 ledger. Q1 (unmeasured property): exact match on form B, which the L rows do support. "Cheap structured filtering" is REMOVED per run 3: T1 supplies only an e-commerce filtering example and C43 concerns editability, so neither backs it. The operational-pipeline point (C43) belongs to act 7; act 2 may foreshadow it but not claim it. Q2-Q4 deferred.*
 
 ### Act 3 — The vector turn
 
-**6. One vector per document, and the objective that puts meaning in it.** Form A works now. D1 supplies the mechanism run 1 said was missing; V1-V3 the architecture and gain; V4 the failure on form B.
+**6. One vector per document, and the objective that puts meaning in it.** D1 supplies the mechanism run 1 said was missing; V1-V3 the architecture and the aggregate gain; V4 the failure on form B. WORDING GUARD from run 3: do NOT write that form A now works. V2 and V3 are aggregate QA retrieval results, not a measured win on this footwear paraphrase. Write what the objective is designed to do and what the measured gains actually were, and keep the footwear case explicitly illustrative.
 **7. Why not a tree, and what a graph does instead.** Trimmed hard per run 2: the high-dimensional failure of partitioning (L33), then HNSW itself (V10-V19), then the flat-graph qualification (V20-V23). The LSH/IVF/PQ/ScaNN catalog is cut; PQ and quantization move to section 9 where they are operationally relevant.
-**8. What a filter does to a graph.** Form A carries `under $150` into the index and breaks it. Taxonomy (V31, V32), the honest mechanism with its assumptions visible (V36, V36b, V36c), the retirement of the percolation model (V37), both repairs and where each loses (V33-V35, V38-V43).
-**9. Where the vector physically lives.** Now also carries compression: PQ (V6-V8), RaBitQ and binary plus rerank (V24, V25), Matryoshka (V26), then storage tiers (V27-V30). Claim scoped per run 2: moving to object storage changed the index family in this documented case, not that every storage move does.
+**8. What a filter does to a graph.** Form A carries `under $150` into the index. WORDING GUARD from run 3: it does not simply break. Degradation is conditional on selectivity, on predicate clustering, and on construction and execution strategy, which is what V36, V36b and V36c say and what V37 refuses to simplify. Taxonomy (V31, V32), the honest mechanism with its assumptions visible (V36, V36b, V36c), the retirement of the percolation model (V37), both repairs and where each loses (V33-V35, V38-V43).
+**9. What the repairs cost, and where the vector ends up living.** Run 3 caught that section 9 did not depend on section 8. It does now, and the dependency is real: every repair in section 8 costs memory. Extra edges multiply build time 4.4x to 5.6x (V38). ACORN oversizes neighbour lists by a factor of gamma (V34). HNSW already charges connection-ID capacity per vector before any of that (V11, V12). So the filtered index the reader just built is the one that no longer fits, and that is what forces the compression and storage decisions: PQ (V6-V8), RaBitQ and binary plus rerank (V24, V25), truncation with its percentage threshold (V26, P15), then the tiers (V27-V30). Scoped: moving to object storage changed the index family in this documented case, not in general.
 *Act 3 ledger. Q1: dense retrieval could not do form B or the price predicate. Q2: form A. Q3: it did not preserve them; the system kept the lexical branch alongside. Q4: deferred to act 6.*
 
 ### Act 4 — The reconvergence
 
 **10. Neural weights in an inverted index.** Learned sparse (R1-R4), the efficiency inversion (R5, R6), doc2query filtering (R7). Both forms run: expansion helps A, and the index it writes into still handles B.
-**11. Two lists, one order.** Fusion (R8, R9), the reversal (R10), the 2026 replication (P2, described as an ablation reporting alpha=0.5 optimal on that benchmark, not as "untuned"). Both forms fused; name which retriever wins each.
+**11. Two lists, one order.** Fusion (R8, R9), the reversal (R10), the 2026 replication (P2). WORDING GUARD from run 3: P2 says an equal-weight convex combination beat default RRF on that benchmark. It does NOT say alpha=0.5 was found optimal. Write the comparison, not an optimality claim. P17's generalization result and P18's reproducibility case belong here too. Both forms fused; name which retriever wins each.
 **12. The interaction axis, and when a reranker earns its latency.** R11-R17. Reranking claims scoped to what rows support; no general ceiling or net-negative claim without a row. Handoff run 2 asked for: every mechanism so far assumes the query and the candidate are text.
 *Act 4 ledger. Q1-Q2 answered; Q3 answered affirmatively, this is the act where the challenger did preserve the incumbent's machinery by writing into it (R2). Q4 deferred.*
 
 ### Act 5 — Searching with a picture
 
 **13. One space for pixels and words.** The photo arrives. Shared space (M1, M2), what it is blind to (M3, M4), the correction at scope (M5, M6), the 2025 fix (M7). The photo cannot express price, width or size, so the structured predicate survives the modality change.
-**14. The case where the pipeline really was replaced.** ColPali, scoped per run 2 to an evaluated architecture and benchmark result rather than a claimed production replacement (M8, M9, M11, M12).
+**14. Retrieving the page instead of parsing it.** ColPali as an evaluated architecture with benchmark results and a storage cost (M8, M9, M11, M12). NOT presented as an observed production replacement; the matrix contains no row for that, and run 3 was right that the previous title claimed one. The photo from section 13 is still live: this is the same move one level up, treating the artifact as an image rather than as extracted text.
 **15. And the case where it was absorbed instead.** The contrast run 2 asked for. One embedding in ANN retrieval, in L1, and as an L2 feature (M15-M18), no model winning everywhere (M19, M20). Ends holding candidates that need pruning, cross-features and business constraints, which is the bridge to act 6.
-*Act 5 ledger. Q3 answered twice, in opposite directions, on two different surfaces. That is the thesis in miniature, before the production evidence arrives.*
+*Act 5 ledger. Q1 and Q2 answered for the visual case. Q3 answered once, for unified embeddings (M15): the embedding was absorbed as a feature at three layers rather than replacing the stack. Section 14 is an evaluated architecture, not a production surface, so it does NOT supply a second, opposite Q3 answer. Run 3 caught the earlier version claiming it did. Q4 waits for act 7.*
+
+*Act 5 closing beat: the outsole photo produces a candidate set. Name it. Those candidates have no price, no width and no size attached, so the structured predicate the photo could not express is still unsatisfied when act 6 opens.*
 
 ### Act 6 — The cascade
 
@@ -982,11 +980,17 @@ Each section below names which form it runs and what happens to it.
 **17. Why L1 is a dot product.** C12-C15, with the advertising and recommendation domains named in the prose.
 **18. The stages disagree.** C16-C18.
 **19. Why your offline number lied.** Airbnb (C22-C26, §2.4 corrected). Then the 2026 evaluation picture: E1-E4 with E2 and E3 narrated as the two separate analyses they are, E7 as the counter-evidence that single-assessor human ground truth has its own problem, E5 and E6 on interleaving and the absence of an offline-to-online coefficient.
-*Act 6 ledger. Q4 answered: the incumbent stayed, and the challenger was built inside it.*
+*Act 6 ledger. Q4 answered: the incumbent stayed, and the challenger was built inside it (C1-C4).*
+
+*Act 6 closing beat, per run 3: return to the boots. The ordering the funnel produced for form A and form B is the one whose offline score looks fine and whose online behaviour is unknown. Section 19 has just shown you cannot tell those apart, which is why act 7 needs production evidence rather than another benchmark.*
 
 ### Act 7 — Two surfaces, two answers
 
-**20. What the controlled studies actually tested.** Replaces the deleted folklore section. No universal absence claims, which run 2 correctly called argument from ignorance and which P9 got wrong outright. Instead: here is what has been tested and under exactly what conditions. Overlap on Natural Questions with SPLADE and no reranker (P4). Chunking baselines and why two studies appear to disagree (P10-P12). Contextual retrieval with its no-chunking caveat (P3). Calibration (P6). Parser choice, which HAS been studied (P9). Fusion (P2). Late chunking's thin independent evidence (P13). Sample sizing, still an open absence with a named next target (P14). Ends with the defensible 2026 default, every clause traceable upward.
+**20. The default, clause by clause.** Run 3 was right that the previous version of this section was unauditable, because it promised "a defensible default" without ever writing one down. So the section IS the default, stated as numbered clauses, each with its supporting row and its scope limit printed beside it. A clause with no row does not appear. Draft target: eight to twelve clauses covering first stage, fusion, reranking depth, embedding choice and truncation, chunking, and evaluation practice. Each clause reads: do X, because ROW, and this was measured under CONDITIONS so it may not hold when Y.
+
+The individual scoped findings do NOT live here. Per run 3 they move to the mechanics sections where they belong: overlap and chunking to section 2, parser evidence to section 5, contextual retrieval to section 10, calibration to section 12, fusion evidence to section 11, truncation to section 9, reproducibility (P18) to section 19 beside the evaluation material. Section 20 then does one job: assemble them into a recommendation a reader can check line by line.
+
+P13's "independent evidence is thin" must either document the search that justifies it or be rewritten as what the technique's own paper claims. Two false absence claims in this project is the reason.
 **21. The surface where editability decided it.** OneRetrieval in full: below-average conversion, the property nobody was measuring, the rebuild to 0.553 against 0.761, the 11-day A/B at 8.2% absolute traffic (C43, C44).
 **22. The surface where it did not.** OneSearch in full: entire detail-page traffic, 50% of mall, 20% of homepage, with essentially no intervention capability (C45, C46). Then the direct comparison, which is the argument.
 
@@ -996,7 +1000,11 @@ Each section below names which form it runs and what happens to it.
 
 ### Deletion-test status
 
-Run 2 failed 8 of 23. Repairs: the metrics primer folded into section 1 and first-use; section 4 given the explicit "fixed cost, not meaning" handoff that section 5 depends on; storage and filtering reordered so compression feeds the filtering discussion; the interaction-axis section given the text-only handoff act 5 depends on; ColPali and unified embeddings turned into a matched pair where each needs the other; the standalone recommendation folded into section 20; the folklore section deleted and its slot given to a second production case.
+Run 1 failed 12 of 22. Run 2 failed 8 of 23. Run 3 failed 3: sections 8, 9 and 20.
+
+- **Section 9 now depends on section 8.** The previous claim that compression feeds filtering had the arrow backwards, as run 3 caught. The dependency runs the other way: every repair in section 8 costs memory (extra edges at 4.4-5.6x build time, ACORN's gamma-times-M neighbour lists, connection-ID capacity charged per vector), so the filtered index is the one that stops fitting. Section 9 exists because section 8 made the index bigger.
+- **Section 8 to section 9 is therefore a real transition** rather than an act-internal reset.
+- **Section 20 no longer carries the scoped findings.** They move to the mechanics sections where each attaches to a mechanism. Section 20 does one job: assemble a clause-by-clause default. Section 21 does not strictly depend on it, and that is a deliberate, recorded exception: a post asked to deliver best practice needs one place where the recommendation is written down in full and can be checked line by line. Recorded rather than hidden.
 
 ### Figure table
 
@@ -1011,7 +1019,7 @@ Run 2 failed 8 of 23. Repairs: the metrics primer folded into section 1 and firs
 | 5 | DenseVsLexical | static-svg | 6 | Form A and form B against two documents, showing WHICH TERMS MATCH and which do not. Qualitative match structure only; no invented scores | Paraphrase and exact match are different failures |
 | 6 | HnswAnatomy | static-svg | 7 | Panels: skip-list layers; the pruning heuristic's diverse directions; the three degree numbers | The heuristic does more work than the hierarchy on real high-dimensional data, at the authors' own scope |
 | 7 | FilteredDegreeCollapse | static-svg | 8 | Expected surviving degree against M; a random-filter topology; a correlated-filter topology. Assumption printed on the figure. Recall claims scoped to the measured cases | A correlated filter does not behave like random removal |
-| 8 | VectorResidence | static-svg | 9 | Compression formats on one axis, storage tiers on the other | In this documented case, moving to object storage changed the index family |
+| 8 | VectorResidence | static-svg | 9 | ONE vector's total footprint as a stacked bar (raw vector, connection-ID capacity, filter-repair overhead) at three compression settings, with a second panel placing those footprints against the capacity and latency of RAM, SSD and object storage. The visual relation is footprint-versus-tier, not two catalogs side by side | The section 8 repairs are what push the footprint into the next tier, and the tier change is what changed the index family |
 | 9 | LearnedPostings | static-svg | 10 | The Fig 2 posting list holding learned term weights, beside the BM25 version | The index did not change; what was written into it did |
 | 10 | InteractionAxis | static-svg | 12 | Bi-encoder, late interaction, cross-encoder, and what each precomputes | Precomputability and expressiveness trade directly |
 | 11 | SharedSpaceBlindSpot | static-svg | 13 | Two images and two captions with identical words in different order, in one space. Shows the measured failure, not an asserted internal mechanism | The measured failure is on order and binding |
@@ -1091,6 +1099,20 @@ Judgement calls re-confirmed at this run: the HNSW arithmetic is right when desc
 **Gate 0 closes here at the cap with findings applied.** Gate 1 re-reads the Spec, Throughline, Research notes and full matrix alongside the outline, so anything that survived this pass gets another adversarial read before any prose is drafted.
 
 
+### Gate 1, run 3 (2026-08-24) - cap reached
+
+Verdict: **HALT**, six findings, all applied. Full output in `notes/search-retrieval-stack-codex-outline-run3-20260824.md`. Third and final invocation under the cap; accepted at cap and proceeding to Phase 4, matching the decision taken at the Gate 0 cap.
+
+1. **The thesis still exceeded its evidence.** Two surfaces are two surfaces; they cannot establish that benchmark relevance never decides replacement. Thesis narrowed to v5, which states the observed case and explicitly declines to generalize it into a law. The reader's takeaway is now a question to ask rather than a rule to apply.
+2. **Act 5 claimed a production replacement the matrix does not contain.** Section 14 retitled; the act 5 ledger no longer claims two opposite Q3 answers, because an evaluated architecture is not a production surface.
+3. **Section 20 was dead weight and unauditable.** It promised a defensible default and never wrote one. It is now the default itself, as numbered clauses each carrying its row and its scope limit, and the individual scoped findings move out to the mechanics sections where they attach to a mechanism.
+4. **Four more claims exceeded their rows:** that form A "works now" after dense retrieval (aggregate QA results are not a footwear paraphrase win); that the price filter "breaks" the index (degradation is conditional); that alpha=0.5 was found optimal (the paper reports a comparison, not an optimum); and "cheap structured filtering" in the act 2 ledger, which neither T1 nor C43 supports. All four now carry wording guards.
+5. **Three deletion-test failures remain, down from twelve then eight.** Sections 8 and 9 fixed by reversing a dependency I had backwards: the filter repairs cost memory, so the filtered index is the one that stops fitting, which is what forces the storage decision. Section 20's failure is recorded as a deliberate exception rather than hidden, on the grounds that a post asked for best practice needs one place where the recommendation is written in full.
+6. **The query dropped before the closing beats of acts 5 and 6.** Both acts now close on it: act 5 on the outsole photo's candidate set, still missing price, width and size; act 6 on the boot ordering whose offline score looks fine and whose online behaviour is unknown.
+
+Figure 8's spec was also rewritten, since "compression on one axis, storage on the other" was two catalogs rather than a relation. It is now one vector's footprint against the tier that footprint forces.
+
+
 ## Resume here
 
 Last touched: 2026-08-24.
@@ -1101,8 +1123,8 @@ Last touched: 2026-08-24.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done; Gate 0 closed at cap after 3 runs, all findings applied | `## Research notes`, matrix (~161 rows), `## Codex research review` |
-| 3. Outline + figure list | restructured twice; Gate 1 run 3 pending (last under cap) | `## Outline` |
-| 4. Draft prose | pending | `src/content/blog/search-retrieval-stack/index.mdx` |
+| 3. Outline + figure list | done; Gate 1 closed at cap after 3 runs, all findings applied | `## Outline` |
+| 4. Draft prose | next | `src/content/blog/search-retrieval-stack/index.mdx` |
 | 5. Implement figures | 0 of 13 | per-figure table below |
 | 6. Playwright review | 0 of 13 | playwright snapshots reviewed |
 | 7. Freshness pass + Gate 2 + ship | pending | hero image, dev verification, ship |
@@ -1115,7 +1137,8 @@ Last touched: 2026-08-24.
 | 2026-08-24 | 0 (research, run 2) | HALT, 10 structural findings, all applied; thesis revised to v3 | `notes/search-retrieval-stack-codex-research-run2-20260824.md` |
 | 2026-08-24 | 0 (research, run 3) | HALT at cap, 4 structural findings, all applied; thesis revised to v4; Vic accepted at cap | `notes/search-retrieval-stack-codex-research-run3-20260824.md` |
 | 2026-08-24 | 1 (outline) | HALT, 12 findings incl. 2 TYPE-CHANGE; both re-types approved; outline restructured | `notes/search-retrieval-stack-codex-outline-20260824.md` |
-| 2026-08-24 | 1 (outline, run 2) | HALT, 8 findings, all applied; P9 was a false negative and is corrected; outline restructured again; run 3 is the last under the cap | `notes/search-retrieval-stack-codex-outline-run2-20260824.md` |
+| 2026-08-24 | 1 (outline, run 2) | HALT, 8 findings, all applied; P9 was a false negative and is corrected; outline restructured again | `notes/search-retrieval-stack-codex-outline-run2-20260824.md` |
+| 2026-08-24 | 1 (outline, run 3) | HALT at cap, 6 findings, all applied; thesis narrowed to v5 (case-grounded); accepted at cap and proceeding to Phase 4 | `notes/search-retrieval-stack-codex-outline-run3-20260824.md` |
 
 ### Phase 5 figure progress
 
