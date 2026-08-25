@@ -88,7 +88,7 @@ The structure that answers the boot query has not changed much since the 1970s. 
 
 That's it. For every word in the vocabulary, keep a list of the documents containing it. To answer `waterproof hiking boots wide toe box under $150`, you don't look at a hundred million documents. You look at the list for `waterproof`, the list for `hiking`, the list for `toe`, and you work with what's on them.
 
-Why this is fast has nothing to do with clever data structures and everything to do with English. Most words are rare. The list for `waterproof` is a tiny slice of the corpus, and the list for a brand name is smaller still. You skipped the scan because your query happened to name a few uncommon things.
+Why this is fast has less to do with the data structure than with which words you happened to type. The list for `waterproof` covers a small slice of the corpus, and the list for a brand name is smaller still. You skipped the scan because your query named a few uncommon things.
 
 <figure>
 <svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="An inverted index: a dictionary of terms, each pointing to a posting list. The term waterproof points to a short list of four postings, each a document ID with a term frequency. The term the points to a list of billions. Each list is cut into independently decompressible blocks of 64 or 128 document IDs.">
@@ -142,7 +142,7 @@ Why this is fast has nothing to do with clever data structures and everything to
 <figcaption><strong>Fig 2.</strong> The structure that has answered text queries since the 1970s. The speed comes from vocabulary statistics rather than from the data structure: your query named a few uncommon things, so you visited a few short lists. The dashed blocks do nothing here; Fig 4 is built on them.</figcaption>
 </figure>
 
-Which tells you exactly where it stops being fast. Some words are not rare at all, and the same paper says so plainly: "The inverted lists of common query terms may consist of many millions or even billions of postings." Add `the` to your query and you have undone the trick. This is why every production system carries a stopword policy, and why the interesting engineering is always about the frequent terms rather than the rare ones.
+Which tells you where it stops being fast. Some words are not uncommon at all, and the same paper says so: "The inverted lists of common query terms may consist of many millions or even billions of postings." Add `the` to your query and the trick is undone. That is why systems handle frequent terms specially, and why the interesting engineering is about them rather than the rare ones.
 
 Two implementation details matter later. The lists are compressed, and the compression is not an optimization someone added at the end. On GOV2, 426 GB of raw pages became an 8,759 MB index, which is close to a fiftyfold reduction, before anyone talks about vectors.
 
@@ -676,7 +676,7 @@ That is what SPLADE does, and the punchline is in the implementation note rather
 
 The expensive part is not the neural network.
 
-You would assume the expensive bit is the neural network. It isn't. Query expansion turns a five-term query into a hundred-term query, and traversing an inverted index gets more expensive with more query terms. The [efficiency study](https://arxiv.org/abs/2207.03834) says it directly: the main gain came from "the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure", because "query size is then a major bottleneck." The neural half was cheap. The 1970s half was what blew up.
+You would assume the expensive part is the neural network. It is not. Query expansion lengthens the query substantially, and traversing an inverted index costs more as query terms multiply. The [efficiency study](https://arxiv.org/abs/2207.03834) says it directly: the main gain came from "the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure", because "query size is then a major bottleneck." The neural half was cheap. The 1970s half was what blew up.
 
 The same lesson shows up on the document side, and harder. doc2query generates queries a document might answer and appends them before indexing. It works. It also hallucinates. Gospodinov, MacAvaney and Macdonald [filtered the generated text](https://arxiv.org/abs/2301.03266) with a relevance model and found you can "improve the retrieval effectiveness of Doc2Query by up to 16%, while simultaneously reducing mean query execution time by 23% and cutting the index size by 33%." That is from keeping only 30% of what the model generated. Throwing away seven-tenths of your generated text made retrieval better, the index smaller, and queries faster, all at once.
 
@@ -684,7 +684,7 @@ Which raises the question underneath all of this: what is the unit you index?
 
 For a product catalog it's obvious, one document per boot. For a 200-page PDF it isn't, and this is the most-asked practical question in retrieval. The published evidence is thinner than the volume of advice suggests, but 2026 finally produced controlled sweeps, and one of them killed a piece of folklore outright.
 
-The [chunking study](https://arxiv.org/abs/2601.14123) varied method, size, overlap and context budget on Natural Questions with SPLADE retrieval and a Mistral-8B generator. On overlap, the standard advice for years has been 10 to 20%. Their finding: "overlap provides no measurable benefit and increases indexing cost." It also found "sentence chunking is the most cost-effective method, matching semantic chunking up to ~5k tokens", and a ceiling: "a 'context cliff' reduces quality beyond ~2.5k tokens."
+The [chunking study](https://arxiv.org/abs/2601.14123) varied method, size, overlap and context budget on Natural Questions with SPLADE retrieval and a Mistral-8B generator. On overlap, where the widely repeated figure is 10 to 20%, their finding is: "overlap provides no measurable benefit and increases indexing cost." It also found "sentence chunking is the most cost-effective method, matching semantic chunking up to ~5k tokens", and a ceiling: "a 'context cliff' reduces quality beyond ~2.5k tokens."
 
 There is an apparent contradiction in this literature worth resolving, because you will run into both papers. One study concludes semantic chunking isn't worth its cost. Another concludes content-aware chunking beats fixed-size chunking decisively. They are not in conflict; they define the baseline differently. The first compares semantic chunking against a baseline that already splits on sentence boundaries with overlap. The second compares against fixed-size splitting by *character*, which cuts words in half. Both are consistent with one reading: respect sentence and paragraph boundaries, and don't pay extra for embedding-similarity segmentation on top of that.
 
@@ -919,7 +919,7 @@ The outsole photo has produced a candidate set: boots that look like the one in 
 
 ### 16. The funnel, and the system that refused to leave it
 
-In 2020, Facebook's search team had the problem this post has been building toward. Their search was "still mainly based on a Boolean matching model", they wanted embedding-based retrieval, and they had to put it somewhere.
+In 2020, Facebook's search team had the problem this post has been building toward. They wanted embedding-based retrieval, and they had to put it somewhere alongside a system built on Boolean matching.
 
 The obvious move in 2020, and the obvious move today, is to stand up a vector database beside the existing index and query both. They didn't. They [put the vectors inside the inverted index](https://arxiv.org/abs/2006.11632), and their stated reason is the thesis of this post arriving four acts early:
 
@@ -1162,7 +1162,7 @@ And there is no clause telling you to use late chunking, or not to. The techniqu
 
 Kuaishou runs e-commerce search. Their retrieval stage had several branches feeding a common pool, in the shape section 16 described, and one of those branches was a plain inverted index.
 
-By the obvious metric, that branch should have been retired years ago. It converted below the platform average. A dense retriever beat it. A generative retriever beat it. And it stayed, for a reason the team eventually wrote down while removing it:
+By the obvious metric, that branch should have been retired years ago. It converted below the platform average. And it stayed, for a reason the team wrote down while removing it:
 
 > "the inverted-index branch converts below the platform average yet persists because it is almost the only branch where operations can inject a new term within hours without any model update; a one-model substitute must preserve this real-time editability."
 
@@ -1172,7 +1172,7 @@ That capability appears in no benchmark in this post. Not in nDCG, not in Recall
 
 The paper is [OneRetrieval](https://arxiv.org/abs/2606.13533), and one of its section headings reads: *The Decisive Axis Is Editability, Not Retrieval Quality*.
 
-Replacing it therefore meant building the capability into a generative model first. Their contribution is editable generative retrieval: identifier positions are tied to interpretable attribute words, and codebook slots are held in reserve so a new term can be bound to one after deployment, without retraining. The design exists because of what it was replacing.
+Replacing it therefore meant building the capability into a generative model first. Their contribution is editable generative retrieval, built so that a new term can be bound after deployment without retraining. The design exists because of what it was replacing.
 
 Two details matter for reading the result.
 
@@ -1234,7 +1234,7 @@ Which leaves a question rather than a rule.
 
 What can your incumbent do that nothing you measure would notice if it stopped?
 
-For a lot of teams the answer is that somebody can fix a bad result before lunch. That will not appear in your next model comparison. Find out whether you are about to trade it away.
+For some teams the answer will be that somebody can fix a bad result before lunch. That will not appear in your next model comparison. Find out whether you are about to trade it away.
 
 ## References
 

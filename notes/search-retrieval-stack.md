@@ -1127,6 +1127,25 @@ Both links are correct; the hosts block bots. No broken or misattributed links f
 **Figure check.** All 13 figures were checked programmatically for content positioned outside its own viewBox, and for the presence of `role="img"` plus an `aria-label`. All 13 pass, and all 13 carry a figcaption. Four were additionally reviewed visually in the browser at the real route, along with prose rendering, code spans, inline links and the escaped `&lt;` in the Furnas quote.
 
 
+### Gate 2 (2026-08-24) and the prose rejection
+
+Gate 2 returned HALT with 13 structural findings. All applied. Full output in the scratchpad; the five that mattered most were outright errors:
+
+1. **The WAND explanation was backwards.** The draft said WAND skips documents that do not contain your words. It skips documents that DO contain them, when their score upper bound cannot reach the top-k threshold.
+2. **"Roomy forefoot will never be retrieved"** was false under disjunctive retrieval; it is retrievable through the other query terms and simply earns no credit for the part that mattered.
+3. **The two-tower claim was too strong.** A two-tower model can encode a user's preference for wide fittings on one side and width on the other. The real limit is features that only exist when both sides are seen together.
+4. **"A cross-encoder cannot retrieve"** overstated, and "you cannot have both interaction and precomputation" was contradicted by ColBERT two paragraphs earlier.
+5. **Cohen's kappa was glossed as "barely better than a coin weighted by chance".** Kappa is already chance-corrected, so that is mathematically wrong.
+
+Plus arithmetic (426 GB to 8,759 MB is about fiftyfold, not twentyfold; gamma of 1/0.01 is two orders of magnitude), an attribution error (63.42 belongs to Nemotron ColEmbed V2, not the adjacent paper), and the Qdrant collapse numbers being presented as ordinary system behaviour when they come from a run with `hnsw_ef=64` and the full-scan threshold pinned low.
+
+**Separately, Vic rejected the prose mid-read.** Three sentences by name, all of which passed every word check. The diagnosis: the rules policed vocabulary and the failure was rhetorical moves. `.claude/explainer-shared/voice-rules.md` now carries a "Banned rhetorical moves" section covering twenty patterns, rewritten after an adversarial review by codex which found that the first version still did not catch one of Vic's three examples. That example needed a new rule, the thesis-shaped abstraction: a symmetrical sentence built from placeholders where the nouns should be.
+
+`scripts/voice-check.sh` gained three exemptions along the way, each recorded in its own commit: act-divider em dashes, blockquote lines, and bibliography entries. A cited work's title is its title, and editing it to pass a style check would introduce a citation error.
+
+**Regression caught at final tally:** the section-1 rewrite deleted Fig 1, and a follow-up reposition script matched the next figure with identical viewBox dimensions and moved Fig 5 into its place. Recovered from git. All 13 figures now present, in order, passing overflow and accessibility checks.
+
+
 ## Resume here
 
 Last touched: 2026-08-24.
@@ -1141,7 +1160,7 @@ Last touched: 2026-08-24.
 | 4. Draft prose | done, 23 sections, ~15.8k words, voice-check clean | `src/content/blog/search-retrieval-stack/index.mdx` |
 | 5. Implement figures | done, 13 of 13, all static-svg | per-figure table below |
 | 6. Playwright review | done, all 13 checked | playwright snapshots reviewed |
-| 7. Freshness pass + Gate 2 + ship | in progress | hero image, dev verification, ship |
+| 7. Freshness pass + Gate 2 + ship | Gate 2 findings applied; hero in; awaiting Vic's ship | hero image, dev verification, ship |
 
 ### Codex history
 
