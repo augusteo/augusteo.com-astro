@@ -1148,11 +1148,11 @@ Somebody notices at 10am that a new product line is not surfacing for the query 
 
 That capability appears in no benchmark in this post. Not in nDCG, not in Recall@K, not in MRR. It is not a relevance property at all. And it kept a below-average branch alive across the entire period this post has been describing.
 
-The paper that documents it is called [OneRetrieval](https://arxiv.org/abs/2606.13533), and its own section heading states the finding more bluntly than I would have dared: *The Decisive Axis Is Editability, Not Retrieval Quality*.
+The paper is [OneRetrieval](https://arxiv.org/abs/2606.13533), and one of its section headings reads: *The Decisive Axis Is Editability, Not Retrieval Quality*.
 
-So how do you replace something whose value is a property your architecture cannot express? You build the property in. Their contribution is editable generative retrieval, where identifier positions are tied to interpretable attribute words and codebook slots are reserved so new terms can be bound after deployment without retraining. The entire design exists because of what it was replacing.
+Replacing it therefore meant building the capability into a generative model first. Their contribution is editable generative retrieval: identifier positions are tied to interpretable attribute words, and codebook slots are held in reserve so a new term can be bound to one after deployment, without retraining. The design exists because of what it was replacing.
 
-Two details keep this honest.
+Two details matter for reading the result.
 
 The rebuild did not reach parity. On intervention effectiveness, "OneRetrieval reaches an IAR@350 of 0.553 against 0.761 for the inverted index." They recovered most of the capability, not all of it.
 
@@ -1164,7 +1164,7 @@ One sentence in that paper reframes everything above it:
 
 > "Its editability resides not in the index structure but in the upstream resources that feed it."
 
-The thing that survived thirty years was never the data structure. Posting lists are not editable; the dictionary and refresh pipeline around them is. What outlasted every challenger was an operational capability that happened to live next to an inverted index, and that everyone, including me for most of this post's drafting, has been crediting to the index itself.
+Posting lists are not editable. The dictionary and the refresh pipeline that feed them are. So what outlasted every challenger was not the inverted index at all; it was the editing path attached to it, which everyone, including me for most of this post, has been crediting to the index.
 
 {/* Reader can now: name a capability their own stack has that no metric they run would notice */}
 
@@ -1200,19 +1200,19 @@ Detail-page search is a user who has already chosen a product and wants that pag
 
 ### 23. The test
 
-The claim in this post is narrow enough to be checkable, so here is how to check it.
+The claim here is narrow enough to check.
 
-It says that on at least one documented surface, an unmeasured operational capability, and not retrieval quality, was what stood between an incumbent and its replacement. That is refuted if the editability story turns out to be a post-hoc rationalization: if OneRetrieval's own numbers show quality or cost carrying the decision and editability riding along. Read section 4 of that paper and judge for yourself. What persuaded me is that they built the capability first and led with it, and that they published the gap they did not close.
+It says that on at least one documented surface, an unmeasured operational capability, rather than retrieval quality, was what stood between an incumbent and its replacement. It is refuted if the editability story turns out to be a rationalisation written after the fact: if OneRetrieval's own numbers show quality or cost carrying the decision while editability rode along. Section 4 of that paper is where to look. What persuaded me is that they built the capability before they claimed the win, led with it, and published the gap they did not close.
 
-The stronger claim, that this is how replacement generally works, is not one I can support from two surfaces, and I am not making it.
+The stronger claim, that replacement generally works this way, is not one two surfaces can support, and I am not making it.
 
-One boundary. Kuaishou also reports a generative system taking 100% of QPS in a Local Life Service scenario, which is recommendation rather than search, and therefore outside what I have argued here. I mention it because leaving it out would be the kind of tidy omission this post has spent seven acts objecting to.
+One boundary. Kuaishou also reports a generative system taking 100% of QPS in a Local Life Service scenario. That is recommendation rather than search, so it sits outside the argument, and I mention it because omitting it would be convenient.
 
-So the useful thing to take away is not a rule about indexes. It is a question to ask about your own stack, and it is the question nobody's evaluation is set up to answer.
+Which leaves a question rather than a rule.
 
 What can your incumbent do that nothing you measure would notice if it stopped?
 
-For a lot of teams the answer is that somebody can fix a bad result before lunch. That will not show up in your next model comparison. Find out whether you are about to trade it away.
+For a lot of teams the answer is that somebody can fix a bad result before lunch. That will not appear in your next model comparison. Find out whether you are about to trade it away.
 
 ## References
 
