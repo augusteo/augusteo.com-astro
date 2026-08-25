@@ -574,7 +574,55 @@ Truncation is the cheapest lever and the most misunderstood. You can cut dimensi
 
 Note that the threshold is a percentage, not a dimension. Going from 1024 to 256 is a 75% cut and inside the safe zone. Going from 1536 to 256 is 83% and is not. "Truncate to 256" is not advice; it depends entirely on where you started.
 
-{/* TODO: Fig 8: VectorResidence. One vector's footprint as a stacked bar (raw, connection-ID capacity, filter-repair overhead) at three compression settings; second panel places those footprints against RAM, SSD and object-storage capacity and latency. */}
+<figure>
+<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Top panel: one vector's stored footprint as a stacked bar at three compression settings. At float32 the raw vector is 3072 bytes plus about 151 bytes of connection-ID capacity plus filter-repair overhead. At product quantization the raw part falls to 96 bytes while the graph overhead stays. At binary quantization it falls further, and a rerank pass against the original vectors is required. Bottom panel: those footprints placed against three storage tiers. RAM is fastest and smallest in capacity, SSD is larger and slower, and object storage is effectively unlimited with a published cold latency of 874 milliseconds against 14 milliseconds warm, where the index in use is centroid-based rather than a graph.">
+  <rect x="0" y="0" width="680" height="320" fill="#F9F5EB"/>
+  <text x="24" y="24" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">WHAT ONE VECTOR COSTS TO STORE</text>
+
+  <g font-family="JetBrains Mono" font-size="9" fill="#6B6258">
+    <text x="24" y="58">float32</text>
+    <text x="24" y="96">PQ 96 bytes</text>
+    <text x="24" y="134">binary + rerank</text>
+  </g>
+  <rect x="130" y="44" width="400" height="18" fill="#B8651A"/><text x="538" y="58" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">3072 B vector</text>
+  <rect x="130" y="82" width="12.5" height="18" fill="#B8651A"/>
+  <rect x="130" y="120" width="2" height="18" fill="#B8651A"/>
+  <g fill="#2563EB">
+    <rect x="530" y="44" width="20" height="18"/>
+    <rect x="142.5" y="82" width="20" height="18"/>
+    <rect x="132" y="120" width="20" height="18"/>
+  </g>
+  <g fill="#9333EA">
+    <rect x="550" y="44" width="30" height="18"/>
+    <rect x="162.5" y="82" width="30" height="18"/>
+    <rect x="152" y="120" width="30" height="18"/>
+  </g>
+  <text x="196" y="96" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">~96 B + graph + repair</text>
+  <text x="186" y="134" font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">smallest, needs a rerank pass</text>
+  <g font-family="JetBrains Mono" font-size="9">
+    <rect x="130" y="150" width="10" height="10" fill="#2563EB"/><text x="146" y="159" fill="#6B6258">~151 B connection-ID capacity</text>
+    <rect x="330" y="150" width="10" height="10" fill="#9333EA"/><text x="346" y="159" fill="#6B6258">filter-repair overhead from the previous section</text>
+  </g>
+
+  <text x="24" y="196" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">AND WHICH TIER THAT FOOTPRINT FORCES YOU INTO</text>
+  <rect x="24" y="208" width="200" height="84" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="36" y="228" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">RAM</text>
+  <text x="36" y="248" font-family="serif" font-size="11" fill="#6B6258">fastest, smallest, priciest</text>
+  <text x="36" y="270" font-family="JetBrains Mono" font-size="9" fill="#2563EB">graph index</text>
+
+  <rect x="240" y="208" width="200" height="84" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <text x="252" y="228" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">SSD</text>
+  <text x="252" y="248" font-family="serif" font-size="11" fill="#6B6258">a billion points, 64 GB RAM</text>
+  <text x="252" y="270" font-family="JetBrains Mono" font-size="9" fill="#2563EB">graph index</text>
+
+  <rect x="456" y="208" width="200" height="84" fill="#FFFFFF" stroke="#C9BEAA" stroke-width="2"/>
+  <text x="468" y="228" font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">object storage</text>
+  <text x="468" y="248" font-family="serif" font-size="11" fill="#6B6258">874 ms cold, 14 ms warm</text>
+  <text x="468" y="270" font-family="JetBrains Mono" font-size="9" fill="#B8651A">centroid index, not a graph</text>
+  <text x="24" y="312" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">At ~100 ms per object-storage roundtrip, a graph walk is a sequence of dependent lookups you cannot afford. The tier chose the algorithm.</text>
+</svg>
+<figcaption><strong>Fig 8.</strong> The repairs from the previous section are what push a vector's footprint into the next tier, and in one documented case that tier change reached back and changed the index family. Centroid indexes were what graphs displaced in 2016; object storage brought them back, for a reason that is about roundtrips rather than recall.</figcaption>
+</figure>
 
 Now the tier. RAM is the default and the reason vector search has a reputation for being expensive. SSD is what DiskANN is for. And since about 2024 there is a third option that is more interesting than it looks.
 
@@ -596,7 +644,34 @@ The framing that makes it click is [Lin and Ma's](https://arxiv.org/abs/2106.148
 
 That is what SPLADE does, and the punchline is in the implementation note rather than the method: their code "is built on the Lucene search library and thus fully compatible with standard inverted indexes." The model runs, produces weights, and writes them into postings. Everything downstream, the skipping from section 4 included, works unchanged.
 
-{/* TODO: Fig 9: LearnedPostings. The Fig 2 posting list holding learned term weights, beside the BM25 version. */}
+<figure>
+<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="The same posting list twice. Above, weights produced by BM25 from term counts and document length. Below, weights produced by a neural model for the same terms, plus expansion terms the document never contained, such as boot and outdoor. Both are ordinary postings in the same inverted index, and the query-evaluation machinery is unchanged.">
+  <rect x="0" y="0" width="680" height="210" fill="#F9F5EB"/>
+  <text x="24" y="24" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">SAME INDEX. DIFFERENT AUTHOR OF THE NUMBERS.</text>
+
+  <text x="24" y="52" font-family="serif" font-size="12" font-weight="600" fill="#1A1A1A">BM25: weights computed from counts</text>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <rect x="24" y="62" width="96" height="22" fill="#CFF0F6" stroke="#0E7490"/><text x="32" y="77">waterproof 2.9</text>
+    <rect x="126" y="62" width="96" height="22" fill="#CFF0F6" stroke="#0E7490"/><text x="134" y="77">hiking 2.1</text>
+    <rect x="228" y="62" width="96" height="22" fill="#CFF0F6" stroke="#0E7490"/><text x="236" y="77">leather 1.4</text>
+  </g>
+
+  <text x="24" y="118" font-family="serif" font-size="12" font-weight="600" fill="#1A1A1A">Learned sparse: weights predicted by a model</text>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <rect x="24" y="128" width="96" height="22" fill="#D1FAE5" stroke="#15803D"/><text x="32" y="143">waterproof 3.4</text>
+    <rect x="126" y="128" width="96" height="22" fill="#D1FAE5" stroke="#15803D"/><text x="134" y="143">hiking 2.0</text>
+    <rect x="228" y="128" width="96" height="22" fill="#D1FAE5" stroke="#15803D"/><text x="236" y="143">leather 0.9</text>
+    <rect x="330" y="128" width="96" height="22" fill="#FEF3C7" stroke="#B8651A"/><text x="338" y="143">boot 2.6</text>
+    <rect x="432" y="128" width="96" height="22" fill="#FEF3C7" stroke="#B8651A"/><text x="440" y="143">outdoor 1.8</text>
+  </g>
+  <text x="540" y="143" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">terms the</text>
+  <text x="540" y="157" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">document</text>
+  <text x="540" y="171" font-family="serif" font-size="10" font-style="italic" fill="#B8651A">never contained</text>
+
+  <text x="24" y="196" font-family="serif" font-size="12" fill="#1A1A1A">The postings, the skipping, the query planner: all unchanged. Only the provenance of the weights is different.</text>
+</svg>
+<figcaption><strong>Fig 9.</strong> Learned sparse retrieval is a neural model writing into the structure from Fig 2. The expansion terms in orange are the part that fixes vocabulary mismatch, and they are also the part that lengthens queries and makes traversal expensive. The classical half is where the cost went.</figcaption>
+</figure>
 
 [SPLADE-v3](https://arxiv.org/abs/2403.06789) reports that "it is statistically significantly more effective than both BM25 and SPLADE++", getting "more than 40 MRR@10 on the MS MARCO dev set" and improving BEIR out-of-domain results by 2%.
 
