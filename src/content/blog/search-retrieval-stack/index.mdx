@@ -23,7 +23,45 @@ Ding and Suel measured it in 2011 on GOV2, a crawl of 25.2 million government we
 
 Look at those two ratios, because they are not the same ratio. The work fell by a factor of about 174. The time fell by a factor of about 8. Skipping documents is enormously effective and nowhere near free, and the distance between those two numbers is where most of the last thirty years of engineering went.
 
-{/* TODO: Fig 1: ScanCost. Documents fully scored, and separately latency, for exhaustive OR vs WAND vs block-max on GOV2, dated. Two axes, not one. */}
+<figure>
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Two bar charts comparing exhaustive OR, WAND and block-max WAND on the GOV2 collection in 2011. Documents fully scored per query: exhaustive OR 3,815,676; WAND 178,391; block-max 21,921, a reduction of about 174 times. Average latency per query: exhaustive OR 225.7 milliseconds; WAND 77.6; block-max 27.9, a reduction of about 8 times.">
+  <rect x="0" y="0" width="680" height="300" fill="#F9F5EB"/>
+  <text x="24" y="28" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">GOV2, 25.2M DOCUMENTS, 2011</text>
+
+  <text x="24" y="58" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Documents fully scored per query</text>
+  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258">
+    <text x="24" y="82">exhaustive OR</text>
+    <text x="24" y="112">WAND</text>
+    <text x="24" y="142">block-max</text>
+  </g>
+  <rect x="140" y="70" width="440" height="16" fill="#B8651A"/>
+  <rect x="140" y="100" width="20.6" height="16" fill="#2563EB"/>
+  <rect x="140" y="130" width="2.5" height="16" fill="#059669"/>
+  <g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
+    <text x="590" y="82">3,815,676</text>
+    <text x="168" y="112">178,391</text>
+    <text x="150" y="142">21,921</text>
+  </g>
+  <text x="150" y="163" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">about 174x less work</text>
+
+  <text x="24" y="205" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Average latency per query</text>
+  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258">
+    <text x="24" y="229">exhaustive OR</text>
+    <text x="24" y="253">WAND</text>
+    <text x="24" y="277">block-max</text>
+  </g>
+  <rect x="140" y="217" width="440" height="16" fill="#B8651A"/>
+  <rect x="140" y="241" width="151" height="16" fill="#2563EB"/>
+  <rect x="140" y="265" width="54" height="16" fill="#059669"/>
+  <g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
+    <text x="590" y="229">225.7 ms</text>
+    <text x="299" y="253">77.6 ms</text>
+    <text x="202" y="277">27.9 ms</text>
+  </g>
+  <text x="210" y="292" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">only about 8x less time</text>
+</svg>
+<figcaption><strong>Fig 1.</strong> The same three query-evaluation strategies, measured two ways on the same 2011 experiment. Skipping 99.4% of the scoring work bought roughly an eightfold latency win, not a hundredfold one. The gap between those two bars is where the rest of this post lives.</figcaption>
+</figure>
 
 So every index ever built answers one question: how do you avoid comparing the query to everything? Trees answer it by cutting space into regions. Inverted indexes answer it by only visiting documents that contain your words. Graphs answer it by walking toward the answer instead of scanning for it. Different answers, same question, and each one buys its speed by giving something up.
 
@@ -125,7 +163,7 @@ Our query has three parts, and the machine we have built handles exactly one of 
 
 `waterproof` and `hiking` it handles. Those are words, they're reasonably rare, and documents about waterproof hiking boots contain them.
 
-`wide toe box` is where it fails, and the failure has a name and a measurement. In 1987, Furnas, Landauer, Gomez and Dumais ran a study on how people spontaneously name things, across five different application domains, and found: "In every case two people favored the same term with probability <0.20." Their per-domain numbers run from .07 to .18. Two people describing the same thing pick the same word less than one time in five.
+`wide toe box` is where it fails, and the failure has a name and a measurement. In 1987, Furnas, Landauer, Gomez and Dumais ran a study on how people spontaneously name things, across five different application domains, and found: "In every case two people favored the same term with probability &lt;0.20." Their per-domain numbers run from .07 to .18. Two people describing the same thing pick the same word less than one time in five.
 
 Read that number carefully, because it is easy to over-claim. It is about spontaneous naming across five domains in 1987, not about modern search queries. But the shape of the problem is exactly the one our query has. A boot listing that says `roomy forefoot`, or `generous last`, or `available in wide`, is describing the thing the user asked for, in words the user did not use. An inverted index will never retrieve it, and no amount of tuning `k1` will change that, because the document is not on the posting list.
 
