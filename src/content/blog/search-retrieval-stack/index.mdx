@@ -346,3 +346,41 @@ That same study is worth one more paragraph, because it is a small scandal. In r
 A number in a paper is not the same object as a reproducible result. Keep that handy; it comes back.
 
 {/* Reader can now: pick a fusion strategy for a stated reason, and expect consistency rather than a headline gain */}
+
+### 12. The interaction axis, and when a reranker earns its latency
+
+Everything in this act has been about combining two retrievers. There is a different question underneath it, and once you see it, several architectures line up on one axis.
+
+The question is: how much are the query and the document allowed to look at each other, and when?
+
+A bi-encoder says: not at all, and never. Encode them separately, compare with a dot product. That constraint is what makes an index possible, because you can encode every document before you have seen a single query.
+
+A cross-encoder says: completely, at query time. Concatenate them, run the whole thing through a transformer, get one number. [Khattab and Zaharia](https://arxiv.org/abs/2004.12832) name the cost: these models "must feed each query-document pair through a massive neural network to compute a single relevance score." Nothing is precomputable. There is no index you can build, because the representation doesn't exist until the query arrives. A cross-encoder cannot retrieve. It can only reorder something another system retrieved.
+
+ColBERT sits in between and the trick is timing. Encode both sides independently, keeping one vector per token rather than one per document, then do a cheap interaction at the end. The paper describes the payoff as "gaining the ability to pre-compute document representations offline, considerably speeding up query processing", while keeping the fine-grained comparison that a cross-encoder does. The reported result is "two orders-of-magnitude faster and requiring four orders-of-magnitude fewer FLOPs per query" than the cross-encoder it approximates.
+
+{/* TODO: Fig 10: InteractionAxis. Bi-encoder, late interaction, cross-encoder, and what each precomputes. */}
+
+So the axis is: interaction bought, precomputation sold. You cannot have both, and where you sit on it determines where in a stack you can be. That is the whole reason the next act's cascade has the shape it does.
+
+Late interaction is not free, it's deferred. Storing a vector per token instead of per document is a large multiplier, and the engineering since has mostly been about making that affordable. [PLAID](https://arxiv.org/abs/2205.09707) reports reducing "late interaction search latency by up to 7× on a GPU and 45× on a CPU against vanilla ColBERTv2", which is the more interesting number: the CPU speedup is the larger one, and it turns a GPU-bound method into something you can serve on ordinary hardware.
+
+Now, the practical question. When is a reranker worth it?
+
+The default answer in most tutorials is "retrieve 100, rerank them, always." Both halves of that deserve scrutiny.
+
+On whether: reranking's biggest wins come over a weak or lexical first stage, which is exactly the setting most published comparisons use. Feed a cross-encoder the output of BM25 and it looks miraculous. Feed it the output of a genuinely good dense retriever and the picture changes.
+
+On how deep: there is a ceiling, and it is measured. Jacob and colleagues at [Databricks and Stanford](https://arxiv.org/abs/2411.11767) deliberately evaluated rerankers "for full retrieval, not just re-scoring first-stage retrieval", against strong modern dense first stages, and found: "the best existing rerankers provide initial improvements when scoring progressively more documents, but their effectiveness gradually declines and can even degrade quality beyond a certain limit."
+
+Deeper is not safer. Past some depth the reranker starts promoting things it should not have seen, and your quality goes down while your latency goes up. The depth you pick is a real parameter with an interior optimum, not a budget you spend as much of as you can afford.
+
+One more constraint, because people reach for it constantly and it does not hold. A 2026 [SIGIR paper](https://arxiv.org/abs/2604.03676) evaluating LLM-based retrievers found that "Confidence calibration is consistently weak across model families, indicating that raw retrieval scores are unreliable for downstream routing without additional calibration." If your plan is "if the top score is below 0.7, say I don't know", that plan has no evidential basis. The score is a ranking signal. It is not a probability, and the models are not calibrated as though it were.
+
+There is a thing every mechanism in this act quietly assumes, and it is time to say it out loud.
+
+All of it, the postings, the fused lists, the interaction axis, assumes the query is text and the thing being retrieved is text. Our user has been typing this whole time.
+
+They are about to stop.
+
+{/* Reader can now: place any retrieval model on the interaction axis, pick a rerank depth for a reason, and stop using retrieval scores as confidence */}
