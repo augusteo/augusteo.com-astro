@@ -158,9 +158,7 @@ Why this is fast has nothing to do with clever data structures and everything to
 
 Which tells you exactly where it stops being fast. Some words are not rare at all, and the same paper says so plainly: "The inverted lists of common query terms may consist of many millions or even billions of postings." Add `the` to your query and you have undone the trick. This is why every production system carries a stopword policy, and why the interesting engineering is always about the frequent terms rather than the rare ones.
 
-Two implementation details matter later.
-
-The lists are compressed, and the compression is not an optimization someone added at the end. On GOV2, 426 GB of raw pages became an 8,759 MB index, which is close to a fiftyfold reduction, before anyone talks about vectors.
+Two implementation details matter later. The lists are compressed, and the compression is not an optimization someone added at the end. On GOV2, 426 GB of raw pages became an 8,759 MB index, which is close to a fiftyfold reduction, before anyone talks about vectors.
 
 And the compressed lists are cut into blocks, "of, say, 64 or 128 docIDs, such that each block can be decompressed separately." Nothing in this section needs that fact. Section 4 is built on it.
 
@@ -344,9 +342,7 @@ Those are aggregate results on open-domain question answering, not a measurement
 
 
 
-Now the second query. `Salomon Quest 4 GTX wide 10.5`, the one term matching was superb at.
-
-A bi-encoder compresses that entire string into 768 floats, and `Quest 4` and `Quest 5` land very close together, because they are textually and semantically almost identical. Nothing in the training objective taught the model that the difference between them is the whole point. [Sciavolino and colleagues](https://arxiv.org/abs/2109.08535) measured this directly, using simple questions about specific named entities, and found that "dense retrievers drastically underperform sparse methods", and, more damningly, that "dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training."
+Now the second query, `Salomon Quest 4 GTX wide 10.5`, the one term matching was superb at. A bi-encoder compresses that entire string into 768 floats, and `Quest 4` and `Quest 5` land very close together, because they are textually and semantically almost identical. Nothing in the training objective taught the model that the difference between them is the whole point. [Sciavolino and colleagues](https://arxiv.org/abs/2109.08535) measured this directly, using simple questions about specific named entities, and found that "dense retrievers drastically underperform sparse methods", and, more damningly, that "dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training."
 
 That is a Wikidata entity study, not a product catalog. But the mechanism transfers cleanly, and if you have ever watched a semantic search return the wrong model number with great confidence, you have seen it.
 
@@ -499,9 +495,7 @@ The latency column barely moves across those three rows: 1.6ms, 1.7ms, 1.6ms. Th
 
 A system that silently returns the wrong ten results is worse than one that returns the right ten slowly, and repairing that is what the rest of this section is about.
 
-Two repairs, and they differ in when they do the work.
-
-ACORN repairs at query time. When a neighbour fails the predicate, don't stop; look through it to its neighbours. The predicate check is a bitmap lookup rather than a distance computation, so you can filter the expanded list before spending arithmetic on it. There are two variants, and the names only appear in the body of the paper, not the abstract: ACORN-γ builds a denser graph up front by collecting `M · γ` candidate edges per node, and ACORN-1 does the expansion purely at search time. The tradeoff between them is stated as "at most 5× lower QPS at fixed recall but 9–53× lower TTI".
+There are two repairs, and they differ in when they do the work. ACORN repairs at query time. When a neighbour fails the predicate, don't stop; look through it to its neighbours. The predicate check is a bitmap lookup rather than a distance computation, so you can filter the expanded list before spending arithmetic on it. There are two variants, and the names only appear in the body of the paper, not the abstract: ACORN-γ builds a denser graph up front by collecting `M · γ` candidate edges per node, and ACORN-1 does the expansion purely at search time. The tradeoff between them is stated as "at most 5× lower QPS at fixed recall but 9–53× lower TTI".
 
 Qdrant repairs at build time. Declare a payload field indexed and they additionally link the points that share each value, so the `brand = Salomon` subgraph is connected because somebody built a graph over exactly those points. It costs: "the HNSW index built in 116 seconds without them and 507 to 652 seconds with them, 4.4x to 5.6x the cost."
 
@@ -603,7 +597,7 @@ Graph traversal is a sequence of dependent lookups: you cannot know your third h
 
 ### 10. What you write into the index
 
-For most of this post the two camps have looked like opposites. Terms on one side, vectors on the other. That framing is about to stop working, and the thing that breaks it is unglamorous: people started using neural models to decide what goes into an inverted index.
+For most of this post the two camps have looked like opposites. Terms on one side, vectors on the other. That framing breaks on something unglamorous: people started using neural models to decide what goes into an inverted index.
 
 The framing that makes it click is [Lin and Ma's](https://arxiv.org/abs/2106.14807): sparse against dense is one axis, and unsupervised against learned is a different one. Nothing says a sparse representation has to be produced by counting words. You can learn the term weights.
 
@@ -640,7 +634,7 @@ That is what SPLADE does, and the punchline is in the implementation note rather
 
 [SPLADE-v3](https://arxiv.org/abs/2403.06789) reports that "it is statistically significantly more effective than both BM25 and SPLADE++", getting "more than 40 MRR@10 on the MS MARCO dev set" and improving BEIR out-of-domain results by 2%.
 
-The cost sits somewhere other than where you would expect.
+The expensive part is not the neural network.
 
 You would assume the expensive bit is the neural network. It isn't. Query expansion turns a five-term query into a hundred-term query, and traversing an inverted index gets more expensive with more query terms. The [efficiency study](https://arxiv.org/abs/2207.03834) says it directly: the main gain came from "the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure", because "query size is then a major bottleneck." The neural half was cheap. The 1970s half was what blew up.
 
@@ -759,11 +753,7 @@ Deeper is not safer. Past some depth the reranker starts promoting things it sho
 
 One more constraint, because people reach for it constantly and it does not hold. A 2026 [SIGIR paper](https://arxiv.org/abs/2604.03676) evaluating LLM-based retrievers found that "Confidence calibration is consistently weak across model families, indicating that raw retrieval scores are unreliable for downstream routing without additional calibration." If your plan is "if the top score is below 0.7, say I don't know", that plan has no evidential basis. The score is a ranking signal. It is not a probability, and the models are not calibrated as though it were.
 
-Every mechanism in this act assumes something that has gone unsaid.
-
-All of it, the postings, the fused lists, the interaction axis, assumes the query is text and the thing being retrieved is text. Our user has been typing this whole time.
-
-They are about to stop.
+One assumption has run through this whole act without being stated. The postings, the fused lists, the interaction axis: all of it assumes the query is text and the candidate is text. Our user has been typing. In the next act they take a photograph instead.
 
 {/* Reader can now: place any retrieval model on the interaction axis, pick a rerank depth for a reason, and stop using retrieval scores as confidence */}
 
@@ -777,9 +767,7 @@ For that photo to retrieve anything, an image and a piece of text have to be com
 
 So the shared space is not a discovery about images and language. It is the direct consequence of an objective that rewarded exactly this.
 
-Which also tells you what it never rewarded.
-
-Nothing in that objective asks the model to distinguish `a red bag with a black strap` from `a black bag with a red strap`. Both captions contain the same words, both plausibly describe a scene with a bag and two colours, and a training signal built on batch-level matching almost never has to tell them apart. [Winoground](https://arxiv.org/abs/2204.03162) tested precisely this, pairing two images with two captions built from identical words in different orders, and found that of a diverse range of state-of-the-art models, "none of them do much better than chance." [ARO](https://arxiv.org/abs/2210.01936) found the same shape at scale: "a severe lack of order sensitivity", along with attribute-binding failures.
+It also tells you what the objective never rewarded. Nothing in it asks the model to distinguish `a red bag with a black strap` from `a black bag with a red strap`. Both captions contain the same words, both plausibly describe a scene with a bag and two colours, and a training signal built on batch-level matching almost never has to tell them apart. [Winoground](https://arxiv.org/abs/2204.03162) tested precisely this, pairing two images with two captions built from identical words in different orders, and found that of a diverse range of state-of-the-art models, "none of them do much better than chance." [ARO](https://arxiv.org/abs/2210.01936) found the same shape at scale: "a severe lack of order sensitivity", along with attribute-binding failures.
 
 <figure>
 <svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Two photographs and two captions built from identical words in different orders: a red bag with a black strap, and a black bag with a red strap. Both captions and both images are mapped into one shared embedding space, where all four land close together, because a training objective that matches images to captions across a batch is almost never required to tell word orderings apart. A note records that on this kind of test no state-of-the-art model did much better than chance, and that several benchmarks built to measure the failure at scale were later found hackable by models that never see the image.">
@@ -883,9 +871,7 @@ One last thing before the funnel. If you are choosing an embedding model, the le
 
 Fifty-nine to eighteen, same model. Leaderboard position told you almost nothing about the task that mattered.
 
-So where does that leave our shopper? The outsole photo has produced a candidate set: boots that look like the one in their hand. Those candidates arrived with no price attached to the matching, no width, no size. Everything the query actually constrained is still unsatisfied, and nothing so far has put the candidates in an order anyone would defend.
-
-That is what the next act is for.
+The outsole photo has produced a candidate set: boots that look like the one in their hand. Those candidates arrived with no price attached to the matching, no width and no size, so everything the query actually constrained is still unsatisfied. Nothing so far has put them in an order anyone would defend either, which is what the cascade in the next act does.
 
 {/* Reader can now: stop thinking of the embedding as the retrieval layer, and read a production QPS figure with the cache in mind */}
 
@@ -905,7 +891,7 @@ The mechanism is worth seeing, because it is more literal than "hybrid search" s
 
 They also chose a radius condition over top-K, and the reason is the one section 8 spent itself on: "radius mode enables a constrained NN search (constrained by other parts of the matching expression) but top K mode provides a more relaxed operation which needs to scan the whole index to get top K results." Because the vector condition is a term in a Boolean expression, the other clauses can prune it. Our `under $150` gets to constrain the vector search rather than filtering its output. The problem that broke the standalone graph in section 8 is substantially less bad when the vector index lives inside a query planner that already knew how to combine conditions.
 
-So: the retrieval stage is not one thing. It is several sources, feeding a common pool.
+So the retrieval stage is not one thing. It is several sources feeding a common pool, and the dense index is one of them rather than the whole of it.
 
 <figure>
 <svg viewBox="0 0 680 330" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="A retrieval funnel drawn as five stages. Query understanding feeds several parallel candidate sources: a term index, a dense index, and behavioural sources. Those feed a first-pass ranker, then a full ranker, then blending and policy. Only two boxes carry numbers, both labelled as coming from a display advertising system rather than from search: about ten thousand candidates entering the first-pass ranker and several hundred leaving it, under a stated ten to twenty millisecond limit covering both ranking stages. A note records that in one search deployment the nearest-neighbour condition was implemented as an operator inside the term index rather than as a separate service.">
@@ -1088,11 +1074,7 @@ I went looking for a published correlation between offline retrieval metrics and
 
 And remember section 11's small scandal. When a team went to reproduce a published benchmark's own lexical baseline, they could not, until they found "a key under-documented detail", and their audit of the corpus turned up "data quality issues that impact evaluation." A number in a paper is not a reproducible result, a reproducible result is not a system-level truth, a system-level truth is not a top-of-leaderboard truth, and none of them is a booking.
 
-So. Our shopper's results are in an order. Both query forms produced candidates, the funnel pruned and ranked them, and there is a number attached to that ordering which looks acceptable.
-
-You now know that number cannot tell you whether the ordering is good.
-
-That is why the last act is not another benchmark.
+Our shopper's results are in an order now. Both query forms produced candidates, the funnel pruned and ranked them, and a number is attached to that ordering which looks acceptable. That number cannot tell you whether the ordering is any good, which is why the last act reaches for production deployments rather than another benchmark.
 
 {/* Reader can now: design an evaluation that would catch the failure they are currently shipping, and know exactly which comparison their automated metric is worst at */}
 
