@@ -31,57 +31,43 @@ The third keeps a tighter estimate. Instead of one ceiling for a word's entire l
 Compare block-max against exhaustive OR and you get two different ratios. The documents scored fell by a factor of about 174. The time fell by a factor of about 8. Skipping is effective, it is not free, and the distance between those two numbers is where thirty years of engineering went.
 
 <figure>
-<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="A four-cell grid. Two query forms down the side: the descriptive query about a wide toe box, and the specific query naming Salomon Quest 4 GTX in size 10.5. Two documents across the top: a listing that says roomy forefoot, and a listing for the Quest 5. For lexical matching, the descriptive query shares no terms with the roomy forefoot listing and fails, while the specific query matches the model name exactly and succeeds in distinguishing Quest 4 from Quest 5. For dense matching, the descriptive query lands near the roomy forefoot listing and succeeds, while the specific query lands nearly on top of both Quest 4 and Quest 5 and cannot separate them.">
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Two bar charts comparing exhaustive OR, WAND and block-max WAND on the GOV2 collection in 2011. Documents fully scored per query: exhaustive OR 3,815,676; WAND 178,391; block-max 21,921, a reduction of about 174 times. Average latency per query: exhaustive OR 225.7 milliseconds; WAND 77.6; block-max 27.9, a reduction of about 8 times.">
   <rect x="0" y="0" width="680" height="300" fill="#F9F5EB"/>
-  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">
-    <text x="196" y="24">LEXICAL: SHARED TERMS</text>
-    <text x="452" y="24">DENSE: POSITION IN SPACE</text>
+  <text x="24" y="28" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">GOV2, 25.2M DOCUMENTS, 2011</text>
+
+  <text x="24" y="64" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Documents fully scored per query</text>
+  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258">
+    <text x="24" y="82">score everything</text>
+    <text x="24" y="112">skip by list bound</text>
+    <text x="24" y="142">skip by block bound</text>
   </g>
-
-  <text x="24" y="70" font-family="serif" font-size="11" fill="#1A1A1A">form A</text>
-  <text x="24" y="86" font-family="JetBrains Mono" font-size="9" fill="#6B6258">wide toe box</text>
-  <text x="24" y="106" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing saying</text>
-  <text x="24" y="120" font-family="JetBrains Mono" font-size="9" fill="#6B6258">roomy forefoot</text>
-
-  <rect x="150" y="46" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
-  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
-    <text x="164" y="68">query:  wide  toe  box</text>
-    <text x="164" y="86">doc:    roomy forefoot</text>
+  <rect x="140" y="70" width="440" height="16" fill="#B8651A"/>
+  <rect x="140" y="100" width="20.6" height="16" fill="#2563EB"/>
+  <rect x="140" y="130" width="2.5" height="16" fill="#059669"/>
+  <g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
+    <text x="590" y="82">3,815,676</text>
+    <text x="168" y="112">178,391</text>
+    <text x="150" y="142">21,921</text>
   </g>
-  <text x="164" y="112" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">shared terms: none</text>
-  <text x="164" y="130" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">never retrieved</text>
+  <text x="150" y="163" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">about 174x less work</text>
 
-  <rect x="406" y="46" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
-  <circle cx="470" cy="92" r="5" fill="#2563EB"/><text x="480" y="96" font-family="JetBrains Mono" font-size="9" fill="#2563EB">query</text>
-  <circle cx="530" cy="80" r="5" fill="#0E7490"/><text x="540" y="84" font-family="JetBrains Mono" font-size="9" fill="#0E7490">roomy forefoot</text>
-  <line x1="470" y1="92" x2="530" y2="80" stroke="#059669" stroke-width="1.5"/>
-  <text x="420" y="130" font-family="serif" font-size="11" font-style="italic" fill="#059669">close enough to retrieve</text>
-
-  <line x1="24" y1="158" x2="656" y2="158" stroke="#C9BEAA"/>
-
-  <text x="24" y="196" font-family="serif" font-size="11" fill="#1A1A1A">form B</text>
-  <text x="24" y="212" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 4 GTX</text>
-  <text x="24" y="232" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing for</text>
-  <text x="24" y="246" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 5 GTX</text>
-
-  <rect x="150" y="172" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
-  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
-    <text x="164" y="194">query:  Quest  4  GTX</text>
-    <text x="164" y="212">doc:    Quest  5  GTX</text>
+  <text x="24" y="205" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Average latency per query</text>
+  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258">
+    <text x="24" y="229">score everything</text>
+    <text x="24" y="253">skip by list bound</text>
+    <text x="24" y="277">skip by block bound</text>
   </g>
-  <text x="164" y="238" font-family="JetBrains Mono" font-size="10" fill="#059669">token 4 absent: rejected</text>
-  <text x="164" y="256" font-family="serif" font-size="11" font-style="italic" fill="#059669">the difference is visible</text>
-
-  <rect x="406" y="172" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
-  <circle cx="500" cy="216" r="5" fill="#2563EB"/>
-  <circle cx="506" cy="220" r="5" fill="#B91C1C"/>
-  <text x="520" y="214" font-family="JetBrains Mono" font-size="9" fill="#2563EB">Quest 4</text>
-  <text x="520" y="230" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">Quest 5</text>
-  <text x="420" y="256" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">nearly the same point</text>
-
-  <text x="24" y="288" font-family="serif" font-size="12" fill="#1A1A1A">Neither column is better. They fail on different queries, which is why production systems run both.</text>
+  <rect x="140" y="217" width="440" height="16" fill="#B8651A"/>
+  <rect x="140" y="241" width="151" height="16" fill="#2563EB"/>
+  <rect x="140" y="265" width="54" height="16" fill="#059669"/>
+  <g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
+    <text x="590" y="229">225.7 ms</text>
+    <text x="299" y="253">77.6 ms</text>
+    <text x="202" y="277">27.9 ms</text>
+  </g>
+  <text x="210" y="292" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">only about 8x less time</text>
 </svg>
-<figcaption><strong>Fig 5.</strong> The same two retrievers, each shown on the query the other one fails. Nothing here is a score; the point is structural. A term index cannot see a synonym, and a single pooled vector cannot see the one character that distinguishes two product models.</figcaption>
+<figcaption><strong>Fig 1.</strong> Three ways to answer the same query, measured two ways. Scoring everything is exhaustive OR; skipping with one estimate per word is WAND; skipping with an estimate per chunk is block-max. Cutting 99.4% of the scoring work bought roughly an eightfold latency win rather than a hundredfold one, and the gap between those two bars is where most of the engineering went.</figcaption>
 </figure>
 
 So every index ever built answers one question: how do you avoid comparing the query to everything? Trees cut space into regions and ignore most of them. Inverted indexes visit only the documents containing your words. Graphs walk toward the answer instead of scanning for it. Each buys its speed by giving something up.
@@ -339,6 +325,60 @@ So the space is not discovered. It is built, by repeatedly pushing correct pairs
 The reported gains are real and worth stating precisely: DPR "outperforms a strong Lucene-BM25 system largely by 9%-19% absolute in terms of top-20 passage retrieval accuracy", and on Natural Questions specifically, 78.4% against 59.1%.
 
 Those are aggregate results on open-domain question answering, not a measurement of our boots. The objective is designed to put `wide toe box` and `roomy forefoot` near each other. Whether it does so on your catalog depends on your data and your model, and you would have to measure it.
+
+<figure>
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="A four-cell grid. Two query forms down the side: the descriptive query about a wide toe box, and the specific query naming Salomon Quest 4 GTX in size 10.5. Two documents across the top: a listing that says roomy forefoot, and a listing for the Quest 5. For lexical matching, the descriptive query shares no terms with the roomy forefoot listing and fails, while the specific query matches the model name exactly and succeeds in distinguishing Quest 4 from Quest 5. For dense matching, the descriptive query lands near the roomy forefoot listing and succeeds, while the specific query lands nearly on top of both Quest 4 and Quest 5 and cannot separate them.">
+  <rect x="0" y="0" width="680" height="300" fill="#F9F5EB"/>
+  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">
+    <text x="196" y="24">LEXICAL: SHARED TERMS</text>
+    <text x="452" y="24">DENSE: POSITION IN SPACE</text>
+  </g>
+
+  <text x="24" y="70" font-family="serif" font-size="11" fill="#1A1A1A">form A</text>
+  <text x="24" y="86" font-family="JetBrains Mono" font-size="9" fill="#6B6258">wide toe box</text>
+  <text x="24" y="106" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing saying</text>
+  <text x="24" y="120" font-family="JetBrains Mono" font-size="9" fill="#6B6258">roomy forefoot</text>
+
+  <rect x="150" y="46" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <text x="164" y="68">query:  wide  toe  box</text>
+    <text x="164" y="86">doc:    roomy forefoot</text>
+  </g>
+  <text x="164" y="112" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">shared terms: none</text>
+  <text x="164" y="130" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">never retrieved</text>
+
+  <rect x="406" y="46" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <circle cx="470" cy="92" r="5" fill="#2563EB"/><text x="480" y="96" font-family="JetBrains Mono" font-size="9" fill="#2563EB">query</text>
+  <circle cx="530" cy="80" r="5" fill="#0E7490"/><text x="540" y="84" font-family="JetBrains Mono" font-size="9" fill="#0E7490">roomy forefoot</text>
+  <line x1="470" y1="92" x2="530" y2="80" stroke="#059669" stroke-width="1.5"/>
+  <text x="420" y="130" font-family="serif" font-size="11" font-style="italic" fill="#059669">close enough to retrieve</text>
+
+  <line x1="24" y1="158" x2="656" y2="158" stroke="#C9BEAA"/>
+
+  <text x="24" y="196" font-family="serif" font-size="11" fill="#1A1A1A">form B</text>
+  <text x="24" y="212" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 4 GTX</text>
+  <text x="24" y="232" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing for</text>
+  <text x="24" y="246" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 5 GTX</text>
+
+  <rect x="150" y="172" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <text x="164" y="194">query:  Quest  4  GTX</text>
+    <text x="164" y="212">doc:    Quest  5  GTX</text>
+  </g>
+  <text x="164" y="238" font-family="JetBrains Mono" font-size="10" fill="#059669">token 4 absent: rejected</text>
+  <text x="164" y="256" font-family="serif" font-size="11" font-style="italic" fill="#059669">the difference is visible</text>
+
+  <rect x="406" y="172" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <circle cx="500" cy="216" r="5" fill="#2563EB"/>
+  <circle cx="506" cy="220" r="5" fill="#B91C1C"/>
+  <text x="520" y="214" font-family="JetBrains Mono" font-size="9" fill="#2563EB">Quest 4</text>
+  <text x="520" y="230" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">Quest 5</text>
+  <text x="420" y="256" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">nearly the same point</text>
+
+  <text x="24" y="288" font-family="serif" font-size="12" fill="#1A1A1A">Neither column is better. They fail on different queries, which is why production systems run both.</text>
+</svg>
+<figcaption><strong>Fig 5.</strong> The same two retrievers, each shown on the query the other one fails. Nothing here is a score; the point is structural. A term index cannot see a synonym, and a single pooled vector cannot see the one character that distinguishes two product models.</figcaption>
+</figure>
 
 
 
