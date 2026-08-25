@@ -950,23 +950,28 @@ Reader can now: ask the right question about their own stack, which is not "is t
 
 ### Figure table
 
-13 figures. 11 static-svg, 2 interactive-canvas. Both interactive figures clear override clause 1 (a continuous parameter sweep the reader cannot simulate mentally). Types are LOCKED at this phase; a change requires a Gate 1 STRUCTURAL finding plus Vic's approval.
+13 figures, ALL static-svg after Gate 1. The two originally typed interactive-canvas were both re-typed through the per-figure-type unlock protocol on 2026-08-24, with Vic's explicit approval, on TYPE-CHANGE STRUCTURAL findings:
+
+- **Fig 3 Bm25Dials**: k1 and b produce smooth monotonic effects a reader can extrapolate, so the continuous sweep is not load-bearing. Ships as static small multiples: three k1 saturation curves, three b states. unlock-count 1.
+- **Fig 8 FilteredDegreeCollapse**: expected surviving degree is linear in s, so one static curve crossing the M line carries the mechanism; and the correlated-filter panel is about spatial arrangement rather than another value of s, so a selectivity slider could never drive it. Ships as three static panels with the no-predicate-clustering assumption printed on the figure itself. unlock-count 1.
+
+Both locked again. A further re-type needs another Gate 1 finding, and a third would hit the per-figure cap of two.
 
 | # | Figure | Type | Section | Mechanism | Reader notices | unlock-count |
 |---|---|---|---|---|---|---|
 | 1 | ScanCost | static-svg | 1 | Exhaustive comparison against the indexed alternatives on one corpus, with the GOV2 numbers | The gap is orders of magnitude, and it is why everything else exists | 0 |
 | 2 | PostingList | static-svg | 2 | Term to posting list, docID plus frequency, 64/128-doc blocks; second panel shows the same list holding learned weights (forward ref to §11) | The structure does not change when the weights become neural | 0 |
-| 3 | Bm25Dials | interactive-canvas | 3 | Two sliders, k1 and b, over the tf-to-score curve and the length-normalization term | Raising k1 keeps extra occurrences paying; b=0 turns length off entirely; saturation is the whole idea | 0 |
+| 3 | Bm25Dials | static-svg (re-typed at Gate 1, 2026-08-24) | 3 | Two sliders, k1 and b, over the tf-to-score curve and the length-normalization term | Raising k1 keeps extra occurrences paying; b=0 turns length off entirely; saturation is the whole idea | 0 |
 | 4 | BlockMaxSkip | static-svg | 4 | A posting list with per-list and per-block maxima against a running threshold, showing which blocks are skipped | A loose bound skips little; a tight bound skips most of the list | 0 |
 | 5 | DenseVsLexical | static-svg | 6 | The same query against the same two documents, scored lexically and densely, one where each wins | Paraphrase and exact match are different failures, not one axis | 0 |
 | 6 | AnnLadder | static-svg | 7 | The lineage as a ladder, each rung labelled with the assumption it broke | Each index fixed one specific wrong assumption | 0 |
 | 7 | HnswAnatomy | static-svg | 8 | Layers as a skip list, plus the pruning heuristic choosing diverse directions over nearest neighbours, plus the three degree numbers side by side | The heuristic, not the hierarchy, is what makes routing work | 0 |
-| 8 | FilteredDegreeCollapse | interactive-canvas | 9 | Selectivity slider; expected surviving degree per node falls against ACORN's M threshold; second panel shows a filter correlated with position breaking the random-removal assumption | Recall collapses while latency stays flat; and correlated filters behave differently from random ones | 0 |
+| 8 | FilteredDegreeCollapse | static-svg (re-typed at Gate 1, 2026-08-24) | 9 | Selectivity slider; expected surviving degree per node falls against ACORN's M threshold; second panel shows a filter correlated with position breaking the random-removal assumption | Recall collapses while latency stays flat; and correlated filters behave differently from random ones | 0 |
 | 9 | VectorResidence | static-svg | 10 | One vector at float32, PQ, RaBitQ and Matryoshka-truncated, placed in RAM, SSD and object storage with the latency cliff | Moving the index down the hierarchy changes the index type, not just the latency | 0 |
 | 10 | InteractionAxis | static-svg | 13 | Bi-encoder, late interaction, cross-encoder along one axis, with what is precomputable under each | Precomputability and expressiveness trade against each other directly | 0 |
 | 11 | SharedSpaceBlindSpot | static-svg | 14 | Two images and two captions with identical words in different order, mapped into one space | The space encodes a bag of concepts, not a structured scene | 0 |
 | 12 | CascadeBudget | static-svg | 17 | The funnel with candidate counts and latency per stage, each box labelled with its source and domain | The per-candidate budget is microseconds, which is why L1 was a dot product | 0 |
-| 13 | OfflineOnlineGap | static-svg | 21 | Offline NDCG flat or better against online bookings down, for three real models, plus the log-replay blindness that explains it | An offline harness cannot see documents it never showed | 0 |
+| 13 | OfflineOnlineGap | static-svg | 21 | Airbnb's three online booking losses against what offline said, plus the log-replay blindness that explains it. GATE 1 NOTE: C22 supports offline-neutrality for ONE model only; the other two rows give online losses without an offline-neutral claim. Draw only what the rows support | An offline harness cannot see documents it never showed | 0 |
 
 Figures cut from the Phase-1 sketch and why: a standalone BM25F diagram (folded into §5 prose, the mechanism is one sentence); a standalone learned-sparse diagram (folded into Fig 2 as a second panel, which makes the reconvergence point better than a separate figure would).
 
@@ -1060,12 +1065,12 @@ Last touched: 2026-08-24.
 |---|---|---|---|---|
 | 1 | ScanCost | static-svg | TODO | |
 | 2 | PostingList | static-svg | TODO | |
-| 3 | Bm25Dials | interactive-canvas | TODO | |
+| 3 | Bm25Dials | static-svg | TODO | |
 | 4 | BlockMaxSkip | static-svg | TODO | |
 | 5 | DenseVsLexical | static-svg | TODO | |
 | 6 | AnnLadder | static-svg | TODO | |
 | 7 | HnswAnatomy | static-svg | TODO | |
-| 8 | FilteredDegreeCollapse | interactive-canvas | TODO | |
+| 8 | FilteredDegreeCollapse | static-svg | TODO | |
 | 9 | VectorResidence | static-svg | TODO | |
 | 10 | InteractionAxis | static-svg | TODO | |
 | 11 | SharedSpaceBlindSpot | static-svg | TODO | |
