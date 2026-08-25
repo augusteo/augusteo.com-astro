@@ -438,3 +438,37 @@ The follow-up is where it gets honest. The same group built a harder benchmark, 
 A paradigm won, and the reward for winning was a benchmark that shows how far there is to go. That is roughly what healthy progress looks like.
 
 {/* Reader can now: say when to skip parsing, what it costs in storage, and tell an evaluated architecture apart from a production replacement */}
+
+### 15. One embedding, three jobs
+
+The last two sections were about replacing things. This one is about what usually happens instead, and it is the pattern that the rest of the post turns on.
+
+Pinterest published [OmniSearchSage](https://arxiv.org/abs/2404.16260) in 2024, describing a unified query embedding trained jointly with pin and product embeddings. The headline results are what you would expect from a paper: "an improvement of >8% relevance, >7% engagement, and >5% ads CTR in Pinterest's production search system."
+
+The interesting sentence is not in the abstract. It is in the deployment section, and it describes where the embedding actually gets used:
+
+> "These embeddings are employed to power the retrieval of pins and products using HNSW. They are also instrumental in the L1 scoring model, where they enhance the efficiency of token-based retrieval sources. Moreover, [OmniSearchSage] embeddings serve as one of the most critical features in the L2 scoring and relevance models."
+
+Three jobs. It powers a vector index. It makes the *token-based* retrieval sources more efficient, meaning it is helping the lexical machinery rather than replacing it. And it is a feature inside two downstream ranking models.
+
+That is not what "we moved to semantic search" sounds like when people say it. The embedding did not become the retrieval layer. It became a component that shows up at three different depths of an existing stack, one of which is the part it was supposed to have made obsolete.
+
+Two more numbers from that paper, because they recalibrate what production embedding serving looks like.
+
+The embedding is 256-dimensional, L2-normalized. Not 768, not 1536. And the system serves "300k requests per second, maintaining a median (p50) latency of just 3 ms, and 90 percentile (p90) latency of 20 ms."
+
+Now the detail I find genuinely funny. That 300k QPS is the number everybody quotes. Here is what sits behind it: "The implementation of this cache-based system efficiently reduces the load on the inference server to approximately 500 QPS."
+
+The neural model handles about five hundred requests a second. A cache absorbs the other two hundred and ninety-nine thousand five hundred. The most-cited throughput figure about a modern production embedding system is, to a first approximation, a measurement of caching.
+
+None of which means embeddings are overrated. It means the embedding is one part inside a machine, and the machine is doing a lot of unglamorous work around it.
+
+One last thing before the funnel. If you are choosing an embedding model, the leaderboard is a weaker instrument than it looks. [MIEB](https://arxiv.org/abs/2504.10471) benchmarked 50 models across 130 tasks and found "no single method dominates across all task categories." And the collapse can be dramatic: on [BRIGHT](https://arxiv.org/abs/2407.12883), a reasoning-heavy retrieval benchmark, "The leading model on the MTEB leaderboard SFR-Embedding-Mistral, which achieves a score of 59.0 nDCG@10, produces a score of nDCG@10 of 18.3 on BRIGHT."
+
+Fifty-nine to eighteen, same model. Leaderboard position told you almost nothing about the task that mattered.
+
+So where does that leave our shopper? The outsole photo has produced a candidate set: boots that look like the one in their hand. Those candidates arrived with no price attached to the matching, no width, no size. Everything the query actually constrained is still unsatisfied, and nothing so far has put the candidates in an order anyone would defend.
+
+That is what the next act is for.
+
+{/* Reader can now: stop thinking of the embedding as the retrieval layer, and read a production QPS figure with the cache in mind */}
