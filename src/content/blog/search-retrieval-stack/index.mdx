@@ -16,77 +16,83 @@ essay: true
 
 ### 1. One query, and the scan you cannot afford
 
-Type `waterproof hiking boots wide toe box under $150` into a search box and something answers in a couple of hundred milliseconds. Behind the box is a pile of documents. The corpus in the experiment I am about to quote held 25.2 million of them, which is small by web standards and large by most other standards.
+Type `waterproof hiking boots wide toe box under $150` into a search box and something answers in a couple of hundred milliseconds. Behind the box is a pile of documents.
 
-The obvious way to answer is to score every document and sort. Nobody does that, because somebody measured how slow it is.
+The obvious way to answer is to score every one of them and sort. Nobody does that, and in 2011 Ding and Suel published the numbers that explain why.
 
-Ding and Suel measured it in 2011 on GOV2, a crawl of 25.2 million government web pages. They compared three ways of answering the same queries.
+Their corpus was GOV2, a crawl of 25.2 million government web pages. They compared three ways of answering the same queries.
 
-The first is to score every document that contains any of your query words. That is the thorough option, and in the literature it is called exhaustive OR, because a document qualifies if it matches this word *or* that one. It cost 225.7 milliseconds per query and fully scored 3,815,676 documents.
+The first scores every document containing any of your query words. In the literature it is called exhaustive OR, because a document qualifies if it matches this word *or* that one. On GOV2 it cost 225.7 milliseconds per query, and it fully scored 3,815,676 documents to do it.
 
-The second keeps a running score to beat and, for each word, the best score any single document could ever earn from it. If a document cannot possibly clear the bar, you never score it. That is WAND, and it answered the same queries in 77.6 milliseconds while fully scoring 178,391 documents.
+The second keeps two things: a running score to beat, and, for each word, the highest score any single document could possibly earn from that word. If a document cannot clear the bar even in the best case, you never score it. That is WAND. Same queries, 77.6 milliseconds, 178,391 documents scored.
 
-The third does the same thing with a tighter estimate, tracking the best possible score for each small chunk of the word's list rather than one estimate for the whole list. That is the [block-max index](https://research.engineering.nyu.edu/~suel/papers/bmw.pdf): 27.9 milliseconds, 21,921 documents fully scored.
+The third keeps a tighter estimate. Instead of one ceiling for a word's entire list, it stores a ceiling for each small chunk of that list, so a single unusually good document no longer inflates the estimate for everything around it. That is the [block-max index](https://research.engineering.nyu.edu/~suel/papers/bmw.pdf): 27.9 milliseconds, 21,921 documents scored. Section 4 covers how the skipping works.
 
-Section 4 goes through how the skipping works. For now only the sizes matter.
-
-Look at those two ratios, because they are not the same ratio. The work fell by a factor of about 174. The time fell by a factor of about 8. Skipping documents is enormously effective and nowhere near free, and the distance between those two numbers is where most of the last thirty years of engineering went.
+Compare block-max against exhaustive OR and you get two different ratios. The documents scored fell by a factor of about 174. The time fell by a factor of about 8. Skipping is effective, it is not free, and the distance between those two numbers is where thirty years of engineering went.
 
 <figure>
-<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Two bar charts comparing exhaustive OR, WAND and block-max WAND on the GOV2 collection in 2011. Documents fully scored per query: exhaustive OR 3,815,676; WAND 178,391; block-max 21,921, a reduction of about 174 times. Average latency per query: exhaustive OR 225.7 milliseconds; WAND 77.6; block-max 27.9, a reduction of about 8 times.">
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="A four-cell grid. Two query forms down the side: the descriptive query about a wide toe box, and the specific query naming Salomon Quest 4 GTX in size 10.5. Two documents across the top: a listing that says roomy forefoot, and a listing for the Quest 5. For lexical matching, the descriptive query shares no terms with the roomy forefoot listing and fails, while the specific query matches the model name exactly and succeeds in distinguishing Quest 4 from Quest 5. For dense matching, the descriptive query lands near the roomy forefoot listing and succeeds, while the specific query lands nearly on top of both Quest 4 and Quest 5 and cannot separate them.">
   <rect x="0" y="0" width="680" height="300" fill="#F9F5EB"/>
-  <text x="24" y="28" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">GOV2, 25.2M DOCUMENTS, 2011</text>
+  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">
+    <text x="196" y="24">LEXICAL: SHARED TERMS</text>
+    <text x="452" y="24">DENSE: POSITION IN SPACE</text>
+  </g>
 
-  <text x="24" y="64" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Documents fully scored per query</text>
-  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258">
-    <text x="24" y="82">score everything</text>
-    <text x="24" y="112">skip by list bound</text>
-    <text x="24" y="142">skip by block bound</text>
-  </g>
-  <rect x="140" y="70" width="440" height="16" fill="#B8651A"/>
-  <rect x="140" y="100" width="20.6" height="16" fill="#2563EB"/>
-  <rect x="140" y="130" width="2.5" height="16" fill="#059669"/>
-  <g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
-    <text x="590" y="82">3,815,676</text>
-    <text x="168" y="112">178,391</text>
-    <text x="150" y="142">21,921</text>
-  </g>
-  <text x="150" y="163" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">about 174x less work</text>
+  <text x="24" y="70" font-family="serif" font-size="11" fill="#1A1A1A">form A</text>
+  <text x="24" y="86" font-family="JetBrains Mono" font-size="9" fill="#6B6258">wide toe box</text>
+  <text x="24" y="106" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing saying</text>
+  <text x="24" y="120" font-family="JetBrains Mono" font-size="9" fill="#6B6258">roomy forefoot</text>
 
-  <text x="24" y="205" font-family="serif" font-size="13" font-weight="600" fill="#1A1A1A">Average latency per query</text>
-  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258">
-    <text x="24" y="229">score everything</text>
-    <text x="24" y="253">skip by list bound</text>
-    <text x="24" y="277">skip by block bound</text>
+  <rect x="150" y="46" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <text x="164" y="68">query:  wide  toe  box</text>
+    <text x="164" y="86">doc:    roomy forefoot</text>
   </g>
-  <rect x="140" y="217" width="440" height="16" fill="#B8651A"/>
-  <rect x="140" y="241" width="151" height="16" fill="#2563EB"/>
-  <rect x="140" y="265" width="54" height="16" fill="#059669"/>
-  <g font-family="JetBrains Mono" font-size="10" fill="#1A1A1A">
-    <text x="590" y="229">225.7 ms</text>
-    <text x="299" y="253">77.6 ms</text>
-    <text x="202" y="277">27.9 ms</text>
+  <text x="164" y="112" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">shared terms: none</text>
+  <text x="164" y="130" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">never retrieved</text>
+
+  <rect x="406" y="46" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <circle cx="470" cy="92" r="5" fill="#2563EB"/><text x="480" y="96" font-family="JetBrains Mono" font-size="9" fill="#2563EB">query</text>
+  <circle cx="530" cy="80" r="5" fill="#0E7490"/><text x="540" y="84" font-family="JetBrains Mono" font-size="9" fill="#0E7490">roomy forefoot</text>
+  <line x1="470" y1="92" x2="530" y2="80" stroke="#059669" stroke-width="1.5"/>
+  <text x="420" y="130" font-family="serif" font-size="11" font-style="italic" fill="#059669">close enough to retrieve</text>
+
+  <line x1="24" y1="158" x2="656" y2="158" stroke="#C9BEAA"/>
+
+  <text x="24" y="196" font-family="serif" font-size="11" fill="#1A1A1A">form B</text>
+  <text x="24" y="212" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 4 GTX</text>
+  <text x="24" y="232" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing for</text>
+  <text x="24" y="246" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 5 GTX</text>
+
+  <rect x="150" y="172" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <text x="164" y="194">query:  Quest  4  GTX</text>
+    <text x="164" y="212">doc:    Quest  5  GTX</text>
   </g>
-  <text x="210" y="292" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">only about 8x less time</text>
+  <text x="164" y="238" font-family="JetBrains Mono" font-size="10" fill="#059669">token 4 absent: rejected</text>
+  <text x="164" y="256" font-family="serif" font-size="11" font-style="italic" fill="#059669">the difference is visible</text>
+
+  <rect x="406" y="172" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <circle cx="500" cy="216" r="5" fill="#2563EB"/>
+  <circle cx="506" cy="220" r="5" fill="#B91C1C"/>
+  <text x="520" y="214" font-family="JetBrains Mono" font-size="9" fill="#2563EB">Quest 4</text>
+  <text x="520" y="230" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">Quest 5</text>
+  <text x="420" y="256" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">nearly the same point</text>
+
+  <text x="24" y="288" font-family="serif" font-size="12" fill="#1A1A1A">Neither column is better. They fail on different queries, which is why production systems run both.</text>
 </svg>
-<figcaption><strong>Fig 1.</strong> Three ways to answer the same query, measured two ways. Scoring everything is exhaustive OR; skipping with one estimate per word is WAND; skipping with an estimate per chunk is block-max. Cutting 99.4% of the scoring work bought roughly an eightfold latency win rather than a hundredfold one, and the gap between those two bars is where most of the engineering went.</figcaption>
+<figcaption><strong>Fig 5.</strong> The same two retrievers, each shown on the query the other one fails. Nothing here is a score; the point is structural. A term index cannot see a synonym, and a single pooled vector cannot see the one character that distinguishes two product models.</figcaption>
 </figure>
 
-So every index ever built answers one question: how do you avoid comparing the query to everything? Trees answer it by cutting space into regions. Inverted indexes answer it by only visiting documents that contain your words. Graphs answer it by walking toward the answer instead of scanning for it. Different answers, same question, and each one buys its speed by giving something up.
+So every index ever built answers one question: how do you avoid comparing the query to everything? Trees cut space into regions and ignore most of them. Inverted indexes visit only the documents containing your words. Graphs walk toward the answer instead of scanning for it. Each buys its speed by giving something up.
 
-An inverted index is not only a fast way to match text. It also sits inside an operational pipeline where someone can add a term at two in the afternoon and have it live by three, without retraining anything. That capability appears in no benchmark in this post. Not nDCG, not recall@100, not any leaderboard. In one documented production system it is the reason the inverted index outlived a model that beat it on every metric anyone had run.
+An inverted index is not only a fast way to match text. It also sits inside an operational pipeline where someone can add a term at two in the afternoon and have it live by three, with no retraining. That capability appears in no benchmark in this post. Not nDCG, not recall@100, not any leaderboard. In one documented production system it is the reason the inverted index outlived a model that beat it on every metric anyone had run.
 
 This post walks the history from posting lists to generative retrieval, asking four questions at each step. What could the incumbent do that no benchmark measured? What did the challenger win on? Did the challenger keep that capability or route around it? And what happened when someone shipped it?
 
-Two notes on how to read what follows, both of which matter.
+The boot query is a worked example, and it does one job: showing what each generation of machinery can and cannot do. It is not evidence. Where I claim something about production systems, the evidence is a cited deployment.
 
-The boot query is a worked example. It carries the mechanics: it will show you what each generation of machinery can and cannot do, and I will run it through every act. It is not evidence for anything. When I claim something about production systems, the evidence is a cited deployment, not the boots.
-
-And the metrics arrive as they become necessary rather than in a primer up front. When a number appears, I will say what it measures and, where it matters, what it fails to measure. That second half turns out to be the more interesting one: by the end of this post there is a documented case where an automated evaluation ranked systems in almost exactly the reverse of how humans ranked them, and it did so precisely among the systems anyone would actually be choosing between.
-
-The answers are more interesting than "vectors won."
-
-{/* Reader can now: say why an index exists at all, in cost terms, and knows the four questions the rest of the post answers */}
+Metrics arrive as they become necessary rather than in a primer. When a number appears I will say what it measures and, where it matters, what it does not. That second half is the more useful one. By the end of this post there is a documented case where an automated evaluation ranked the top five systems in an order negatively correlated with how humans ranked them.
 
 ## Act 2 — The lexical machine
 
@@ -152,7 +158,7 @@ Why this is fast has nothing to do with clever data structures and everything to
 
 Which tells you exactly where it stops being fast. Some words are not rare at all, and the same paper says so plainly: "The inverted lists of common query terms may consist of many millions or even billions of postings." Add `the` to your query and you have undone the trick. This is why every production system carries a stopword policy, and why the interesting engineering is always about the frequent terms rather than the rare ones.
 
-Two implementation details matter later, so they are worth noticing now.
+Two implementation details matter later.
 
 The lists are compressed, and the compression is not an optimization someone added at the end. On GOV2, 426 GB of raw pages became an 8,759 MB index, which is close to a fiftyfold reduction, before anyone talks about vectors.
 
@@ -294,7 +300,7 @@ Our query has three parts, and the machine we have built handles exactly one of 
 
 `wide toe box` is where it fails, and the failure has a name and a measurement. In 1987, Furnas, Landauer, Gomez and Dumais ran a study on how people spontaneously name things, across five different application domains, and found: "In every case two people favored the same term with probability &lt;0.20." Their per-domain numbers run from .07 to .18. Two people describing the same thing pick the same word less than one time in five.
 
-Read that number carefully, because it is easy to over-claim. It is about spontaneous naming across five domains in 1987, not about modern search queries. But the shape of the problem is exactly the one our query has. A boot listing that says `roomy forefoot`, or `generous last`, or `available in wide`, is describing the thing the user asked for, in words the user did not use.
+The number has a narrow scope: spontaneous naming across five domains in 1987, not modern search queries. But the shape of the problem is exactly the one our query has. A boot listing that says `roomy forefoot`, or `generous last`, or `available in wide`, is describing the thing the user asked for, in words the user did not use.
 
 That document is not unreachable. It still contains `waterproof` and `hiking`, so a disjunctive query will still find it. What it cannot do is earn any credit for the part of the query that actually mattered. The three terms the user cared most about contribute nothing to its score, so it ranks below listings that happen to repeat `waterproof` a lot and say nothing about fit. No amount of tuning `k1` fixes that, because the evidence is not weak. It is absent.
 
@@ -336,59 +342,7 @@ The reported gains are real and worth stating precisely: DPR "outperforms a stro
 
 Those are aggregate results on open-domain question answering, not a measurement of our boots. The objective is designed to put `wide toe box` and `roomy forefoot` near each other. Whether it does so on your catalog depends on your data and your model, and you would have to measure it.
 
-<figure>
-<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="A four-cell grid. Two query forms down the side: the descriptive query about a wide toe box, and the specific query naming Salomon Quest 4 GTX in size 10.5. Two documents across the top: a listing that says roomy forefoot, and a listing for the Quest 5. For lexical matching, the descriptive query shares no terms with the roomy forefoot listing and fails, while the specific query matches the model name exactly and succeeds in distinguishing Quest 4 from Quest 5. For dense matching, the descriptive query lands near the roomy forefoot listing and succeeds, while the specific query lands nearly on top of both Quest 4 and Quest 5 and cannot separate them.">
-  <rect x="0" y="0" width="680" height="300" fill="#F9F5EB"/>
-  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">
-    <text x="196" y="24">LEXICAL: SHARED TERMS</text>
-    <text x="452" y="24">DENSE: POSITION IN SPACE</text>
-  </g>
 
-  <text x="24" y="70" font-family="serif" font-size="11" fill="#1A1A1A">form A</text>
-  <text x="24" y="86" font-family="JetBrains Mono" font-size="9" fill="#6B6258">wide toe box</text>
-  <text x="24" y="106" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing saying</text>
-  <text x="24" y="120" font-family="JetBrains Mono" font-size="9" fill="#6B6258">roomy forefoot</text>
-
-  <rect x="150" y="46" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
-  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
-    <text x="164" y="68">query:  wide  toe  box</text>
-    <text x="164" y="86">doc:    roomy forefoot</text>
-  </g>
-  <text x="164" y="112" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">shared terms: none</text>
-  <text x="164" y="130" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">never retrieved</text>
-
-  <rect x="406" y="46" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
-  <circle cx="470" cy="92" r="5" fill="#2563EB"/><text x="480" y="96" font-family="JetBrains Mono" font-size="9" fill="#2563EB">query</text>
-  <circle cx="530" cy="80" r="5" fill="#0E7490"/><text x="540" y="84" font-family="JetBrains Mono" font-size="9" fill="#0E7490">roomy forefoot</text>
-  <line x1="470" y1="92" x2="530" y2="80" stroke="#059669" stroke-width="1.5"/>
-  <text x="420" y="130" font-family="serif" font-size="11" font-style="italic" fill="#059669">close enough to retrieve</text>
-
-  <line x1="24" y1="158" x2="656" y2="158" stroke="#C9BEAA"/>
-
-  <text x="24" y="196" font-family="serif" font-size="11" fill="#1A1A1A">form B</text>
-  <text x="24" y="212" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 4 GTX</text>
-  <text x="24" y="232" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing for</text>
-  <text x="24" y="246" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 5 GTX</text>
-
-  <rect x="150" y="172" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
-  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
-    <text x="164" y="194">query:  Quest  4  GTX</text>
-    <text x="164" y="212">doc:    Quest  5  GTX</text>
-  </g>
-  <text x="164" y="238" font-family="JetBrains Mono" font-size="10" fill="#059669">token 4 absent: rejected</text>
-  <text x="164" y="256" font-family="serif" font-size="11" font-style="italic" fill="#059669">the difference is visible</text>
-
-  <rect x="406" y="172" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
-  <circle cx="500" cy="216" r="5" fill="#2563EB"/>
-  <circle cx="506" cy="220" r="5" fill="#B91C1C"/>
-  <text x="520" y="214" font-family="JetBrains Mono" font-size="9" fill="#2563EB">Quest 4</text>
-  <text x="520" y="230" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">Quest 5</text>
-  <text x="420" y="256" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">nearly the same point</text>
-
-  <text x="24" y="288" font-family="serif" font-size="12" fill="#1A1A1A">Neither column is better. They fail on different queries, which is why production systems run both.</text>
-</svg>
-<figcaption><strong>Fig 5.</strong> The same two retrievers, each shown on the query the other one fails. Nothing here is a score; the point is structural. A term index cannot see a synonym, and a single pooled vector cannot see the one character that distinguishes two product models.</figcaption>
-</figure>
 
 Now the second query. `Salomon Quest 4 GTX wide 10.5`, the one term matching was superb at.
 
@@ -484,7 +438,7 @@ We still have `under $150` sitting in the query, unaddressed since section 5. It
 
 There are three places to apply it, and the [VLDB tutorial](https://www.vldb.org/pvldb/vol18/p5488-caminal.pdf) on filtered vector search names them cleanly. Filter first, then search the survivors. Search first, then discard the misses. Or filter during the walk. The first is optimal when the surviving set is small. The second has a cost the tutorial states directly: it "requires the approximate nearest neighbor (ANN) search to yield a multiple of K results to ensure at least K vectors remain after filtering, which complicates achieving high recall." Want ten results from a filter that keeps 1% of the corpus, and you need roughly a thousand candidates before filtering. Want them from a filter keeping 0.1%, and you are approaching a scan with extra steps.
 
-The third option is the one everyone wants, and it's where the graph turns on you.
+The third option is the one people want, and it is where the graph fails.
 
 Here is the shape of the problem, stated carefully, because it is easy to state carelessly. Your walk can only step to neighbours that pass the filter. Nodes that fail are dead ends. As the filter gets more selective, each node's usable neighbourhood thins out, and at some point the walk stops being able to reach the region of the space where the answers are.
 
@@ -494,7 +448,7 @@ The [ACORN paper](https://arxiv.org/abs/2403.04871) gives the version you can ac
 
 Both results come with an assumption printed right next to them: they hold "For a dataset and query predicate that exhibit no predicate clustering", which is to say, for exactly the uncorrelated case that real filters violate. The paper is candid about how far any of this goes: "We note that neither HNSW nor ACORN provides theoretical guarantees on connectivity over its level graphs for arbitrary datasets. Thus we instead rely primarily on empirical results for our analysis."
 
-So nobody has the theorem. What everyone has is measurements, and they are ugly.
+So there is no theorem to lean on, only measurements, and the measurements are bad.
 
 <figure>
 <svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Three panels on what a filter does to a proximity graph. The first plots expected surviving neighbours per node against filter selectivity, for a node with about 21 links: the line falls linearly, passing below one surviving neighbour at roughly five percent selectivity. The second shows a filter that removes nodes at random, thinning the graph evenly. The third shows a filter correlated with position in the embedding space, which removes a whole region and leaves the rest dense, so the random-removal assumption does not hold. A note states that ACORN's analysis assumes no predicate clustering and that neither HNSW nor ACORN provides a connectivity guarantee for arbitrary datasets.">
@@ -541,9 +495,9 @@ Qdrant published a [benchmark](https://qdrant.tech/articles/filtered-vector-sear
 
 Under those conditions the plain graph's recall against filter selectivity reads: at a filter keeping 20% of the collection, 62.9%. At 10%, 20.6%. At 1%, 0.1%.
 
-Look at the latency column and it barely moves: 1.6ms, 1.7ms, 1.6ms. The system is exactly as fast while returning almost none of the right answers. There is no timeout, no error, no degradation you would notice on a dashboard.
+The latency column barely moves across those three rows: 1.6ms, 1.7ms, 1.6ms. The system is exactly as fast while returning almost none of the right answers. There is no timeout, no error, no degradation you would notice on a dashboard.
 
-That failure mode is worse than being slow, and it is why this subfield exists.
+A system that silently returns the wrong ten results is worse than one that returns the right ten slowly, and repairing that is what the rest of this section is about.
 
 Two repairs, and they differ in when they do the work.
 
@@ -686,13 +640,13 @@ That is what SPLADE does, and the punchline is in the implementation note rather
 
 [SPLADE-v3](https://arxiv.org/abs/2403.06789) reports that "it is statistically significantly more effective than both BM25 and SPLADE++", getting "more than 40 MRR@10 on the MS MARCO dev set" and improving BEIR out-of-domain results by 2%.
 
-Then comes the part that inverts everyone's intuition about where the cost is.
+The cost sits somewhere other than where you would expect.
 
 You would assume the expensive bit is the neural network. It isn't. Query expansion turns a five-term query into a hundred-term query, and traversing an inverted index gets more expensive with more query terms. The [efficiency study](https://arxiv.org/abs/2207.03834) says it directly: the main gain came from "the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure", because "query size is then a major bottleneck." The neural half was cheap. The 1970s half was what blew up.
 
 The same lesson shows up on the document side, and harder. doc2query generates queries a document might answer and appends them before indexing. It works. It also hallucinates. Gospodinov, MacAvaney and Macdonald [filtered the generated text](https://arxiv.org/abs/2301.03266) with a relevance model and found you can "improve the retrieval effectiveness of Doc2Query by up to 16%, while simultaneously reducing mean query execution time by 23% and cutting the index size by 33%." That is from keeping only 30% of what the model generated. Throwing away seven-tenths of your generated text made retrieval better, the index smaller, and queries faster, all at once.
 
-Which raises the question this whole section is really about: what is the unit you index?
+Which raises the question underneath all of this: what is the unit you index?
 
 For a product catalog it's obvious, one document per boot. For a 200-page PDF it isn't, and this is the most-asked practical question in retrieval. The published evidence is thinner than the volume of advice suggests, but 2026 finally produced controlled sweeps, and one of them killed a piece of folklore outright.
 
@@ -715,8 +669,6 @@ Reciprocal rank fusion sidesteps all of it by throwing the scores away and keepi
 Almost nothing to tune. There is `k`, and it is set to 60 essentially everywhere. That number comes from [Cormack, Clarke and Buettcher in 2009](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf), and they are candid about its provenance: "k = 60 was fixed during a pilot investigation and not altered during subsequent validation." Their pilot "indicated that k = 60 was near-optimal, but that the choice was not critical."
 
 So it was chosen, on TREC data, in 2009, using a search engine most people reading this have never run. Elasticsearch ships it as `rank_constant`, defaulting to 60, and sells the method on exactly the property that made it attractive then: "RRF requires no tuning, and the different relevance indicators do not have to be related to each other to achieve high-quality results."
-
-Then someone checked.
 
 Bruch, Gai and Ingber [analysed fusion functions properly](https://arxiv.org/abs/2210.11934) and their abstract opens with the word "Contrary": "we find RRF to be sensitive to its parameters; that the learning of a CC fusion is generally agnostic to the choice of score normalization; that CC outperforms RRF in in-domain and out-of-domain settings; and finally, that CC is sample efficient, requiring only a small set of training examples to tune its only parameter."
 
@@ -795,7 +747,7 @@ So the axis is how much interaction you allow and how late you allow it, and wha
 
 Late interaction is not free, it's deferred. Storing a vector per token instead of per document is a large multiplier, and the engineering since has mostly been about making that affordable. [PLAID](https://arxiv.org/abs/2205.09707) reports reducing "late interaction search latency by up to 7× on a GPU and 45× on a CPU against vanilla ColBERTv2", which is the more interesting number: the CPU speedup is the larger one, and it turns a GPU-bound method into something you can serve on ordinary hardware.
 
-Now, the practical question. When is a reranker worth it?
+So when is a reranker worth it?
 
 The default answer in most tutorials is "retrieve 100, rerank them, always." Both halves of that deserve scrutiny.
 
@@ -1108,7 +1060,7 @@ Now the 2026 version of the problem, which is worse, because the industry's resp
 
 The case for doing that is real. [UMBRELA](https://arxiv.org/abs/2406.06519), in 2024, compared LLM relevance judgments against human ones across five TREC Deep Learning tracks and reported system-level rank correlations between 0.87 and 0.94 Kendall's tau. If you want to know which of your systems is best, an LLM judge appears to tell you.
 
-Look at the per-item agreement in the same table and it is a different story: Cohen's kappa between 0.31 and 0.37 on the four-point scale. Kappa is already corrected for agreement you would get by chance, so zero means no better than guessing and one means perfect. A third of the way up that scale is real agreement and it is weak agreement, on the individual query-document judgments the whole thing is built from. TREC's own 2026 RAG track puts it independently at "agreement fractions between 0.30–0.34, suggesting that automated relevance judgment remains a challenging task with limited agreement relative to human assessors."
+The per-item agreement in the same table tells a different story: Cohen's kappa between 0.31 and 0.37 on the four-point scale. Kappa is already corrected for agreement you would get by chance, so zero means no better than guessing and one means perfect. A third of the way up that scale is real agreement and it is weak agreement, on the individual query-document judgments the whole thing is built from. TREC's own 2026 RAG track puts it independently at "agreement fractions between 0.30–0.34, suggesting that automated relevance judgment remains a challenging task with limited agreement relative to human assessors."
 
 High correlation on system ordering, poor agreement on items. Those two facts coexist because errors that are dense but unbiased wash out when you average over a whole run.
 
@@ -1208,7 +1160,7 @@ And the deployment is an experiment, not a platform. The online results come fro
 
 That is a real replacement of a real inverted index in production e-commerce search, and it is a genuine counterexample to any story where the old machinery simply persists forever. It also took until 2026, and it required rebuilding a property nobody was measuring.
 
-There is one more thing in that paper that reframes the whole post, and it is easy to miss:
+One sentence in that paper reframes everything above it:
 
 > "Its editability resides not in the index structure but in the upstream resources that feed it."
 
