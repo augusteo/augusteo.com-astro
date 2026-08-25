@@ -210,3 +210,79 @@ But allocated capacity is not realized degree. The pruning heuristic rejects can
 Thirty-two allocated. Thirty-eight slots on average across layers. Twenty-one actually used, on one measured dataset. When someone quotes a degree number at you, ask which one they mean, because the next section turns on it.
 
 {/* Reader can now: predict an index's memory from a formula, and say which part of HNSW is doing the routing work */}
+
+### 8. What a filter does to a graph
+
+We still have `under $150` sitting in the query, unaddressed since section 5. It is time to put it into the index, and it is going to cause trouble.
+
+There are three places to apply it, and the [VLDB tutorial](https://www.vldb.org/pvldb/vol18/p5488-caminal.pdf) on filtered vector search names them cleanly. Filter first, then search the survivors. Search first, then discard the misses. Or filter during the walk. The first is optimal when the surviving set is small. The second has a cost the tutorial states directly: it "requires the approximate nearest neighbor (ANN) search to yield a multiple of K results to ensure at least K vectors remain after filtering, which complicates achieving high recall." Want ten results from a filter that keeps 1% of the corpus, and you need roughly a thousand candidates before filtering. Want them from a filter keeping 0.1%, and you are approaching a scan with extra steps.
+
+The third option is the one everyone wants, and it's where the graph turns on you.
+
+Here is the shape of the problem, stated carefully, because it is easy to state carelessly. Your walk can only step to neighbours that pass the filter. Nodes that fail are dead ends. As the filter gets more selective, each node's usable neighbourhood thins out, and at some point the walk stops being able to reach the region of the space where the answers are.
+
+You will see this described as percolation, with a threshold where a graph of degree `d` shatters once a filter keeps less than `1/d` of the nodes. I had that in an earlier draft of this post and took it out, because it does not survive contact with the actual objects. Percolation thresholds of that form are results about randomly wired graphs. An HNSW graph is geometric, deliberately pruned toward directional diversity, and full of hub nodes. And more importantly, a real filter is not random node removal. `under $150` is correlated with position in the embedding space, because cheap boots and expensive boots do not describe themselves identically. The whole derivation assumes away the thing that actually happens.
+
+The [ACORN paper](https://arxiv.org/abs/2403.04871) gives the version you can actually defend. For a predicate with selectivity `s`, the expected surviving degree of a node is its degree times `s`, and the concern is stated plainly: "If a node in the predicate subgraph has degree much lower than M, this could adversely impact the search convergence and thus recall." They also bound the probability that a walk strands entirely, at `O(log n · (1-s)^(M·γ))`.
+
+Both results come with an assumption printed right next to them: they hold "For a dataset and query predicate that exhibit no predicate clustering", which is to say, for exactly the uncorrelated case that real filters violate. The paper is candid about how far any of this goes: "We note that neither HNSW nor ACORN provides theoretical guarantees on connectivity over its level graphs for arbitrary datasets. Thus we instead rely primarily on empirical results for our analysis."
+
+So nobody has the theorem. What everyone has is measurements, and they are ugly.
+
+{/* TODO: Fig 7: FilteredDegreeCollapse. Expected surviving degree against M; a random-filter topology; a correlated-filter topology. Assumption printed on the figure. */}
+
+Qdrant published a [benchmark](https://qdrant.tech/articles/filtered-vector-search-acorn/) on a million-point collection, and the plain graph's recall against filter selectivity reads as follows. At a filter keeping 20% of the collection, 62.9%. At 10%, 20.6%. At 1%, 0.1%.
+
+Look at the latency column in that table and it barely moves: 1.6ms, 1.7ms, 1.6ms. The system is exactly as fast while being completely wrong. There is no timeout, no error, no degradation you would notice on a dashboard. It returns ten confident results that are not the answer.
+
+That failure mode is worse than being slow, and it is why this subfield exists.
+
+Two repairs, and they differ in when they do the work.
+
+ACORN repairs at query time. When a neighbour fails the predicate, don't stop; look through it to its neighbours. The predicate check is a bitmap lookup rather than a distance computation, so you can filter the expanded list before spending arithmetic on it. There are two variants, and the names only appear in the body of the paper, not the abstract: ACORN-γ builds a denser graph up front by collecting `M · γ` candidate edges per node, and ACORN-1 does the expansion purely at search time. The tradeoff between them is stated as "at most 5× lower QPS at fixed recall but 9–53× lower TTI".
+
+Qdrant repairs at build time. Declare a payload field indexed and they additionally link the points that share each value, so the `brand = Salomon` subgraph is connected because somebody built a graph over exactly those points. It costs: "the HNSW index built in 116 seconds without them and 507 to 652 seconds with them, 4.4x to 5.6x the cost."
+
+Neither wins everywhere, and the axis is not the one you'd guess. It is not selectivity. It is whether the filter is a single field or an intersection of two.
+
+On a single field at 1% selectivity, the extra edges win handily: 99.8% recall at 1.0ms against ACORN's 67.7% at 4.7ms. Build-time repair, applied to exactly the field being filtered, is hard to beat.
+
+On a two-field AND at 4%, it reverses: ACORN 95.2% at 7.7ms, extra edges 63.7% at 1.2ms. And the reason is structural rather than incidental. Qdrant say it themselves: they build those edges "per payload field, never per combination, so an AND filter lands on an intersection that no single field's edges cover." You cannot pre-build edges for every combination of fields, because the number of combinations is exponential in the number of fields.
+
+The system that actually ships doesn't pick. Qdrant's planner estimates the filter's cardinality first and routes: tiny result sets skip the graph and scan the matching IDs directly, broad filters take ordinary traversal, and the middle gets the repair. With all of it engaged their default configuration holds 100% recall on every filter shape they tested, single and compound, at latencies between 1.2 and 7.3ms.
+
+Which is the real lesson, and it generalizes past any one vendor: filtered vector search is a query planner with two strategies, not an algorithm.
+
+{/* Reader can now: say why filtered recall collapses and why the latency doesn't, and why the single-field vs compound distinction decides which repair works */}
+
+### 9. What the repairs cost, and where the vector ends up living
+
+Every fix in the last section made the index bigger.
+
+Extra edges cost 4.4 to 5.6 times the build time and the storage that goes with them. ACORN-γ collects `M · γ` candidate edges per node instead of `M`, and the paper's suggested γ is roughly `1/s_min`, so serving 1% filters means an order of magnitude more candidate edges. And before any of that, HNSW was already charging you about 151 bytes of connection-ID capacity per vector at M=16.
+
+So the index you just repaired is the one that stops fitting. That is what forces the next set of decisions, and they are the ones that decide your bill.
+
+Start with the vector itself. A 768-dimension float32 vector is 3,072 bytes. A hundred million of them is 307 GB before you have stored a single graph edge.
+
+Product quantization cuts it by chopping the vector into subvectors and replacing each with a codebook index. The arithmetic is simple: M subquantizers of K centroids each costs `M · ceil(log2 K)` bits, so 96 subvectors at 8 bits is 96 bytes, a 32-fold reduction. DiskANN uses "32 bytes per data point" and gets a billion vectors onto one machine.
+
+Binary quantization goes further, and until recently it went further than it could justify. [RaBitQ](https://arxiv.org/abs/2405.12497) changed that by giving the approach an error bound, noting that prior methods "do not have a theoretical error bound and are observed to fail disastrously on some real-world datasets."
+
+But the part that makes binary quantization work in production is not the quantization. It's what you do afterward. Elastic, who ship it, are blunt about the naive version: "Naive binary quantization is exceptionally lossy and achieving adequate recall requires gathering 10x or 100x additional neighbors to rerank. This just doesn't cut it." Their implementation gets "above 90% recall with only 3x oversampling", and the oversampled candidates get rescored against the original float32 vectors. The compressed index finds candidates. The uncompressed vectors decide the order. If you take one operational thing from this section, take that.
+
+Truncation is the cheapest lever and the most misunderstood. You can cut dimensions off the end of an embedding and it mostly still works, and you do not need a model specially trained for it. A [2026 study](https://arxiv.org/abs/2605.16608) tested exactly this and found that "truncated embeddings of non-MRL models are competitive with, and often outperform models trained with MRL" unless you cut by at least 80%. Matryoshka training buys you the heavy-truncation case and not much else.
+
+Note that the threshold is a percentage, not a dimension. Going from 1024 to 256 is a 75% cut and inside the safe zone. Going from 1536 to 256 is 83% and is not. "Truncate to 256" is not advice; it depends entirely on where you started.
+
+{/* TODO: Fig 8: VectorResidence. One vector's footprint as a stacked bar (raw, connection-ID capacity, filter-repair overhead) at three compression settings; second panel places those footprints against RAM, SSD and object-storage capacity and latency. */}
+
+Now the tier. RAM is the default and the reason vector search has a reputation for being expensive. SSD is what DiskANN is for. And since about 2024 there is a third option that is more interesting than it looks.
+
+turbopuffer runs vector indexes on object storage, and publishes what that costs: "The first query to a namespace reads object storage directly and is slow (p50=874ms for 1M documents), but subsequent, cached queries to that node are faster (p50=14ms for 1M documents)." Sixty-fold, cold to warm, and the cold path is what it is because "each roundtrip to object storage takes ~100ms."
+
+Here is the part nobody frames as what it is. They are not running a graph. Their index is "based on SPFresh", a centroid-based design, and the stated reason is that a centroid index "works well for object storage as it minimizes roundtrips and write-amplification, compared to graph-based indexes like HNSW or DiskANN."
+
+Graph traversal is a sequence of dependent lookups: you cannot know your third hop until you've made your second. That is fine at RAM latency and fatal at 100ms per roundtrip. So moving the index to object storage did not just change where the bytes live. In this case it changed the family of index that makes sense, back toward the centroid approach that graphs had displaced. Not a universal law about storage tiers, but a documented case where the tier chose the algorithm.
+
+{/* Reader can now: trace a filter repair through to a storage-tier decision, and know why the compressed index finds candidates while the uncompressed vectors decide the order */}
