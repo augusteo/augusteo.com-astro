@@ -21,7 +21,7 @@
 - The VLDB'25 filtered-vector-search paper is a 5-page **tutorial**, not a survey, and contains no benchmark numbers. Cite for taxonomy only.
 - RACORN-1 (arXiv:2607.00768) is real but is a July 2026 preprint with no visible peer review. Attribute its numbers ("the authors report"), never assert them.
 - Cascade Ranking for Operational E-commerce Search (KDD 2017) is **Liu et al.**, not Wang et al. Wang et al. SIGIR 2011 is a different paper.
-- MARGINAL rows to upgrade or hedge in Phase 2: Kamphuis et al. "Which BM25 Do You Mean?" (quote unverified); PLAID 7x/45x numbers (snippet only); Pailitao-VL 20% GMV (snippet only); LCRON online A/B (snippet only); BEQUE numeric lift (not on abs page); arXiv:2604.01733 BM25-vs-text-embedding-3-large (venue unknown).
+- MARGINAL rows flagged at Phase 1 are now all CLOSED (see `## Claim-source matrix`). Kamphuis, PLAID, LCRON and BEQUE upgraded to verified. Pailitao 20% verified but re-scoped to the reranker. ColPali indexing speeds and the Furnas <0.20 figure closed by drop. arXiv:2604.01733 dropped as unnecessary.
 - No first-party web-scale LLM-reranker latency SLA was found. Write the L3 box as an open question rather than claiming a number.
 
 ## Throughline
@@ -44,6 +44,1358 @@ Per-act rhythm — each act opens by naming what the query can now do, and close
 | 6. The cascade | finally, an *order* | be trusted from offline metrics alone |
 
 Callback discipline: when the throughline changes inside an act, name the change in prose. Don't make the reader infer it from a figure.
+## Research notes
+
+Grouped by act. Every excerpt below was fetched and verified verbatim on 2026-08-24 unless marked otherwise. Abstract-vs-body is labelled because the two differ and the difference has bitten this pipeline before.
+
+### Act 1 — the only question
+
+**The exhaustive scan is the baseline every index is defined against.**
+
+> "Given that search engines need to answer user queries within fractions of a second, naively traversing this basic index structure, which could take hundreds of milliseconds or more for common terms, is not acceptable."
+>
+> Ding & Suel, "Faster Top-k Document Retrieval Using Block-Max Indexes," SIGIR 2011, §1 (body). https://research.engineering.nyu.edu/~suel/papers/bmw.pdf
+
+The measured version, on TREC GOV2 (25.2M docs, 426 GB raw, 8,759 MB compressed index), from Tables 1-2 (these are table cells, not quotable prose):
+
+| strategy | avg ms/query | docs fully scored |
+|---|---|---|
+| exhaustive OR | 225.7 | 3,815,676 |
+| WAND | 77.6 | 178,391 |
+| block-max WAND | 27.9 | 21,921 |
+| exhaustive AND | 11.4 | 20,026 |
+
+Also: "disjunctive queries tend to be significantly (by about an order of magnitude for exhaustive query processing) more expensive than conjunctive queries" (body, §2.2).
+
+**The vector-side equivalent is a formal result, not folklore.** Trees and space partitioning do not merely get slow in high dimensions; they provably degenerate.
+
+> "We show formally that these methods exhibit linear complexity at high dimensionality, and that existing methods are outperformed on average by a simple sequential scan if the number of dimensions exceeds around 10."
+>
+> "There is no organization of HDVS based on partitioning or clustering which does not degenerate to a sequential scan if dimensionality exceeds a certain threshold."
+>
+> Weber, Schek & Blott, "A Quantitative Analysis and Performance Study for Similarity-Search Methods in High-Dimensional Spaces," VLDB 1998, abstract and Conclusions. https://www.vldb.org/conf/1998/p194.pdf
+
+GAP: no crisp per-query "brute-force kNN at N=1M, d=768 costs X ms" number is sourced. The available Faiss figure (arXiv:1702.08734) is 2017 hardware and measures graph construction, not per-query scan. Act 1 should lean on Weber et al. for the vector side and Ding & Suel for the text side rather than inventing a scan benchmark.
+
+### Act 2 — the lexical machine
+
+**The structure.**
+
+> "An inverted index consists of many inverted lists, where each inverted list Lw is a list of postings describing all places where term w occurs in the collection."
+>
+> "The inverted lists of common query terms may consist of many millions or even billions of postings."
+>
+> "inverted lists are often split into blocks of, say, 64 or 128 docIDs, such that each block can be decompressed separately."
+>
+> Ding & Suel, SIGIR 2011, §2.1 (body).
+
+**IDF is derived, not bolted on.**
+
+> "The resulting formula is a close approximation to classical idf (it can be made closer still by a slight modification of the model [47])"
+>
+> Robertson & Zaragoza, "The Probabilistic Relevance Framework: BM25 and Beyond," FnTIR 3(4):333-389, 2009, §3.1 (body). https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf
+
+**Mechanism 1, saturation (k1).**
+
+> "We refer to this behaviour as saturation. That is, any one term's contribution to the document score cannot exceed a saturation point (the asymptotic limit), however, frequently it occurs in the document."
+>
+> "Thus for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly."
+>
+> Same, §3.4.2 and §3.4.4 (body). Saturation function is Eq. 3.10, tf/(k+tf). The comma placement in the first quote is as extracted from the PDF.
+
+Contrast with the alternatives, which is where the intuition lives: "The latter has a somewhat similar shape curve, but does not have an asymptotic maximum, it goes to infinity, even if somewhat slower than tf itself." (§3.5, body; the source uses an em-dash where this file uses a comma, so do not re-quote this one verbatim without restoring it.)
+
+**Mechanism 2, length normalization (b), and why it is soft.**
+
+> "The verbosity hypothesis suggests that we should simply normalise any observed tf s by dividing by document length. The scope hypothesis, on the other hand, at least in its extreme version, suggests the opposite."
+>
+> "Thus setting b = 1 will perform full document-length normalisation, while b = 0 will switch normalisation off."
+>
+> Same, §3.4.5 (body).
+
+**The model does not supply its own constants.**
+
+> "Concerning the internal parameters, the model provides no guidance on how these should be set. This may be regarded as a limitation of the model."
+>
+> "suggest that in general values such as 0.5 < b < 0.8 and 1.2 < k1 < 2 are reasonably good in many circumstances. However, there is also evidence that optimal values do depend on other factors (such as the type of documents or queries)."
+>
+> Same, §3.5 (body).
+
+And a useful piece of trivia that kills a common confusion: "A common variant is to add a (k1 + 1) component to the numerator of the saturation function. This is the same for all terms, and therefore does not affect the ranking produced." (§3.5.1, body).
+
+**Which BM25 do you mean. The ambiguity is real; the consequence is not.** This corrects the framing in the Phase-1 spec.
+
+> "When researchers speak of BM25, it is not entirely clear which variant they mean, since many tweaks to Robertson et al.'s original formulation have been proposed. When practitioners speak of BM25, they most likely refer to the implementation in the Lucene open-source search library. Does this ambiguity "matter"? We attempt to answer this question with a large-scale reproducibility study of BM25, considering eight variants. Experiments on three newswire collections show that there are no significant effectiveness differences between them, including Lucene's often maligned approximation of document length."
+>
+> Kamphuis, de Vries, Boytsov & Lin, "Which BM25 Do You Mean? A Large-Scale Reproducibility Study of Scoring Variants," ECIR 2020, abstract. https://cs.uwaterloo.ca/~jimmylin/publications/Kamphuis_etal_ECIR2020_preprint.pdf
+
+> "Both an ANOVA and Tukey's HSD show no significant differences between any variant, on all test collections. This confirms the findings of Trotman et al. [11]: effectiveness differences are unlikely an effect of the choice of the BM25 variant. Across the IR literature, we find that differences due to more mundane settings (such as the choice of stopwords) are often larger than the differences we observe here."
+>
+> Same, §3.3 (body). Conclusion: "we conclude that the answer appears to be "no, it does not"."
+
+The genuinely interesting mechanical detail from the same paper:
+
+> "the document length used in the scoring function is compressed (in a lossy manner) to a one byte value, denoted Ldlossy. With only 256 distinct document lengths, Lucene can pre-compute the value of k1 · (1 - b + b · (Ldlossy/Lavg)) for each possible length, resulting in fewer computations at query time."
+>
+> Same, §2 (body).
+
+Defaults, verified from official sources: Elasticsearch ships "BM25 similarity (default)" with k1 "1.2" and b "0.75" (https://www.elastic.co/docs/reference/elasticsearch/index-settings/similarity). Lucene 10.0.0 `BM25Similarity` no-arg constructor is "BM25 with these default values: k1 = 1.2 b = 0.75 discountOverlaps = true" (javadoc). Anserini defaults differ: "models are set to k1 = 0.9 and b = 0.4, Anserini's defaults" (Kamphuis et al., §3.2, body). Note the Lucene javadoc does not itself assert BM25 is the default similarity; that comes from the Elastic docs.
+
+**Dynamic pruning: upper bounds let you skip.**
+
+> "at the first level, our method iterates in parallel over query term postings and identifies candidate documents using an approximate evaluation taking into account only partial information on term occurrences and no query independent factors; at the second level, promising candidates are fully evaluated and their exact scores are computed."
+>
+> "our algorithm significantly reduces the total number of full evaluations by more than 90%, almost without any loss in precision or recall."
+>
+> Broder, Carmel, Herscovici, Soffer & Zien, "Efficient query evaluation using a two-level retrieval process," CIKM 2003, abstract. DOI 10.1145/956863.956944. Verified via IBM Research's first-party listing (dl.acm.org returned 403). Body not obtained.
+
+The mechanism, described in a peer-reviewed third paper rather than by Broder et al. themselves:
+
+> "Thus, WAND achieves early termination by enabling skips over postings that cannot make into the top results. For the threshold value, we use the lowest score in the heap that contains the top-k results found thusfar."
+>
+> Ding & Suel, SIGIR 2011, §2.6 (body).
+
+Block-max, and the diagnosis of what plain WAND leaves on the table:
+
+> "Essentially, this is a structure that stores the maximum impact score for each block of a compressed inverted list in uncompressed form, thus enabling us to skip large parts of the lists." (abstract)
+>
+> "Our initial insight is that skipping in WAND is limited because it uses the maximum impact scores over the entire lists, which can be much larger than average." (body, §3)
+>
+> "WAND only evaluates 4.6% of the docIDs compared to exhaustive OR, which approximately matches the numbers in [11]." (body, §6.2)
+>
+> Ding & Suel, SIGIR 2011.
+
+MaxScore is Turtle & Flood, Information Processing and Management 31(6):831-850, 1995 (attribution only, taken from Ding & Suel's reference [32]; the paper itself was not read, and the author is Flood, not the commonly seen "Flagg").
+
+**Multi-field: how `under $150` and category metadata enter a lexical scorer.** The CIKM 2004 BM25F paper could not be fetched (ACM 403, no open mirror). The monograph by two of its three authors makes the identical argument and is used instead.
+
+> "an obvious practical approach ... would be to apply the function separately to each stream, and then combine these in some linear combination (with stream weights) for the final document score. ... This seems a little unreasonable, a better assumption might be that eliteness is a term/document property, shared across the streams of the document."
+>
+> "we should combine evidence across terms and streams in the opposite order to that suggested above: first streams, then terms. That is, for each term, we should accumulate evidence for eliteness across all the streams. The saturation function should be applied at this stage, to the total evidence for each term."
+>
+> Robertson & Zaragoza, FnTIR 2009, §3.6.1 (body). NOTE: the first excerpt contains an em-dash in the source where this file has a comma; restore it or paraphrase rather than quoting as-is.
+
+GAP, unclosed: Furnas, Landauer, Gomez & Dumais, "The vocabulary problem in human-system communication," CACM 30(11):964-971, 1987. Not fetched. The widely repeated "two people pick the same term under 20% of the time" figure is UNVERIFIED and must not appear in the post until the paper is read.
+
+### Act 3 — the vector turn
+
+**The bi-encoder, and why it factorizes.** DPR uses "two independent BERT (Devlin et al., 2019) networks (base, uncased) and take the representation at the [CLS] token as the output, so d = 768" (body, §3.1). The gain: "our dense retriever outperforms a strong Lucene-BM25 system largely by 9%-19% absolute in terms of top-20 passage retrieval accuracy" (abstract), concretely "78.4% vs. 59.1% for top-20 accuracy on Natural Questions" (body, §5.1). Note the paper's own exception: "With the exception of SQuAD, DPR performs consistently better than BM25 on all datasets" (body, §5.1) — attributed to SQuAD's restricted Wikipedia subset, not to a lexical-matching effect. Do not over-read it as the exact-match failure.
+
+*Karpukhin et al., "Dense Passage Retrieval for Open-Domain Question Answering," EMNLP 2020, arXiv:2004.04906 v1 2020-04-10.*
+
+**The exact-match trap, properly sourced.** This is the one that maps onto the throughline's SKU problem.
+
+> "We first construct EntityQuestions, a set of simple, entity-rich questions based on facts from Wikidata (e.g., "Where was Arve Furset born?"), and observe that dense retrievers drastically underperform sparse methods. We investigate this issue and uncover that dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training."
+>
+> Sciavolino, Zhong, Lee & Chen, "Simple Entity-Centric Questions Challenge Dense Retrievers," EMNLP 2021, arXiv:2109.08535 v1 2021-09-17, abstract.
+
+**The ANN ladder as a sequence of fixed wrong assumptions.**
+
+PQ, abstract only (TPAMI full text unreachable behind IEEE; every OA mirror dead or bot-walled):
+
+> "The idea is to decompose the space into a Cartesian product of low-dimensional subspaces and to quantize each subspace separately. A vector is represented by a short code composed of its subspace quantization indices."
+>
+> Jegou, Douze & Schmid, TPAMI 33(1):117-128, 2011, DOI 10.1109/TPAMI.2010.57.
+
+For the code-size arithmetic use the Faiss paper instead (Jegou is a co-author; Faiss is the reference implementation): "The number of reconstructed vectors is KM and the code size is thus M ceil(log2 (K))" and "we will use the notation PQ6x10 for a product quantizer with 6 sub-vectors each encoded in 10 bits (M = 6, K = 2^10)" (arXiv:2401.08281, §4.1, body). Derive the 768-dim example from this rather than quoting a compression ratio: 3072 bytes at float32, 96 bytes at PQ96x8, 32x.
+
+ScaNN, the cleanest "each index fixed a specific wrong assumption" beat in the lineage:
+
+> "Traditional approaches to quantization aim to minimize the reconstruction error of the database points. Based on the observation that for a given query, the database points that have the largest inner products are more relevant, we develop a family of anisotropic quantization loss functions. Under natural statistical assumptions, we show that quantization with these loss functions leads to a new variant of vector quantization that more greatly penalizes the parallel component of a datapoint's residual relative to its orthogonal component."
+>
+> Guo et al., arXiv:1908.10396 v1 2019-08-27 (ICML 2020), abstract.
+
+LSH is a paraphrase-only source in this pass: the reachable STOC 1998 scan is OCR-corrupted and no line from it is quotable. Carry the claim (provable guarantees, exponent depending on 1/epsilon making the polylog-query variant theoretical) as paraphrase, or drop the specifics.
+
+**HNSW, exactly.** All from Malkov & Yashunin, arXiv:1603.09320 v4 2018-08-14 (v1 2016-03-30), body.
+
+> "Simulations also suggest that 2∙ M is a good choice for Mmax0: setting the parameter higher leads to performance degradation and excessive memory usage." (§4.1)
+
+> "the average memory consumption per element is (Mmax0+mL ∙Mmax)∙bytes_per_link. If we limit the maximum total number of elements by approximately four billions, we can use four-byte unsigned integers to store the connections. Tests suggest that typical close to optimal M values usually lie in a range between 6 and 48. This means that the typical memory requirements for the index (excluding the size of the data) are about 60-450 bytes per object, which is in a good agreement with the simulations." (§4.2.3)
+
+> "When the number of candidates is large enough the heuristic allows getting the exact relative neighborhood graph [46] as a subgraph, a minimal subgraph of the Delaunay graph deducible by using only the distances between the nodes. The relative neighborhood graph allows easily keeping the global connected component, even in case of highly clustered data" (§3)
+
+> "the heuristic that accounts for the distances between the candidate elements to create connections in diverse directions" (§4.1)
+
+> "A simple choice for the optimal mL is 1/ln(M), this corresponds to the skip list parameter p=1/M with an average single element overlap between the layers." (§4.1)
+
+> "The only meaningful construction parameter left for the user is M. A reasonable range of M is from 5 to 48." (§4.1)
+
+> "For real data such as SIFT vectors [1] (which have complex mixed structure), the performance improvement by increasing the mL is higher, but less prominent at current settings compared to improvement from the heuristic" (§4.1)
+
+Arithmetic reproducing the paper's own range, performed 2026-08-24 (this is the post's derivation, not a quote):
+- M=6: (12 + 0.5581x6) x 4 B = 61.4 B, paper says ~60.
+- M=48: (96 + 0.2583x48) x 4 B = 433.6 B, paper says ~450.
+- M=16: (32 + 0.3607x16) = 37.77 slots x 4 B = 151.1 B.
+
+CORRECTION CARRIED: "M=16 gives ~21 links per node" is not in the paper. A full-text grep finds "21" only as reference [21], a page range, and a citation title. It is also not sourceable as a measured realized average degree; nothing citable was found. What is verifiable is the allocated-vs-realized split, from maintainer source:
+
+> `maxM0_ = M_ * 2;`
+> `size_links_level0_ = maxM0_ * sizeof(tableint) + sizeof(linklistsizeint);`
+>
+> nmslib/hnswlib, `hnswlib/hnswalg.h`, master, lines 112-113 and 120, accessed 2026-08-24 (no commit SHA pinned).
+
+hnswlib allocates a fixed 2M-slot block per node at layer 0 whether or not the pruning heuristic fills it. Memory is charged on allocated degree; realized degree is smaller and the library does not publish it. That gap is the honest and more interesting sentence.
+
+**The hierarchy may be dead weight in high dimensions.**
+
+> "a flat navigable small world graph graph retains all of the benefits of HNSW on high-dimensional datasets, with latency and recall performance essentially \emph{identical} to the original algorithm but with less memory overhead" (abstract; "graph graph" and the raw LaTeX are in the source)
+
+> "In high-dimensional metric spaces, k-NN proximity graphs form a highway routing structure where a small subset of nodes are well-connected and heavily traversed, particularly in the early stages of graph search." (body, §4, Hub Highways hypothesis)
+
+> "our implementation saves roughly 38% and 39% of peak memory consumption during index construction on two Big-ANN benchmark datasets compared to hnswlib" (body, §1.1)
+
+> "Perhaps most importantly, we still have no satisfactory understanding of why hierarchy does not help." (body, §1.1)
+>
+> Munyampirwa, Lakshman & Coleman, "Down with the Hierarchy: The 'H' in HNSW Stands for 'Hubs'," arXiv:2412.01940 v1 2024-12-02, v3 2025-07-03. 13 datasets, 1M to 100M vectors. No rebuttal found. Venue: an ECIR 2026 chapter (DOI 10.1007/978-3-032-21324-2_3) is listed on ACM DL and Springer but both 403'd on fetch, so venue is search-level only.
+
+Pairing note for the draft: the 2024 critique is not overturning the 2016 paper so much as finishing a sentence its authors already wrote.
+
+**Quantization now.** RaBitQ "quantizes $D$-dimensional vectors into $D$-bit strings" and "guarantees a sharp theoretical error bound", against prior methods that "do not have a theoretical error bound and are observed to fail disastrously on some real-world datasets" (arXiv:2405.12497 v1 2024-05-21, abstract). Shipped, with the rerank pass that makes it work, from Elastic (vendor, first-party, with parameters):
+
+> "Naive binary quantization is exceptionally lossy and achieving adequate recall requires gathering 10x or 100x additional neighbors to rerank. This just doesn't cut it."
+>
+> "Here, 1bit quantization and HNSW gets above 90% recall with only 3x oversampling."
+>
+> Elastic Search Labs, "Better Binary Quantization (BBQ) in Lucene and Elasticsearch," 2024-11-11.
+
+Elastic also lists where BBQ diverges from the RaBitQ paper (single centroid, no random rotation so the estimator is not unbiased, rescoring deferred until after graph search). Good material for the "the index absorbs the paper rather than implementing it" beat.
+
+Matryoshka: "MRL which encodes information at different granularities and allows a single embedding to adapt to the computational constraints of downstream tasks ... imposes no additional cost during inference and deployment", "up to 14x smaller embedding size for ImageNet-1K classification at the same level of accuracy" (arXiv:2205.13147, abstract).
+
+**Where the vector physically lives.**
+
+SSD: "DiskANN that can index, store, and search a billion point database on a single workstation with just 64GB RAM and an inexpensive solid-state drive (SSD)" and ">5000 queries a second with < 3ms mean latency and 95%+ 1-recall@1 on a 16 core machine, where state-of-the-art billion-point ANNS algorithms with similar memory footprint like FAISS [18] and IVFOADC+G+P [8] plateau at around 50% 1-recall@1" (NeurIPS 2019, abstract). The body says "under 5 milliseconds" for the same claim; the paper carries two figures.
+
+Object storage, and the rollback to IVF that nobody frames as a rollback (turbopuffer architecture doc, vendor first-party, verified live 2026-08-24):
+
+> "The first query to a namespace reads object storage directly and is slow (p50=874ms for 1M documents), but subsequent, cached queries to that node are faster (p50=14ms for 1M documents)."
+
+> "From first principles, each roundtrip to object storage takes ~100ms. The 3-4 required roundtrips for a cold query often take as little as ~400ms."
+
+> "Vector indexes are based on SPFresh. SPFresh is a centroid-based approximate nearest neighbour index. It has a fast index for locating the nearest centroids to the query vector. A centroid-based index works well for object storage as it minimizes roundtrips and write-amplification, compared to graph-based indexes like HNSW or DiskANN."
+
+Caveat: the page carries a second cold figure, "~500ms on 1M documents", in the index section. Quote 874ms as the routing-section number, not as the page's only cold number.
+
+**Filtered vector search.** Taxonomy from the PVLDB tutorial (5 pages, no benchmark numbers, taxonomy only). Note the third term is "inline-filtering":
+
+> "There are three main execution methods for executing filtered vector search queries depending on the order of operations (filter and vector search) and the vector search type. Pre-filtering, where data is filtered and then KNN search is performed on the result of the filter. This method is preferred when the filter result is small [30]. The remaining two execution methods use a vector index to perform ANN vector search. Post-filtering, where the filters are evaluated on the vector index search result [40]. For inline-filtering, searching and filtering are combined, and the filters can be evaluated before the vector search starts (and stored in a bitmap) or evaluated during the vector index search."
+
+> "post-filtering, in simplified approaches to filtered search, requires the approximate nearest neighbor (ANN) search to yield a multiple of K results to ensure at least K vectors remain after filtering [40], which complicates achieving high recall."
+>
+> Chronis, Caminal, Papakonstantinou, Ozcan & Ailamaki, "Filtered Vector Search: State-of-the-art and Research Opportunities," PVLDB 18(12):5488-5492, 2025, §2 (body). Its own motivating example is the post's throughline: "an e-commerce search may allow filtering by the brand or price range while searching for similar products to a user provided description."
+
+ACORN. The abstract's only quantitative claim is "outperforming prior methods with 2-1,000x higher throughput at a fixed recall". The variant names live in the body: "We propose two indices: ACORN-γ, designed for high-efficiency search, and ACORN-1" (§1), and "ACORN-1 achieves this by performing the neighbor expansion step solely during search, rather than during construction, as ACORN-γ does" (§5.3). Tradeoff: "ACORN-1 empirically approximates ACORN-γ, attaining at most 5x lower QPS at fixed recall but 9-53x lower TTI" (§1).
+
+THE DEGREE BOUND, which replaces the percolation line as the post's load-bearing mechanism:
+
+> "If a node in the predicate subgraph has degree much lower than 𝑀, this could adversely impact the search convergence and thus recall. For a dataset and query predicate that exhibit no predicate clustering, for any node 𝑣 in 𝐺 (𝑋𝑝 ), E |𝑁𝑝𝑙 (𝑣)| = |𝑁 𝑙 (𝑣)| · 𝑠 = 𝛾 · 𝑀 · 𝑠 > 𝑀, ∀𝑠 > 𝑠𝑚𝑖𝑛"
+>
+> Patel, Kraft, Guestrin & Zaharia, "ACORN," SIGMOD 2024, arXiv:2403.04871 v1 2024-03-07, §6 "Bounded Degree" (body).
+
+PERCOLATION VERDICT (negative result, carried into the draft): "a filter keeping fraction s of nodes fragments a degree-d graph around s ~ 1/d" is a heuristic analogy, not a theorem about HNSW. The generic result (Callaway, Newman, Strogatz & Watts, PRL 85:5468, arXiv:cond-mat/0007300) is about configuration-model random graphs, and its own abstract concedes such graphs "are quite unlike real world networks". Three reasons it does not transfer: HNSW graphs are geometric, RNG-pruned and hub-heavy rather than randomly wired; real predicates are correlated with embedding position, so filtering is not random node removal (ACORN treats "predicate clustering" as a separate case, and Qdrant's benchmark shows the correlated filter holding up where uncorrelated ones collapsed); and the threshold is a giant-component result, not a recall result. State the s x d intuition as intuition, cite ACORN's bound for the mechanism, and say plainly that correlated filters break the assumption.
+
+Qdrant's filterable HNSW (vendor, first-party, with a reproduction kit, 500 queries per filter shape, and disclosed build-to-build variance). Verified against the live article 2026-08-24:
+
+> "On our one-million-point collection, the HNSW index built in 116 seconds without them and 507 to 652 seconds with them, 4.4x to 5.6x the cost."
+
+> "Qdrant builds those edges per payload field, never per combination, so an [AND] filter lands on an intersection that no single field's edges cover."
+
+> "filterable HNSW reaches 91.2% recall at 4.9ms while ACORN needs 20.1ms to reach 90.3%"
+
+> "The 4% intersection is the exception, where both fields exceeded the cap and ACORN leads 99.6% to 92.5%."
+
+> "Planner + ACORN, the fourth strategy, holds 99.9% to 100% recall on all four filters, at 7.2ms to 10.9ms on the graph and 1.5ms on the 1% filter, where all 500 queries came from the payload index."
+
+> "On the 1% row, ACORN's recall spans 70.7% to 74.1% across rebuilds of the same graph, wider than its lead in the table."
+
+DIRECTION WARNING: on the 1% two-field intersection filterable HNSW WINS; on the 4% intersection it LOSES. This is the opposite of the seed article's table and is easy to state backwards.
+
+RACORN-1 exists: arXiv:2607.00768, "RACORN-1: Adaptive Recall-Preserving Speedup for Low-Selectivity Filtered Vector Search," Yoonseok Kim and Gyusik Choe, v1 2026-07-01, 13 pages, no journal-ref, no venue, unrefereed. Its claims ("connectivity instability below 5% selectivity and recall collapse below 1%"; recovery "from 0.45-0.72 (1%) and 0.03-0.10 (0.3%) to 0.70-0.96 and 0.77-0.98") must be attributed to the preprint, never asserted.
+
+### Act 4 — the reconvergence
+
+**Learned sparse: the neural model writes into the inverted index.**
+
+> "Sparse learned representations can further be decomposed into expansion and term weighting components."
+>
+> "Our implementation using the Anserini IR toolkit is built on the Lucene search library and thus fully compatible with standard inverted indexes."
+>
+> Lin & Ma, arXiv:2106.14807, 2021-06-28, abstract.
+
+> "SPLADE-v3 further pushes the limit of SPLADE models: it is statistically significantly more effective than both BM25 and SPLADE++, while comparing well to cross-encoder re-rankers. Specifically, it gets more than 40 MRR@10 on the MS MARCO dev set, and improves by 2% the out-of-domain results on the BEIR benchmark."
+>
+> Lassance, Dejean, Formal & Clinchant, "SPLADE-v3," arXiv:2403.06789, 2024-03-11, abstract. The BEIR figure is a 2% improvement in out-of-domain results, not 2 points. Do not convert.
+
+**The efficiency inversion: the classical half is what blows up.**
+
+> "we derive that the main source of improvement is the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure. The reason is that in mono-threaded systems, there are many techniques that allow for reducing the amount of effective FLOPS computed per query, but query size is then a major bottleneck."
+>
+> Lassance & Clinchant, "An Efficiency Study for SPLADE Models," SIGIR 2022, arXiv:2207.03834, §3 (body). An inline footnote marker glossing "query sizes" as "amount of tokens at the SPLADE output" has been removed; nothing else edited.
+
+> "achieve similar latency (less than 4ms difference) as traditional BM25, while having similar performance (less than 10% MRR@10 reduction) as the state-of-the-art single-stage neural rankers on in-domain data"
+>
+> Same, abstract. BM25's own latency on that single-core PISA setup is 4 ms (body, §4), so "less than 4ms difference" is roughly a doubling, not a rounding error. Say so plainly.
+
+**doc2query--: throw away 70% of the generated text and everything gets better.**
+
+> "using a relevance model to remove poor-quality queries can improve the retrieval effectiveness of Doc2Query by up to 16%, while simultaneously reducing mean query execution time by 23% and cutting the index size by 33%"
+>
+> "keeping only 30% of expansion queries at n=80, performance is increased from 0.279 to 0.323 - a 16% improvement." (body, §5)
+>
+> Gospodinov, MacAvaney & Macdonald, "Doc2Query--: When Less is More," ECIR 2023, arXiv:2301.03266.
+
+CORRECTION: the paper states no percentage of generated expansions that are irrelevant. Do not claim one. The evidence is the 70%-discardable result above. On-theme bonus, same paper, footnote 2 (body): "we find that SPLADE [10] generates the following seemingly-unrelated terms for the passage in Figure 1 in the top 20 expansion terms: reed, herb, and troy."
+
+**Fusion, and the reversal.** RRF's constant was chosen, not invented at random:
+
+> "where k = 60 was fixed during a pilot investigation and not altered during subsequent validation."
+>
+> "The results of the first, shown in table 1, indicated that k = 60 was near-optimal, but that the choice was not critical."
+>
+> Cormack, Clarke & Buettcher, SIGIR 2009, §2 (body). https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf (the usual plg.uwaterloo.ca path now 404s).
+
+Elasticsearch ships it, and sells it on the absence of tuning:
+
+> "RRF requires no tuning, and the different relevance indicators do not have to be related to each other to achieve high-quality results."
+>
+> "rank_constant (Optional, integer) ... Defaults to 60."
+>
+> Elastic official docs, https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion, accessed 2026-08-24.
+
+And the finding that turns this into a story:
+
+> "Contrary to existing studies, we find RRF to be sensitive to its parameters; that the learning of a CC fusion is generally agnostic to the choice of score normalization; that CC outperforms RRF in in-domain and out-of-domain settings; and finally, that CC is sample efficient, requiring only a small set of training examples to tune its only parameter to a target domain."
+>
+> Bruch, Gai & Ingber, "An Analysis of Fusion Functions for Hybrid Retrieval," ACM TOIS, arXiv:2210.11934, 2022-10-21, abstract.
+
+CORRECTION to the Phase-1 spec: there is no primary support for "score normalization for hybrid is hard". The best source finds the opposite, and lands a sharper point instead. Rewrite the beat around the reversal.
+
+**The interaction axis, sourceable from one abstract.**
+
+> "they must feed each query-document pair through a massive neural network to compute a single relevance score"
+>
+> "By delaying and yet retaining this fine-granular interaction, ColBERT can leverage the expressiveness of deep LMs while simultaneously gaining the ability to pre-compute document representations offline, considerably speeding up query processing."
+>
+> "while executing two orders-of-magnitude faster and requiring four orders-of-magnitude fewer FLOPs per query."
+>
+> Khattab & Zaharia, "ColBERT," SIGIR 2020, arXiv:2004.12832, abstract.
+
+> "reduce late interaction search latency by up to 7x on a GPU and 45x on a CPU against vanilla ColBERTv2, while continuing to deliver state-of-the-art retrieval quality."
+>
+> Santhanam, Khattab, Potts & Zaharia, "PLAID," CIKM 2022, arXiv:2205.09707, abstract. VERIFIED (was snippet-only).
+
+> "reduces end-to-end latency compared to XTR's reference implementation by 41x, and achieves a 3x speedup over the ColBERTv2/PLAID engine, while preserving retrieval quality."
+>
+> Scheerer, Zaharia, Potts, Alonso & Khattab, "WARP," arXiv:2501.17788, 2025-01-29, abstract. The 41x is against XTR, the 3x against PLAID. Do not merge.
+
+Cross-encoders: monoBERT is "the top entry in the leaderboard of the MS MARCO passage retrieval task, outperforming the previous state of the art by 27% (relative) in MRR@10" (arXiv:1901.04085, abstract); monoT5 is "at least on par with previous classification-based models and can surpass them with larger, more-recent models" plus zero-shot transfer beating cross-validated SOTA on Robust04 (arXiv:2003.06713, abstract).
+
+**BEIR, the keystone, in full.**
+
+> "Our results show BM25 is a robust baseline and re-ranking and late-interaction-based models on average achieve the best zero-shot performances, however, at high computational costs. In contrast, dense and sparse-retrieval models are computationally more efficient but often underperform other approaches, highlighting the considerable room for improvement in their generalization capabilities."
+>
+> Thakur, Reimers, Ruckle, Srivastava & Gurevych, "BEIR," NeurIPS 2021 D&B, arXiv:2104.08663, abstract. Scope: "18 publicly available datasets" and "10 state-of-the-art retrieval systems", zero-shot.
+
+DRAFTING GUARD: the claim is about zero-shot / out-of-domain performance only. BM25 is not claimed to beat neural models in-domain. The families that beat it are re-ranking and late-interaction; the families that often lose to it are dense and sparse retrieval.
+
+### Act 5 — searching with a picture
+
+**The shared space is a body claim, not an abstract claim.**
+
+> "CLIP learns a multi-modal embedding space by jointly training an image encoder and text encoder to maximize the cosine similarity of the image and text embeddings of the N real pairs in the batch while minimizing the cosine similarity of the embeddings of the N²-N incorrect pairings."
+>
+> Radford et al., arXiv:2103.00020, §2.3 (body). The abstract only describes the training task and the "400 million (image, text) pairs".
+
+**The failure, then the correction, in the right order and at the right scope.**
+
+> "We probe a diverse range of state-of-the-art vision and language models and find that, surprisingly, none of them do much better than chance." (Winoground, arXiv:2204.03162, abstract)
+
+> "We show where state-of-the-art VLMs have poor relational understanding, can blunder when linking objects to their attributes, and demonstrate a severe lack of order sensitivity." (ARO, arXiv:2210.01936, abstract)
+
+> "Surprisingly, we find significant biases in all these benchmarks rendering them hackable. This hackability is so dire that blind models with no access to the image outperform state-of-the-art vision-language models." (SugarCrepe, arXiv:2306.14610, abstract)
+
+SCOPE, which the post can easily overstate. SugarCrepe's body scopes the finding to image-to-text benchmarks: "we uncover a crucial vulnerability in not just one but all these image-to-text compositionality benchmarks". Its Table 1 covers CREPE, ARO and VL-CheckList. Winoground is handled separately, as text-to-image, and is described as "a small dataset manually curated by human annotators" whose captions "contain identical words that appear in different orders". So: ARO and CREPE are debunked; Winoground stands. Do not conflate this with the separate Diwan et al. critique that Winoground requires more than compositional understanding.
+
+**The 2025 fix was not a better contrastive loss.**
+
+> "we extend the original image-text training objective with several prior, independently developed techniques into a unified recipe -- this includes captioning-based pretraining, self-supervised losses (self-distillation, masked prediction) and online data curation."
+>
+> SigLIP 2, arXiv:2502.14786, 2025-02-20, abstract. The contrastive objective was kept and surrounded, not fixed. Absorption beat.
+
+**The document-image flip.** ColPali's abstract carries no numbers. Verified from the body: 81.3 average nDCG@5 for ColPali (+Late Inter.) vs 67.0 for the strongest text pipeline (Unstructured + Captioning, BGE-M3), Table 2. Storage is "a memory footprint of 256 KB per page" (§5.2, body), not the ~250 KB widely quoted. The 0.39 vs 7.22 s/page indexing figures appear NOWHERE in the text; they exist only inside Figure 3, a bar chart. Cite as figure-read or drop.
+
+*Faysse et al., "ColPali," ICLR 2025, arXiv:2407.01449 v2 2024-07-02.*
+
+The 2026 sequel, by an overlapping author set:
+
+> "visual retrievers outperform textual ones, late-interaction models and textual reranking substantially improve performance, and hybrid or purely visual contexts enhance answer generation quality. However, current models still struggle with non-textual elements, open-ended queries, and fine-grained visual grounding."
+>
+> ViDoRe V3, arXiv:2601.08620, 2026-01-13, abstract. ~26,000 pages, 3,099 human-verified queries, 6 languages, 12,000 hours of annotation.
+
+> "The 8B model ranks first on the ViDoRe V3 leaderboard as of February 03, 2026, achieving an average NDCG@10 of 63.42."
+>
+> Nemotron ColEmbed V2, arXiv:2602.03992, 2026-02-03, abstract. Leaderboard claim, ~6 months stale at time of writing. Keep the date inside the sentence; do not assert present tense.
+
+**Unified embeddings: the absorption story, first-party.**
+
+> "generate a unified embedding that outperforms all specialized embeddings previously deployed for each product"
+>
+> "the deployment of the unified embedding at Pinterest has drastically reduced the operation and engineering cost of maintaining multiple embeddings while improving quality."
+>
+> Zhai, Wu, Tzeng, Park & Rosenberg, KDD 2019, arXiv:1908.01707, abstract.
+
+> "results from online A/B experiments show substantial gains in key business metrics (up to +7% gross merchandise value/user and +11% click volume)."
+>
+> ItemSage, KDD 2022, arXiv:2205.11728, abstract.
+
+THE KEYSTONE for the whole post's thesis:
+
+> "These embeddings are employed to power the retrieval of pins and products using HNSW (Malkov and Yashunin, 2018). They are also instrumental in the L1 scoring model, where they enhance the efficiency of token-based retrieval sources. Moreover, [OmniSearchSage] embeddings serve as one of the most critical features in the L2 scoring and relevance models."
+>
+> Agarwal, Islam Sk, Pancha, Hazra, Xu & Rosenberg, "OmniSearchSage," WWW 2024, arXiv:2404.16260, §5 (body). The source renders the model name as the LaTeX macro `\modelname`; the substitution is bracketed. Either bracket it in the post or paraphrase.
+
+Precision: the embeddings enhance *the efficiency of* token-based retrieval sources, and do so *within the L1 scoring model*. Keep that shape.
+
+Serving, body: "The system is equipped for handling 300k requests per second, maintaining a median (p50) latency of just 3 ms, and 90 percentile (p90) latency of 20 ms." Dimensionality, body: "projects it to a 256-dimensional vector space. Post projection, we apply a L2 normalization on the 256-dimensional vectors". Abstract carries the 300k QPS and the gains (">8% relevance, >7% engagement, and >5% ads CTR"); p50/p90 and the 256-d are body-only.
+
+THE DETAIL WORTH THE WHOLE SECTION, body: "The implementation of this cache-based system efficiently reduces the load on the inference server to approximately 500 QPS". The 300k figure is served behind a 30-day-TTL cache. The neural encoder sees 500 QPS; a classical caching layer absorbs the rest.
+
+**No model wins everywhere.**
+
+> "We benchmark 50 models across our benchmark, finding that no single method dominates across all task categories."
+>
+> MIEB, arXiv:2504.10471, 2025-04-14, abstract. 38 languages, 130 tasks, 8 categories.
+
+> "It supports Matryoshka Representation Learning, enabling flexible embedding dimensions, and handles inputs up to 32k tokens." / "Qwen3-VL-Embedding-8B attains an overall score of 77.8 on MMEB-V2, ranking first among all models (as of January 8, 2025)."
+>
+> Qwen3-VL-Embedding, arXiv:2601.04720, 2026-01-08, abstract. The paper's own "January 8, 2025" is a year before its own submission date and is near-certainly a typo for 2026. Quote as written and note it, or paraphrase with the correct date. Do not silently fix a quote.
+
+**And the largest deployment of contrastive retrieval stopped doing contrastive retrieval.**
+
+> "we transitioned the embedding paradigm from traditional contrastive learning to an absolute ID-recognition task. Through anchoring instances to a globally consistent latent space defined by billions of semantic prototypes, we successfully overcome the stochasticity and granularity bottlenecks inherent in existing embedding solutions."
+>
+> Pailitao-VL, Alibaba, arXiv:2602.13704, 2026-02-14, abstract. Motivation, body §1: contrastive models "excel at distinguishing broad categories, such as a sedan from an SUV, but often fail to resolve subtle intra-concept variations".
+
+NUMBER SCOPE, body §6.4: "Pailitao-VL-Embedding delivers a 2% GMV gain across platform-wide traffic, while Pailitao-VL-Reranker-List yields a 6% GMV increase within standardized product categories. Notably, in emerging AI-driven scenarios such as SKU-price comparison, our architecture achieves an impressive 20% GMV gain". The embedding change bought 2%. The 20% belongs to the reranker in one narrow scenario. Attributing 20% to abandoning contrastive learning would be wrong.
+
+### Act 6 — the cascade, which is the actual system
+
+**The keystone: ANN shipped as an inverted-index operator.** All from Huang et al., "Embedding-based Retrieval in Facebook Search," KDD 2020, arXiv:2006.11632, body.
+
+> "By implementing NN support in terms of pre-existing primitives, instead of writing a separate system, we inherited all the features of the existing system, such as realtime updates, efficient query planning and execution, and support for multi-hop queries (see [3])." (§4.1)
+
+> "we extended the document representation to include embeddings, each with a given string key, and added a (nn <key> :radius <radius>) query operator which matches all documents whose <key> embedding is within the specified radius of the query embedding." (§4.1)
+
+> "At indexing time, each document embedding is quantized and turned into a term (for its coarse cluster) and a payload (for the quantized residual). At query time, the (nn) is internally rewritten into an (or) of the terms associated to the coarse clusters closest to the query embedding (probes), and for matching documents the term payload is retrieved to verify the radius constraint." (§4.1)
+
+> "we found that radius mode can give better trade-off of system performance and result quality. One possible reason is that radius mode enables a constrained NN search (constrained by other parts of the matching expression) but top K mode provides a more relaxed operation which needs to scan the whole index to get top K results. Hence, we use radius based matching in our current production." (§4.1)
+
+Hard negatives, the counterintuitive result:
+
+> "One finding that may first seem counterintuitive is that models trained simply using hard negatives cannot outperform models trained with random negatives." (§6.1.1)
+
+> "Increasing the ratio of easy to hard negatives continues to improve the model recall and saturated at easy:hard=100:1." (§6.1.1)
+
+> "We compared sampling from different rank positions and found sampling between rank 101-500 achieved the best model recall." (§6.1.1)
+
+ATTRIBUTION TRAP: the recall gains belong to online hard negative mining specifically, not to EBR as a whole. "Enabling online hard negative mining was one major contributor to our modeling improvement. It consistently improved embedding model quality significantly across all verticals: +8.38% recall for people search; +7% recall for groups search, and +5.33% recall for events search." (§6.1.1)
+
+And the sentence the post's argument rests on:
+
+> "The model at each stage should be optimized for the distribution of results returned by the preceding layer. However, since the current ranking stages are designed for existing retrieval scenarios, this could result in new results returned from embedding based retrieval to be ranked sub-optimally by the existing rankers." (§5)
+
+**The budget.** From Wang et al., "COLD," DLP-KDD 2020, arXiv:2007.16122 v2.
+
+> "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand. Then the pre-ranking model selects top N candidates by certain metrics, e.g. eCPM (expected Cost Per Mille) for advertising system. The magnitude of N is usually several hundred." (§2, body)
+
+> "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds." (§1, body; note the sentence covers both stages, it is not a pre-ranking-only SLA)
+
+> "The model expression ability is limited by the vector-product form, and can not utilize the user-ad cross features." (§2.2, body)
+
+> "In normal days, COLD model achieves 6.1% CTR and 6.5% RPM (Revenue Per Mille) improvement... Moreover, the improvement turns to be 9.1% CTR and 10.8% RPM" (§4, body; Double 11)
+
+DERIVED, not quoted: 10,000 microseconds / 10,000 candidates = 1 microsecond; 20,000 / 10,000 = 2. So the L1 budget is roughly 1-2 microseconds per candidate. Caveats to carry: this is wall-clock budget per candidate, not serial CPU time (COLD parallelizes; its Table 3 reports 9.3 ms RT at 6700 QPS against the vector-product DNN's 2 ms at 60000+ QPS), and §1's looser "tens of thousands" would give 0.1-2. Present the tight version as the post's own arithmetic from §2 plus §1.
+
+**Two-tower mechanics.**
+
+> "inference consists of two steps: 1) computing query embedding u(x, θ); 2) performing nearest neighbor search over a set of item embeddings that are pre-computed from embedding function v. ... low-latency retrieval is commonly based on a highly efficient similarity search system built on hashing techniques, e.g., [2, 10, 25], for approximate maximum inner product search (MIPS) problems." (body, §3)
+
+> "in-batch loss is subject to sampling biases, potentially hurting model performance, particularly in the case of highly skewed distribution. In this paper, we present a novel algorithm for estimating item frequency from streaming data." (abstract)
+>
+> Yi et al., RecSys 2019, DOI 10.1145/3298689.3346996.
+
+**Cascade attribution, corrected.** "Cascade Ranking for Operational E-commerce Search" (KDD 2017, arXiv:1706.02093) is Liu, Xiao, Ou, Si, NOT Wang et al. Liu et al. cite the separate, earlier Wang, Lin & Metzler SIGIR 2011 paper as their reference [22]. Both exist; do not merge them.
+
+**Stage misalignment.**
+
+> "the ranked lists of the ranking stage and previous stages may be inconsistent... we formally define the problem of ranking consistency and propose the Ranking Consistency Score (RCS) metric for evaluation. We demonstrate that ranking consistency has a direct impact on online performance." (abstract)
+>
+> Gu & Sheng, arXiv:2205.01289 v5, 2022-11-03. PREPRINT ONLY: the PDF's ACM reference block is an unfilled template ("KDD 'XX ... 20XX"), so no venue is confirmed. Attribute, do not assert peer review.
+
+> "Compared to FS-LTR, LCRON brings about a 4.10% increase in advertising revenue and a 1.60% increase in the number of user conversions" (body, §1; corroborated §5.5 and Table 5)
+>
+> Wang et al., "Learning Cascade Ranking as One Network," ICML 2025, arXiv:2503.09492 v3. VERIFIED in PDF (was snippet-only). Deployed at Kuaishou, 10% traffic per arm, 15-day A/B.
+
+**Multi-task ranking and bias.**
+
+> "It extends the Wide & Deep [9] model architecture by adopting Multi-gate Mixture-of-Experts (MMoE) [30] for multitask learning. In addition, it introduces a shallow tower to model and remove selection bias." (body, §1)
+>
+> Zhao et al., RecSys 2019.
+
+> "we do not build an explicit propensity model. Instead, we introduce position as a feature in the DNN, regularized by dropout. During scoring we set the position feature to 0." (body, §4.2)
+>
+> "In the online test we observed a gain of +0.7% in bookings." / "Alongside the bookings gain, a lift of +1.8% in revenue was a pleasant surprise." (body, §4.4)
+>
+> Haldar et al., "Improving Deep Learning For Airbnb Search," KDD 2020, arXiv:2002.05515.
+
+NUMBER COLLISION WARNING: Airbnb has two different +0.7% figures. The one above is bookings from position-bias removal (§4.4). A different +0.7% is an NDCG figure for the two-tower architecture (§2.7).
+
+**The closer: three offline-neutral models that lost money, and the structural reason.**
+
+> "But the interpretability of price came at a heavy cost as bookings dropped by −1.5%." (§2.2)
+
+> "In spite of being more flexible than the architecture described in section 2.2, when tested online the results were very similar, resulting in a booking drop of −1.6%." (§2.3)
+
+> "we adjusted the alpha hyperparameter to the minimum value such that in offline tests we got the same NDCG as the baseline model. This allowed us to push the cheaper is better intuition as far as possible without hurting relevance, at least when measured offline. In the online A/B test, we observed a reduction of −3.3% in average price of search results. But also a drop of −0.67% in bookings." (§2.5)
+
+> "The offline analysis suffered from the limitation that it only evaluated re-ranking the top results available in logs. During the online test, applying the newly trained model to the entire inventory revealed the true cost of adding the price loss as part of the training objective." (§2.5)
+
+> "we have observed statistically significant differences in online bookings from models that differed in NDCG by as little as 0.7%." (§3)
+
+> "When tested online this resulted in a −33% reduction in the 99th percentile scoring latency." (§2.7)
+>
+> All Haldar et al., arXiv:2002.05515, body. Note the minus signs above are U+2212 as rendered in the source.
+
+The 2026 restatement, weaker in kind but current:
+
+> "In our production pipeline, offline evaluations serve as directional indicators for rapid iteration. Because these metrics are computed over massive transient pipelines, we rely on large-scale online A/B testing (Section 4) to establish strict statistical significance." (body, §3)
+
+> "two distinct index scales: (1) A Small Index of 3.6M products: 122k queries with comprehensive human annotations to measure EM Recall@K. (2) A Big Index of 200M products: 1k traffic-weighted queries to measure EM Precision@K, effectively testing the model's robustness against false positives in a massive search space." (body, §3)
+
+> "delivering a +7.34% improvement in NDCG@5 and a +0.50% lift in gross revenue" (abstract); "+0.50% (𝑝 = 0.03)" (body, §4); "+4.00%" EM Recall@20 offline (body, §3, Table 2)
+>
+> Yang et al., Walmart Global Tech, "Scaling and Stabilizing Large-Scale Embedding-Based Retrieval," SIGIR 2026, arXiv:2607.10096 v1, 2026-07-11. Also useful: "the new model altered the retrieved top-10 results for 20.85% of total search traffic compared to the baseline" (body, §4).
+
+Use Airbnb for the mechanism and Walmart for the recency; Walmart says offline is directional, Airbnb explains structurally why it must be.
+
+**Query understanding: the LLM is offline.**
+
+> "The offline inference of BEQUE covers 27% of the page views (PV) in Taobao's main search and has a minimal impact on the latency of the online retrieval system." (body, §3)
+
+> "Since we inference offline, there are about 70% of online queries that do not hit our rewriting table." (body, §4.5)
+
+> "both the query and rewrite are tokenized into terms and used as keywords for inverted index matching to obtain a set of related products. The union of the query and rewrite retrieval sets forms the final candidate set of products for the ranking system." (body, §3)
+
+> "BEQUE surpassed the previous-generation rewriting model CLE-QR by 0.4%, 0.34%, and 0.33% in terms of GMV, #Trans, and UV, respectively." / "for the queries covered (rewritten) by BEQUE (approximately 27% of total PV), there were noteworthy increases of 2.96%, 1.36%, and 1.22% in GMV, #Trans, and UV, respectively." (body, §4.5, Table 6)
+>
+> Peng et al., WWW 2024 Industry, arXiv:2311.03758 v3. VERIFIED in PDF (numbers are not on the abs page). Deployed on Taobao since October 2023. Do not conflate +0.40% all-traffic with +2.96% covered-traffic; they differ by more than 7x.
+
+**The coda: the fork, unresolved.**
+
+> "we have achieved 23.7% and 28.8% Model FLOPs Utilization (MFU) on flagship GPUs during training and inference, respectively... resulting in operating expense (OPEX) that is only 10.6% of traditional recommendation pipelines. Deployed in Kuaishou/Kuaishou Lite APP, it handles 25% of total queries per second (QPS), enhancing overall App Stay Time by 0.54% and 1.24%, respectively." (abstract)
+
+> "the model's training and inference MFU is only 4.6% and 11.2% on flagship GPUs, respectively, which is substantially lower than the efficiency observed in large language models (LLMs), where the MFU is approximately 40% on H100" (body, §1)
+>
+> OneRec Technical Report, Kuaishou, arXiv:2506.13695, June 2025.
+
+AGE FLAG: these are June 2025 figures, 14 months old and unrefreshed. Kuaishou's newest release (OpenOneRec, arXiv:2512.24762) publishes no production figures. Date them in prose. Also: 25% of QPS, not 25% of the product; OneRec runs alongside the cascade that still serves the other 75%. Stay-time lifts are per-app, not combined.
+
+Against it, same year:
+
+> "OnePiece has been deployed in the main personalized search scenario of Shopee and achieves consistent online gains across different key business metrics, including over +2% GMV/UU and a +2.90% increase in advertising revenue." (abstract)
+>
+> Dai et al., arXiv:2509.18091, 2025-09-22.
+
+And the 2026 result that lands on the post's side:
+
+> "one input format, one model, one training stage, deployed within existing serving infrastructure. A shared transformer encodes the user action sequence into candidate-independent representations that branch into retrieval (ANN dot-product) and ranking (cross-attention) via task-specific heads."
+
+> "Deployed in the Pinterest core surfaces, UniPinRec delivers approximately +1% online engagement lift while cutting end-to-end serving latency by 11.1% and lifting QPS by 63.6%."
+>
+> Li et al., "UniPinRec," arXiv:2606.00422, 2026-05-29, abstract. Their own comparison table classifies OneRec-style single-decoder systems as replacing the full funnel and incompatible with the existing pipeline. The two stages survive as two heads on one trunk.
+
+Tencent's OneRanker (arXiv:2603.02999 v3, 2026-03-12) reports "+1.34%" GMV on WeiXin channels and names "the disconnection between generation and ranking stages" as a core challenge, which is EBR §5's problem rediscovered from the generative side. PREPRINT: v3 carries an unfilled ACM template, no confirmed venue.
+
+**The open question, answered in the negative.** As of 2026-08-24 there is no first-party, production, web-scale published latency SLA or deployment description for an LLM reranker in a live search path. Targeted searching returned only third-party vendor blogs, academic efficiency papers reporting benchmark latency (arXiv:2511.07555, arXiv:2606.11700, arXiv:2411.05508), and RAG-scale writeups at top-100 shortlists. The nearest first-party production LLM-in-search datapoint is BEQUE, which is the opposite: Taobao moved the model offline to keep it out of the latency path. Write the L3 box as an open question and attach no number.
+
+## Claim-source matrix`). Kamphuis, PLAID, LCRON and BEQUE upgraded to verified. Pailitao 20% verified but re-scoped to the reranker. ColPali indexing speeds and the Furnas <0.20 figure closed by drop. arXiv:2604.01733 dropped as unnecessary.
+- No first-party web-scale LLM-reranker latency SLA was found. Write the L3 box as an open question rather than claiming a number.
+
+## Throughline
+
+**One query, walked down the whole stack:**
+
+> `waterproof hiking boots wide toe box under $150`
+
+Composite throughline. The query is synthetic; every number attached to every rung cites a public source. The query is chosen because it carries a paraphrase trap (`wide toe box` / "roomy forefoot"), an exact-match trap (brand and SKU), and a structured predicate (`under $150`) that is not a text-matching problem at all — which is what forces filtering and multi-field ranking to be load-bearing rather than a digression.
+
+Per-act rhythm — each act opens by naming what the query can now do, and closes by naming what it still can't:
+
+| act | the query gains | the query still can't |
+|---|---|---|
+| 1. The only question | nothing yet; the scan is the enemy | be answered without touching all N docs |
+| 2. The lexical machine | fast term match over 10^8 docs | match "roomy forefoot"; `under $150` is not a query |
+| 3. The vector turn | catches the paraphrase | keep exact SKUs; survive out-of-domain; keep recall once filtered |
+| 4. The reconvergence | semantics inside the inverted index; both signals fused | escape the cost of query expansion; know how to weight the fusion |
+| 5. Searching with a picture | be a photo instead of words | bind attributes and order ("black strap on red bag") |
+| 6. The cascade | finally, an *order* | be trusted from offline metrics alone |
+
+Callback discipline: when the throughline changes inside an act, name the change in prose. Don't make the reader infer it from a figure.
+## Research notes
+
+Grouped by act. Every excerpt below was fetched and verified verbatim on 2026-08-24 unless marked otherwise. Abstract-vs-body is labelled because the two differ and the difference has bitten this pipeline before.
+
+### Act 1 — the only question
+
+**The exhaustive scan is the baseline every index is defined against.**
+
+> "Given that search engines need to answer user queries within fractions of a second, naively traversing this basic index structure, which could take hundreds of milliseconds or more for common terms, is not acceptable."
+>
+> Ding & Suel, "Faster Top-k Document Retrieval Using Block-Max Indexes," SIGIR 2011, §1 (body). https://research.engineering.nyu.edu/~suel/papers/bmw.pdf
+
+The measured version, on TREC GOV2 (25.2M docs, 426 GB raw, 8,759 MB compressed index), from Tables 1-2 (these are table cells, not quotable prose):
+
+| strategy | avg ms/query | docs fully scored |
+|---|---|---|
+| exhaustive OR | 225.7 | 3,815,676 |
+| WAND | 77.6 | 178,391 |
+| block-max WAND | 27.9 | 21,921 |
+| exhaustive AND | 11.4 | 20,026 |
+
+Also: "disjunctive queries tend to be significantly (by about an order of magnitude for exhaustive query processing) more expensive than conjunctive queries" (body, §2.2).
+
+**The vector-side equivalent is a formal result, not folklore.** Trees and space partitioning do not merely get slow in high dimensions; they provably degenerate.
+
+> "We show formally that these methods exhibit linear complexity at high dimensionality, and that existing methods are outperformed on average by a simple sequential scan if the number of dimensions exceeds around 10."
+>
+> "There is no organization of HDVS based on partitioning or clustering which does not degenerate to a sequential scan if dimensionality exceeds a certain threshold."
+>
+> Weber, Schek & Blott, "A Quantitative Analysis and Performance Study for Similarity-Search Methods in High-Dimensional Spaces," VLDB 1998, abstract and Conclusions. https://www.vldb.org/conf/1998/p194.pdf
+
+GAP: no crisp per-query "brute-force kNN at N=1M, d=768 costs X ms" number is sourced. The available Faiss figure (arXiv:1702.08734) is 2017 hardware and measures graph construction, not per-query scan. Act 1 should lean on Weber et al. for the vector side and Ding & Suel for the text side rather than inventing a scan benchmark.
+
+### Act 2 — the lexical machine
+
+**The structure.**
+
+> "An inverted index consists of many inverted lists, where each inverted list Lw is a list of postings describing all places where term w occurs in the collection."
+>
+> "The inverted lists of common query terms may consist of many millions or even billions of postings."
+>
+> "inverted lists are often split into blocks of, say, 64 or 128 docIDs, such that each block can be decompressed separately."
+>
+> Ding & Suel, SIGIR 2011, §2.1 (body).
+
+**IDF is derived, not bolted on.**
+
+> "The resulting formula is a close approximation to classical idf (it can be made closer still by a slight modification of the model [47])"
+>
+> Robertson & Zaragoza, "The Probabilistic Relevance Framework: BM25 and Beyond," FnTIR 3(4):333-389, 2009, §3.1 (body). https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf
+
+**Mechanism 1, saturation (k1).**
+
+> "We refer to this behaviour as saturation. That is, any one term's contribution to the document score cannot exceed a saturation point (the asymptotic limit), however, frequently it occurs in the document."
+>
+> "Thus for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly."
+>
+> Same, §3.4.2 and §3.4.4 (body). Saturation function is Eq. 3.10, tf/(k+tf). The comma placement in the first quote is as extracted from the PDF.
+
+Contrast with the alternatives, which is where the intuition lives: "The latter has a somewhat similar shape curve, but does not have an asymptotic maximum, it goes to infinity, even if somewhat slower than tf itself." (§3.5, body; the source uses an em-dash where this file uses a comma, so do not re-quote this one verbatim without restoring it.)
+
+**Mechanism 2, length normalization (b), and why it is soft.**
+
+> "The verbosity hypothesis suggests that we should simply normalise any observed tf s by dividing by document length. The scope hypothesis, on the other hand, at least in its extreme version, suggests the opposite."
+>
+> "Thus setting b = 1 will perform full document-length normalisation, while b = 0 will switch normalisation off."
+>
+> Same, §3.4.5 (body).
+
+**The model does not supply its own constants.**
+
+> "Concerning the internal parameters, the model provides no guidance on how these should be set. This may be regarded as a limitation of the model."
+>
+> "suggest that in general values such as 0.5 < b < 0.8 and 1.2 < k1 < 2 are reasonably good in many circumstances. However, there is also evidence that optimal values do depend on other factors (such as the type of documents or queries)."
+>
+> Same, §3.5 (body).
+
+And a useful piece of trivia that kills a common confusion: "A common variant is to add a (k1 + 1) component to the numerator of the saturation function. This is the same for all terms, and therefore does not affect the ranking produced." (§3.5.1, body).
+
+**Which BM25 do you mean. The ambiguity is real; the consequence is not.** This corrects the framing in the Phase-1 spec.
+
+> "When researchers speak of BM25, it is not entirely clear which variant they mean, since many tweaks to Robertson et al.'s original formulation have been proposed. When practitioners speak of BM25, they most likely refer to the implementation in the Lucene open-source search library. Does this ambiguity "matter"? We attempt to answer this question with a large-scale reproducibility study of BM25, considering eight variants. Experiments on three newswire collections show that there are no significant effectiveness differences between them, including Lucene's often maligned approximation of document length."
+>
+> Kamphuis, de Vries, Boytsov & Lin, "Which BM25 Do You Mean? A Large-Scale Reproducibility Study of Scoring Variants," ECIR 2020, abstract. https://cs.uwaterloo.ca/~jimmylin/publications/Kamphuis_etal_ECIR2020_preprint.pdf
+
+> "Both an ANOVA and Tukey's HSD show no significant differences between any variant, on all test collections. This confirms the findings of Trotman et al. [11]: effectiveness differences are unlikely an effect of the choice of the BM25 variant. Across the IR literature, we find that differences due to more mundane settings (such as the choice of stopwords) are often larger than the differences we observe here."
+>
+> Same, §3.3 (body). Conclusion: "we conclude that the answer appears to be "no, it does not"."
+
+The genuinely interesting mechanical detail from the same paper:
+
+> "the document length used in the scoring function is compressed (in a lossy manner) to a one byte value, denoted Ldlossy. With only 256 distinct document lengths, Lucene can pre-compute the value of k1 · (1 - b + b · (Ldlossy/Lavg)) for each possible length, resulting in fewer computations at query time."
+>
+> Same, §2 (body).
+
+Defaults, verified from official sources: Elasticsearch ships "BM25 similarity (default)" with k1 "1.2" and b "0.75" (https://www.elastic.co/docs/reference/elasticsearch/index-settings/similarity). Lucene 10.0.0 `BM25Similarity` no-arg constructor is "BM25 with these default values: k1 = 1.2 b = 0.75 discountOverlaps = true" (javadoc). Anserini defaults differ: "models are set to k1 = 0.9 and b = 0.4, Anserini's defaults" (Kamphuis et al., §3.2, body). Note the Lucene javadoc does not itself assert BM25 is the default similarity; that comes from the Elastic docs.
+
+**Dynamic pruning: upper bounds let you skip.**
+
+> "at the first level, our method iterates in parallel over query term postings and identifies candidate documents using an approximate evaluation taking into account only partial information on term occurrences and no query independent factors; at the second level, promising candidates are fully evaluated and their exact scores are computed."
+>
+> "our algorithm significantly reduces the total number of full evaluations by more than 90%, almost without any loss in precision or recall."
+>
+> Broder, Carmel, Herscovici, Soffer & Zien, "Efficient query evaluation using a two-level retrieval process," CIKM 2003, abstract. DOI 10.1145/956863.956944. Verified via IBM Research's first-party listing (dl.acm.org returned 403). Body not obtained.
+
+The mechanism, described in a peer-reviewed third paper rather than by Broder et al. themselves:
+
+> "Thus, WAND achieves early termination by enabling skips over postings that cannot make into the top results. For the threshold value, we use the lowest score in the heap that contains the top-k results found thusfar."
+>
+> Ding & Suel, SIGIR 2011, §2.6 (body).
+
+Block-max, and the diagnosis of what plain WAND leaves on the table:
+
+> "Essentially, this is a structure that stores the maximum impact score for each block of a compressed inverted list in uncompressed form, thus enabling us to skip large parts of the lists." (abstract)
+>
+> "Our initial insight is that skipping in WAND is limited because it uses the maximum impact scores over the entire lists, which can be much larger than average." (body, §3)
+>
+> "WAND only evaluates 4.6% of the docIDs compared to exhaustive OR, which approximately matches the numbers in [11]." (body, §6.2)
+>
+> Ding & Suel, SIGIR 2011.
+
+MaxScore is Turtle & Flood, Information Processing and Management 31(6):831-850, 1995 (attribution only, taken from Ding & Suel's reference [32]; the paper itself was not read, and the author is Flood, not the commonly seen "Flagg").
+
+**Multi-field: how `under $150` and category metadata enter a lexical scorer.** The CIKM 2004 BM25F paper could not be fetched (ACM 403, no open mirror). The monograph by two of its three authors makes the identical argument and is used instead.
+
+> "an obvious practical approach ... would be to apply the function separately to each stream, and then combine these in some linear combination (with stream weights) for the final document score. ... This seems a little unreasonable, a better assumption might be that eliteness is a term/document property, shared across the streams of the document."
+>
+> "we should combine evidence across terms and streams in the opposite order to that suggested above: first streams, then terms. That is, for each term, we should accumulate evidence for eliteness across all the streams. The saturation function should be applied at this stage, to the total evidence for each term."
+>
+> Robertson & Zaragoza, FnTIR 2009, §3.6.1 (body). NOTE: the first excerpt contains an em-dash in the source where this file has a comma; restore it or paraphrase rather than quoting as-is.
+
+GAP, unclosed: Furnas, Landauer, Gomez & Dumais, "The vocabulary problem in human-system communication," CACM 30(11):964-971, 1987. Not fetched. The widely repeated "two people pick the same term under 20% of the time" figure is UNVERIFIED and must not appear in the post until the paper is read.
+
+### Act 3 — the vector turn
+
+**The bi-encoder, and why it factorizes.** DPR uses "two independent BERT (Devlin et al., 2019) networks (base, uncased) and take the representation at the [CLS] token as the output, so d = 768" (body, §3.1). The gain: "our dense retriever outperforms a strong Lucene-BM25 system largely by 9%-19% absolute in terms of top-20 passage retrieval accuracy" (abstract), concretely "78.4% vs. 59.1% for top-20 accuracy on Natural Questions" (body, §5.1). Note the paper's own exception: "With the exception of SQuAD, DPR performs consistently better than BM25 on all datasets" (body, §5.1) — attributed to SQuAD's restricted Wikipedia subset, not to a lexical-matching effect. Do not over-read it as the exact-match failure.
+
+*Karpukhin et al., "Dense Passage Retrieval for Open-Domain Question Answering," EMNLP 2020, arXiv:2004.04906 v1 2020-04-10.*
+
+**The exact-match trap, properly sourced.** This is the one that maps onto the throughline's SKU problem.
+
+> "We first construct EntityQuestions, a set of simple, entity-rich questions based on facts from Wikidata (e.g., "Where was Arve Furset born?"), and observe that dense retrievers drastically underperform sparse methods. We investigate this issue and uncover that dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training."
+>
+> Sciavolino, Zhong, Lee & Chen, "Simple Entity-Centric Questions Challenge Dense Retrievers," EMNLP 2021, arXiv:2109.08535 v1 2021-09-17, abstract.
+
+**The ANN ladder as a sequence of fixed wrong assumptions.**
+
+PQ, abstract only (TPAMI full text unreachable behind IEEE; every OA mirror dead or bot-walled):
+
+> "The idea is to decompose the space into a Cartesian product of low-dimensional subspaces and to quantize each subspace separately. A vector is represented by a short code composed of its subspace quantization indices."
+>
+> Jegou, Douze & Schmid, TPAMI 33(1):117-128, 2011, DOI 10.1109/TPAMI.2010.57.
+
+For the code-size arithmetic use the Faiss paper instead (Jegou is a co-author; Faiss is the reference implementation): "The number of reconstructed vectors is KM and the code size is thus M ceil(log2 (K))" and "we will use the notation PQ6x10 for a product quantizer with 6 sub-vectors each encoded in 10 bits (M = 6, K = 2^10)" (arXiv:2401.08281, §4.1, body). Derive the 768-dim example from this rather than quoting a compression ratio: 3072 bytes at float32, 96 bytes at PQ96x8, 32x.
+
+ScaNN, the cleanest "each index fixed a specific wrong assumption" beat in the lineage:
+
+> "Traditional approaches to quantization aim to minimize the reconstruction error of the database points. Based on the observation that for a given query, the database points that have the largest inner products are more relevant, we develop a family of anisotropic quantization loss functions. Under natural statistical assumptions, we show that quantization with these loss functions leads to a new variant of vector quantization that more greatly penalizes the parallel component of a datapoint's residual relative to its orthogonal component."
+>
+> Guo et al., arXiv:1908.10396 v1 2019-08-27 (ICML 2020), abstract.
+
+LSH is a paraphrase-only source in this pass: the reachable STOC 1998 scan is OCR-corrupted and no line from it is quotable. Carry the claim (provable guarantees, exponent depending on 1/epsilon making the polylog-query variant theoretical) as paraphrase, or drop the specifics.
+
+**HNSW, exactly.** All from Malkov & Yashunin, arXiv:1603.09320 v4 2018-08-14 (v1 2016-03-30), body.
+
+> "Simulations also suggest that 2∙ M is a good choice for Mmax0: setting the parameter higher leads to performance degradation and excessive memory usage." (§4.1)
+
+> "the average memory consumption per element is (Mmax0+mL ∙Mmax)∙bytes_per_link. If we limit the maximum total number of elements by approximately four billions, we can use four-byte unsigned integers to store the connections. Tests suggest that typical close to optimal M values usually lie in a range between 6 and 48. This means that the typical memory requirements for the index (excluding the size of the data) are about 60-450 bytes per object, which is in a good agreement with the simulations." (§4.2.3)
+
+> "When the number of candidates is large enough the heuristic allows getting the exact relative neighborhood graph [46] as a subgraph, a minimal subgraph of the Delaunay graph deducible by using only the distances between the nodes. The relative neighborhood graph allows easily keeping the global connected component, even in case of highly clustered data" (§3)
+
+> "the heuristic that accounts for the distances between the candidate elements to create connections in diverse directions" (§4.1)
+
+> "A simple choice for the optimal mL is 1/ln(M), this corresponds to the skip list parameter p=1/M with an average single element overlap between the layers." (§4.1)
+
+> "The only meaningful construction parameter left for the user is M. A reasonable range of M is from 5 to 48." (§4.1)
+
+> "For real data such as SIFT vectors [1] (which have complex mixed structure), the performance improvement by increasing the mL is higher, but less prominent at current settings compared to improvement from the heuristic" (§4.1)
+
+Arithmetic reproducing the paper's own range, performed 2026-08-24 (this is the post's derivation, not a quote):
+- M=6: (12 + 0.5581x6) x 4 B = 61.4 B, paper says ~60.
+- M=48: (96 + 0.2583x48) x 4 B = 433.6 B, paper says ~450.
+- M=16: (32 + 0.3607x16) = 37.77 slots x 4 B = 151.1 B.
+
+CORRECTION CARRIED: "M=16 gives ~21 links per node" is not in the paper. A full-text grep finds "21" only as reference [21], a page range, and a citation title. It is also not sourceable as a measured realized average degree; nothing citable was found. What is verifiable is the allocated-vs-realized split, from maintainer source:
+
+> `maxM0_ = M_ * 2;`
+> `size_links_level0_ = maxM0_ * sizeof(tableint) + sizeof(linklistsizeint);`
+>
+> nmslib/hnswlib, `hnswlib/hnswalg.h`, master, lines 112-113 and 120, accessed 2026-08-24 (no commit SHA pinned).
+
+hnswlib allocates a fixed 2M-slot block per node at layer 0 whether or not the pruning heuristic fills it. Memory is charged on allocated degree; realized degree is smaller and the library does not publish it. That gap is the honest and more interesting sentence.
+
+**The hierarchy may be dead weight in high dimensions.**
+
+> "a flat navigable small world graph graph retains all of the benefits of HNSW on high-dimensional datasets, with latency and recall performance essentially \emph{identical} to the original algorithm but with less memory overhead" (abstract; "graph graph" and the raw LaTeX are in the source)
+
+> "In high-dimensional metric spaces, k-NN proximity graphs form a highway routing structure where a small subset of nodes are well-connected and heavily traversed, particularly in the early stages of graph search." (body, §4, Hub Highways hypothesis)
+
+> "our implementation saves roughly 38% and 39% of peak memory consumption during index construction on two Big-ANN benchmark datasets compared to hnswlib" (body, §1.1)
+
+> "Perhaps most importantly, we still have no satisfactory understanding of why hierarchy does not help." (body, §1.1)
+>
+> Munyampirwa, Lakshman & Coleman, "Down with the Hierarchy: The 'H' in HNSW Stands for 'Hubs'," arXiv:2412.01940 v1 2024-12-02, v3 2025-07-03. 13 datasets, 1M to 100M vectors. No rebuttal found. Venue: an ECIR 2026 chapter (DOI 10.1007/978-3-032-21324-2_3) is listed on ACM DL and Springer but both 403'd on fetch, so venue is search-level only.
+
+Pairing note for the draft: the 2024 critique is not overturning the 2016 paper so much as finishing a sentence its authors already wrote.
+
+**Quantization now.** RaBitQ "quantizes $D$-dimensional vectors into $D$-bit strings" and "guarantees a sharp theoretical error bound", against prior methods that "do not have a theoretical error bound and are observed to fail disastrously on some real-world datasets" (arXiv:2405.12497 v1 2024-05-21, abstract). Shipped, with the rerank pass that makes it work, from Elastic (vendor, first-party, with parameters):
+
+> "Naive binary quantization is exceptionally lossy and achieving adequate recall requires gathering 10x or 100x additional neighbors to rerank. This just doesn't cut it."
+>
+> "Here, 1bit quantization and HNSW gets above 90% recall with only 3x oversampling."
+>
+> Elastic Search Labs, "Better Binary Quantization (BBQ) in Lucene and Elasticsearch," 2024-11-11.
+
+Elastic also lists where BBQ diverges from the RaBitQ paper (single centroid, no random rotation so the estimator is not unbiased, rescoring deferred until after graph search). Good material for the "the index absorbs the paper rather than implementing it" beat.
+
+Matryoshka: "MRL which encodes information at different granularities and allows a single embedding to adapt to the computational constraints of downstream tasks ... imposes no additional cost during inference and deployment", "up to 14x smaller embedding size for ImageNet-1K classification at the same level of accuracy" (arXiv:2205.13147, abstract).
+
+**Where the vector physically lives.**
+
+SSD: "DiskANN that can index, store, and search a billion point database on a single workstation with just 64GB RAM and an inexpensive solid-state drive (SSD)" and ">5000 queries a second with < 3ms mean latency and 95%+ 1-recall@1 on a 16 core machine, where state-of-the-art billion-point ANNS algorithms with similar memory footprint like FAISS [18] and IVFOADC+G+P [8] plateau at around 50% 1-recall@1" (NeurIPS 2019, abstract). The body says "under 5 milliseconds" for the same claim; the paper carries two figures.
+
+Object storage, and the rollback to IVF that nobody frames as a rollback (turbopuffer architecture doc, vendor first-party, verified live 2026-08-24):
+
+> "The first query to a namespace reads object storage directly and is slow (p50=874ms for 1M documents), but subsequent, cached queries to that node are faster (p50=14ms for 1M documents)."
+
+> "From first principles, each roundtrip to object storage takes ~100ms. The 3-4 required roundtrips for a cold query often take as little as ~400ms."
+
+> "Vector indexes are based on SPFresh. SPFresh is a centroid-based approximate nearest neighbour index. It has a fast index for locating the nearest centroids to the query vector. A centroid-based index works well for object storage as it minimizes roundtrips and write-amplification, compared to graph-based indexes like HNSW or DiskANN."
+
+Caveat: the page carries a second cold figure, "~500ms on 1M documents", in the index section. Quote 874ms as the routing-section number, not as the page's only cold number.
+
+**Filtered vector search.** Taxonomy from the PVLDB tutorial (5 pages, no benchmark numbers, taxonomy only). Note the third term is "inline-filtering":
+
+> "There are three main execution methods for executing filtered vector search queries depending on the order of operations (filter and vector search) and the vector search type. Pre-filtering, where data is filtered and then KNN search is performed on the result of the filter. This method is preferred when the filter result is small [30]. The remaining two execution methods use a vector index to perform ANN vector search. Post-filtering, where the filters are evaluated on the vector index search result [40]. For inline-filtering, searching and filtering are combined, and the filters can be evaluated before the vector search starts (and stored in a bitmap) or evaluated during the vector index search."
+
+> "post-filtering, in simplified approaches to filtered search, requires the approximate nearest neighbor (ANN) search to yield a multiple of K results to ensure at least K vectors remain after filtering [40], which complicates achieving high recall."
+>
+> Chronis, Caminal, Papakonstantinou, Ozcan & Ailamaki, "Filtered Vector Search: State-of-the-art and Research Opportunities," PVLDB 18(12):5488-5492, 2025, §2 (body). Its own motivating example is the post's throughline: "an e-commerce search may allow filtering by the brand or price range while searching for similar products to a user provided description."
+
+ACORN. The abstract's only quantitative claim is "outperforming prior methods with 2-1,000x higher throughput at a fixed recall". The variant names live in the body: "We propose two indices: ACORN-γ, designed for high-efficiency search, and ACORN-1" (§1), and "ACORN-1 achieves this by performing the neighbor expansion step solely during search, rather than during construction, as ACORN-γ does" (§5.3). Tradeoff: "ACORN-1 empirically approximates ACORN-γ, attaining at most 5x lower QPS at fixed recall but 9-53x lower TTI" (§1).
+
+THE DEGREE BOUND, which replaces the percolation line as the post's load-bearing mechanism:
+
+> "If a node in the predicate subgraph has degree much lower than 𝑀, this could adversely impact the search convergence and thus recall. For a dataset and query predicate that exhibit no predicate clustering, for any node 𝑣 in 𝐺 (𝑋𝑝 ), E |𝑁𝑝𝑙 (𝑣)| = |𝑁 𝑙 (𝑣)| · 𝑠 = 𝛾 · 𝑀 · 𝑠 > 𝑀, ∀𝑠 > 𝑠𝑚𝑖𝑛"
+>
+> Patel, Kraft, Guestrin & Zaharia, "ACORN," SIGMOD 2024, arXiv:2403.04871 v1 2024-03-07, §6 "Bounded Degree" (body).
+
+PERCOLATION VERDICT (negative result, carried into the draft): "a filter keeping fraction s of nodes fragments a degree-d graph around s ~ 1/d" is a heuristic analogy, not a theorem about HNSW. The generic result (Callaway, Newman, Strogatz & Watts, PRL 85:5468, arXiv:cond-mat/0007300) is about configuration-model random graphs, and its own abstract concedes such graphs "are quite unlike real world networks". Three reasons it does not transfer: HNSW graphs are geometric, RNG-pruned and hub-heavy rather than randomly wired; real predicates are correlated with embedding position, so filtering is not random node removal (ACORN treats "predicate clustering" as a separate case, and Qdrant's benchmark shows the correlated filter holding up where uncorrelated ones collapsed); and the threshold is a giant-component result, not a recall result. State the s x d intuition as intuition, cite ACORN's bound for the mechanism, and say plainly that correlated filters break the assumption.
+
+Qdrant's filterable HNSW (vendor, first-party, with a reproduction kit, 500 queries per filter shape, and disclosed build-to-build variance). Verified against the live article 2026-08-24:
+
+> "On our one-million-point collection, the HNSW index built in 116 seconds without them and 507 to 652 seconds with them, 4.4x to 5.6x the cost."
+
+> "Qdrant builds those edges per payload field, never per combination, so an [AND] filter lands on an intersection that no single field's edges cover."
+
+> "filterable HNSW reaches 91.2% recall at 4.9ms while ACORN needs 20.1ms to reach 90.3%"
+
+> "The 4% intersection is the exception, where both fields exceeded the cap and ACORN leads 99.6% to 92.5%."
+
+> "Planner + ACORN, the fourth strategy, holds 99.9% to 100% recall on all four filters, at 7.2ms to 10.9ms on the graph and 1.5ms on the 1% filter, where all 500 queries came from the payload index."
+
+> "On the 1% row, ACORN's recall spans 70.7% to 74.1% across rebuilds of the same graph, wider than its lead in the table."
+
+DIRECTION WARNING: on the 1% two-field intersection filterable HNSW WINS; on the 4% intersection it LOSES. This is the opposite of the seed article's table and is easy to state backwards.
+
+RACORN-1 exists: arXiv:2607.00768, "RACORN-1: Adaptive Recall-Preserving Speedup for Low-Selectivity Filtered Vector Search," Yoonseok Kim and Gyusik Choe, v1 2026-07-01, 13 pages, no journal-ref, no venue, unrefereed. Its claims ("connectivity instability below 5% selectivity and recall collapse below 1%"; recovery "from 0.45-0.72 (1%) and 0.03-0.10 (0.3%) to 0.70-0.96 and 0.77-0.98") must be attributed to the preprint, never asserted.
+
+### Act 4 — the reconvergence
+
+**Learned sparse: the neural model writes into the inverted index.**
+
+> "Sparse learned representations can further be decomposed into expansion and term weighting components."
+>
+> "Our implementation using the Anserini IR toolkit is built on the Lucene search library and thus fully compatible with standard inverted indexes."
+>
+> Lin & Ma, arXiv:2106.14807, 2021-06-28, abstract.
+
+> "SPLADE-v3 further pushes the limit of SPLADE models: it is statistically significantly more effective than both BM25 and SPLADE++, while comparing well to cross-encoder re-rankers. Specifically, it gets more than 40 MRR@10 on the MS MARCO dev set, and improves by 2% the out-of-domain results on the BEIR benchmark."
+>
+> Lassance, Dejean, Formal & Clinchant, "SPLADE-v3," arXiv:2403.06789, 2024-03-11, abstract. The BEIR figure is a 2% improvement in out-of-domain results, not 2 points. Do not convert.
+
+**The efficiency inversion: the classical half is what blows up.**
+
+> "we derive that the main source of improvement is the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure. The reason is that in mono-threaded systems, there are many techniques that allow for reducing the amount of effective FLOPS computed per query, but query size is then a major bottleneck."
+>
+> Lassance & Clinchant, "An Efficiency Study for SPLADE Models," SIGIR 2022, arXiv:2207.03834, §3 (body). An inline footnote marker glossing "query sizes" as "amount of tokens at the SPLADE output" has been removed; nothing else edited.
+
+> "achieve similar latency (less than 4ms difference) as traditional BM25, while having similar performance (less than 10% MRR@10 reduction) as the state-of-the-art single-stage neural rankers on in-domain data"
+>
+> Same, abstract. BM25's own latency on that single-core PISA setup is 4 ms (body, §4), so "less than 4ms difference" is roughly a doubling, not a rounding error. Say so plainly.
+
+**doc2query--: throw away 70% of the generated text and everything gets better.**
+
+> "using a relevance model to remove poor-quality queries can improve the retrieval effectiveness of Doc2Query by up to 16%, while simultaneously reducing mean query execution time by 23% and cutting the index size by 33%"
+>
+> "keeping only 30% of expansion queries at n=80, performance is increased from 0.279 to 0.323 - a 16% improvement." (body, §5)
+>
+> Gospodinov, MacAvaney & Macdonald, "Doc2Query--: When Less is More," ECIR 2023, arXiv:2301.03266.
+
+CORRECTION: the paper states no percentage of generated expansions that are irrelevant. Do not claim one. The evidence is the 70%-discardable result above. On-theme bonus, same paper, footnote 2 (body): "we find that SPLADE [10] generates the following seemingly-unrelated terms for the passage in Figure 1 in the top 20 expansion terms: reed, herb, and troy."
+
+**Fusion, and the reversal.** RRF's constant was chosen, not invented at random:
+
+> "where k = 60 was fixed during a pilot investigation and not altered during subsequent validation."
+>
+> "The results of the first, shown in table 1, indicated that k = 60 was near-optimal, but that the choice was not critical."
+>
+> Cormack, Clarke & Buettcher, SIGIR 2009, §2 (body). https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf (the usual plg.uwaterloo.ca path now 404s).
+
+Elasticsearch ships it, and sells it on the absence of tuning:
+
+> "RRF requires no tuning, and the different relevance indicators do not have to be related to each other to achieve high-quality results."
+>
+> "rank_constant (Optional, integer) ... Defaults to 60."
+>
+> Elastic official docs, https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion, accessed 2026-08-24.
+
+And the finding that turns this into a story:
+
+> "Contrary to existing studies, we find RRF to be sensitive to its parameters; that the learning of a CC fusion is generally agnostic to the choice of score normalization; that CC outperforms RRF in in-domain and out-of-domain settings; and finally, that CC is sample efficient, requiring only a small set of training examples to tune its only parameter to a target domain."
+>
+> Bruch, Gai & Ingber, "An Analysis of Fusion Functions for Hybrid Retrieval," ACM TOIS, arXiv:2210.11934, 2022-10-21, abstract.
+
+CORRECTION to the Phase-1 spec: there is no primary support for "score normalization for hybrid is hard". The best source finds the opposite, and lands a sharper point instead. Rewrite the beat around the reversal.
+
+**The interaction axis, sourceable from one abstract.**
+
+> "they must feed each query-document pair through a massive neural network to compute a single relevance score"
+>
+> "By delaying and yet retaining this fine-granular interaction, ColBERT can leverage the expressiveness of deep LMs while simultaneously gaining the ability to pre-compute document representations offline, considerably speeding up query processing."
+>
+> "while executing two orders-of-magnitude faster and requiring four orders-of-magnitude fewer FLOPs per query."
+>
+> Khattab & Zaharia, "ColBERT," SIGIR 2020, arXiv:2004.12832, abstract.
+
+> "reduce late interaction search latency by up to 7x on a GPU and 45x on a CPU against vanilla ColBERTv2, while continuing to deliver state-of-the-art retrieval quality."
+>
+> Santhanam, Khattab, Potts & Zaharia, "PLAID," CIKM 2022, arXiv:2205.09707, abstract. VERIFIED (was snippet-only).
+
+> "reduces end-to-end latency compared to XTR's reference implementation by 41x, and achieves a 3x speedup over the ColBERTv2/PLAID engine, while preserving retrieval quality."
+>
+> Scheerer, Zaharia, Potts, Alonso & Khattab, "WARP," arXiv:2501.17788, 2025-01-29, abstract. The 41x is against XTR, the 3x against PLAID. Do not merge.
+
+Cross-encoders: monoBERT is "the top entry in the leaderboard of the MS MARCO passage retrieval task, outperforming the previous state of the art by 27% (relative) in MRR@10" (arXiv:1901.04085, abstract); monoT5 is "at least on par with previous classification-based models and can surpass them with larger, more-recent models" plus zero-shot transfer beating cross-validated SOTA on Robust04 (arXiv:2003.06713, abstract).
+
+**BEIR, the keystone, in full.**
+
+> "Our results show BM25 is a robust baseline and re-ranking and late-interaction-based models on average achieve the best zero-shot performances, however, at high computational costs. In contrast, dense and sparse-retrieval models are computationally more efficient but often underperform other approaches, highlighting the considerable room for improvement in their generalization capabilities."
+>
+> Thakur, Reimers, Ruckle, Srivastava & Gurevych, "BEIR," NeurIPS 2021 D&B, arXiv:2104.08663, abstract. Scope: "18 publicly available datasets" and "10 state-of-the-art retrieval systems", zero-shot.
+
+DRAFTING GUARD: the claim is about zero-shot / out-of-domain performance only. BM25 is not claimed to beat neural models in-domain. The families that beat it are re-ranking and late-interaction; the families that often lose to it are dense and sparse retrieval.
+
+### Act 5 — searching with a picture
+
+**The shared space is a body claim, not an abstract claim.**
+
+> "CLIP learns a multi-modal embedding space by jointly training an image encoder and text encoder to maximize the cosine similarity of the image and text embeddings of the N real pairs in the batch while minimizing the cosine similarity of the embeddings of the N²-N incorrect pairings."
+>
+> Radford et al., arXiv:2103.00020, §2.3 (body). The abstract only describes the training task and the "400 million (image, text) pairs".
+
+**The failure, then the correction, in the right order and at the right scope.**
+
+> "We probe a diverse range of state-of-the-art vision and language models and find that, surprisingly, none of them do much better than chance." (Winoground, arXiv:2204.03162, abstract)
+
+> "We show where state-of-the-art VLMs have poor relational understanding, can blunder when linking objects to their attributes, and demonstrate a severe lack of order sensitivity." (ARO, arXiv:2210.01936, abstract)
+
+> "Surprisingly, we find significant biases in all these benchmarks rendering them hackable. This hackability is so dire that blind models with no access to the image outperform state-of-the-art vision-language models." (SugarCrepe, arXiv:2306.14610, abstract)
+
+SCOPE, which the post can easily overstate. SugarCrepe's body scopes the finding to image-to-text benchmarks: "we uncover a crucial vulnerability in not just one but all these image-to-text compositionality benchmarks". Its Table 1 covers CREPE, ARO and VL-CheckList. Winoground is handled separately, as text-to-image, and is described as "a small dataset manually curated by human annotators" whose captions "contain identical words that appear in different orders". So: ARO and CREPE are debunked; Winoground stands. Do not conflate this with the separate Diwan et al. critique that Winoground requires more than compositional understanding.
+
+**The 2025 fix was not a better contrastive loss.**
+
+> "we extend the original image-text training objective with several prior, independently developed techniques into a unified recipe -- this includes captioning-based pretraining, self-supervised losses (self-distillation, masked prediction) and online data curation."
+>
+> SigLIP 2, arXiv:2502.14786, 2025-02-20, abstract. The contrastive objective was kept and surrounded, not fixed. Absorption beat.
+
+**The document-image flip.** ColPali's abstract carries no numbers. Verified from the body: 81.3 average nDCG@5 for ColPali (+Late Inter.) vs 67.0 for the strongest text pipeline (Unstructured + Captioning, BGE-M3), Table 2. Storage is "a memory footprint of 256 KB per page" (§5.2, body), not the ~250 KB widely quoted. The 0.39 vs 7.22 s/page indexing figures appear NOWHERE in the text; they exist only inside Figure 3, a bar chart. Cite as figure-read or drop.
+
+*Faysse et al., "ColPali," ICLR 2025, arXiv:2407.01449 v2 2024-07-02.*
+
+The 2026 sequel, by an overlapping author set:
+
+> "visual retrievers outperform textual ones, late-interaction models and textual reranking substantially improve performance, and hybrid or purely visual contexts enhance answer generation quality. However, current models still struggle with non-textual elements, open-ended queries, and fine-grained visual grounding."
+>
+> ViDoRe V3, arXiv:2601.08620, 2026-01-13, abstract. ~26,000 pages, 3,099 human-verified queries, 6 languages, 12,000 hours of annotation.
+
+> "The 8B model ranks first on the ViDoRe V3 leaderboard as of February 03, 2026, achieving an average NDCG@10 of 63.42."
+>
+> Nemotron ColEmbed V2, arXiv:2602.03992, 2026-02-03, abstract. Leaderboard claim, ~6 months stale at time of writing. Keep the date inside the sentence; do not assert present tense.
+
+**Unified embeddings: the absorption story, first-party.**
+
+> "generate a unified embedding that outperforms all specialized embeddings previously deployed for each product"
+>
+> "the deployment of the unified embedding at Pinterest has drastically reduced the operation and engineering cost of maintaining multiple embeddings while improving quality."
+>
+> Zhai, Wu, Tzeng, Park & Rosenberg, KDD 2019, arXiv:1908.01707, abstract.
+
+> "results from online A/B experiments show substantial gains in key business metrics (up to +7% gross merchandise value/user and +11% click volume)."
+>
+> ItemSage, KDD 2022, arXiv:2205.11728, abstract.
+
+THE KEYSTONE for the whole post's thesis:
+
+> "These embeddings are employed to power the retrieval of pins and products using HNSW (Malkov and Yashunin, 2018). They are also instrumental in the L1 scoring model, where they enhance the efficiency of token-based retrieval sources. Moreover, [OmniSearchSage] embeddings serve as one of the most critical features in the L2 scoring and relevance models."
+>
+> Agarwal, Islam Sk, Pancha, Hazra, Xu & Rosenberg, "OmniSearchSage," WWW 2024, arXiv:2404.16260, §5 (body). The source renders the model name as the LaTeX macro `\modelname`; the substitution is bracketed. Either bracket it in the post or paraphrase.
+
+Precision: the embeddings enhance *the efficiency of* token-based retrieval sources, and do so *within the L1 scoring model*. Keep that shape.
+
+Serving, body: "The system is equipped for handling 300k requests per second, maintaining a median (p50) latency of just 3 ms, and 90 percentile (p90) latency of 20 ms." Dimensionality, body: "projects it to a 256-dimensional vector space. Post projection, we apply a L2 normalization on the 256-dimensional vectors". Abstract carries the 300k QPS and the gains (">8% relevance, >7% engagement, and >5% ads CTR"); p50/p90 and the 256-d are body-only.
+
+THE DETAIL WORTH THE WHOLE SECTION, body: "The implementation of this cache-based system efficiently reduces the load on the inference server to approximately 500 QPS". The 300k figure is served behind a 30-day-TTL cache. The neural encoder sees 500 QPS; a classical caching layer absorbs the rest.
+
+**No model wins everywhere.**
+
+> "We benchmark 50 models across our benchmark, finding that no single method dominates across all task categories."
+>
+> MIEB, arXiv:2504.10471, 2025-04-14, abstract. 38 languages, 130 tasks, 8 categories.
+
+> "It supports Matryoshka Representation Learning, enabling flexible embedding dimensions, and handles inputs up to 32k tokens." / "Qwen3-VL-Embedding-8B attains an overall score of 77.8 on MMEB-V2, ranking first among all models (as of January 8, 2025)."
+>
+> Qwen3-VL-Embedding, arXiv:2601.04720, 2026-01-08, abstract. The paper's own "January 8, 2025" is a year before its own submission date and is near-certainly a typo for 2026. Quote as written and note it, or paraphrase with the correct date. Do not silently fix a quote.
+
+**And the largest deployment of contrastive retrieval stopped doing contrastive retrieval.**
+
+> "we transitioned the embedding paradigm from traditional contrastive learning to an absolute ID-recognition task. Through anchoring instances to a globally consistent latent space defined by billions of semantic prototypes, we successfully overcome the stochasticity and granularity bottlenecks inherent in existing embedding solutions."
+>
+> Pailitao-VL, Alibaba, arXiv:2602.13704, 2026-02-14, abstract. Motivation, body §1: contrastive models "excel at distinguishing broad categories, such as a sedan from an SUV, but often fail to resolve subtle intra-concept variations".
+
+NUMBER SCOPE, body §6.4: "Pailitao-VL-Embedding delivers a 2% GMV gain across platform-wide traffic, while Pailitao-VL-Reranker-List yields a 6% GMV increase within standardized product categories. Notably, in emerging AI-driven scenarios such as SKU-price comparison, our architecture achieves an impressive 20% GMV gain". The embedding change bought 2%. The 20% belongs to the reranker in one narrow scenario. Attributing 20% to abandoning contrastive learning would be wrong.
+
+### Act 6 — the cascade, which is the actual system
+
+**The keystone: ANN shipped as an inverted-index operator.** All from Huang et al., "Embedding-based Retrieval in Facebook Search," KDD 2020, arXiv:2006.11632, body.
+
+> "By implementing NN support in terms of pre-existing primitives, instead of writing a separate system, we inherited all the features of the existing system, such as realtime updates, efficient query planning and execution, and support for multi-hop queries (see [3])." (§4.1)
+
+> "we extended the document representation to include embeddings, each with a given string key, and added a (nn <key> :radius <radius>) query operator which matches all documents whose <key> embedding is within the specified radius of the query embedding." (§4.1)
+
+> "At indexing time, each document embedding is quantized and turned into a term (for its coarse cluster) and a payload (for the quantized residual). At query time, the (nn) is internally rewritten into an (or) of the terms associated to the coarse clusters closest to the query embedding (probes), and for matching documents the term payload is retrieved to verify the radius constraint." (§4.1)
+
+> "we found that radius mode can give better trade-off of system performance and result quality. One possible reason is that radius mode enables a constrained NN search (constrained by other parts of the matching expression) but top K mode provides a more relaxed operation which needs to scan the whole index to get top K results. Hence, we use radius based matching in our current production." (§4.1)
+
+Hard negatives, the counterintuitive result:
+
+> "One finding that may first seem counterintuitive is that models trained simply using hard negatives cannot outperform models trained with random negatives." (§6.1.1)
+
+> "Increasing the ratio of easy to hard negatives continues to improve the model recall and saturated at easy:hard=100:1." (§6.1.1)
+
+> "We compared sampling from different rank positions and found sampling between rank 101-500 achieved the best model recall." (§6.1.1)
+
+ATTRIBUTION TRAP: the recall gains belong to online hard negative mining specifically, not to EBR as a whole. "Enabling online hard negative mining was one major contributor to our modeling improvement. It consistently improved embedding model quality significantly across all verticals: +8.38% recall for people search; +7% recall for groups search, and +5.33% recall for events search." (§6.1.1)
+
+And the sentence the post's argument rests on:
+
+> "The model at each stage should be optimized for the distribution of results returned by the preceding layer. However, since the current ranking stages are designed for existing retrieval scenarios, this could result in new results returned from embedding based retrieval to be ranked sub-optimally by the existing rankers." (§5)
+
+**The budget.** From Wang et al., "COLD," DLP-KDD 2020, arXiv:2007.16122 v2.
+
+> "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand. Then the pre-ranking model selects top N candidates by certain metrics, e.g. eCPM (expected Cost Per Mille) for advertising system. The magnitude of N is usually several hundred." (§2, body)
+
+> "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds." (§1, body; note the sentence covers both stages, it is not a pre-ranking-only SLA)
+
+> "The model expression ability is limited by the vector-product form, and can not utilize the user-ad cross features." (§2.2, body)
+
+> "In normal days, COLD model achieves 6.1% CTR and 6.5% RPM (Revenue Per Mille) improvement... Moreover, the improvement turns to be 9.1% CTR and 10.8% RPM" (§4, body; Double 11)
+
+DERIVED, not quoted: 10,000 microseconds / 10,000 candidates = 1 microsecond; 20,000 / 10,000 = 2. So the L1 budget is roughly 1-2 microseconds per candidate. Caveats to carry: this is wall-clock budget per candidate, not serial CPU time (COLD parallelizes; its Table 3 reports 9.3 ms RT at 6700 QPS against the vector-product DNN's 2 ms at 60000+ QPS), and §1's looser "tens of thousands" would give 0.1-2. Present the tight version as the post's own arithmetic from §2 plus §1.
+
+**Two-tower mechanics.**
+
+> "inference consists of two steps: 1) computing query embedding u(x, θ); 2) performing nearest neighbor search over a set of item embeddings that are pre-computed from embedding function v. ... low-latency retrieval is commonly based on a highly efficient similarity search system built on hashing techniques, e.g., [2, 10, 25], for approximate maximum inner product search (MIPS) problems." (body, §3)
+
+> "in-batch loss is subject to sampling biases, potentially hurting model performance, particularly in the case of highly skewed distribution. In this paper, we present a novel algorithm for estimating item frequency from streaming data." (abstract)
+>
+> Yi et al., RecSys 2019, DOI 10.1145/3298689.3346996.
+
+**Cascade attribution, corrected.** "Cascade Ranking for Operational E-commerce Search" (KDD 2017, arXiv:1706.02093) is Liu, Xiao, Ou, Si, NOT Wang et al. Liu et al. cite the separate, earlier Wang, Lin & Metzler SIGIR 2011 paper as their reference [22]. Both exist; do not merge them.
+
+**Stage misalignment.**
+
+> "the ranked lists of the ranking stage and previous stages may be inconsistent... we formally define the problem of ranking consistency and propose the Ranking Consistency Score (RCS) metric for evaluation. We demonstrate that ranking consistency has a direct impact on online performance." (abstract)
+>
+> Gu & Sheng, arXiv:2205.01289 v5, 2022-11-03. PREPRINT ONLY: the PDF's ACM reference block is an unfilled template ("KDD 'XX ... 20XX"), so no venue is confirmed. Attribute, do not assert peer review.
+
+> "Compared to FS-LTR, LCRON brings about a 4.10% increase in advertising revenue and a 1.60% increase in the number of user conversions" (body, §1; corroborated §5.5 and Table 5)
+>
+> Wang et al., "Learning Cascade Ranking as One Network," ICML 2025, arXiv:2503.09492 v3. VERIFIED in PDF (was snippet-only). Deployed at Kuaishou, 10% traffic per arm, 15-day A/B.
+
+**Multi-task ranking and bias.**
+
+> "It extends the Wide & Deep [9] model architecture by adopting Multi-gate Mixture-of-Experts (MMoE) [30] for multitask learning. In addition, it introduces a shallow tower to model and remove selection bias." (body, §1)
+>
+> Zhao et al., RecSys 2019.
+
+> "we do not build an explicit propensity model. Instead, we introduce position as a feature in the DNN, regularized by dropout. During scoring we set the position feature to 0." (body, §4.2)
+>
+> "In the online test we observed a gain of +0.7% in bookings." / "Alongside the bookings gain, a lift of +1.8% in revenue was a pleasant surprise." (body, §4.4)
+>
+> Haldar et al., "Improving Deep Learning For Airbnb Search," KDD 2020, arXiv:2002.05515.
+
+NUMBER COLLISION WARNING: Airbnb has two different +0.7% figures. The one above is bookings from position-bias removal (§4.4). A different +0.7% is an NDCG figure for the two-tower architecture (§2.7).
+
+**The closer: three offline-neutral models that lost money, and the structural reason.**
+
+> "But the interpretability of price came at a heavy cost as bookings dropped by −1.5%." (§2.2)
+
+> "In spite of being more flexible than the architecture described in section 2.2, when tested online the results were very similar, resulting in a booking drop of −1.6%." (§2.3)
+
+> "we adjusted the alpha hyperparameter to the minimum value such that in offline tests we got the same NDCG as the baseline model. This allowed us to push the cheaper is better intuition as far as possible without hurting relevance, at least when measured offline. In the online A/B test, we observed a reduction of −3.3% in average price of search results. But also a drop of −0.67% in bookings." (§2.5)
+
+> "The offline analysis suffered from the limitation that it only evaluated re-ranking the top results available in logs. During the online test, applying the newly trained model to the entire inventory revealed the true cost of adding the price loss as part of the training objective." (§2.5)
+
+> "we have observed statistically significant differences in online bookings from models that differed in NDCG by as little as 0.7%." (§3)
+
+> "When tested online this resulted in a −33% reduction in the 99th percentile scoring latency." (§2.7)
+>
+> All Haldar et al., arXiv:2002.05515, body. Note the minus signs above are U+2212 as rendered in the source.
+
+The 2026 restatement, weaker in kind but current:
+
+> "In our production pipeline, offline evaluations serve as directional indicators for rapid iteration. Because these metrics are computed over massive transient pipelines, we rely on large-scale online A/B testing (Section 4) to establish strict statistical significance." (body, §3)
+
+> "two distinct index scales: (1) A Small Index of 3.6M products: 122k queries with comprehensive human annotations to measure EM Recall@K. (2) A Big Index of 200M products: 1k traffic-weighted queries to measure EM Precision@K, effectively testing the model's robustness against false positives in a massive search space." (body, §3)
+
+> "delivering a +7.34% improvement in NDCG@5 and a +0.50% lift in gross revenue" (abstract); "+0.50% (𝑝 = 0.03)" (body, §4); "+4.00%" EM Recall@20 offline (body, §3, Table 2)
+>
+> Yang et al., Walmart Global Tech, "Scaling and Stabilizing Large-Scale Embedding-Based Retrieval," SIGIR 2026, arXiv:2607.10096 v1, 2026-07-11. Also useful: "the new model altered the retrieved top-10 results for 20.85% of total search traffic compared to the baseline" (body, §4).
+
+Use Airbnb for the mechanism and Walmart for the recency; Walmart says offline is directional, Airbnb explains structurally why it must be.
+
+**Query understanding: the LLM is offline.**
+
+> "The offline inference of BEQUE covers 27% of the page views (PV) in Taobao's main search and has a minimal impact on the latency of the online retrieval system." (body, §3)
+
+> "Since we inference offline, there are about 70% of online queries that do not hit our rewriting table." (body, §4.5)
+
+> "both the query and rewrite are tokenized into terms and used as keywords for inverted index matching to obtain a set of related products. The union of the query and rewrite retrieval sets forms the final candidate set of products for the ranking system." (body, §3)
+
+> "BEQUE surpassed the previous-generation rewriting model CLE-QR by 0.4%, 0.34%, and 0.33% in terms of GMV, #Trans, and UV, respectively." / "for the queries covered (rewritten) by BEQUE (approximately 27% of total PV), there were noteworthy increases of 2.96%, 1.36%, and 1.22% in GMV, #Trans, and UV, respectively." (body, §4.5, Table 6)
+>
+> Peng et al., WWW 2024 Industry, arXiv:2311.03758 v3. VERIFIED in PDF (numbers are not on the abs page). Deployed on Taobao since October 2023. Do not conflate +0.40% all-traffic with +2.96% covered-traffic; they differ by more than 7x.
+
+**The coda: the fork, unresolved.**
+
+> "we have achieved 23.7% and 28.8% Model FLOPs Utilization (MFU) on flagship GPUs during training and inference, respectively... resulting in operating expense (OPEX) that is only 10.6% of traditional recommendation pipelines. Deployed in Kuaishou/Kuaishou Lite APP, it handles 25% of total queries per second (QPS), enhancing overall App Stay Time by 0.54% and 1.24%, respectively." (abstract)
+
+> "the model's training and inference MFU is only 4.6% and 11.2% on flagship GPUs, respectively, which is substantially lower than the efficiency observed in large language models (LLMs), where the MFU is approximately 40% on H100" (body, §1)
+>
+> OneRec Technical Report, Kuaishou, arXiv:2506.13695, June 2025.
+
+AGE FLAG: these are June 2025 figures, 14 months old and unrefreshed. Kuaishou's newest release (OpenOneRec, arXiv:2512.24762) publishes no production figures. Date them in prose. Also: 25% of QPS, not 25% of the product; OneRec runs alongside the cascade that still serves the other 75%. Stay-time lifts are per-app, not combined.
+
+Against it, same year:
+
+> "OnePiece has been deployed in the main personalized search scenario of Shopee and achieves consistent online gains across different key business metrics, including over +2% GMV/UU and a +2.90% increase in advertising revenue." (abstract)
+>
+> Dai et al., arXiv:2509.18091, 2025-09-22.
+
+And the 2026 result that lands on the post's side:
+
+> "one input format, one model, one training stage, deployed within existing serving infrastructure. A shared transformer encodes the user action sequence into candidate-independent representations that branch into retrieval (ANN dot-product) and ranking (cross-attention) via task-specific heads."
+
+> "Deployed in the Pinterest core surfaces, UniPinRec delivers approximately +1% online engagement lift while cutting end-to-end serving latency by 11.1% and lifting QPS by 63.6%."
+>
+> Li et al., "UniPinRec," arXiv:2606.00422, 2026-05-29, abstract. Their own comparison table classifies OneRec-style single-decoder systems as replacing the full funnel and incompatible with the existing pipeline. The two stages survive as two heads on one trunk.
+
+Tencent's OneRanker (arXiv:2603.02999 v3, 2026-03-12) reports "+1.34%" GMV on WeiXin channels and names "the disconnection between generation and ranking stages" as a core challenge, which is EBR §5's problem rediscovered from the generative side. PREPRINT: v3 carries an unfilled ACM template, no confirmed venue.
+
+**The open question, answered in the negative.** As of 2026-08-24 there is no first-party, production, web-scale published latency SLA or deployment description for an LLM reranker in a live search path. Targeted searching returned only third-party vendor blogs, academic efficiency papers reporting benchmark latency (arXiv:2511.07555, arXiv:2606.11700, arXiv:2411.05508), and RAG-scale writeups at top-100 shortlists. The nearest first-party production LLM-in-search datapoint is BEQUE, which is the opposite: Taobao moved the model offline to keep it out of the latency path. Write the L3 box as an open question and attach no number.
+
+## Related posts on augusteo.com
+
+Scanned `src/content/blog/` on 2026-08-24 for topic-adjacent posts. Ranked by retrieval-term density, the candidates were `omni-modal-stack` (29 hits), `unified-vision-stack` (11), `preference-tuning-vision-models` (3), `image-generators-vision-models` (2).
+
+On reading, none clears the bar for an inline prose link:
+
+- `omni-modal-stack` and `unified-vision-stack` use "retrieval" in the *in-context retrieval* sense (attention layers preserving exact-position lookups in a Mamba hybrid), not the search sense. The concepts share a word and nothing else. Linking them would mislead.
+- `preference-tuning-vision-models` and `image-generators-vision-models` mention embeddings only in passing.
+
+CONCLUSION: the related-posts section is intentionally empty of linkable candidates. Per hard rule 11 the rule is "search and link if relevant", not "force a link". Gate 2's cross-reference check is a no-op for this post on the "genuinely empty" branch.
+
+One forward-looking note for a future post: this post and `unified-vision-stack` would connect naturally if a later post covered vision backbones as retrieval encoders, since Act 5 here stops at CLIP-as-retriever and that post starts at C-RADIOv4. That is a sequel hook, not a link for this post.
+
+## Claim-source matrix
+
+The contract. Phase 4 may not introduce a load-bearing claim without adding a row first. Every excerpt is verbatim from the cited source and labelled abstract or body. Rows are prefixed by act: L (lexical, acts 1-2), V (vector, act 3), R (reconvergence, act 4), M (multimodal, act 5), C (cascade, act 6).
+
+Access date for every row is 2026-08-24 unless stated.
+
+| # | Claim | Quoted source (excerpt) | Source ID + date | Recency status |
+|---|---|---|---|---|
+| L1 | Naive traversal of the inverted index is not viable at interactive latency | "naively traversing this basic index structure, which could take hundreds of milliseconds or more for common terms, is not acceptable" (body §1) | Ding & Suel, SIGIR 2011, research.engineering.nyu.edu/~suel/papers/bmw.pdf | stable / foundational-locked / passes |
+| L2 | On GOV2 (25.2M docs) exhaustive OR averages 225.7 ms/query and fully scores 3,815,676 docs | Tables 1-2 cell values (body); "The GOV2 collection consists of 25.2 million web pages crawled from the gov Internet domain." | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes. TABLE VALUES, not quotable prose |
+| L3 | Disjunctive evaluation is ~an order of magnitude costlier than conjunctive | "disjunctive queries tend to be significantly (by about an order of magnitude for exhaustive query processing) more expensive than conjunctive queries" (body §2.2) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L4 | An inverted index maps each term to a posting list of documents containing it | "An inverted index consists of many inverted lists, where each inverted list Lw is a list of postings describing all places where term w occurs in the collection." (body §2.1) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L5 | Posting lists for common terms run to millions or billions of entries | "The inverted lists of common query terms may consist of many millions or even billions of postings." (body §2.1) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L6 | Posting lists are split into independently decompressible blocks of 64 or 128 docIDs | "inverted lists are often split into blocks of, say, 64 or 128 docIDs, such that each block can be decompressed separately." (body §2.1) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L7 | Compression takes GOV2 from 426 GB raw to an 8,759 MB index | "The uncompressed size of these web pages is 426GB." / "The compressed index consumes 8759MB" (body §6.1) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L8 | IDF falls out of the probabilistic model rather than being bolted on | "The resulting formula is a close approximation to classical idf" (body §3.1) | Robertson & Zaragoza, FnTIR 3(4), 2009 | stable / foundational-locked / passes |
+| L9 | BM25 mechanism 1 is saturation: a term's contribution is bounded however often it occurs | "any one term's contribution to the document score cannot exceed a saturation point (the asymptotic limit)" (body §3.4.2) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes |
+| L10 | k1 sets how fast saturation arrives | "for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly" (body §3.4.4) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes |
+| L11 | Length normalization is soft because verbosity and scope pull opposite ways | "The verbosity hypothesis suggests that we should simply normalise any observed tf s by dividing by document length. The scope hypothesis, on the other hand, at least in its extreme version, suggests the opposite." (body §3.4.5) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes |
+| L12 | b=1 is full length normalization, b=0 turns it off | "setting b = 1 will perform full document-length normalisation, while b = 0 will switch normalisation off" (body §3.4.5) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes |
+| L13 | The model gives no guidance on setting k1 and b; they are fitted | "the model provides no guidance on how these should be set. This may be regarded as a limitation of the model." (body §3.5) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes |
+| L14 | Empirically good ranges are 0.5 < b < 0.8 and 1.2 < k1 < 2, collection-dependent | "values such as 0.5 < b < 0.8 and 1.2 < k1 < 2 are reasonably good in many circumstances. However, there is also evidence that optimal values do depend on other factors" (body §3.5) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes |
+| L15 | The (k1+1) numerator variant does not change ranking | "This is the same for all terms, and therefore does not affect the ranking produced." (body §3.5.1) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes |
+| L16 | "BM25" is genuinely ambiguous across eight studied variants | "it is not entirely clear which variant they mean... a large-scale reproducibility study of BM25, considering eight variants" (abstract) | Kamphuis, de Vries, Boytsov & Lin, ECIR 2020 | stable / foundational-locked / passes |
+| L17 | Those variants produce NO significant effectiveness differences; stopword choice matters more | "Both an ANOVA and Tukey's HSD show no significant differences between any variant, on all test collections." / "differences due to more mundane settings (such as the choice of stopwords) are often larger" (body §3.3) | Kamphuis et al., ECIR 2020 | stable / foundational-locked / passes. REFUTES the "decade of comparisons is suspect" framing in the Phase-1 spec |
+| L18 | Lucene quantizes document length to one byte so normalization can be precomputed for 256 lengths | "compressed (in a lossy manner) to a one byte value... With only 256 distinct document lengths, Lucene can pre-compute the value of k1 · (1 - b + b · (Ldlossy/Lavg)) for each possible length" (body §2) | Kamphuis et al., ECIR 2020 | stable / 18-month bar / passes (describes Lucene 8; not re-verified against Lucene 10 source) |
+| L19 | Elasticsearch's default similarity is BM25 with k1=1.2, b=0.75 | "BM25 similarity (default)"; "The default value is `1.2`."; "The default value is `0.75`." | elastic.co/docs/reference/elasticsearch/index-settings/similarity | actively-evolving / 12-month bar / passes |
+| L20 | Lucene 10 BM25Similarity ships k1=1.2, b=0.75 | "BM25 with these default values: `k1 = 1.2` `b = 0.75` `discountOverlaps = true`" | Lucene 10.0.0 javadoc | actively-evolving / 12-month bar / passes. The javadoc does NOT assert BM25 is the default similarity; that is L19 |
+| L21 | Anserini defaults to k1=0.9, b=0.4, different from Lucene's | "models are set to k1 = 0.9 and b = 0.4, Anserini's defaults." (body §3.2) | Kamphuis et al., ECIR 2020 | stable / 18-month bar / passes (as of 2020; current Anserini not re-verified) |
+| L22 | WAND is two-level: approximate scoring picks candidates, exact scoring only for survivors | "at the first level... an approximate evaluation... at the second level, promising candidates are fully evaluated" (abstract) | Broder et al., CIKM 2003, DOI 10.1145/956863.956944, via IBM Research listing | stable / foundational-locked / passes. Abstract only; ACM PDF 403'd |
+| L23 | WAND cuts full evaluations by more than 90% with almost no precision or recall loss | "significantly reduces the total number of full evaluations by more than 90%, almost without any loss in precision or recall" (abstract) | Broder et al., CIKM 2003 | stable / foundational-locked / passes. Abstract only |
+| L24 | WAND skips by comparing per-list max impact scores against the running top-k threshold | "WAND achieves early termination by enabling skips over postings that cannot make into the top results. For the threshold value, we use the lowest score in the heap" (body §2.6) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes. Description of WAND by a third paper, not by Broder et al. |
+| L25 | Independent reproduction: WAND fully scores 4.6% of the docIDs exhaustive OR does | "WAND only evaluates 4.6% of the docIDs compared to exhaustive OR" (body §6.2) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L26 | A block-max index stores an uncompressed per-block maximum impact score, enabling block skips | "stores the maximum impact score for each block of a compressed inverted list in uncompressed form, thus enabling us to skip large parts of the lists" (abstract) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L27 | Plain WAND under-skips because a whole-list maximum is a loose bound | "skipping in WAND is limited because it uses the maximum impact scores over the entire lists, which can be much larger than average" (body §3) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L28 | On GOV2, BMW is 27.9 ms/query scoring 21,921 docs vs WAND 77.6 ms / 178,391 vs exhaustive OR 225.7 ms / 3,815,676 | Tables 1-2 cell values (body) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes. Derived ratios are the post's arithmetic |
+| L29 | The block-max structure costs ~400 MB on an 8,759 MB index | "adds about 400MB (using 32 bits for each score though this could be reduced)" (body §6.1) | Ding & Suel, SIGIR 2011 | stable / foundational-locked / passes |
+| L30 | MaxScore is Turtle & Flood, IPM 31(6):831-850, 1995 | Reference [32] in Ding & Suel | Ding & Suel, SIGIR 2011, reference list | stable / foundational-locked / passes. ATTRIBUTION ONLY; paper not read; author is Flood, not "Flagg" |
+| L31 | Scoring fields separately and combining linearly is wrong: it treats eliteness as per-field rather than per-document | "This seems a little unreasonable" ... "a better assumption might be that eliteness is a term/document property, shared across the streams of the document." (body §3.6.1) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes. Stands in for the CIKM 2004 BM25F paper (ACM 403); two of three authors shared |
+| L32 | BM25F pools weighted term frequency across fields first, applies saturation once, then combines across terms | "we should combine evidence across terms and streams in the opposite order... The saturation function should be applied at this stage, to the total evidence for each term." (body §3.6.1) | Robertson & Zaragoza, FnTIR 2009 | stable / foundational-locked / passes |
+| L33 | Trees and space partitioning provably degenerate to sequential scan above ~10 dimensions | "existing methods are outperformed on average by a simple sequential scan if the number of dimensions exceeds around 10" (abstract); "There is no organization of HDVS based on partitioning or clustering which does not degenerate to a sequential scan" (body, Conclusions) | Weber, Schek & Blott, VLDB 1998, vldb.org/conf/1998/p194.pdf | stable / foundational-locked / passes |
+| L34 | Vocabulary mismatch: two people rarely pick the same term for the same thing (the commonly cited <0.20 figure) | DROPPED. Furnas, Landauer, Gomez & Dumais, CACM 30(11), 1987 could not be fetched: ACM DL returns 403, Semantic Scholar has the abstract elided, and two search engines returned only a summarized abstract, which is not a primary fetch. No number is printed. | dl.acm.org/doi/10.1145/32206.32212, three fetch attempts 2026-08-24 | CLOSED BY DROP. The vocabulary-mismatch concept is instead carried by V2 (DPR's 9-19 point top-20 gain over BM25) and R18 (BEIR), both verified. Re-add note: if the paper becomes reachable, the <0.20 figure is worth one sentence in Act 2. |
+| V1 | DPR is a bi-encoder: two independent BERT-base encoders, [CLS] output, d=768, no cross-attention | "we use two independent BERT (Devlin et al., 2019) networks (base, uncased) and take the representation at the [CLS] token as the output, so d = 768" (body §3.1) | arXiv:2004.04906, EMNLP 2020 | stable / foundational-locked / passes |
+| V2 | DPR beat Lucene-BM25 by 9-19 points absolute top-20 accuracy | "outperforms a strong Lucene-BM25 system largely by 9%-19% absolute in terms of top-20 passage retrieval accuracy" (abstract) | arXiv:2004.04906 | stable / foundational-locked / passes |
+| V3 | On Natural Questions the top-20 gap was 78.4% vs 59.1%; DPR lost to BM25 on SQuAD | "With the exception of SQuAD, DPR performs consistently better than BM25 on all datasets... (e.g., 78.4% vs. 59.1% for top-20 accuracy on Natural Questions)" (body §5.1) | arXiv:2004.04906 | stable / foundational-locked / passes |
+| V4 | Dense retrievers fail on rare entities and generalize only to common ones | "dense retrievers drastically underperform sparse methods... dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training" (abstract) | arXiv:2109.08535, EMNLP 2021 | stable / foundational-locked / passes |
+| V5 | LSH introduced provably-guaranteed approximate nearest neighbour search and named locality-sensitive hashing | PARAPHRASE, no verbatim quote. The reachable STOC 1998 scan is OCR-corrupted and unusable for quotation. Claim carried in the post's own voice, no quotation marks. | Indyk & Motwani, STOC 1998, pp. 604-613 | stable / foundational-locked / passes AS PARAPHRASE. Closure: hedged. No quote may appear |
+| V6 | PQ decomposes the space into a Cartesian product of low-dim subspaces, quantizes each separately, and represents a vector by a short code | "decompose the space into a Cartesian product of low-dimensional subspaces and to quantize each subspace separately. A vector is represented by a short code composed of its subspace quantization indices." (abstract) | Jegou, Douze & Schmid, TPAMI 33(1), 2011, DOI 10.1109/TPAMI.2010.57 | stable / foundational-locked / passes. ABSTRACT ONLY; full text unreachable, so no body claim may be sourced here |
+| V7 | PQ code size is M*ceil(log2 K) bits for M sub-quantizers of K centroids | "The number of reconstructed vectors is KM and the code size is thus M ceil(log2 (K))" (body §4.1) | Faiss library paper, arXiv:2401.08281 (Jegou co-author, reference implementation) | stable / 18-month bar / passes |
+| V8 | A shipped system compresses to ~32 bytes per point with PQ | "encodes the data and query points into short codes (e.g., 32 bytes per data point)" (body §3.1) | DiskANN, NeurIPS 2019 | stable / foundational-locked / passes |
+| V9 | ScaNN: reconstruction error is the wrong loss for MIPS; parallel residual must be penalized over orthogonal | "Traditional approaches to quantization aim to minimize the reconstruction error... more greatly penalizes the parallel component of a datapoint's residual relative to its orthogonal component." (abstract) | arXiv:1908.10396, ICML 2020 | stable / foundational-locked / passes |
+| V10 | HNSW sets Mmax0 = 2M at the ground layer | "Simulations also suggest that 2∙ M is a good choice for Mmax0" (body §4.1) | arXiv:1603.09320 v4 | stable / foundational-locked / passes |
+| V11 | HNSW average memory per element is (Mmax0 + mL*Mmax)*bytes_per_link, about 60-450 bytes/object for M in 6-48 | "the average memory consumption per element is (Mmax0+mL ∙Mmax)∙bytes_per_link... about 60-450 bytes per object" (body §4.2.3) | arXiv:1603.09320 v4 | stable / foundational-locked / passes |
+| V12 | At M=16 the formula gives 37.77 link slots = 151 bytes/vector; it reproduces the paper's own range at M=6 (61.4 B) and M=48 (433.6 B) | DERIVED by the post from V11's formula with mL=1/ln(M) and 4-byte links. Not a quote. | arXiv:1603.09320 v4; arithmetic performed 2026-08-24 | stable / foundational-locked / passes |
+| V13 | The widely repeated "M=16 gives ~21 links per node" is not in the HNSW paper and is not derivable from it | NEGATIVE RESULT. Full-text grep finds "21" only as reference [21], a page range, and a citation title. The paper's formula gives 37.77 slots. | arXiv:1603.09320 v4, grep 2026-08-24 | stable / foundational-locked / passes |
+| V14 | hnswlib allocates a fixed 2M-slot link block per node at layer 0 regardless of realized degree, so memory is charged on allocated degree | `maxM0_ = M_ * 2;` / `size_links_level0_ = maxM0_ * sizeof(tableint) + sizeof(linklistsizeint);` (source lines 112-113, 120) | nmslib/hnswlib, hnswlib/hnswalg.h, master, accessed 2026-08-24 | actively-evolving / 12-month bar / passes. No commit SHA pinned |
+| V15 | HNSW's neighbour-selection heuristic yields the exact relative neighbourhood graph as a subgraph, keeping the graph connected on clustered data | "the heuristic allows getting the exact relative neighborhood graph [46] as a subgraph, a minimal subgraph of the Delaunay graph... allows easily keeping the global connected component, even in case of highly clustered data" (body §3) | arXiv:1603.09320 v4 | stable / foundational-locked / passes |
+| V16 | The heuristic creates connections in diverse directions; without it search sticks at cluster boundaries | "the heuristic that accounts for the distances between the candidate elements to create connections in diverse directions" (body §4.1) | arXiv:1603.09320 v4 | stable / foundational-locked / passes |
+| V17 | mL = 1/ln(M), corresponding exactly to skip-list parameter p = 1/M | "A simple choice for the optimal mL is 1/ln(M), this corresponds to the skip list parameter p=1/M" (body §4.1) | arXiv:1603.09320 v4 | stable / foundational-locked / passes |
+| V18 | The paper states a reasonable M range of 5 to 48 (distinct from the 6-48 used for the memory estimate) | "A reasonable range of M is from 5 to 48." (body §4.1) | arXiv:1603.09320 v4 | stable / foundational-locked / passes |
+| V19 | The HNSW authors concede the hierarchy's benefit on real high-dimensional data is less prominent than the heuristic's | "the performance improvement by increasing the mL is higher, but less prominent at current settings compared to improvement from the heuristic" (body §4.1) | arXiv:1603.09320 v4 | stable / foundational-locked / passes |
+| V20 | A flat NSW graph matches HNSW on latency and recall on high-dimensional data with less memory | "a flat navigable small world graph graph retains all of the benefits of HNSW on high-dimensional datasets, with latency and recall performance essentially \emph{identical} to the original algorithm but with less memory overhead" (abstract; typo and LaTeX in source) | arXiv:2412.01940 v3, 2025-07-03 | actively-evolving / 12-month bar / passes. Cite as arXiv preprint; an ECIR 2026 chapter is listed but the publisher record 403'd, so no venue is asserted |
+| V21 | Hub Highway Hypothesis: a small set of well-connected hub nodes does the routing job credited to the hierarchy | "k-NN proximity graphs form a highway routing structure where a small subset of nodes are well-connected and heavily traversed" (body §4) | arXiv:2412.01940 v3 | actively-evolving / 12-month bar / passes |
+| V22 | Removing the hierarchy saved ~38-39% peak construction memory, measured across 13 datasets from 1M to 100M vectors | "saves roughly 38% and 39% of peak memory consumption during index construction on two Big-ANN benchmark datasets compared to hnswlib" (body §1.1) | arXiv:2412.01940 v3 | actively-evolving / 12-month bar / passes |
+| V23 | The critique's authors concede they do not know why the hierarchy fails to help | "we still have no satisfactory understanding of why hierarchy does not help." (body §1.1) | arXiv:2412.01940 v3 | actively-evolving / 12-month bar / passes |
+| V24 | RaBitQ quantizes D-dim vectors to D-bit strings with a sharp theoretical error bound, unlike prior methods | "these methods do not have a theoretical error bound and are observed to fail disastrously on some real-world datasets... RaBitQ, which quantizes $D$-dimensional vectors into $D$-bit strings. RaBitQ guarantees a sharp theoretical error bound" (abstract) | arXiv:2405.12497, SIGMOD 2024 | stable / 18-month bar / passes |
+| V25 | Binary quantization only ships because results are reranked against raw float32; naive binary needs 10-100x oversampling, BBQ needs ~3x | "Naive binary quantization is exceptionally lossy and achieving adequate recall requires gathering 10x or 100x additional neighbors to rerank." / "1bit quantization and HNSW gets above 90% recall with only 3x oversampling." | Elastic Search Labs, 2024-11-11. VENDOR, first-party, with parameters | stable / 18-month bar / passes |
+| V26 | Matryoshka makes one embedding truncatable at no inference cost, up to 14x smaller at equal accuracy | "allows a single embedding to adapt to the computational constraints of downstream tasks... imposes no additional cost during inference and deployment" / "up to 14x smaller embedding size for ImageNet-1K classification at the same level of accuracy" (abstract) | arXiv:2205.13147, NeurIPS 2022 | stable / foundational-locked / passes |
+| V27 | DiskANN indexes and serves a billion points on one 64GB workstation with an SSD, >5000 QPS at <3ms mean and 95%+ 1-recall@1 | "index, store, and search a billion point database on a single workstation with just 64GB RAM and an inexpensive solid-state drive (SSD)" / ">5000 queries a second with < 3ms mean latency and 95%+ 1-recall@1" (abstract) | DiskANN, NeurIPS 2019 | stable / foundational-locked / passes. Body §1.1 says "under 5 milliseconds"; the paper carries two figures |
+| V28 | Object-storage vector search costs p50 874ms cold vs p50 14ms warm on 1M documents | "The first query to a namespace reads object storage directly and is slow (p50=874ms for 1M documents), but subsequent, cached queries to that node are faster (p50=14ms for 1M documents)." | turbopuffer.com/architecture, verified live 2026-08-24. VENDOR | actively-evolving / 12-month bar / passes. The page carries a second cold figure (~500ms) elsewhere; attribute 874ms to the routing section |
+| V29 | Each object-storage roundtrip is ~100ms and a cold query needs 3-4 | "each roundtrip to object storage takes ~100ms. The 3-4 required roundtrips for a cold query often take as little as ~400ms." | turbopuffer.com/architecture. VENDOR | actively-evolving / 12-month bar / passes |
+| V30 | Object-storage vector search uses a centroid/IVF-lineage index rather than a graph, because centroids minimize roundtrips | "SPFresh is a centroid-based approximate nearest neighbour index... A centroid-based index works well for object storage as it minimizes roundtrips and write-amplification, compared to graph-based indexes like HNSW or DiskANN." | turbopuffer.com/architecture. VENDOR | actively-evolving / 12-month bar / passes |
+| V31 | Filtered vector search has three execution methods: pre-filtering, post-filtering, inline-filtering | "There are three main execution methods... Pre-filtering... Post-filtering... For inline-filtering, searching and filtering are combined" (body §2) | PVLDB 18(12):5488-5492, 2025 | stable / 18-month bar / passes. 5-page TUTORIAL, taxonomy only, no benchmark numbers |
+| V32 | Post-filtering forces the ANN search to over-fetch a multiple of K, complicating high recall | "requires the approximate nearest neighbor (ANN) search to yield a multiple of K results to ensure at least K vectors remain after filtering [40], which complicates achieving high recall" (body §2) | PVLDB 18(12):5488, 2025 | stable / 18-month bar / passes |
+| V33 | ACORN reports 2-1,000x higher throughput at fixed recall; the variant names are body-only, not in the abstract | "outperforming prior methods with 2-1,000x higher throughput at a fixed recall" (abstract) vs "We propose two indices: ACORN-γ... and ACORN-1" (body §1) | arXiv:2403.04871, SIGMOD 2024 | stable / 18-month bar / passes |
+| V34 | ACORN-γ oversizes neighbour lists to M*γ at build time; ACORN-1 does the expansion at search time instead | "ACORN collects 𝑀 · 𝛾 approximate nearest neighbors as candidate edges per node" (body §5.2); "ACORN-1 achieves this by performing the neighbor expansion step solely during search, rather than during construction" (body §5.3) | arXiv:2403.04871 | stable / 18-month bar / passes |
+| V35 | ACORN-1 costs at most 5x lower QPS at fixed recall but 9-53x lower time-to-index vs ACORN-γ | "attaining at most 5× lower QPS at fixed recall but 9–53× lower TTI" (body §1) | arXiv:2403.04871 | stable / 18-month bar / passes |
+| V36 | THE MECHANISM: expected surviving degree after a filter of selectivity s is degree*s, and search convergence degrades once it falls below M, which is why ACORN sets γ = 1/s_min | "If a node in the predicate subgraph has degree much lower than 𝑀, this could adversely impact the search convergence and thus recall... E \|𝑁𝑝𝑙 (𝑣)\| = \|𝑁 𝑙 (𝑣)\| · 𝑠 = 𝛾 · 𝑀 · 𝑠 > 𝑀, ∀𝑠 > 𝑠𝑚𝑖𝑛" (body §6) | arXiv:2403.04871 | stable / 18-month bar / passes |
+| V37 | "A filter keeping fraction s fragments a degree-d graph around s ~ 1/d" is a heuristic analogy, not a theorem about HNSW | The generic percolation result is for configuration-model random graphs whose own abstract concedes they "are quite unlike real world networks". HNSW graphs are geometric, RNG-pruned, hub-heavy; real predicates correlate with embedding position so filtering is not random node removal; and the threshold is a giant-component result, not a recall result. | Callaway, Newman, Strogatz & Watts, PRL 85:5468 (2000), arXiv:cond-mat/0007300, assessed against arXiv:2403.04871 and the Qdrant benchmark, 2026-08-24 | stable / foundational-locked / passes AS A NEGATIVE CLAIM. The post states the s*d relation as intuition and uses V36 for the mechanism |
+| V38 | Qdrant's filterable HNSW costs 4.4-5.6x build time: 116s plain vs 507-652s with extra edges on 1M points | "the HNSW index built in 116 seconds without them and 507 to 652 seconds with them, 4.4x to 5.6x the cost." | qdrant.tech/articles/filtered-vector-search-acorn/, 2026-08-07. VENDOR, reproduction kit, disclosed variance | actively-evolving / 12-month bar / passes |
+| V39 | Extra edges are built per payload field, never per combination, so a two-field AND lands on an unbuilt intersection | "Qdrant builds those edges per payload field, never per combination, so an [AND] filter lands on an intersection that no single field's edges cover." | qdrant.tech/articles/filtered-vector-search-acorn/. VENDOR | actively-evolving / 12-month bar / passes |
+| V40 | On the 1% two-field intersection filterable HNSW WINS (91.2% @ 4.9ms vs ACORN 90.3% @ 20.1ms); on the 4% intersection it LOSES (92.5% vs 99.6%) | "filterable HNSW reaches 91.2% recall at 4.9ms while ACORN needs 20.1ms to reach 90.3%" / "The 4% intersection is the exception, where both fields exceeded the cap and ACORN leads 99.6% to 92.5%." | qdrant.tech/articles/filtered-vector-search-acorn/, verified live 2026-08-24. VENDOR | actively-evolving / 12-month bar / passes. DIRECTION WARNING: the seed article had this backwards. Easy to restate wrong |
+| V41 | A planner over both strategies holds 99.9-100% recall on all four filter shapes at 7.2-10.9ms, and 1.5ms on the 1% filter via the payload index | "Planner + ACORN, the fourth strategy, holds 99.9% to 100% recall on all four filters, at 7.2ms to 10.9ms on the graph and 1.5ms on the 1% filter, where all 500 queries came from the payload index." | qdrant.tech/articles/filtered-vector-search-acorn/. VENDOR | actively-evolving / 12-month bar / passes |
+| V42 | The benchmark discloses that ACORN's 1% recall varies 70.7-74.1% across rebuilds of the same graph | "On the 1% row, ACORN's recall spans 70.7% to 74.1% across rebuilds of the same graph, wider than its lead in the table." | qdrant.tech/articles/filtered-vector-search-acorn/. VENDOR | actively-evolving / 12-month bar / passes |
+| V43 | RACORN-1 exists as an unrefereed July 2026 preprint and REPORTS ACORN-1 connectivity instability below 5% selectivity and recall collapse below 1% | "ACORN-1... suffers connectivity instability below 5% selectivity and recall collapse below 1%" (abstract). v1 2026-07-01, 13 pages, no journal-ref, two authors. | arXiv:2607.00768 | actively-evolving / 12-month bar / passes AS AN ATTRIBUTED CLAIM. Every number must be written as "the preprint reports"; nothing asserted |
+| R1 | Sparse learned representations decompose into expansion and term weighting | "Sparse learned representations can further be decomposed into expansion and term weighting components." (abstract) | arXiv:2106.14807, 2021-06-28 | stable / foundational-locked / passes |
+| R2 | Learned sparse output is written into a standard Lucene inverted index | "built on the Lucene search library and thus fully compatible with standard inverted indexes." (abstract) | arXiv:2106.14807 | stable / foundational-locked / passes |
+| R3 | SPLADE-v3 is statistically significantly more effective than both BM25 and SPLADE++ | "it is statistically significantly more effective than both BM25 and SPLADE++, while comparing well to cross-encoder re-rankers" (abstract) | arXiv:2403.06789, 2024-03-11 | stable / 18-month bar / passes |
+| R4 | SPLADE-v3 exceeds 40 MRR@10 on MS MARCO dev and improves BEIR out-of-domain results by 2% | "it gets more than 40 MRR@10 on the MS MARCO dev set, and improves by 2% the out-of-domain results on the BEIR benchmark." (abstract) | arXiv:2403.06789 | stable / 18-month bar / passes. 2% improvement, not 2 points. Do not convert |
+| R5 | The efficiency bottleneck in learned sparse retrieval is query size in tokens, not neural FLOPs | "the main source of improvement is the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure... query size is then a major bottleneck." (body §3) | arXiv:2207.03834, SIGIR 2022 | stable / foundational-locked / passes |
+| R6 | Closing the gap to BM25 cost under 4ms added latency for under 10% MRR@10 loss, against a 4ms BM25 baseline | "achieve similar latency (less than 4ms difference) as traditional BM25, while having similar performance (less than 10% MRR@10 reduction)" (abstract); BM25 latency 4 ms (body §4) | arXiv:2207.03834 | stable / 18-month bar / passes |
+| R7 | Discarding 70% of doc2query's generated expansions improves effectiveness 16%, cuts index 33% and query time 23% at once | "improve the retrieval effectiveness of Doc2Query by up to 16%, while simultaneously reducing mean query execution time by 23% and cutting the index size by 33%" (abstract); "keeping only 30% of expansion queries at n=80, performance is increased from 0.279 to 0.323" (body §5) | arXiv:2301.03266, ECIR 2023 | stable / foundational-locked / passes. The paper states NO percentage of expansions that are irrelevant; do not claim one |
+| R8 | RRF's k=60 was fixed in a 2009 pilot that found it near-optimal but non-critical, and never revisited | "k = 60 was fixed during a pilot investigation and not altered during subsequent validation." / "indicated that k = 60 was near-optimal, but that the choice was not critical." (body §2) | Cormack, Clarke & Buettcher, SIGIR 2009, cormack.uwaterloo.ca/cormacksigir09-rrf.pdf | stable / foundational-locked / passes. NOT "arbitrary"; it was chosen |
+| R9 | Elasticsearch markets RRF as tuning-free and ships rank_constant default 60 | "RRF requires no tuning, and the different relevance indicators do not have to be related to each other" / "Defaults to 60." | elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion | actively-evolving / 12-month bar / passes |
+| R10 | RRF is in fact sensitive to its parameters, and a learned convex combination is normalization-agnostic and beats RRF in and out of domain | "Contrary to existing studies, we find RRF to be sensitive to its parameters; that the learning of a CC fusion is generally agnostic to the choice of score normalization; that CC outperforms RRF in in-domain and out-of-domain settings" (abstract) | Bruch, Gai & Ingber, ACM TOIS, arXiv:2210.11934 | stable / foundational-locked / passes. REPLACES the unsupported "score normalization is hard" beat in the Phase-1 spec |
+| R11 | Cross-encoders cannot precompute: every query-document pair must traverse the network for one score | "they must feed each query-document pair through a massive neural network to compute a single relevance score" (abstract) | arXiv:2004.12832, SIGIR 2020 | stable / foundational-locked / passes |
+| R12 | Late interaction trades full interaction for offline-precomputable document representations | "By delaying and yet retaining this fine-granular interaction, ColBERT can... pre-compute document representations offline, considerably speeding up query processing." (abstract) | arXiv:2004.12832 | stable / foundational-locked / passes |
+| R13 | ColBERT runs two orders of magnitude faster with four orders of magnitude fewer FLOPs per query than BERT rerankers | "executing two orders-of-magnitude faster and requiring four orders-of-magnitude fewer FLOPs per query." (abstract) | arXiv:2004.12832 | stable / foundational-locked / passes |
+| R14 | PLAID cuts late-interaction latency up to 7x on GPU and 45x on CPU vs vanilla ColBERTv2 without quality loss | "reduce late interaction search latency by up to 7× on a GPU and 45× on a CPU against vanilla ColBERTv2, while continuing to deliver state-of-the-art retrieval quality." (abstract) | arXiv:2205.09707, CIKM 2022 | stable / foundational-locked / passes. UPGRADED from snippet-only |
+| R15 | WARP is 41x faster than XTR's reference implementation and 3x faster than ColBERTv2/PLAID | "reduces end-to-end latency compared to XTR's reference implementation by 41x, and achieves a 3x speedup over the ColBERTv2/PLAID engine" (abstract) | arXiv:2501.17788, 2025-01-29 | actively-evolving / 12-month bar / passes. Do not merge the two figures |
+| R16 | monoBERT beat the prior MS MARCO state of the art by 27% relative MRR@10 | "outperforming the previous state of the art by 27% (relative) in MRR@10." (abstract) | arXiv:1901.04085 | stable / foundational-locked / passes |
+| R17 | monoT5 matches or beats classification rerankers and transfers zero-shot past cross-validated SOTA on Robust04 | "at least on par with previous classification-based models and can surpass them with larger, more-recent models... a zero-shot transfer-based approach that outperforms previous state-of-the-art models requiring in-dataset cross-validation." (abstract) | arXiv:2003.06713 | stable / foundational-locked / passes |
+| R18 | KEYSTONE. Zero-shot across 18 datasets: BM25 is a robust baseline; reranking and late-interaction win on average at high cost; dense and sparse retrieval are cheaper but often underperform | "Our results show BM25 is a robust baseline and re-ranking and late-interaction-based models on average achieve the best zero-shot performances, however, at high computational costs. In contrast, dense and sparse-retrieval models are computationally more efficient but often underperform other approaches" (abstract) | arXiv:2104.08663, NeurIPS 2021 D&B | stable / foundational-locked / passes. SCOPE GUARD: zero-shot only. BM25 is not claimed to beat neural models in-domain |
+| M1 | CLIP learns one multi-modal embedding space by jointly training image and text encoders on cosine similarity | "CLIP learns a multi-modal embedding space by jointly training an image encoder and text encoder to maximize the cosine similarity of the image and text embeddings of the N real pairs in the batch" (body §2.3) | arXiv:2103.00020, ICML 2021 | stable / foundational-locked / passes. BODY, not abstract |
+| M2 | CLIP was trained on 400 million image-text pairs by predicting which caption goes with which image | "the simple pre-training task of predicting which caption goes with which image... on a dataset of 400 million (image, text) pairs collected from the internet." (abstract) | arXiv:2103.00020 | stable / foundational-locked / passes |
+| M3 | On Winoground no state-of-the-art vision-language model does much better than chance | "none of them do much better than chance." (abstract) | arXiv:2204.03162, CVPR 2022 | stable / foundational-locked / passes |
+| M4 | ARO showed VLMs have poor relational understanding, attribute-binding failures, and a severe lack of order sensitivity | "poor relational understanding, can blunder when linking objects to their attributes, and demonstrate a severe lack of order sensitivity." (abstract) | arXiv:2210.01936, ICLR 2023 | stable / foundational-locked / passes |
+| M5 | SugarCrepe found those benchmarks hackable: blind text-only models beat state-of-the-art VLMs on them | "we find significant biases in all these benchmarks rendering them hackable. This hackability is so dire that blind models with no access to the image outperform state-of-the-art vision-language models." (abstract) | arXiv:2306.14610, NeurIPS 2023 D&B | stable / foundational-locked / passes |
+| M6 | SCOPE: the hackability finding covers image-to-text benchmarks (Table 1 is CREPE, ARO, VL-CheckList). Winoground is human-curated, discussed separately, and is NOT debunked | "we uncover a crucial vulnerability in not just one but all these image-to-text compositionality benchmarks" / "Winoground is a small dataset manually curated by human annotators." (body §1 and body) | arXiv:2306.14610 | stable / foundational-locked / passes. The post must not overstate the debunking |
+| M7 | SigLIP 2's fix was not a better contrastive loss; it surrounded the objective with captioning pretraining, self-supervised losses, and data curation | "we extend the original image-text training objective with several prior, independently developed techniques into a unified recipe -- this includes captioning-based pretraining, self-supervised losses (self-distillation, masked prediction) and online data curation." (abstract) | arXiv:2502.14786, 2025-02-20 | actively-evolving / 12-month bar / passes |
+| M8 | ColPali scores 81.3 average nDCG@5 on ViDoRe vs 67.0 for the strongest text pipeline | Table 2: "ColPali (+Late Inter.) ... 81.3" and "Unstructured + Captioning ... BGE-M3 ... 67.0" (body) | arXiv:2407.01449 v2, ICLR 2025 | stable / 18-month bar / passes |
+| M9 | ColPali's multi-vector index costs 256 KB per page at D=128 | "We project each PaliGemma vector to a lower dimensional space (D=128) to maximize efficiency, leading to a memory footprint of 256 KB per page" (body §5.2) | arXiv:2407.01449 v2 | stable / 18-month bar / passes. NOT ~250 KB |
+| M10 | ColPali indexes ~18x faster than the OCR pipeline (0.39 vs 7.22 s/page) | DROPPED. These values appear nowhere in the paper text; they exist only inside Figure 3, a bar chart. Appendix B.5 gives methodology and no numbers. | arXiv:2407.01449 v2 | CLOSED BY DROP. The post makes no indexing-speed claim for ColPali |
+| M11 | ViDoRe V3 (26k pages, 3,099 human-verified queries, 6 languages) confirms visual retrievers beat textual ones while naming what still fails | "visual retrievers outperform textual ones, late-interaction models and textual reranking substantially improve performance... However, current models still struggle with non-textual elements, open-ended queries, and fine-grained visual grounding." (abstract) | arXiv:2601.08620, 2026-01-13 | actively-evolving / 12-month bar / passes |
+| M12 | Nemotron ColEmbed V2 8B ranked first on ViDoRe V3 with 63.42 average NDCG@10 as of 2026-02-03 | "The 8B model ranks first on the ViDoRe V3 leaderboard as of February 03, 2026, achieving an average NDCG@10 of 63.42." (abstract) | arXiv:2602.03992, 2026-02-03 | actively-evolving / 12-month bar / passes. Leaderboard claim ~6 months stale; keep the date inside the sentence, no present tense |
+| M13 | A single unified embedding outperformed every specialized embedding it replaced, and cut operational cost | "generate a unified embedding that outperforms all specialized embeddings previously deployed for each product" / "drastically reduced the operation and engineering cost of maintaining multiple embeddings while improving quality." (abstract) | arXiv:1908.01707, KDD 2019 | stable / foundational-locked / passes |
+| M14 | A single multi-modal item embedding serving all shopping surfaces delivered up to +7% GMV/user and +11% click volume | "up to +7% gross merchandise value/user and +11% click volume" (abstract) | arXiv:2205.11728, KDD 2022 | stable / foundational-locked / passes |
+| M15 | KEYSTONE. One embedding serves three roles at once: ANN retrieval, improving the efficiency of token-based retrieval inside L1, and a top feature in L2 scoring | "These embeddings are employed to power the retrieval of pins and products using HNSW... They are also instrumental in the L1 scoring model, where they enhance the efficiency of token-based retrieval sources. Moreover, [OmniSearchSage] embeddings serve as one of the most critical features in the L2 scoring and relevance models." (body §5) | arXiv:2404.16260, WWW 2024 | stable / 18-month bar / passes. Source uses the `\modelname` macro; bracket the substitution or paraphrase |
+| M16 | That system serves 300k QPS at p50 3ms / p90 20ms, on 256-dimensional L2-normalized embeddings | "handling 300k requests per second, maintaining a median (p50) latency of just 3 ms, and 90 percentile (p90) latency of 20 ms." / "projects it to a 256-dimensional vector space. Post projection, we apply a L2 normalization" (body) | arXiv:2404.16260 | stable / 18-month bar / passes. 300k QPS is in the abstract; p50/p90 and 256-d are body-only |
+| M17 | The 300k QPS runs behind a 30-day-TTL cache; the neural inference server itself sees ~500 QPS | "The implementation of this cache-based system efficiently reduces the load on the inference server to approximately 500 QPS" (body §5.1) | arXiv:2404.16260 | stable / 18-month bar / passes |
+| M18 | That deployment delivered >8% relevance, >7% engagement, >5% ads CTR | "an improvement of >8% relevance, >7% engagement, and >5% ads CTR in Pinterest's production search system." (abstract) | arXiv:2404.16260 | stable / 18-month bar / passes |
+| M19 | Across 130 tasks and 50 models, no single image-embedding method dominates all task categories | "We benchmark 50 models across our benchmark, finding that no single method dominates across all task categories." (abstract) | arXiv:2504.10471, 2025-04-14 | actively-evolving / 12-month bar / passes |
+| M20 | Qwen3-VL-Embedding-8B scores 77.8 on MMEB-V2 and ships Matryoshka truncation as standard | "It supports Matryoshka Representation Learning, enabling flexible embedding dimensions" / "attains an overall score of 77.8 on MMEB-V2, ranking first among all models (as of January 8, 2025)." (abstract) | arXiv:2601.04720, 2026-01-08 | actively-evolving / 12-month bar / passes. The paper's own "January 8, 2025" precedes its submission date and is near-certainly a typo for 2026. Quote as written and note it, or paraphrase with the correct date. Never silently fix a quote |
+| M21 | A billion-scale production visual search moved its retrieval encoder off contrastive learning onto an absolute ID-recognition task | "we transitioned the embedding paradigm from traditional contrastive learning to an absolute ID-recognition task. Through anchoring instances to a globally consistent latent space defined by billions of semantic prototypes" (abstract) | arXiv:2602.13704, 2026-02-14 | actively-evolving / 12-month bar / passes |
+| M22 | That embedding change bought 2% GMV platform-wide; the widely quoted 20% belongs to the listwise reranker in SKU-price comparison only | "Pailitao-VL-Embedding delivers a 2% GMV gain across platform-wide traffic, while Pailitao-VL-Reranker-List yields a 6% GMV increase within standardized product categories. Notably, in emerging AI-driven scenarios such as SKU-price comparison, our architecture achieves an impressive 20% GMV gain" (body §6.4) | arXiv:2602.13704 v1 | actively-evolving / 12-month bar / passes. Attributing 20% to the contrastive switch would be wrong |
+| C1 | KEYSTONE. ANN was implemented inside the existing inverted-index engine, not as a separate vector system, to inherit its operational properties | "By implementing NN support in terms of pre-existing primitives, instead of writing a separate system, we inherited all the features of the existing system, such as realtime updates, efficient query planning and execution, and support for multi-hop queries" (body §4.1) | arXiv:2006.11632, KDD 2020 | stable / foundational-locked / passes |
+| C2 | Embeddings entered as a Boolean-query operator, `(nn <key> :radius <radius>)` | "we extended the document representation to include embeddings, each with a given string key, and added a (nn <key> :radius <radius>) query operator" (body §4.1) | arXiv:2006.11632 | stable / foundational-locked / passes |
+| C3 | An ANN probe is rewritten into a disjunction of inverted-index terms: coarse cluster becomes a term, quantized residual becomes its payload | "each document embedding is quantized and turned into a term (for its coarse cluster) and a payload (for the quantized residual). At query time, the (nn) is internally rewritten into an (or) of the terms associated to the coarse clusters closest to the query embedding" (body §4.1) | arXiv:2006.11632 | stable / foundational-locked / passes |
+| C4 | Radius mode is served over top-K because Boolean constraints can prune a radius search while top-K must scan the whole index | "radius mode enables a constrained NN search (constrained by other parts of the matching expression) but top K mode provides a more relaxed operation which needs to scan the whole index to get top K results." (body §4.1) | arXiv:2006.11632 | stable / foundational-locked / passes |
+| C5 | Training on hard negatives alone underperforms training on random negatives | "models trained simply using hard negatives cannot outperform models trained with random negatives." (body §6.1.1) | arXiv:2006.11632 | stable / foundational-locked / passes |
+| C6 | The easy:hard negative ratio improves recall monotonically and saturates at 100:1, with the best hard negatives from rank 101-500 | "Increasing the ratio of easy to hard negatives continues to improve the model recall and saturated at easy:hard=100:1." / "sampling between rank 101-500 achieved the best model recall." (body §6.1.1) | arXiv:2006.11632 | stable / foundational-locked / passes |
+| C7 | The +8.38% / +7% / +5.33% recall gains belong to online hard negative mining specifically, not to embedding-based retrieval as a whole | "Enabling online hard negative mining was one major contributor to our modeling improvement... +8.38% recall for people search; +7% recall for groups search, and +5.33% recall for events search." (body §6.1.1) | arXiv:2006.11632 | stable / foundational-locked / passes. ATTRIBUTION TRAP: commonly miscited as an EBR result |
+| C8 | Retrieval gains do not materialize unless the ranker is co-adapted, because newly retrieved documents are out of distribution for a ranker trained on the old retrieval's logs | "The model at each stage should be optimized for the distribution of results returned by the preceding layer. However, since the current ranking stages are designed for existing retrieval scenarios, this could result in new results returned from embedding based retrieval to be ranked sub-optimally by the existing rankers." (body §5) | arXiv:2006.11632 | stable / foundational-locked / passes |
+| C9 | A production pre-ranking stage takes ~10,000 candidates in and emits several hundred | "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand... The magnitude of N is usually several hundred." (body §2) | arXiv:2007.16122 v2, DLP-KDD 2020 | stable / foundational-locked / passes. §1 loosely says "tens of thousands"; cite §2 |
+| C10 | Ranking and pre-ranking run under a strict 10-20 ms latency limit | "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds." (body §1) | arXiv:2007.16122 v2 | stable / foundational-locked / passes. Covers both stages, not a pre-ranking-only SLA |
+| C11 | That budget is roughly 1-2 microseconds of wall-clock per candidate | DERIVED: 10,000 us / 10,000 candidates = 1 us; 20,000 / 10,000 = 2 us. Inputs are C9 (§2) and C10 (§1). | arXiv:2007.16122 v2, arithmetic 2026-08-24 | stable / foundational-locked / passes. Present as the post's own derivation. Wall-clock per candidate, not serial CPU time; COLD parallelizes (Table 3: 9.3 ms RT at 6700 QPS) |
+| C12 | The two-tower form cannot use query-item cross features, stated by the team replacing it | "The model expression ability is limited by the vector-product form, and can not utilize the user-ad cross features." (body §2.2) | arXiv:2007.16122 v2 | stable / foundational-locked / passes |
+| C13 | Replacing the two-tower pre-ranker gained +6.1% CTR / +6.5% RPM normally and +9.1% / +10.8% under peak load | "In normal days, COLD model achieves 6.1% CTR and 6.5% RPM (Revenue Per Mille) improvement... the improvement turns to be 9.1% CTR and 10.8% RPM" (body §4) | arXiv:2007.16122 v2 | stable / foundational-locked / passes |
+| C14 | Two-tower factorizes because item embeddings are precomputed and indexed offline while only the query tower runs per request, with MIPS closing the gap | "inference consists of two steps: 1) computing query embedding u(x, θ); 2) performing nearest neighbor search over a set of item embeddings that are pre-computed from embedding function v... for approximate maximum inner product search (MIPS) problems." (body §3) | Yi et al., RecSys 2019, DOI 10.1145/3298689.3346996 | stable / foundational-locked / passes |
+| C15 | In-batch softmax negatives are popularity-biased; the fix is streaming item-frequency estimation | "in-batch loss is subject to sampling biases, potentially hurting model performance, particularly in the case of highly skewed distribution... a novel algorithm for estimating item frequency from streaming data." (abstract) | Yi et al., RecSys 2019 | stable / foundational-locked / passes |
+| C16 | "Cascade Ranking for Operational E-commerce Search" (KDD 2017) is Liu, Xiao, Ou, Si, not Wang et al.; Wang, Lin & Metzler SIGIR 2011 is a separate earlier paper | Front matter: "Shichen Liu, Fei Xiao / Alibaba Group"; reference [22]: "L. Wang, J. Lin, and D. Metzler. A cascade ranking model for efficient ranked retrieval. In SIGIR, 2011." | arXiv:1706.02093 v1, KDD 2017 | stable / foundational-locked / passes |
+| C17 | Cascade stages can each be well-tuned yet jointly inconsistent, and that inconsistency maps to online performance | "the ranked lists of the ranking stage and previous stages may be inconsistent... We demonstrate that ranking consistency has a direct impact on online performance." (abstract) | arXiv:2205.01289 v5, 2022-11-03 | stable / 18-month bar / passes AS AN ATTRIBUTED PREPRINT CLAIM. The PDF's ACM block is an unfilled template, so no venue is asserted. Write "the authors propose" |
+| C18 | Training the whole cascade as one network beat stage-wise training in a live ad system by +4.10% revenue and +1.60% user conversions | "Compared to FS-LTR, LCRON brings about a 4.10% increase in advertising revenue and a 1.60% increase in the number of user conversions" (body §1; corroborated §5.5, Table 5) | arXiv:2503.09492 v3, ICML 2025 | actively-evolving / 12-month bar / passes. UPGRADED from snippet-only |
+| C19 | Production rankers handle competing objectives with MMoE and remove selection bias with a shallow tower in the same model | "adopting Multi-gate Mixture-of-Experts (MMoE) [30] for multitask learning. In addition, it introduces a shallow tower to model and remove selection bias." (body §1) | Zhao et al., RecSys 2019 | stable / foundational-locked / passes |
+| C20 | Position bias can be handled without a propensity model: position as a dropout-regularized feature, zeroed at scoring | "we do not build an explicit propensity model. Instead, we introduce position as a feature in the DNN, regularized by dropout. During scoring we set the position feature to 0." (body §4.2) | arXiv:2002.05515, KDD 2020 | stable / foundational-locked / passes |
+| C21 | That change produced +0.7% bookings and +1.8% revenue | "we observed a gain of +0.7% in bookings." / "a lift of +1.8% in revenue was a pleasant surprise." (body §4.4) | arXiv:2002.05515 | stable / foundational-locked / passes. COLLISION WARNING: a different +0.7% in §2.7 is an NDCG figure for the two-tower architecture |
+| C22 | An offline-NDCG-neutral model lost 0.67% of bookings online | "we adjusted the alpha hyperparameter to the minimum value such that in offline tests we got the same NDCG as the baseline model... But also a drop of −0.67% in bookings." (body §2.5) | arXiv:2002.05515 | stable / foundational-locked / passes |
+| C23 | Two further models lost 1.5% and 1.6% of bookings online | "the interpretability of price came at a heavy cost as bookings dropped by −1.5%." (body §2.2) / "resulting in a booking drop of −1.6%." (body §2.3) | arXiv:2002.05515 | stable / foundational-locked / passes |
+| C24 | THE CLOSER. Offline evaluation failed structurally because it could only re-rank documents already in the logs, so it could not see what a changed policy would surface | "The offline analysis suffered from the limitation that it only evaluated re-ranking the top results available in logs. During the online test, applying the newly trained model to the entire inventory revealed the true cost of adding the price loss as part of the training objective." (body §2.5) | arXiv:2002.05515 | stable / foundational-locked / passes |
+| C25 | Online bookings can move significantly on NDCG differences as small as 0.7% | "we have observed statistically significant differences in online bookings from models that differed in NDCG by as little as 0.7%." (body §3) | arXiv:2002.05515 | stable / foundational-locked / passes |
+| C26 | Factorizing the ranker into a listing-independent query tower cut p99 scoring latency by 33% | "this resulted in a −33% reduction in the 99th percentile scoring latency." (body §2.7) | arXiv:2002.05515 | stable / foundational-locked / passes |
+| C27 | Six years on, the discipline is restated: offline metrics are directional, online A/B establishes significance | "offline evaluations serve as directional indicators for rapid iteration... we rely on large-scale online A/B testing (Section 4) to establish strict statistical significance." (body §3) | arXiv:2607.10096 v1, SIGIR 2026 | actively-evolving / 12-month bar / passes |
+| C28 | Two different offline indexes are needed because no single one measures both recall and precision: 3.6M products / 122k annotated queries, and 200M products / 1k traffic-weighted queries | "two distinct index scales: (1) A Small Index of 3.6M products: 122k queries with comprehensive human annotations to measure EM Recall@K. (2) A Big Index of 200M products: 1k traffic-weighted queries to measure EM Precision@K" (body §3) | arXiv:2607.10096 v1 | actively-evolving / 12-month bar / passes |
+| C29 | That pipeline delivered +4.00% EM Recall@20 offline and +7.34% NDCG@5 with +0.50% gross revenue online (p=0.03) | "+7.34% improvement in NDCG@5 and a +0.50% lift in gross revenue" (abstract); "+0.50% (𝑝 = 0.03)" (body §4); "+4.00%" recall (body §3, Table 2) | arXiv:2607.10096 v1 | actively-evolving / 12-month bar / passes |
+| C30 | Production LLM query rewriting is served from an offline-built rewrite table, not an inline call, and ~70% of queries miss it | "The offline inference of BEQUE covers 27% of the page views (PV) in Taobao's main search and has a minimal impact on the latency of the online retrieval system." (body §3) / "there are about 70% of online queries that do not hit our rewriting table." (body §4.5) | arXiv:2311.03758 v3, WWW 2024 Industry | stable / 18-month bar / passes |
+| C31 | The LLM's rewrite re-enters the system as terms in an inverted index, unioned with the original query's candidate set | "both the query and rewrite are tokenized into terms and used as keywords for inverted index matching... The union of the query and rewrite retrieval sets forms the final candidate set" (body §3) | arXiv:2311.03758 v3 | stable / 18-month bar / passes |
+| C32 | It lifted GMV +0.40% across all traffic and +2.96% on the 27% of traffic it rewrote | "surpassed the previous-generation rewriting model CLE-QR by 0.4%, 0.34%, and 0.33% in terms of GMV, #Trans, and UV" / "for the queries covered (rewritten) by BEQUE (approximately 27% of total PV), there were noteworthy increases of 2.96%, 1.36%, and 1.22%" (body §4.5, Table 6) | arXiv:2311.03758 v3 | stable / 18-month bar / passes. UPGRADED from not-on-abs-page. The two figures differ by more than 7x; never conflate |
+| C33 | One production system runs 25% of total QPS with no cascade, at 10.6% of the pipeline's operating expense, at 23.7%/28.8% MFU | "23.7% and 28.8% Model FLOPs Utilization (MFU)... operating expense (OPEX) that is only 10.6% of traditional recommendation pipelines. Deployed in Kuaishou/Kuaishou Lite APP, it handles 25% of total queries per second (QPS), enhancing overall App Stay Time by 0.54% and 1.24%, respectively." (abstract) | arXiv:2506.13695, June 2025 | actively-evolving / 12-month bar / passes AS A DATED CLAIM. 14 months old and unrefreshed; Kuaishou's newest release publishes no production figures. Date it in prose. 25% of QPS, not 25% of the product; stay-time lifts are per-app |
+| C34 | The cascade it partly replaces ran at 4.6% training / 11.2% inference MFU against ~40% for LLMs, with over half of serving resources on communication and storage | "the model's training and inference MFU is only 4.6% and 11.2% on flagship GPUs, respectively, which is substantially lower than the efficiency observed in large language models (LLMs), where the MFU is approximately 40% on H100" (body §1) | arXiv:2506.13695 | actively-evolving / 12-month bar / passes AS A DATED CLAIM. Same June 2025 vintage |
+| C35 | The same year, a competing deployment kept the cascade and got over +2% GMV/UU and +2.90% advertising revenue | "deployed in the main personalized search scenario of Shopee and achieves consistent online gains... including over +2% GMV/UU and a +2.90% increase in advertising revenue." (abstract) | arXiv:2509.18091, 2025-09-22 | actively-evolving / 12-month bar / passes |
+| C36 | KEYSTONE FOR THE CODA. A 2026 unification kept the funnel and the existing serving stack; the two stages survive as two heads on one shared trunk | "one input format, one model, one training stage, deployed within existing serving infrastructure. A shared transformer encodes the user action sequence into candidate-independent representations that branch into retrieval (ANN dot-product) and ranking (cross-attention) via task-specific heads." (abstract) | arXiv:2606.00422, 2026-05-29 | actively-evolving / 12-month bar / passes |
+| C37 | That unification delivered ~+1% engagement, 11.1% lower end-to-end serving latency, and 63.6% higher QPS | "delivers approximately +1% online engagement lift while cutting end-to-end serving latency by 11.1% and lifting QPS by 63.6%." (abstract) | arXiv:2606.00422 | actively-evolving / 12-month bar / passes |
+| C38 | The generative camp has independently rediscovered the stage-misalignment problem, naming "the disconnection between generation and ranking stages" as a core challenge, and reports +1.34% GMV | "the misalignment between interest objectives and business value, the target-agnostic limitation of generative processes, and the disconnection between generation and ranking stages." / "(GMV - Normal +1.34%)" (abstract) | arXiv:2603.02999 v3, 2026-03-12 | actively-evolving / 12-month bar / passes AS AN ATTRIBUTED PREPRINT CLAIM. v3 carries an unfilled ACM template; no venue asserted |
+| C39 | As of 2026-08-24 there is no first-party, production, web-scale published latency SLA or deployment description for an LLM reranker in a live search path | NEGATIVE RESULT. Targeted searching returned only third-party vendor blogs, academic efficiency papers reporting benchmark latency (arXiv:2511.07555, arXiv:2606.11700, arXiv:2411.05508), and RAG-scale writeups at top-100 shortlists. The nearest first-party production LLM-in-search datapoint is C30, which moved the model offline. | searches run 2026-08-24; corroborating positive evidence arXiv:2311.03758 v3 | actively-evolving / 12-month bar / passes AS A NEGATIVE CLAIM. State as an open question; attach no number |
+
+
 
 ## Resume here
 
@@ -54,7 +1406,7 @@ Last touched: 2026-08-24.
 | Phase | Status | Output |
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
-| 2. Research / fact-check | pending | `## Research notes`, `## Claim-source matrix`, `## Related posts on augusteo.com` |
+| 2. Research / fact-check | done (Gate 0 pending) | `## Research notes`, `## Claim-source matrix` (156 rows), `## Related posts on augusteo.com` (intentionally empty) |
 | 3. Outline + figure list | pending | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/search-retrieval-stack/index.mdx` |
 | 5. Implement figures | 0 of 13 | per-figure table below |
@@ -73,11 +1425,10 @@ Last touched: 2026-08-24.
 
 ### Suggested next batch
 
-1. Phase 2: dispatch parallel subagents to build `## Research notes` grouped by the six acts, converting the Phase-1 sweep output into quoted excerpts with dates.
-2. Phase 2: close every MARGINAL row flagged in `## Spec` (upgrade, hedge, Vic-accept, or drop). Gate 0 halts on unclosed marginal debt.
-3. Phase 2: run the augusteo.com related-posts scan; candidates are thin (nearest are `omni-modal-stack` and `unified-vision-stack`, both on in-context retrieval rather than search retrieval) so an empty section is an acceptable outcome.
-4. Phase 2: build `## Claim-source matrix`. Expect 60-90 rows at this length.
-5. Gate 0.
+1. Run Gate 0 (codex against `## Spec` + `## Throughline` + `## Research notes` + `## Claim-source matrix`). 10-20 minutes. Invocation per the `codex-gate-invocation` project memory: `CODEX_HOME=~/.codex-personal codex exec --sandbox read-only -c tools.web_search=true -o <out.md> "$(cat prompt.md)" < /dev/null`. No `-m` flag.
+2. Apply any STRUCTURAL findings; record in `## Codex research review` and the Codex history table.
+3. Phase 3: outline + figure table (13 figures, 11 static-svg + 2 interactive-canvas). Number sections, verify the throughline threads every act.
+4. Gate 1.
 
 ### How to resume from a fresh context
 
