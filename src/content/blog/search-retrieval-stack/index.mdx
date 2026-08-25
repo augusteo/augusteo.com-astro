@@ -528,3 +528,81 @@ So you build a second stage that sees fewer candidates and is allowed to look at
 The cascade is not an architectural preference. It falls out of the fact that the only affordable way to score ten thousand things forbids the thing you most want to model.
 
 {/* Reader can now: explain why a reranker must exist, from the serving constraint rather than from model quality */}
+
+### 18. The stages disagree
+
+Two stages, each tuned well, can still be a badly built machine.
+
+The first stage is trained to identify the roughly-right few hundred. The second is trained to order them. Those are different objectives, and nothing in the usual training setup makes the first stage care what the second one would have wanted. So the first stage discards documents the second would have ranked first, and no metric on either stage reports it, because each is being evaluated against its own target.
+
+Gu and Sheng named the problem: "the ranked lists of the ranking stage and previous stages may be inconsistent", and they propose scoring the first stage not on its own accuracy but on its agreement with the downstream ranker. They also demonstrate "that ranking consistency has a direct impact on online performance."
+
+The awkward part is measuring it. To know what your ranker would have done with the candidates your pre-ranker threw away, you have to score them, which is precisely the work the pre-ranker exists to avoid. Their answer is a shadow stack running offline.
+
+The 2025 answer is to stop treating the stages as separate models. [LCRON](https://arxiv.org/abs/2503.09492), at ICML 2025, trains the whole cascade end to end against a loss derived from the probability that the ground-truth items survive the entire funnel, and reports from a live advertising deployment: "Compared to FS-LTR, LCRON brings about a 4.10% increase in advertising revenue and a 1.60% increase in the number of user conversions."
+
+That is a recommendation and advertising result rather than a search one, and the transfer is about the shape of the problem rather than the size of the number. But the shape is general: if your L1 and L2 were trained apart, they disagree, and the disagreement costs you recall you will never see in either stage's metrics.
+
+While we're here, one attribution correction, because this literature is routinely miscited. The KDD 2017 paper on cascade ranking for e-commerce search is Liu, Xiao, Ou and Si. The SIGIR 2011 cascade ranking paper is Wang, Lin and Metzler. They are different papers, and the 2017 one cites the 2011 one.
+
+{/* Reader can now: see the cascade as one system with a joint objective, and know why stage-local metrics hide the loss */}
+
+### 19. Why your offline number lied
+
+Everything so far has been evaluated with a number. This section is about how much those numbers are worth, and the answer is less than you would like, in a specific and documented way.
+
+Start with the cleanest evidence, which is old and still the best thing written on it. Airbnb's search team [published three model changes](https://arxiv.org/abs/2002.05515) that looked fine offline and lost money online.
+
+A monotonic price term, chosen for interpretability: bookings fell 1.5%. A more flexible version of the same idea: down 1.6%. And the third, where they were careful in exactly the way you are supposed to be careful. They tuned the change until offline NDCG matched the baseline, so that they were shipping something offline-neutral by construction. Online, average result price fell 3.3%, "But also a drop of −0.67% in bookings."
+
+Then they explain why, and this is the sentence to keep:
+
+> "The offline analysis suffered from the limitation that it only evaluated re-ranking the top results available in logs."
+
+An offline evaluation scores a model against documents your *previous* model chose to show. Any change that surfaces different documents is invisible to it, because those documents are not in the log to be scored. Offline evaluation cannot see the thing that a retrieval or ranking change most obviously does.
+
+That is the same constraint as section 16's, viewed from the evaluation side. The funnel can only rank what it retrieved; the log can only score what it showed.
+
+They also give the sensitivity floor, which is worth memorizing before you dismiss a small number: "we have observed statistically significant differences in online bookings from models that differed in NDCG by as little as 0.7%."
+
+{/* TODO: Fig 13: OfflineOnlineGap. Airbnb's online losses against what offline reported, drawing only what the rows support. */}
+
+Now the 2026 version of the problem, which is worse, because the industry's response to expensive human judgments has been to generate them with a model.
+
+The case for doing that is real. [UMBRELA](https://arxiv.org/abs/2406.06519) compared LLM relevance judgments against human ones across five TREC Deep Learning tracks and reported system-level rank correlations between 0.87 and 0.94 Kendall's tau. If you want to know which of your systems is best, an LLM judge appears to tell you.
+
+Look at the per-item agreement in the same table and it is a different story: Cohen's kappa between 0.31 and 0.37 on the four-point scale. The judge and the human agree about any *individual* query-document pair barely better than a coin weighted by chance. TREC's own 2026 RAG track puts it independently at "agreement fractions between 0.30–0.34, suggesting that automated relevance judgment remains a challenging task with limited agreement relative to human assessors."
+
+High correlation on system ordering, poor agreement on items. Those two facts coexist because errors that are dense but unbiased wash out when you average over a whole run.
+
+Which raises the question Clarke and Dietz asked: does the averaging still save you where you actually make decisions? [They checked](https://arxiv.org/abs/2412.17156), and it does not.
+
+> "While Kendall's τ among the top 60 systems remains relatively high at 0.85 (corresponding to 8% system swaps), it drops to 0.51 (24% swaps) among the top 20 systems, and to 0.56 (21% swaps) among the top 15."
+
+Nobody is choosing between system 3 and system 47. You are choosing between your current stack and the four variants of it you built this quarter, which are all near the top and all close together. That is exactly the region where the correlation falls apart.
+
+Then they ran a second, separate analysis, and I want to keep it separate because collapsing the two overstates the case. They simulated what happens if everyone adopts the judge as a reranking component, so that the systems being evaluated and the thing evaluating them share a lineage:
+
+> "Kendall's τ further decreases to 0.44 among the top 20 systems, 0.49 among the top 15, 0.38 among the top 10, and even turns negative (τ = −0.40) among the top 5 systems."
+
+Negative. Among the top five, in that simulation, the automated evaluation ranks systems roughly in reverse. And this is a simulation of circularity, not an observation of it in the wild, which is the honest caveat. But the condition it simulates is not exotic: it is what happens when the model family in your reranker is the model family in your judge, which by 2026 is the default rather than the exception.
+
+The practical rule that falls out is cheap to follow. Keep your judge's model family disjoint from your ranker's, and hand-label the final bake-off between your top few candidates, because that is the comparison the automated metric is worst at.
+
+One complication, because the story is not simply that LLMs are bad at this. A 2026 [re-assessment of the TREC Podcast Track](https://arxiv.org/abs/2601.05603) went back to the pairs where the LLM and the original assessors disagreed most, and had human experts adjudicate: "the human experts tend to agree with LLMs more than with the TREC assessors." Some of the disagreement is the LLM being wrong. Some of it is that a single human assessor is also a noisy instrument, which the field has known since 2002.
+
+If offline metrics are this shaky, what do you actually do? Airbnb's answer is an intermediate: [interleaving](https://arxiv.org/abs/2508.00751), where you blend two rankers' results into one list and watch which side's items get clicked. They report "about 50X speedup from A/B", and, on 29 paired comparisons, that "interleaving and A/B are directionally aligned 82% of the time. The correlation coefficient is 0.6."
+
+Eighty-two percent means roughly one call in six disagrees with the A/B test it is standing in for. That is a good filter and a bad oracle, and they use it as a filter, to decide what deserves an A/B rather than to replace one.
+
+I went looking for a published correlation between offline retrieval metrics and online outcomes and did not find one. Airbnb's 0.6 is interleaving against A/B, both online. That absence is itself worth noticing: the number everyone would most like to have, for the decision everyone actually makes, does not appear to be in the literature.
+
+And remember section 11's small scandal. When a team went to reproduce a published benchmark's own lexical baseline, they could not, until they found "a key under-documented detail", and their audit of the corpus turned up "data quality issues that impact evaluation." A number in a paper is not a reproducible result, a reproducible result is not a system-level truth, a system-level truth is not a top-of-leaderboard truth, and none of them is a booking.
+
+So. Our shopper's results are in an order. Both query forms produced candidates, the funnel pruned and ranked them, and there is a number attached to that ordering which looks acceptable.
+
+You now know that number cannot tell you whether the ordering is good.
+
+That is why the last act is not another benchmark.
+
+{/* Reader can now: design an evaluation that would catch the failure they are currently shipping, and know exactly which comparison their automated metric is worst at */}
