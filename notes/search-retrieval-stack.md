@@ -867,7 +867,7 @@ Every row below was verified by direct fetch in this session by the author, not 
 | P6 | FALSIFIED FOLKLORE. A raw retrieval score is not a usable confidence threshold | "Confidence calibration is consistently weak across model families, indicating that raw retrieval scores are unreliable for downstream routing without additional calibration." (abstract) | arXiv:2604.03676, 2026-04-04, SIGIR 2026 | actively-evolving / 12-month bar / passes |
 | P7 | Large LLM-based bi-encoders often buy little for their latency, and reasoning augmentation can hurt on formal domains | "Several large LLM-based bi-encoders incur substantial latency for modest gains."; "Reasoning augmentation incurs minimal latency for sub-1B encoders but exhibits diminishing returns for top retrievers and may reduce performance on formal math/code domains." (abstract) | arXiv:2604.03676 | actively-evolving / 12-month bar / passes |
 | P8 | On text-and-table documents the dominant retrieval failure is how tables are represented, not the retriever | "Table structure mismatch is the dominant failure mode (73%): the answer resides in a table whose markdown representation does not embed well." (body §IV-D) | arXiv:2604.01733, §IV-D | actively-evolving / 12-month bar / passes. SCOPE GUARD: this is an LLM-produced categorization of a 100-item sample, not a human audit and not a parser comparison. Cite as "table representation is where retrieval fails", never as "parser X beats parser Y" |
-| P9 | NO primary source measures parser or layout-extraction quality as an isolated variable in retrieval effectiveness | NEGATIVE RESULT across two independent research passes. P8 is the closest adjacent evidence and is an error analysis, not a controlled comparison | searched 2026-08-24 | actively-evolving / 12-month bar / passes AS A NEGATIVE CLAIM. The post says the evidence is absent rather than implying a recommendation |
+| P9 | CORRECTED. Parser choice HAS been studied as an experimental variable: a 2026 paper systematically compares multiple PDF parsers and chunking strategies against downstream question-answering quality on two financial benchmarks | "We systematically examine multiple PDF parsers and chunking strategies (with varied overlap), along with their potential synergies in preserving document structure and ensuring answer correctness." (abstract) | El Bachyr, Song, Ezzini, Klein, Bissyande, Zilali, Ble & Goujon, "Empirical Evaluation of PDF Parsing and Chunking for Financial Question Answering with RAG", arXiv:2604.12047, 2026-04-13 | actively-evolving / 12-month bar / passes. REPLACES a false negative claim that no primary source measured parser quality as an isolated variable. Gate 1 run 2 refuted it, as Gate 0 run 1 refuted the equivalent claim about LLM rerankers. Two false negatives in one project: the post asserts no absence of evidence anywhere without a documented search, and prefers "what has been tested" framing over "nobody has tested" |
 
 
 | E7 | COUNTER-EVIDENCE the post must carry: some of the human-LLM disagreement is human labelling noise, not LLM error. Re-assessing the highest-disagreement pairs, human experts agreed with the LLMs more than with the original assessors | "we re-assess a small subset of pairs where LLM and TREC assessors have the highest disagreement, and found that the human experts tend to agree with LLMs more than with the TREC assessors. Our results reinforce the previous insights of Sormunen in 2002 -- that relying on a single assessor leads to lower user agreement." (abstract) | Mansour, Culpepper, Mackenzie & Yates, TREC Podcast Track re-assessment, arXiv:2601.05603, ECIR 2026 | actively-evolving / 12-month bar / passes. Section 20 must not present the LLM judge as uniquely unreliable; single-assessor human ground truth has its own problem |
@@ -910,125 +910,113 @@ One forward-looking note for a future post: this post and `unified-vision-stack`
 
 ## Outline
 
-**Restructured 2026-08-24 after Gate 1 HALT.** The previous outline organized by model family and stated the thesis only in its first and last sections; codex called it a catalog with a thesis stapled on, and the deletion test failed on 12 of 22 sections. This version is organized around the argument itself.
+**Second restructure, 2026-08-24, after Gate 1 run 2.** Run 1 said the outline was a catalog with a thesis stapled on. Run 2 said the four-question spine was still a label rather than a structure, that eight of 23 sections still failed the deletion test, and that section 22 rested on a false claim about the literature. All applied.
 
-### The spine
+### The spine, stated honestly
 
-Every act answers the same four questions about one generation of retrieval machinery:
+The four questions are: what was the incumbent doing that no benchmark measured; what did the challenger win on; did the challenger preserve that property or route around it; what happened in production.
 
-1. What was the incumbent quietly doing that no benchmark measured?
-2. What did the challenger win on?
-3. Did the challenger preserve the property, route around it, or ignore it?
-4. What actually happened in production?
+**Gate 1 run 2 was right that acts 2 to 5 cannot fully answer all four.** They build the mechanics, and the production answers concentrate in acts 6 and 7. Pretending otherwise is the "label on a catalog" failure. So each act carries an explicit ledger naming which of the four it answers and with which rows, and where an act answers only the first two, it says so. The post's argument is cumulative: the mechanics acts establish what each generation could and could not do, and acts 6 and 7 supply the production outcomes those properties predicted.
 
-Six acts, same four questions, different answers. That threads the thesis through every section instead of bolting it on, and it turns the coda into the last data point rather than a new idea. It also pulls in C1-C4, which the previous outline omitted entirely despite being the clearest evidence the post has.
+**Correction carried from run 2:** the act 2 ledger previously credited the inverted index with editability. C43 says the opposite, that editability "resides not in the index structure but in the upstream resources that feed it." The ledger now attributes the operational pipeline, not the data structure. Rebuilding the wrong mental model in an act would have undercut the thesis three acts later.
 
-**Best practice is attached to each act, not appended.** Vic's requirement is that the post give the August 2026 recommendation, not only the history. Each act closes with a short, concrete "what to do about this in 2026" that falls out of the four questions, and act 7 consolidates. Guidance stays welded to the mechanism that justifies it.
+### What the throughline does, and what it does not
 
-**Evaluation is taught early and again late.** Section 2 is a short primer, because a reader cannot judge any claim after it without a yardstick. Section 20 is the deep treatment. This split is deliberate: the 2026 tuning literature largely builds ground truth from a single LLM judge, so the reader needs the judge's limits before the tuning advice, not after.
+Two jobs, kept apart, because run 2 was right that conflating them lets the worked query borrow authority it has not earned.
 
-23 sections plus a coda, ~24,000 words.
+- **The query carries the mechanics.** It is a worked illustration. It shows what each generation of machinery can and cannot do. It is not evidence for the production thesis and the post says so once, plainly.
+- **The Kuaishou deployments carry the thesis.** They are the evidence.
+
+**Locked now, per run 2:**
+
+- **Form A**, the original: `waterproof hiking boots wide toe box under $150`.
+- **Form B**, the reformulation a user types after the first result set disappoints: `Salomon Quest 4 GTX wide 10.5`. A brand, a model, a variant, a size. This is where exact match becomes load-bearing, and it is honest because form A never asked for one.
+- **The photo**, act 5: a phone picture of a boot's outsole tread pattern, taken in a shop. It replaces the descriptive terms in form A and cannot express the price predicate, the width, or the size. That is the section's argument, not a decoration.
+
+Each section below names which form it runs and what happens to it.
 
 ### Act 1 — The only question
 
-**1. One query, and the scan you cannot afford.** The throughline query arrives. Every index in history answers one question: how do you avoid comparing the query to everything? Anchor on the measured cost of not avoiding it (L1, L2). State the thesis plainly, and state that it is about deployment rather than benchmark scores.
-Reader can now: say why an index exists, in cost terms.
-
-**2. How you would know if it worked.** Short primer, deliberately before any advice. What recall and nDCG measure and where they diverge. Then the trap that governs everything downstream: LLM judges reproduce system orderings well in aggregate and agree with individual human labels weakly, and the aggregate number degrades exactly where decisions get made (A2 rows). Not the full treatment; enough that every later claim can be weighed.
-Reader can now: read every benchmark number in the rest of the post with the right amount of suspicion.
+**1. One query, and the scan you cannot afford.** Form A. The measured cost of the exhaustive scan (L1, L2), with the two ratios kept separate: work fell ~174x, time fell ~8x. Metrics are introduced at first use rather than in a primer section, per the deletion test. State the four questions. State that the query illustrates and Kuaishou evidences.
+*Act 1 ledger: poses the question. Answers none of the four yet.*
 
 ### Act 2 — The lexical machine
 
-**3. The posting list, and why rare words are the whole trick.** Term to posting list, docID plus frequency, block structure (L4-L7).
-**4. BM25's two dials.** Saturation via k1, soft length normalization via b, and the fact that the model supplies neither constant (L8-L15). The variants question, settled: eight of them, no significant difference, stopwords matter more (L16, L17). The real divergence is mundane (L18-L21).
-**5. Skipping, which is a cascade in 1995.** WAND and block-max: upper bounds and a running threshold let you skip most of the list (L22-L29). Name the pattern out loud, because act 6 is the same idea with neural parts.
-**6. The two things term matching cannot do.** BM25F pools across fields and saturates once (L31, L32). But `under $150` is not a term (T1), and the vocabulary problem is real and measured (L34). These are the two failures everything after this responds to.
-**Act 2 ledger + practice.** Incumbent property: exact match, cheap structured filtering, real-time updates, operator intervention. Practice: BM25 with tuned k1/b remains the baseline you must beat, and out-of-domain it is a hard baseline (R18).
+**2. The posting list.** Form A. Why it is fast and where it is not (L4-L7).
+**3. BM25's two dials.** Saturation and length normalization, neither constant supplied by the model (L8-L15). The variants question settled (L16-L21).
+**4. Pruning fixed the cost, and could not fix the meaning.** WAND and block-max (L22-L29). Explicit handoff, which is what run 2 asked for: dynamic pruning made term matching affordable at scale and left its semantic limits exactly where they were. That is why section 5 exists.
+**5. The two things term matching cannot do.** Form A hits the vocabulary wall (L34); form B is introduced here and term matching handles it *well*, which is the point. `under $150` is not a term at all (T1, L31, L32).
+*Act 2 ledger. Q1 (unmeasured property): exact match on form B, and cheap structured filtering, via the operational pipeline around the index rather than the index itself (C43 scope). Q2-Q4: deferred to acts 3 and 6.*
 
 ### Act 3 — The vector turn
 
-**7. One vector per document, and the objective that puts meaning in it.** The bi-encoder and why it factorizes (V1). Then the rung Gate 1 said was missing: the contrastive training objective, which is the mechanism that makes semantically related text land nearby. NEW MATRIX ROW REQUIRED. Then what it bought and what it cost (V2, V3, V4).
-**8. The ANN ladder, and HNSW.** Folded from two sections per Gate 1. Trees die above ~10 dimensions (L33); LSH, IVF, PQ (V5-V8); ScaNN's turn, that reconstruction error is the wrong loss for inner-product search (V9). Then HNSW: skip-list layers, the pruning heuristic that buys directional diversity, the three degree numbers kept apart, the authors' own concession about the hierarchy (V10-V19), and the flat-graph result that finishes it (V20-V23).
-**9. What a filter does to a graph.** Pre, post, inline (V31, V32). The failure shape. The honest mechanism, ACORN's expected degree and disconnection bound with the no-predicate-clustering assumption visible (V36, V36b, V36c), and the explicit retirement of the percolation framing (V37). Both repairs and where each loses (V33-V35, V38-V43).
-**10. Where the vector physically lives.** RAM, SSD, object storage; PQ, RaBitQ, binary plus rerank, Matryoshka (V24-V30). The rollback to centroids nobody frames as a rollback.
-**Act 3 ledger + practice.** Dense won the paraphrase and gave up exact match, cheap filtering and editability. Practice for 2026: do not select an embedding model on leaderboard rank; truncation to 256 dimensions is close to free and does not require Matryoshka training; quantization choice is bounded by metric geometry.
+**6. One vector per document, and the objective that puts meaning in it.** Form A works now. D1 supplies the mechanism run 1 said was missing; V1-V3 the architecture and gain; V4 the failure on form B.
+**7. Why not a tree, and what a graph does instead.** Trimmed hard per run 2: the high-dimensional failure of partitioning (L33), then HNSW itself (V10-V19), then the flat-graph qualification (V20-V23). The LSH/IVF/PQ/ScaNN catalog is cut; PQ and quantization move to section 9 where they are operationally relevant.
+**8. What a filter does to a graph.** Form A carries `under $150` into the index and breaks it. Taxonomy (V31, V32), the honest mechanism with its assumptions visible (V36, V36b, V36c), the retirement of the percolation model (V37), both repairs and where each loses (V33-V35, V38-V43).
+**9. Where the vector physically lives.** Now also carries compression: PQ (V6-V8), RaBitQ and binary plus rerank (V24, V25), Matryoshka (V26), then storage tiers (V27-V30). Claim scoped per run 2: moving to object storage changed the index family in this documented case, not that every storage move does.
+*Act 3 ledger. Q1: dense retrieval could not do form B or the price predicate. Q2: form A. Q3: it did not preserve them; the system kept the lexical branch alongside. Q4: deferred to act 6.*
 
 ### Act 4 — The reconvergence
 
-**11. Neural weights in an inverted index.** Learned sparse writes term weights into a Lucene index (R1-R4). The efficiency inversion: the classical half is what blows up (R5, R6). And doc2query's filtering result (R7). Fig 2's second panel belongs here, not in section 3.
-**12. Two lists, one order.** RRF's constant and its provenance (R8, R9). The reversal: the method sold as tuning-free is the parameter-sensitive one, and a plain convex combination at alpha=0.5 beats default RRF (R10, plus the 2026 replication). What shipped systems actually default to, and that two of them have already migrated away from RRF.
-**13. The interaction axis, and when a reranker earns its latency.** Bi-encoder, late interaction, cross-encoder as one axis of precomputability (R11-R17). Then the 2026 evidence that reranking is not free quality: it has a ceiling, and over a strong dense first stage it can be net negative. Close on BEIR, scoped to zero-shot (R18).
-**Act 4 ledger + practice.** Practice: hybrid remains the defensible default, but sell it as variance reduction across corpora rather than a large average gain; rerank when the first stage is lexical or weak, and measure before assuming it helps otherwise.
+**10. Neural weights in an inverted index.** Learned sparse (R1-R4), the efficiency inversion (R5, R6), doc2query filtering (R7). Both forms run: expansion helps A, and the index it writes into still handles B.
+**11. Two lists, one order.** Fusion (R8, R9), the reversal (R10), the 2026 replication (P2, described as an ablation reporting alpha=0.5 optimal on that benchmark, not as "untuned"). Both forms fused; name which retriever wins each.
+**12. The interaction axis, and when a reranker earns its latency.** R11-R17. Reranking claims scoped to what rows support; no general ceiling or net-negative claim without a row. Handoff run 2 asked for: every mechanism so far assumes the query and the candidate are text.
+*Act 4 ledger. Q1-Q2 answered; Q3 answered affirmatively, this is the act where the challenger did preserve the incumbent's machinery by writing into it (R2). Q4 deferred.*
 
 ### Act 5 — Searching with a picture
 
-**14. One space for pixels and words.** The contrastive objective across modalities (M1, M2), what it is blind to (M3, M4), and the correction at the right scope (M5, M6). The 2025 fix was not a better loss (M7).
-**15. Stop parsing the PDF.** ColPali (M8, M9), the harder benchmark that followed (M11, M12). The post's cleanest case of genuine replacement, of an ingestion pipeline.
-**16. One embedding, three jobs.** The keystone (M15): one embedding in ANN retrieval, in L1, and as an L2 feature. 256 dimensions, 300k QPS, and the cache absorbing all but ~500 of it (M16-M18). No model wins everywhere (M19, M20). This section IS the bridge to act 6: it ends with candidates that now need pruning, cross-features and business constraints.
-**Act 5 ledger + practice.** Practice: the embedding is a feature deployed at several layers, not the retrieval layer.
+**13. One space for pixels and words.** The photo arrives. Shared space (M1, M2), what it is blind to (M3, M4), the correction at scope (M5, M6), the 2025 fix (M7). The photo cannot express price, width or size, so the structured predicate survives the modality change.
+**14. The case where the pipeline really was replaced.** ColPali, scoped per run 2 to an evaluated architecture and benchmark result rather than a claimed production replacement (M8, M9, M11, M12).
+**15. And the case where it was absorbed instead.** The contrast run 2 asked for. One embedding in ANN retrieval, in L1, and as an L2 feature (M15-M18), no model winning everywhere (M19, M20). Ends holding candidates that need pruning, cross-features and business constraints, which is the bridge to act 6.
+*Act 5 ledger. Q3 answered twice, in opposite directions, on two different surfaces. That is the thesis in miniature, before the production evidence arrives.*
 
 ### Act 6 — The cascade
 
-**17. The funnel, and the system that refused to leave it.** Opens on C1-C4, absent from the previous outline and fatal to omit: ANN implemented as an operator inside the existing inverted index, explicitly to inherit real-time updates, query planning and Boolean constraint pruning. Then the funnel shape, with each number's domain named in the claim (C9-C11). And the invariant that motivates the act: an item filtered out earlier cannot be presented later (T2).
-**18. Why L1 is a dot product.** Two-tower factorization and its cost, stated by the team replacing it (C12-C15).
-**19. The stages disagree.** Attribution done right (C16), misalignment, and training the cascade as one network (C17, C18).
-**20. Why your offline number lied.** The deep evaluation section. Airbnb's online losses and the structural reason (C22-C26). Then the 2026 picture: LLM judges rank systems well in aggregate and agree with individual labels weakly; the correlation degrades among top systems and inverts under circularity. Carry the complication honestly, that one study found the human assessors were the unreliable party. Interleaving as a validated intermediate with a documented failure mode. And the honest gap: there is no verified published offline-to-online correlation coefficient.
-**Act 6 ledger + practice.** Practice: keep the judge's model family disjoint from the ranker's; hand-label the final bake-off; treat offline metrics as a regression filter.
+**16. The funnel, and the system that refused to leave it.** Opens on C1-C4: ANN implemented as an operator inside the existing inverted index, explicitly to inherit real-time updates and query planning (§4.2, corrected). The funnel with every number's domain in the claim (C9-C11), and the invariant (T2). Form A and form B run the funnel; name their candidates and where each is lost.
+**17. Why L1 is a dot product.** C12-C15, with the advertising and recommendation domains named in the prose.
+**18. The stages disagree.** C16-C18.
+**19. Why your offline number lied.** Airbnb (C22-C26, §2.4 corrected). Then the 2026 evaluation picture: E1-E4 with E2 and E3 narrated as the two separate analyses they are, E7 as the counter-evidence that single-assessor human ground truth has its own problem, E5 and E6 on interleaving and the absence of an offline-to-online coefficient.
+*Act 6 ledger. Q4 answered: the incumbent stayed, and the challenger was built inside it.*
 
-### Act 7 — What to build, and what nobody measured
+### Act 7 — Two surfaces, two answers
 
-**21. The defensible default in August 2026.** One consolidated recommendation, every clause traceable to an act above.
-**22. The folk numbers.** The most useful section in the post for a working engineer. No controlled study exists for 512-token chunks, 10% overlap, k=60, top-k=5, or MMR in a RAG pipeline. The ones that have been tested were mostly falsified: overlap provides no measurable benefit; hierarchical pipelines lose at matched token budgets; retrieval score is not a usable confidence threshold. Where the evidence is genuinely thin, say so, including that no primary source measures parser quality as an isolated variable.
-**23. Two deployments, one year, opposite answers.** The paired Kuaishou cases in full, moved here from the coda per Gate 1: out-of-mall search, where editability gated replacement and the successor had to rebuild it to 0.553 against 0.761 in an 11-day A/B at 8.2% traffic (C43, C44); and detail-page search, where a system with essentially no intervention capability took the entire traffic (C45, C46). Editability was decisive in one place and irrelevant in the other, and it never lived in the index anyway.
+**20. What the controlled studies actually tested.** Replaces the deleted folklore section. No universal absence claims, which run 2 correctly called argument from ignorance and which P9 got wrong outright. Instead: here is what has been tested and under exactly what conditions. Overlap on Natural Questions with SPLADE and no reranker (P4). Chunking baselines and why two studies appear to disagree (P10-P12). Contextual retrieval with its no-chunking caveat (P3). Calibration (P6). Parser choice, which HAS been studied (P9). Fusion (P2). Late chunking's thin independent evidence (P13). Sample sizing, still an open absence with a named next target (P14). Ends with the defensible 2026 default, every clause traceable upward.
+**21. The surface where editability decided it.** OneRetrieval in full: below-average conversion, the property nobody was measuring, the rebuild to 0.553 against 0.761, the 11-day A/B at 8.2% absolute traffic (C43, C44).
+**22. The surface where it did not.** OneSearch in full: entire detail-page traffic, 50% of mall, 20% of homepage, with essentially no intervention capability (C45, C46). Then the direct comparison, which is the argument.
 
 ### Coda
 
-**24. The test.** Two or three paragraphs. State the falsification condition, name the out-of-scope case in one sentence (C41, C42), end on something small and concrete. The coda concludes the model; it does not introduce it.
+**23. The test.** Two or three paragraphs. The falsification condition. The out-of-scope case in one sentence (C41, C42). End small and concrete.
 
-### Throughline discipline
+### Deletion-test status
 
-Gate 1 found the query died after act 3 and that its claimed exact-match trap was fictional, since the query contains no brand or SKU. Both fixed:
-
-- **The query gains a second form.** Act 2 introduces the reformulation a real user types next: a specific model name and code. That is where exact match becomes load-bearing, and it is honest, because the original phrasing never asked for one.
-- **Act 4** runs both forms through learned sparse, fusion and a reranker, and names which form each helps.
-- **Act 5** states precisely what the photo replaces and what it cannot: an image cannot express `under $150`, so the structured predicate survives the modality change. That is the section's point, not a decoration.
-- **Act 6** runs the query down the real funnel before any advertising numbers appear.
-- **Act 7** resolves it: what the reader would actually build to serve this query, and what about it nobody has measured.
+Run 2 failed 8 of 23. Repairs: the metrics primer folded into section 1 and first-use; section 4 given the explicit "fixed cost, not meaning" handoff that section 5 depends on; storage and filtering reordered so compression feeds the filtering discussion; the interaction-axis section given the text-only handoff act 5 depends on; ColPali and unified embeddings turned into a matched pair where each needs the other; the standalone recommendation folded into section 20; the folklore section deleted and its slot given to a second production case.
 
 ### Figure table
 
-13 figures, all `static-svg`. Both formerly-interactive figures were re-typed at Gate 1 with Vic's approval (unlock-count 1 each); neither's intuition depended on the reader moving a control.
+13 figures, all `static-svg`. `AnnLadder` cut per run 2 (act 3 was carrying five of thirteen figures for four of 23 sections). `SharedSpaceBlindSpot` restored to act 5, which run 2 correctly noticed had been left with no figure at all. The Fig 11 naming conflict between the two tables is resolved.
 
-| # | Figure | Type | Section | Mechanism | Reader notices | unlock-count |
-|---|---|---|---|---|---|---|
-| 1 | ScanCost | static-svg | 1 | Documents fully scored, and separately latency, for exhaustive OR against WAND and block-max on GOV2, dated | The document-count gap is ~174x; the latency gap is ~8x. Two different axes, not one | 0 |
-| 2 | PostingList | static-svg | 3 | Term to posting list, docID plus frequency, decompressible blocks. SINGLE panel; the learned-weights panel moves to Fig 11 per Gate 1 | The structure is simple and the cost is in list length | 0 |
-| 3 | Bm25Dials | static-svg (re-typed at Gate 1) | 4 | Small multiples: three k1 saturation curves, three b length-normalization states | Saturation bounds any one term's contribution; b=0 turns length off entirely | 0 |
-| 4 | BlockMaxSkip | static-svg | 5 | A posting list with list-level and block-level maxima against a running threshold | A loose bound skips little, a tight bound skips most of the list | 0 |
-| 5 | DenseVsLexical | static-svg | 7 | The two query forms against two documents, scored lexically and densely, one where each wins | Paraphrase and exact match are different failures, not two ends of one axis | 0 |
-| 6 | AnnLadder | static-svg | 8 | The lineage as rungs, each labelled with the assumption it broke. Only rungs with matrix rows appear | Each index fixed one specific wrong assumption | 0 |
-| 7 | HnswAnatomy | static-svg | 8 | Explicit panels: skip-list layers; the pruning heuristic choosing diverse directions; the three degree numbers side by side | The heuristic does more work than the hierarchy on real high-dimensional data, per the authors' own scoped claim | 0 |
-| 8 | FilteredDegreeCollapse | static-svg (re-typed at Gate 1) | 9 | Three panels: expected surviving degree against the M threshold; a random-filter topology; a correlated-filter topology. Assumption printed on the figure | Recall collapses while latency stays flat, and a correlated filter does not behave like random removal | 0 |
-| 9 | VectorResidence | static-svg | 10 | One vector across compression formats, and separately across storage tiers. Split axes per Gate 1; no single latency cliff claimed | Moving down the storage hierarchy changes the index family, not just the latency | 0 |
-| 10 | InteractionAxis | static-svg | 13 | Bi-encoder, late interaction, cross-encoder, with what each can precompute | Precomputability and expressiveness trade directly against each other | 0 |
-| 11 | LearnedPostings | static-svg | 11 | The Fig 2 posting list, now holding learned term weights, side by side with the BM25 version | The index did not change; what was written into it did | 0 |
-| 12 | CascadeBudget | static-svg | 17 | The funnel. Only boxes with sourced numbers carry numbers, and each is labelled with its domain | The per-candidate budget is microseconds, which is the constraint L1 was designed around | 0 |
-| 13 | OfflineOnlineGap | static-svg | 20 | Airbnb's online booking losses against what offline reported, drawing only what the rows support, plus the log-replay blindness | An offline harness cannot see documents it never showed | 0 |
+| # | Figure | Type | Section | Mechanism | Reader notices |
+|---|---|---|---|---|---|
+| 1 | ScanCost | static-svg | 1 | Documents fully scored, and separately latency, on GOV2, dated | The two ratios differ: ~174x work, ~8x time |
+| 2 | PostingList | static-svg | 2 | Term to posting list, docID plus frequency, decompressible blocks | The cost is in list length |
+| 3 | Bm25Dials | static-svg | 3 | Small multiples: three k1 curves, three b states | Saturation bounds any one term; b=0 turns length off |
+| 4 | BlockMaxSkip | static-svg | 4 | List-level and block-level maxima against a running threshold | A tighter bound skips more of the list |
+| 5 | DenseVsLexical | static-svg | 6 | Form A and form B against two documents, showing WHICH TERMS MATCH and which do not. Qualitative match structure only; no invented scores | Paraphrase and exact match are different failures |
+| 6 | HnswAnatomy | static-svg | 7 | Panels: skip-list layers; the pruning heuristic's diverse directions; the three degree numbers | The heuristic does more work than the hierarchy on real high-dimensional data, at the authors' own scope |
+| 7 | FilteredDegreeCollapse | static-svg | 8 | Expected surviving degree against M; a random-filter topology; a correlated-filter topology. Assumption printed on the figure. Recall claims scoped to the measured cases | A correlated filter does not behave like random removal |
+| 8 | VectorResidence | static-svg | 9 | Compression formats on one axis, storage tiers on the other | In this documented case, moving to object storage changed the index family |
+| 9 | LearnedPostings | static-svg | 10 | The Fig 2 posting list holding learned term weights, beside the BM25 version | The index did not change; what was written into it did |
+| 10 | InteractionAxis | static-svg | 12 | Bi-encoder, late interaction, cross-encoder, and what each precomputes | Precomputability and expressiveness trade directly |
+| 11 | SharedSpaceBlindSpot | static-svg | 13 | Two images and two captions with identical words in different order, in one space. Shows the measured failure, not an asserted internal mechanism | The measured failure is on order and binding |
+| 12 | CascadeBudget | static-svg | 16 | The funnel. Only sourced boxes carry numbers, each labelled with its domain. NO causal claim that the amortized quotient explains L1's design | Stage budgets are tight enough to constrain model choice |
+| 13 | OfflineOnlineGap | static-svg | 19 | Airbnb's online losses against what offline reported, drawing only what rows support | An offline harness cannot see documents it never showed |
 
-### New matrix rows: status
+### Claims that need a row before they may be written
 
-**DONE (D1, E1-E6, P1-P9, all verified by direct fetch):** the contrastive objective rung; LLM-judge per-item vs system-level agreement; top-of-leaderboard degradation; the circularity inversion; TREC's independent agreement figure; interleaving; the absence of any offline-to-online coefficient; the BRIGHT collapse; the fusion replication; contextual retrieval with its no-chunking caveat; the overlap falsification; sentence chunking and the context cliff; the calibration falsification; LLM-bi-encoder latency; the table-representation failure mode; and the absence of parser-quality evidence.
+Run 2 listed twelve. Each is either dropped or must be sourced during drafting; none may be asserted as written:
 
-**ALL FOUR PENDING ITEMS NOW CLOSED (E7, P10-P14), each by direct fetch:**
-
-1. The human-disagreement counter-evidence is verified (E7). Section 20 carries it so the LLM judge is not presented as uniquely unreliable.
-2. The chunking baseline-definition resolution is verified on both sides (P10), along with the LLM-judge ground truth in the larger study (P11) and the synthetic-corpus limitation in the smaller one (P12).
-3. Statistical power stays an explicit absence (P14). The post makes no sample-size claim. Sakai 2016 is the target if section 20 later wants one.
-4. Late chunking exists and is described accurately (P13). The post states the claim and the thinness of independent evidence rather than asserting a gain.
-
-**Nothing from the Gate 1 restructure is pending.** D1, E1-E7 and P1-P14 were each fetched directly by the author.
-
-**BUT: the original Phase 2 rows (L, V, R, M, C prefixes) were built by research agents and relayed.** Two agent passes in this project produced fabricated quotes, and one produced a false retraction of correct ones. The Phase 2 rows have been through three Gate 0 passes, which is real adversarial coverage, but codex verifies a sample rather than every row. A keystone-verification sweep is therefore run directly by the author over the rows the thesis actually rests on; see `### Keystone verification` below.
+metric divergence definitions (section 2, now folded); IVF as a historical rung (dropped with Fig 6); "nobody frames it as a rollback" (drop the prevalence claim); 256-dimension truncation being close to free (drop or source; V26 and M16 do not support it); quantization bounded by metric geometry (drop or source; V9 is narrower); two systems migrating off RRF (drop or source); reranking having a ceiling or being net-negative over a strong dense stage (drop or source); hybrid as variance reduction (drop or source); ColPali as production replacement (already rescoped in section 14); flat latency under filtering (scope to measured cases); the per-candidate quotient explaining L1's design (drop the causal clause, C11 forbids it).
 
 ## Codex research review
 
@@ -1099,7 +1087,7 @@ Last touched: 2026-08-24.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done; Gate 0 closed at cap after 3 runs, all findings applied | `## Research notes`, matrix (~161 rows), `## Codex research review` |
-| 3. Outline + figure list | restructured after Gate 1; new matrix rows + Gate 1 re-run pending | `## Outline` |
+| 3. Outline + figure list | restructured twice; Gate 1 run 3 pending (last under cap) | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/search-retrieval-stack/index.mdx` |
 | 5. Implement figures | 0 of 13 | per-figure table below |
 | 6. Playwright review | 0 of 13 | playwright snapshots reviewed |
@@ -1112,9 +1100,10 @@ Last touched: 2026-08-24.
 | 2026-08-24 | 0 (research) | HALT, 9 structural findings, all applied | `notes/search-retrieval-stack-codex-research-20260824.md` |
 | 2026-08-24 | 0 (research, run 2) | HALT, 10 structural findings, all applied; thesis revised to v3 | `notes/search-retrieval-stack-codex-research-run2-20260824.md` |
 | 2026-08-24 | 0 (research, run 3) | HALT at cap, 4 structural findings, all applied; thesis revised to v4; Vic accepted at cap | `notes/search-retrieval-stack-codex-research-run3-20260824.md` |
-| 2026-08-24 | 1 (outline) | HALT, 12 findings incl. 2 TYPE-CHANGE; both re-types approved by Vic; full outline restructure pending | `notes/search-retrieval-stack-codex-outline-20260824.md` |
+| 2026-08-24 | 1 (outline) | HALT, 12 findings incl. 2 TYPE-CHANGE; both re-types approved; outline restructured | `notes/search-retrieval-stack-codex-outline-20260824.md` |
+| 2026-08-24 | 1 (outline, run 2) | HALT, 8 findings, all applied; P9 was a false negative and is corrected; outline restructured again; run 3 is the last under the cap | `notes/search-retrieval-stack-codex-outline-run2-20260824.md` |
 
-### Phase 5 figure progress (populate at end of phase 3)
+### Phase 5 figure progress
 
 | # | Figure | Type | Status | Commit |
 |---|---|---|---|---|
@@ -1123,28 +1112,14 @@ Last touched: 2026-08-24.
 | 3 | Bm25Dials | static-svg | TODO | |
 | 4 | BlockMaxSkip | static-svg | TODO | |
 | 5 | DenseVsLexical | static-svg | TODO | |
-| 6 | AnnLadder | static-svg | TODO | |
-| 7 | HnswAnatomy | static-svg | TODO | |
-| 8 | FilteredDegreeCollapse | static-svg | TODO | |
-| 9 | VectorResidence | static-svg | TODO | |
+| 6 | HnswAnatomy | static-svg | TODO | |
+| 7 | FilteredDegreeCollapse | static-svg | TODO | |
+| 8 | VectorResidence | static-svg | TODO | |
+| 9 | LearnedPostings | static-svg | TODO | |
 | 10 | InteractionAxis | static-svg | TODO | |
 | 11 | SharedSpaceBlindSpot | static-svg | TODO | |
 | 12 | CascadeBudget | static-svg | TODO | |
 | 13 | OfflineOnlineGap | static-svg | TODO | |
-
-### Open work from Gate 1 (must clear before drafting)
-
-Full findings in `notes/search-retrieval-stack-codex-outline-20260824.md`. The restructure is being done in one pass together with the August-2026 best-practice material Vic asked for.
-
-1. **Thread the thesis through every act.** The outline argues in section 1 and section 22 and organizes by model family in between. Fix: every act answers the same four questions (what did the incumbent do that no benchmark measured; what did the challenger win on; did it preserve the property; what happened in production). Pull C1-C4 into the post, currently absent entirely, which is fatal for this thesis.
-2. **Act 3 is 5 of 22 sections, not the claimed 11%.** Fold or cut. Move the space to the operational thread and the paired Kuaishou cases.
-3. **Throughline dies after act 3** and the coda introduces a new scenario instead of resolving the query. Also: the query contains no brand and no SKU, so the claimed exact-match trap is fictional. Either name a reformulation that contains one, or drop that property.
-4. **Add the missing rung between vocabulary mismatch and dense retrieval:** the contrastive training objective. Needs a new matrix row.
-5. **Build the act 5 to act 6 bridge** out of M15, which already places one embedding at three stages.
-6. **~19 outline claims overstate their rows.** Full table in the findings file. Fix each at rewrite.
-7. **Fig 2's second panel forward-references section 11** and spends the payoff before the mechanism exists. Split it.
-8. **Seven figures overclaim or combine incompatible jobs** (1, 6, 7, 9, 11, 12, 13). Narrow each to what its rows support.
-9. **The coda cannot carry nine things in 1,000 words.** Move the paired Kuaishou cases into act 6; leave the coda the falsification test only.
 
 ### Suggested next batch
 
