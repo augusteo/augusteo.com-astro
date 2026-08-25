@@ -472,3 +472,59 @@ So where does that leave our shopper? The outsole photo has produced a candidate
 That is what the next act is for.
 
 {/* Reader can now: stop thinking of the embedding as the retrieval layer, and read a production QPS figure with the cache in mind */}
+
+## Act 6 — The cascade
+
+### 16. The funnel, and the system that refused to leave it
+
+In 2020, Facebook's search team had the problem this post has been building toward. Their search was "still mainly based on a Boolean matching model", they wanted embedding-based retrieval, and they had to put it somewhere.
+
+The obvious move in 2020, and the obvious move today, is to stand up a vector database beside the existing index and query both. They didn't. They [put the vectors inside the inverted index](https://arxiv.org/abs/2006.11632), and their stated reason is the thesis of this post arriving four acts early:
+
+> "By implementing NN support in terms of pre-existing primitives, instead of writing a separate system, we inherited all the features of the existing system, such as realtime updates, efficient query planning and execution, and support for multi-hop queries."
+
+Read the list of what they were unwilling to give up. Not relevance. Not recall. Real-time updates, query planning, and the ability to combine a nearest-neighbour condition with other conditions. None of those appear in any retrieval benchmark. All of them are the difference between a technique and a system you can operate.
+
+The mechanism is worth seeing, because it is more literal than "hybrid search" suggests. They added an operator to the query language, `(nn <key> :radius <radius>)`. At indexing time "each document embedding is quantized and turned into a term (for its coarse cluster) and a payload (for the quantized residual)", and at query time the operator "is internally rewritten into an (or) of the terms associated to the coarse clusters closest to the query embedding". An approximate nearest-neighbour search, expressed as a disjunction of posting-list lookups.
+
+They also chose a radius condition over top-K, and the reason is the one section 8 spent itself on: "radius mode enables a constrained NN search (constrained by other parts of the matching expression) but top K mode provides a more relaxed operation which needs to scan the whole index to get top K results." Because the vector condition is a term in a Boolean expression, the other clauses can prune it. Our `under $150` gets to constrain the vector search rather than filtering its output. The problem that broke the standalone graph in section 8 is substantially less bad when the vector index lives inside a query planner that already knew how to combine conditions.
+
+So: the retrieval stage is not one thing. It is several sources, feeding a common pool.
+
+{/* TODO: Fig 12: CascadeBudget. The funnel. Only sourced boxes carry numbers, each labelled with its domain. */}
+
+And then everything downstream has to be paid for. Alibaba published the numbers for their display advertising system, which is adjacent to search rather than search itself, and the shape transfers even where the exact figures shouldn't be borrowed. In [that system](https://arxiv.org/abs/2007.16122), "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand" and it "selects top N candidates", where "The magnitude of N is usually several hundred". The budget: "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds."
+
+Ten thousand candidates. Ten to twenty milliseconds. Amortized, that is one to two microseconds per candidate, and I want to be precise about what that arithmetic is: it is a budget divided by a count, across work that is vectorized and parallelized. It is not a per-candidate time slice that some function gets to spend. But as a sense of scale it explains a great deal about what kind of model can sit at that stage.
+
+There is one more property of a funnel, and it is the reason this act exists at all. From the team that later tried to replace theirs: "If an effective item that aligns with the user's true intent is filtered out in an earlier stage, no matter how precise the subsequent models are, they cannot present this item to user."
+
+That is the constraint everything else in this act negotiates with. A ranker cannot rank what retrieval didn't return. Recall lost at the front is lost for good, and no amount of downstream cleverness recovers it. Which means the interesting failures in a search system are usually not where people look for them.
+
+{/* Reader can now: draw the stack, attribute a failure to a stage, and see why a vector index inside a query planner behaves differently from one beside it */}
+
+### 17. Why L1 is a dot product, and what that costs
+
+Section 16 left a stage that has to score roughly ten thousand candidates in roughly ten milliseconds. That budget dictates the model, and the model has a specific and consequential weakness.
+
+The answer everyone reaches for is the two-tower model, and it works for one structural reason: it factorizes. Google's description of the inference path is two steps, "computing query embedding" and then "performing nearest neighbor search over a set of item embeddings that are pre-computed", closed by "approximate maximum inner product search". The item tower runs offline over your whole catalog. The query tower runs once per request. Serving is a dot product against an index you built yesterday.
+
+That is the same trick as the bi-encoder in section 6, and it is the same trick as an inverted index: get the expensive part done before the query arrives.
+
+Training it has a subtlety worth knowing, because it bites people. If your negatives are the other items in the batch, popular items appear as negatives far more often than rare ones, and the model learns to push down exactly the things users engage with most. Google's fix estimates item frequency from the stream, because "in-batch loss is subject to sampling biases, potentially hurting model performance, particularly in the case of highly skewed distribution."
+
+Now the cost, stated most clearly by a team that was in the process of replacing their own two-tower pre-ranker. Alibaba, in that same advertising paper:
+
+> "The model expression ability is limited by the vector-product form, and can not utilize the user-ad cross features."
+
+That sentence is the reason rerankers exist.
+
+A dot product between two independently computed vectors can never express a fact about the pair. It cannot learn that *this* user buys wide fittings, or that *this* query plus *this* brand converts unusually well, because by the time the two vectors meet, each was computed without knowledge of the other. Everything interesting about the interaction was discarded before the comparison.
+
+That is the interaction axis from section 12, showing up as a serving constraint rather than a modelling choice. Precomputation is what makes the stage affordable, and precomputation is exactly what forbids interaction. You cannot fix it by making the towers bigger.
+
+So you build a second stage that sees fewer candidates and is allowed to look at them properly. Alibaba's replacement, which spent its budget on a model with cross features rather than on a bigger tower, reported "6.1% CTR and 6.5% RPM" improvement, rising to "9.1% CTR and 10.8% RPM" during a peak sales event, which is exactly when the precomputed representations were most stale.
+
+The cascade is not an architectural preference. It falls out of the fact that the only affordable way to score ten thousand things forbids the thing you most want to model.
+
+{/* Reader can now: explain why a reranker must exist, from the serving constraint rather than from model quality */}
