@@ -94,3 +94,57 @@ You may have heard that BM25 is not one algorithm, that implementations differ, 
 What does differ is more boring and more actionable. Lucene compresses document length into a single byte so it can precompute the normalization term for all 256 possible values. And Anserini, the research toolkit built on Lucene, ships `k1 = 0.9, b = 0.4` where Lucene itself ships `1.2` and `0.75`. Same algorithm, same library underneath, different numbers out. If your BM25 doesn't match a published BM25, look there before you go looking at the formula.
 
 {/* Reader can now: set k1 and b with a reason, and stop blaming variant choice for mismatched numbers */}
+
+### 4. Pruning fixed the cost, and could not fix the meaning
+
+Section 2 left you with a problem. The posting list for a common term runs to millions of entries, and scoring all of them is the thing we're trying to avoid.
+
+The fix is older than most of the machine learning in this post, and it is the same fix that the last act of this post is about.
+
+You keep a running threshold: the score of the tenth-best document you've seen so far. You also keep, for each posting list, the largest score any single document could possibly get from that term. Add up those maxima for the lists you're considering, and if the total can't reach your threshold, you don't need to look. You skip. [Broder and colleagues](https://research.ibm.com/publications/efficient-query-evaluation-using-a-two-level-retrieval-process) built this in 2003 and reported that it "significantly reduces the total number of full evaluations by more than 90%, almost without any loss in precision or recall."
+
+That is a cheap approximate pass in front of an expensive exact one. Hold onto that shape. It is the entire architecture of act 6, arriving twenty years early and with no neural networks in it.
+
+Block-max sharpened it. Ding and Suel noticed why the original leaves value on the table: "skipping in WAND is limited because it uses the maximum impact scores over the entire lists, which can be much larger than average." One outlier document at the far end of a list poisons the bound for the whole list. So they stored a maximum per block instead of per list, using the block structure from section 2, and the bound got tight enough to skip most of the postings rather than some of them.
+
+{/* TODO: Fig 4: BlockMaxSkip. List-level and block-level maxima against a running threshold; which blocks get skipped. */}
+
+The numbers from section 1 are these two techniques. Exhaustive scoring fully evaluated 3,815,676 documents per query. WAND cut that to 178,391. Block-max cut it to 21,921, which is 0.57% of what the exhaustive pass touched.
+
+So by 2011, before dense retrieval existed as a practical thing, lexical search could rank a 25-million-document corpus in under 30 milliseconds and could tell you exactly which documents it had skipped and why.
+
+And it still could not find a boot described as having a roomy forefoot when the query said `wide toe box`.
+
+That is the point of this section. Dynamic pruning is one of the genuinely good ideas in information retrieval, and it made term matching affordable at a scale nobody had managed before. It did not move the semantic limit by a single inch, because it was never about meaning. Every document WAND skips is a document that didn't contain your words. If the right answer never contained your words, no amount of pruning will find it.
+
+{/* Reader can now: recognize the cheap-pass-then-expensive-pass shape twenty years before the cascade, and see that speed work and meaning work are orthogonal */}
+
+### 5. The two things term matching cannot do
+
+Our query has three parts, and the machine we have built handles exactly one of them well.
+
+`waterproof` and `hiking` it handles. Those are words, they're reasonably rare, and documents about waterproof hiking boots contain them.
+
+`wide toe box` is where it fails, and the failure has a name and a measurement. In 1987, Furnas, Landauer, Gomez and Dumais ran a study on how people spontaneously name things, across five different application domains, and found: "In every case two people favored the same term with probability <0.20." Their per-domain numbers run from .07 to .18. Two people describing the same thing pick the same word less than one time in five.
+
+Read that number carefully, because it is easy to over-claim. It is about spontaneous naming across five domains in 1987, not about modern search queries. But the shape of the problem is exactly the one our query has. A boot listing that says `roomy forefoot`, or `generous last`, or `available in wide`, is describing the thing the user asked for, in words the user did not use. An inverted index will never retrieve it, and no amount of tuning `k1` will change that, because the document is not on the posting list.
+
+You can attack it from the document side. Add fields, and weight them, which is what BM25F does. The mechanism is worth one paragraph because people get it wrong: you do not score each field separately and add up the scores. You pool the weighted term frequency across fields first, apply saturation once to the total, and only then combine across terms. Scoring fields separately assumes that being about boots in the title is a different property from being about boots in the body, which the authors call "a little unreasonable."
+
+That helps. Titles and product attributes are exactly where `wide` lives in a well-structured catalog.
+
+It does not help with `under $150`.
+
+That clause is not a term. There is no posting list for it. `$150` appears in the query, `$149.99` appears in the document, and they share no token. You can hack around it by bucketing prices into tokens, and people did, and it is miserable. The honest description is that this is a different kind of question wearing the same clothes: a constraint over a numeric attribute, not a request for text similarity, and the fact that it arrived in the same input box is an accident of user interface.
+
+So we have two failures, and they are not the same failure. One is about meaning: the right document exists and uses different words. The other is about structure: the right document is identifiable exactly, and the mechanism for finding it isn't a text match at all.
+
+Almost everything in the next four acts is a response to the first one. The second turns out to be harder to keep hold of, and it is the one that breaks things later.
+
+One more thing before we leave. Let's say the first result set disappoints, and our user does what users actually do: gets specific.
+
+`Salomon Quest 4 GTX wide 10.5`
+
+Term matching is superb at this. Every token is rare, the brand and model are nearly unique, and the posting lists are short. This query is the best case for an inverted index and it will stay the best case for the rest of the post. Remember it. In act 3 we will build something that handles the first query beautifully and this one noticeably worse.
+
+{/* Reader can now: name the two distinct failures, meaning and structure, and hold a second query form where lexical is strongest */}
