@@ -68,7 +68,7 @@ So every index ever built answers one question: how do you avoid comparing the q
 
 Here is the part that took me a while to see.
 
-The thing each generation gives up is almost never the thing its benchmark measures.
+In the cases I found, the thing each generation gave up was not the thing its benchmark measured.
 
 An inverted index is not only a fast way to match text. It also sits inside an operational pipeline where someone can inject a term at two in the afternoon and have it take effect by three, without retraining anything. That capability does not appear in nDCG. It does not appear in recall@100. It does not appear in any leaderboard. And in at least one documented production system, it is the reason the inverted index outlived a model that beat it on the metrics anyone had bothered to run.
 
@@ -211,13 +211,13 @@ The second idea is that longer documents need handicapping, but not fully, and t
 
 So you get a dial instead of a decision. "setting b = 1 will perform full document-length normalisation, while b = 0 will switch normalisation off."
 
-Now the part people find unsatisfying. The model does not tell you what to set either dial to. "Concerning the internal parameters, the model provides no guidance on how these should be set. This may be regarded as a limitation of the model." Thirty years of empirical work has landed on roughly `0.5 < b < 0.8` and `1.2 < k1 < 2`, with the honest caveat that the optimum depends on your documents and your queries.
+Now the unsatisfying part. The model does not tell you what to set either dial to. "Concerning the internal parameters, the model provides no guidance on how these should be set. This may be regarded as a limitation of the model." Thirty years of empirical work has landed on roughly `0.5 < b < 0.8` and `1.2 < k1 < 2`, with the honest caveat that the optimum depends on your documents and your queries.
 
 Here's the thing I expected to matter and doesn't.
 
 You may have heard that BM25 is not one algorithm, that implementations differ, and that this is why your numbers never match the paper's. The first half is true. Kamphuis and colleagues took eight variants and tested them properly, and the answer to their own title question is in their conclusion: "no, it does not". Their measurement: "Both an ANOVA and Tukey's HSD show no significant differences between any variant, on all test collections." Differences from something as mundane as your stopword list are larger.
 
-What does differ is more boring and more actionable. Lucene compresses document length into a single byte so it can precompute the normalization term for all 256 possible values. And Anserini, the research toolkit built on Lucene, ships `k1 = 0.9, b = 0.4` where Lucene itself ships `1.2` and `0.75`. Same algorithm, same library underneath, different numbers out. If your BM25 doesn't match a published BM25, look there before you go looking at the formula.
+What does differ is more boring and more actionable. When Kamphuis and colleagues looked at implementations in 2020, Lucene compressed document length into a single byte so it could precompute the normalization term for all 256 possible values, and Anserini, the research toolkit built on Lucene, shipped `k1 = 0.9, b = 0.4` where Lucene itself shipped `1.2` and `0.75`. Lucene and Elasticsearch still document those defaults today; I have not re-checked Anserini's. Same algorithm, same library underneath, different numbers out. If your BM25 doesn't match a published BM25, look there before you go looking at the formula.
 
 {/* Reader can now: set k1 and b with a reason, and stop blaming variant choice for mismatched numbers */}
 
@@ -408,7 +408,7 @@ Ten dimensions. We have 768.
 
 What works instead is a graph you walk. Link each vector to some of its neighbours, start somewhere, and repeatedly step to whichever neighbour is closer to the query until none of them is. You are not pruning a search space. You are navigating one.
 
-[HNSW](https://arxiv.org/abs/1603.09320) is the version everyone runs, and it has two ideas, only one of which is the one it's famous for.
+[HNSW](https://arxiv.org/abs/1603.09320) is the one you have probably deployed, and it has two ideas, only one of which is the one it is famous for.
 
 The famous one is the layers. Higher layers hold a shrinking sample of the points, so you enter at the top, take huge steps across a nearly empty graph, drop down, refine, and drop again. It is a skip list generalized to a metric space, and the paper says so in as many words: the layer-assignment parameter is `1/ln(M)`, and "this corresponds to the skip list parameter p=1/M".
 
@@ -464,7 +464,7 @@ The other idea is the one that does more work, and it's in how neighbours get ch
 
 Which of the two matters more? The authors answer this themselves, about real data, and it is not the answer their algorithm's name suggests: on SIFT vectors, "the performance improvement by increasing the mL is higher, but less prominent at current settings compared to improvement from the heuristic."
 
-In 2024 someone finished that sentence. Munyampirwa, Lakshman and Coleman [removed the hierarchy entirely](https://arxiv.org/abs/2412.01940) and found "a flat navigable small world graph graph retains all of the benefits of HNSW on high-dimensional datasets, with latency and recall performance essentially identical to the original algorithm but with less memory overhead", saving roughly 38% and 39% of peak construction memory on two Big-ANN datasets. Their explanation is that hub nodes emerge naturally and do the long-range routing the layers were credited with. They are also honest that they don't fully know why: "Perhaps most importantly, we still have no satisfactory understanding of why hierarchy does not help."
+Munyampirwa, Lakshman and Coleman finished that sentence, in a preprint first posted in December 2024 and revised through July 2025. They [removed the hierarchy entirely](https://arxiv.org/abs/2412.01940) and found "a flat navigable small world graph graph retains all of the benefits of HNSW on high-dimensional datasets, with latency and recall performance essentially identical to the original algorithm but with less memory overhead", saving roughly 38% and 39% of peak construction memory on two Big-ANN datasets. Their explanation is that hub nodes emerge naturally and do the long-range routing the layers were credited with. They are also honest that they don't fully know why: "Perhaps most importantly, we still have no satisfactory understanding of why hierarchy does not help."
 
 Now the numbers, because three different ones get quoted interchangeably and they are not the same number.
 
@@ -637,7 +637,7 @@ Now the tier. RAM is the default and the reason vector search has a reputation f
 
 turbopuffer runs vector indexes on object storage, and publishes what that costs: "The first query to a namespace reads object storage directly and is slow (p50=874ms for 1M documents), but subsequent, cached queries to that node are faster (p50=14ms for 1M documents)." Sixty-fold, cold to warm, and the cold path is what it is because "each roundtrip to object storage takes ~100ms."
 
-Here is the part nobody frames as what it is. They are not running a graph. Their index is "based on SPFresh", a centroid-based design, and the stated reason is that a centroid index "works well for object storage as it minimizes roundtrips and write-amplification, compared to graph-based indexes like HNSW or DiskANN."
+And here is the part worth sitting with. They are not running a graph. Their index is "based on SPFresh", a centroid-based design, and the stated reason is that a centroid index "works well for object storage as it minimizes roundtrips and write-amplification, compared to graph-based indexes like HNSW or DiskANN."
 
 Graph traversal is a sequence of dependent lookups: you cannot know your third hop until you've made your second. That is fine at RAM latency and fatal at 100ms per roundtrip. So moving the index to object storage did not just change where the bytes live. In this case it changed the family of index that makes sense, back toward the centroid approach that graphs had displaced. Not a universal law about storage tiers, but a documented case where the tier chose the algorithm.
 
@@ -885,11 +885,11 @@ How much does that cost? Enough that it is the dominant failure mode in at least
 
 That is an LLM-produced categorization of a 100-item sample, so treat the exact 73% as directional. The direction is unambiguous, and if you have ever watched a retriever fail to connect `net income in 2019` to a table where `net income` and `2019` sit in different cells, you already knew.
 
-This part of the stack does get studied, incidentally. I nearly wrote in an earlier draft that nobody had measured parser choice as an isolated variable, and that was simply wrong: a 2026 paper [systematically examines it](https://arxiv.org/abs/2604.12047), stating that "We systematically examine multiple PDF parsers and chunking strategies (with varied overlap), along with their potential synergies in preserving document structure and ensuring answer correctness."
+If you are wondering whether the choice of parser is worth measuring rather than guessing at, a 2026 paper does exactly that, reporting that "We systematically examine multiple PDF parsers and chunking strategies (with varied overlap), along with their potential synergies in preserving document structure and ensuring answer correctness." That is [El Bachyr and colleagues](https://arxiv.org/abs/2604.12047), on two financial-document benchmarks.
 
 The more radical answer is to stop parsing. [ColPali](https://arxiv.org/abs/2407.01449) embeds the page as an image and retrieves it with late interaction over patch embeddings, and it is the section 13 move applied to documents: treat the artifact as a picture rather than as extracted text, and you keep everything the layout was encoding.
 
-On the ViDoRe benchmark it scores 81.3 average nDCG@5 against 67.0 for the strongest text pipeline they tested, which combined a parser, captioning and BGE-M3.
+On the original ViDoRe benchmark, in the 2024 paper, it scored 81.3 average nDCG@5 against 67.0 for the strongest text pipeline they tested, which combined a parser, captioning and BGE-M3.
 
 I want to be careful about what that is and isn't. It is an evaluated architecture with a benchmark result. It is not a documented production replacement of anybody's ingestion pipeline, and I have no source that says it is. The distinction matters in a post whose whole argument is about the difference between winning a benchmark and displacing an incumbent.
 
@@ -903,7 +903,7 @@ A paradigm won, and the reward for winning was a benchmark that shows how far th
 
 ### 15. One embedding, three jobs
 
-The last two sections were about replacing things. This one is about what usually happens instead, and it is the pattern that the rest of the post turns on.
+The last two sections were about replacing things. This one is about absorbing them instead, and it is the pattern the rest of the post turns on.
 
 Pinterest published [OmniSearchSage](https://arxiv.org/abs/2404.16260) in 2024, describing a unified query embedding trained jointly with pin and product embeddings. The headline results are what you would expect from a paper: "an improvement of >8% relevance, >7% engagement, and >5% ads CTR in Pinterest's production search system."
 
@@ -919,7 +919,7 @@ Two more numbers from that paper, because they recalibrate what production embed
 
 The embedding is 256-dimensional, L2-normalized. Not 768, not 1536. And the system serves "300k requests per second, maintaining a median (p50) latency of just 3 ms, and 90 percentile (p90) latency of 20 ms."
 
-Now the detail I find genuinely funny. That 300k QPS is the number everybody quotes. Here is what sits behind it: "The implementation of this cache-based system efficiently reduces the load on the inference server to approximately 500 QPS."
+Now the detail I find genuinely funny. That 300k QPS is the figure the paper is usually cited for. Here is what sits behind it: "The implementation of this cache-based system efficiently reduces the load on the inference server to approximately 500 QPS."
 
 The neural model handles about five hundred requests a second. A cache absorbs the other two hundred and ninety-nine thousand five hundred. The most-cited throughput figure about a modern production embedding system is, to a first approximation, a measurement of caching.
 
@@ -993,7 +993,7 @@ So: the retrieval stage is not one thing. It is several sources, feeding a commo
 <figcaption><strong>Fig 12.</strong> The stack, with the fan-out figures carrying the domain they came from. The budget is what forces a cheap model at L1, and the cheap model is the one that structurally cannot see the query and the document together, which is why L2 exists. Note where the dense index sits: one source among several, not the retrieval layer.</figcaption>
 </figure>
 
-And then everything downstream has to be paid for. Alibaba published the numbers for their display advertising system, which is adjacent to search rather than search itself, and the shape transfers even where the exact figures shouldn't be borrowed. In [that system](https://arxiv.org/abs/2007.16122), "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand" and it "selects top N candidates", where "The magnitude of N is usually several hundred". The budget: "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds."
+And then everything downstream has to be paid for. Alibaba published the numbers for their display advertising system in 2020. That is adjacent to search rather than search itself, and the shape transfers even where the exact figures shouldn't be borrowed. In [that system](https://arxiv.org/abs/2007.16122), "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand" and it "selects top N candidates", where "The magnitude of N is usually several hundred". The budget: "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds."
 
 Ten thousand candidates. Ten to twenty milliseconds. Amortized, that is one to two microseconds per candidate, and I want to be precise about what that arithmetic is: it is a budget divided by a count, across work that is vectorized and parallelized. It is not a per-candidate time slice that some function gets to spend. But as a sense of scale it explains a great deal about what kind of model can sit at that stage.
 
@@ -1005,9 +1005,9 @@ That is the constraint everything else in this act negotiates with. A ranker can
 
 ### 17. Why L1 is a dot product, and what that costs
 
-Section 16 left a stage that has to score roughly ten thousand candidates in roughly ten milliseconds. That budget dictates the model, and the model has a specific and consequential weakness.
+Section 16 left a stage scoring a candidate set several orders of magnitude larger than what a heavy model can afford, under a latency limit measured in tens of milliseconds. In the advertising system those figures came from, that meant roughly ten thousand candidates. Whatever your numbers are, the pressure points the same way, and the model that survives it has a specific weakness.
 
-The answer everyone reaches for is the two-tower model, and it works for one structural reason: it factorizes. Google's description of the inference path is two steps, "computing query embedding" and then "performing nearest neighbor search over a set of item embeddings that are pre-computed", closed by "approximate maximum inner product search". The item tower runs offline over your whole catalog. The query tower runs once per request. Serving is a dot product against an index you built yesterday.
+The standard answer is the two-tower model, and it works for one structural reason: it factorizes. Google's description of the inference path is two steps, "computing query embedding" and then "performing nearest neighbor search over a set of item embeddings that are pre-computed", closed by "approximate maximum inner product search". The item tower runs offline over your whole catalog. The query tower runs once per request. Serving is a dot product against an index you built yesterday.
 
 That is the same trick as the bi-encoder in section 6, and it is the same trick as an inverted index: get the expensive part done before the query arrives.
 
@@ -1023,7 +1023,7 @@ Be careful about what that does and does not mean. A two-tower model can absolut
 
 That is the interaction axis from section 12 showing up as a serving constraint rather than a modelling choice. Precomputation is what makes the stage affordable, and precomputation is what limits how much of the interaction you can model. A bigger tower gives you a better summary of each side; it does not give you a feature that only exists when the two sides are looked at together.
 
-So you build a second stage that sees fewer candidates and is allowed to look at them properly. Alibaba's replacement, which spent its budget on a model with cross features rather than on a bigger tower, reported "6.1% CTR and 6.5% RPM" improvement, rising to "9.1% CTR and 10.8% RPM" during a peak sales event, which is exactly when the precomputed representations were most stale.
+So you build a second stage that sees fewer candidates and is allowed to look at them properly. Alibaba's replacement, which spent its budget on a model with cross features rather than on a bigger tower, reported "6.1% CTR and 6.5% RPM" improvement, rising to "9.1% CTR and 10.8% RPM" during a peak sales event. The paper attributes the two-tower design's weakness partly to precomputation staleness, which is at least consistent with a larger gap under peak-day conditions, though it does not isolate that as the cause.
 
 So a cascade is not really an architectural preference. It falls out of a tension: the representations that are cheap enough to score a large candidate set are precisely the ones computed without reference to each other.
 
@@ -1043,15 +1043,13 @@ The 2025 answer is to stop treating the stages as separate models. [LCRON](https
 
 That is a recommendation and advertising result rather than a search one, and the transfer is about the shape of the problem rather than the size of the number. But the shape is general: if your L1 and L2 were trained apart, they disagree, and the disagreement costs you recall you will never see in either stage's metrics.
 
-While we're here, one attribution correction, because this literature is routinely miscited. The KDD 2017 paper on cascade ranking for e-commerce search is Liu, Xiao, Ou and Si. The SIGIR 2011 cascade ranking paper is Wang, Lin and Metzler. They are different papers, and the 2017 one cites the 2011 one.
-
 {/* Reader can now: see the cascade as one system with a joint objective, and know why stage-local metrics hide the loss */}
 
 ### 19. Why your offline number lied
 
 Everything so far has been evaluated with a number. This section is about how much those numbers are worth, and the answer is less than you would like, in a specific and documented way.
 
-Start with the cleanest evidence, which is old and still the best thing written on it. Airbnb's search team [published three model changes](https://arxiv.org/abs/2002.05515) that looked fine offline and lost money online.
+Start with the cleanest evidence, which is from 2020 and still the best thing written on it. Airbnb's search team [published three model changes](https://arxiv.org/abs/2002.05515) that looked fine offline and lost money online.
 
 A monotonic price term, chosen for interpretability: bookings fell 1.5%. A more flexible version of the same idea: down 1.6%. And the third, where they were careful in exactly the way you are supposed to be careful. They tuned the change until offline NDCG matched the baseline, so that they were shipping something offline-neutral by construction. Online, average result price fell 3.3%, "But also a drop of −0.67% in bookings."
 
@@ -1106,7 +1104,7 @@ They also give the sensitivity floor, which is worth memorizing before you dismi
 
 Now the 2026 version of the problem, which is worse, because the industry's response to expensive human judgments has been to generate them with a model.
 
-The case for doing that is real. [UMBRELA](https://arxiv.org/abs/2406.06519) compared LLM relevance judgments against human ones across five TREC Deep Learning tracks and reported system-level rank correlations between 0.87 and 0.94 Kendall's tau. If you want to know which of your systems is best, an LLM judge appears to tell you.
+The case for doing that is real. [UMBRELA](https://arxiv.org/abs/2406.06519), in 2024, compared LLM relevance judgments against human ones across five TREC Deep Learning tracks and reported system-level rank correlations between 0.87 and 0.94 Kendall's tau. If you want to know which of your systems is best, an LLM judge appears to tell you.
 
 Look at the per-item agreement in the same table and it is a different story: Cohen's kappa between 0.31 and 0.37 on the four-point scale. Kappa is already corrected for agreement you would get by chance, so zero means no better than guessing and one means perfect. A third of the way up that scale is real agreement and it is weak agreement, on the individual query-document judgments the whole thing is built from. TREC's own 2026 RAG track puts it independently at "agreement fractions between 0.30–0.34, suggesting that automated relevance judgment remains a challenging task with limited agreement relative to human assessors."
 
@@ -1128,7 +1126,7 @@ The practical rule that falls out is cheap to follow. Keep your judge's model fa
 
 One complication, because the story is not simply that LLMs are bad at this. A 2026 [re-assessment of the TREC Podcast Track](https://arxiv.org/abs/2601.05603) went back to the pairs where the LLM and the original assessors disagreed most, and had human experts adjudicate: "the human experts tend to agree with LLMs more than with the TREC assessors." Some of the disagreement is the LLM being wrong. Some of it is that a single human assessor is also a noisy instrument, which the field has known since 2002.
 
-If offline metrics are this shaky, what do you actually do? Airbnb's answer is an intermediate: [interleaving](https://arxiv.org/abs/2508.00751), where you blend two rankers' results into one list and watch which side's items get clicked. They report "about 50X speedup from A/B", and, on 29 paired comparisons, that "interleaving and A/B are directionally aligned 82% of the time. The correlation coefficient is 0.6."
+If offline metrics are this shaky, what do you actually do? Airbnb's answer, published in 2025, is an intermediate: [interleaving](https://arxiv.org/abs/2508.00751), where you blend two rankers' results into one list and watch which side's items get clicked. They report "about 50X speedup from A/B", and, on 29 paired comparisons, that "interleaving and A/B are directionally aligned 82% of the time. The correlation coefficient is 0.6."
 
 Eighty-two percent means roughly one call in six disagrees with the A/B test it is standing in for. That is a good filter and a bad oracle, and they use it as a filter, to decide what deserves an A/B rather than to replace one.
 
