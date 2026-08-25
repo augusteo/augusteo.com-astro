@@ -1039,7 +1039,7 @@ Last touched: 2026-08-24.
 |---|---|---|
 | 1. Lock-in | done | `## Spec`, `## Throughline` |
 | 2. Research / fact-check | done; Gate 0 closed at cap after 3 runs, all findings applied | `## Research notes`, matrix (~161 rows), `## Codex research review` |
-| 3. Outline + figure list | done (Gate 1 pending) | `## Outline` |
+| 3. Outline + figure list | HALT at Gate 1; restructure in progress | `## Outline` |
 | 4. Draft prose | pending | `src/content/blog/search-retrieval-stack/index.mdx` |
 | 5. Implement figures | 0 of 13 | per-figure table below |
 | 6. Playwright review | 0 of 13 | playwright snapshots reviewed |
@@ -1052,6 +1052,7 @@ Last touched: 2026-08-24.
 | 2026-08-24 | 0 (research) | HALT, 9 structural findings, all applied | `notes/search-retrieval-stack-codex-research-20260824.md` |
 | 2026-08-24 | 0 (research, run 2) | HALT, 10 structural findings, all applied; thesis revised to v3 | `notes/search-retrieval-stack-codex-research-run2-20260824.md` |
 | 2026-08-24 | 0 (research, run 3) | HALT at cap, 4 structural findings, all applied; thesis revised to v4; Vic accepted at cap | `notes/search-retrieval-stack-codex-research-run3-20260824.md` |
+| 2026-08-24 | 1 (outline) | HALT, 12 findings incl. 2 TYPE-CHANGE; both re-types approved by Vic; full outline restructure pending | `notes/search-retrieval-stack-codex-outline-20260824.md` |
 
 ### Phase 5 figure progress (populate at end of phase 3)
 
@@ -1070,6 +1071,20 @@ Last touched: 2026-08-24.
 | 11 | SharedSpaceBlindSpot | static-svg | TODO | |
 | 12 | CascadeBudget | static-svg | TODO | |
 | 13 | OfflineOnlineGap | static-svg | TODO | |
+
+### Open work from Gate 1 (must clear before drafting)
+
+Full findings in `notes/search-retrieval-stack-codex-outline-20260824.md`. The restructure is being done in one pass together with the August-2026 best-practice material Vic asked for.
+
+1. **Thread the thesis through every act.** The outline argues in section 1 and section 22 and organizes by model family in between. Fix: every act answers the same four questions (what did the incumbent do that no benchmark measured; what did the challenger win on; did it preserve the property; what happened in production). Pull C1-C4 into the post, currently absent entirely, which is fatal for this thesis.
+2. **Act 3 is 5 of 22 sections, not the claimed 11%.** Fold or cut. Move the space to the operational thread and the paired Kuaishou cases.
+3. **Throughline dies after act 3** and the coda introduces a new scenario instead of resolving the query. Also: the query contains no brand and no SKU, so the claimed exact-match trap is fictional. Either name a reformulation that contains one, or drop that property.
+4. **Add the missing rung between vocabulary mismatch and dense retrieval:** the contrastive training objective. Needs a new matrix row.
+5. **Build the act 5 to act 6 bridge** out of M15, which already places one embedding at three stages.
+6. **~19 outline claims overstate their rows.** Full table in the findings file. Fix each at rewrite.
+7. **Fig 2's second panel forward-references section 11** and spends the payoff before the mechanism exists. Split it.
+8. **Seven figures overclaim or combine incompatible jobs** (1, 6, 7, 9, 11, 12, 13). Narrow each to what its rows support.
+9. **The coda cannot carry nine things in 1,000 words.** Move the paired Kuaishou cases into act 6; leave the coda the falsification test only.
 
 ### Suggested next batch
 
