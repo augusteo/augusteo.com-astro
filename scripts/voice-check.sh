@@ -77,9 +77,18 @@ for f in "$@"; do
   fi
 
   # Banned words / patterns.
-  if grep -niEn "$BANNED_RE" "$f" >/dev/null 2>&1; then
+  #
+  # Blockquote lines are exempt. A line beginning with ">" is quoted source
+  # material, and the banned-word list is a rule about how *we* write, not a
+  # licence to edit somebody else's sentence until it passes a style check.
+  # Silently altering a quotation to satisfy this script would be
+  # falsification. Inline quotes are not exempt (the script cannot tell them
+  # from prose), so when a banned word sits inside an inline quote, either
+  # promote it to a blockquote or trim the quotation to the clause that
+  # carries the claim.
+  if grep -niE "$BANNED_RE" "$f" | grep -vE '^[0-9]+:[[:space:]]*>' >/dev/null 2>&1; then
     echo "==> banned words/patterns in $f:"
-    grep -niE "$BANNED_RE" "$f"
+    grep -niE "$BANNED_RE" "$f" | grep -vE '^[0-9]+:[[:space:]]*>'
     hit=1
   fi
 
