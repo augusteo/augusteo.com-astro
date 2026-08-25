@@ -95,7 +95,57 @@ That's it. For every word in the vocabulary, keep a list of the documents contai
 
 Why this is fast has nothing to do with clever data structures and everything to do with English. Most words are rare. The list for `waterproof` is a tiny slice of the corpus, and the list for a brand name is smaller still. You skipped the scan because your query happened to name a few uncommon things.
 
-{/* TODO: Fig 2: PostingList. Term to posting list, docID plus frequency, decompressible blocks of 64 or 128. */}
+<figure>
+<svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="An inverted index: a dictionary of terms, each pointing to a posting list. The term waterproof points to a short list of four postings, each a document ID with a term frequency. The term the points to a list of billions. Each list is cut into independently decompressible blocks of 64 or 128 document IDs.">
+  <rect x="0" y="0" width="680" height="250" fill="#F9F5EB"/>
+  <text x="24" y="26" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">DICTIONARY</text>
+  <text x="250" y="26" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">POSTING LISTS</text>
+
+  <rect x="24" y="38" width="150" height="150" fill="#EDE5D4" stroke="#C9BEAA"/>
+  <g font-family="JetBrains Mono" font-size="11" fill="#1A1A1A">
+    <text x="38" y="62">waterproof</text>
+    <text x="38" y="92">hiking</text>
+    <text x="38" y="122">salomon</text>
+    <text x="38" y="164">the</text>
+  </g>
+  <g stroke="#8F8578" stroke-width="1">
+    <line x1="174" y1="58" x2="250" y2="58"/>
+    <line x1="174" y1="88" x2="250" y2="88"/>
+    <line x1="174" y1="118" x2="250" y2="118"/>
+    <line x1="174" y1="160" x2="250" y2="160"/>
+  </g>
+
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <rect x="250" y="48" width="52" height="20" fill="#CFF0F6" stroke="#0E7490"/><text x="256" y="62">17:3</text>
+    <rect x="306" y="48" width="52" height="20" fill="#CFF0F6" stroke="#0E7490"/><text x="312" y="62">204:1</text>
+    <rect x="362" y="48" width="52" height="20" fill="#CFF0F6" stroke="#0E7490"/><text x="368" y="62">991:2</text>
+    <rect x="418" y="48" width="52" height="20" fill="#CFF0F6" stroke="#0E7490"/><text x="424" y="62">1043:1</text>
+
+    <rect x="250" y="78" width="52" height="20" fill="#CFF0F6" stroke="#0E7490"/><text x="256" y="92">17:1</text>
+    <rect x="306" y="78" width="52" height="20" fill="#CFF0F6" stroke="#0E7490"/><text x="312" y="92">88:4</text>
+    <rect x="362" y="78" width="52" height="20" fill="#CFF0F6" stroke="#0E7490"/><text x="368" y="92">991:1</text>
+
+    <rect x="250" y="108" width="52" height="20" fill="#CFF0F6" stroke="#0E7490"/><text x="256" y="122">991:5</text>
+  </g>
+  <text x="484" y="62" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">rare term, short list</text>
+
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <rect x="250" y="150" width="52" height="20" fill="#FBE9CE" stroke="#B8651A"/><text x="256" y="164">1:9</text>
+    <rect x="306" y="150" width="52" height="20" fill="#FBE9CE" stroke="#B8651A"/><text x="312" y="164">2:14</text>
+    <rect x="362" y="150" width="52" height="20" fill="#FBE9CE" stroke="#B8651A"/><text x="368" y="164">3:7</text>
+    <rect x="418" y="150" width="52" height="20" fill="#FBE9CE" stroke="#B8651A"/><text x="424" y="164">4:11</text>
+    <rect x="474" y="150" width="52" height="20" fill="#FBE9CE" stroke="#B8651A"/><text x="480" y="164">5:6</text>
+  </g>
+  <text x="534" y="164" font-family="JetBrains Mono" font-size="14" fill="#B8651A">...</text>
+  <text x="562" y="164" font-family="serif" font-size="11" font-style="italic" fill="#B8651A">billions</text>
+
+  <rect x="248" y="144" width="112" height="32" fill="none" stroke="#6B6258" stroke-dasharray="3 2"/>
+  <rect x="360" y="144" width="112" height="32" fill="none" stroke="#6B6258" stroke-dasharray="3 2"/>
+  <text x="248" y="196" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">blocks of 64 or 128 docIDs, each decompressible on its own</text>
+  <text x="24" y="228" font-family="serif" font-size="12" fill="#1A1A1A">Query terms are usually rare. That is the entire reason this is fast, and the reason a stopword ruins it.</text>
+</svg>
+<figcaption><strong>Fig 2.</strong> The structure that has answered text queries since the 1970s. The speed comes from vocabulary statistics rather than from the data structure: your query named a few uncommon things, so you visited a few short lists. The dashed blocks do nothing here; Fig 4 is built on them.</figcaption>
+</figure>
 
 Which tells you exactly where it stops being fast. Some words are not rare at all, and the same paper says so plainly: "The inverted lists of common query terms may consist of many millions or even billions of postings." Add `the` to your query and you have undone the trick. This is why every production system carries a stopword policy, and why the interesting engineering is always about the frequent terms rather than the rare ones.
 
@@ -117,7 +167,44 @@ The first idea is that a term should stop paying out. If a page says `waterproof
 
 The dial that controls how fast the payout flattens is `k1`, and the two extremes are worth holding in your head, because the middle follows from them. "for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly." High `k1`, repetition keeps helping. Low `k1`, the second mention is nearly worthless.
 
-{/* TODO: Fig 3: Bm25Dials. Small multiples: three k1 saturation curves, three b length-normalization states. */}
+<figure>
+<svg viewBox="0 0 680 290" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Six small charts. The top row shows BM25 term-frequency saturation for three values of k1: at 0.5 the curve flattens almost immediately, at 1.2 it rises then flattens, at 3.0 it keeps climbing across the plotted range. The bottom row shows the length-normalization multiplier against document length for three values of b: at b equals 0 the line is flat, meaning length is ignored entirely; at 0.75 it slopes down; at b equals 1 it falls fastest, fully dividing by relative document length.">
+  <rect x="0" y="0" width="680" height="290" fill="#F9F5EB"/>
+  <text x="24" y="26" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">SATURATION: SCORE CONTRIBUTION vs TERM FREQUENCY</text>
+  <rect x="40" y="46" width="170" height="96" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <path d="M 40.0,142.0 L 41.4,126.0 L 42.8,114.6 L 44.2,106.0 L 45.7,99.3 L 47.1,94.0 L 48.5,89.6 L 49.9,86.0 L 51.3,82.9 L 52.8,80.3 L 54.2,78.0 L 55.6,76.0 L 57.0,74.2 L 58.4,72.7 L 59.8,71.3 L 61.2,70.0 L 62.7,68.9 L 64.1,67.8 L 65.5,66.9 L 66.9,66.0 L 68.3,65.2 L 69.8,64.5 L 71.2,63.8 L 72.6,63.1 L 74.0,62.6 L 75.4,62.0 L 76.8,61.5 L 78.2,61.0 L 79.7,60.5 L 81.1,60.1 L 82.5,59.7 L 83.9,59.3 L 85.3,59.0 L 86.8,58.6 L 88.2,58.3 L 89.6,58.0 L 91.0,57.7 L 92.4,57.4 L 93.8,57.2 L 95.2,56.9 L 96.7,56.7 L 98.1,56.4 L 99.5,56.2 L 100.9,56.0 L 102.3,55.8 L 103.8,55.6 L 105.2,55.4 L 106.6,55.2 L 108.0,55.1 L 109.4,54.9 L 110.8,54.7 L 112.2,54.6 L 113.7,54.4 L 115.1,54.3 L 116.5,54.1 L 117.9,54.0 L 119.3,53.9 L 120.8,53.7 L 122.2,53.6 L 123.6,53.5 L 125.0,53.4 L 126.4,53.3 L 127.8,53.2 L 129.2,53.1 L 130.7,53.0 L 132.1,52.9 L 133.5,52.8 L 134.9,52.7 L 136.3,52.6 L 137.8,52.5 L 139.2,52.4 L 140.6,52.3 L 142.0,52.2 L 143.4,52.2 L 144.8,52.1 L 146.2,52.0 L 147.7,51.9 L 149.1,51.9 L 150.5,51.8 L 151.9,51.7 L 153.3,51.6 L 154.8,51.6 L 156.2,51.5 L 157.6,51.5 L 159.0,51.4 L 160.4,51.3 L 161.8,51.3 L 163.2,51.2 L 164.7,51.2 L 166.1,51.1 L 167.5,51.1 L 168.9,51.0 L 170.3,50.9 L 171.8,50.9 L 173.2,50.8 L 174.6,50.8 L 176.0,50.8 L 177.4,50.7 L 178.8,50.7 L 180.2,50.6 L 181.7,50.6 L 183.1,50.5 L 184.5,50.5 L 185.9,50.4 L 187.3,50.4 L 188.8,50.4 L 190.2,50.3 L 191.6,50.3 L 193.0,50.2 L 194.4,50.2 L 195.8,50.2 L 197.2,50.1 L 198.7,50.1 L 200.1,50.1 L 201.5,50.0 L 202.9,50.0 L 204.3,50.0 L 205.7,49.9 L 207.2,49.9 L 208.6,49.9 L 210.0,49.8" fill="none" stroke="#2563EB" stroke-width="2"/>
+  <line x1="40" y1="46" x2="40" y2="142" stroke="#8F8578"/>
+  <line x1="40" y1="142" x2="210" y2="142" stroke="#8F8578"/>
+  <text x="40" y="160" font-family="JetBrains Mono" font-size="10" fill="#2563EB">k1 = 0.5</text>
+  <rect x="252" y="46" width="170" height="96" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <path d="M 252.0,142.0 L 253.4,134.6 L 254.8,128.3 L 256.2,122.8 L 257.7,118.0 L 259.1,113.8 L 260.5,110.0 L 261.9,106.6 L 263.3,103.6 L 264.8,100.9 L 266.2,98.4 L 267.6,96.1 L 269.0,94.0 L 270.4,92.1 L 271.8,90.3 L 273.2,88.7 L 274.7,87.1 L 276.1,85.7 L 277.5,84.4 L 278.9,83.2 L 280.3,82.0 L 281.8,80.9 L 283.2,79.9 L 284.6,78.9 L 286.0,78.0 L 287.4,77.1 L 288.8,76.3 L 290.2,75.5 L 291.7,74.8 L 293.1,74.1 L 294.5,73.4 L 295.9,72.8 L 297.3,72.2 L 298.8,71.6 L 300.2,71.0 L 301.6,70.5 L 303.0,70.0 L 304.4,69.5 L 305.8,69.0 L 307.2,68.6 L 308.7,68.2 L 310.1,67.7 L 311.5,67.3 L 312.9,66.9 L 314.3,66.6 L 315.8,66.2 L 317.2,65.9 L 318.6,65.5 L 320.0,65.2 L 321.4,64.9 L 322.8,64.6 L 324.2,64.3 L 325.7,64.0 L 327.1,63.7 L 328.5,63.5 L 329.9,63.2 L 331.3,62.9 L 332.8,62.7 L 334.2,62.5 L 335.6,62.2 L 337.0,62.0 L 338.4,61.8 L 339.8,61.6 L 341.2,61.4 L 342.7,61.2 L 344.1,61.0 L 345.5,60.8 L 346.9,60.6 L 348.3,60.4 L 349.8,60.2 L 351.2,60.0 L 352.6,59.9 L 354.0,59.7 L 355.4,59.6 L 356.8,59.4 L 358.2,59.2 L 359.7,59.1 L 361.1,58.9 L 362.5,58.8 L 363.9,58.7 L 365.3,58.5 L 366.8,58.4 L 368.2,58.3 L 369.6,58.1 L 371.0,58.0 L 372.4,57.9 L 373.8,57.8 L 375.2,57.6 L 376.7,57.5 L 378.1,57.4 L 379.5,57.3 L 380.9,57.2 L 382.3,57.1 L 383.8,57.0 L 385.2,56.9 L 386.6,56.8 L 388.0,56.7 L 389.4,56.6 L 390.8,56.5 L 392.2,56.4 L 393.7,56.3 L 395.1,56.2 L 396.5,56.1 L 397.9,56.0 L 399.3,55.9 L 400.8,55.8 L 402.2,55.8 L 403.6,55.7 L 405.0,55.6 L 406.4,55.5 L 407.8,55.4 L 409.2,55.4 L 410.7,55.3 L 412.1,55.2 L 413.5,55.1 L 414.9,55.1 L 416.3,55.0 L 417.8,54.9 L 419.2,54.9 L 420.6,54.8 L 422.0,54.7" fill="none" stroke="#B8651A" stroke-width="2"/>
+  <line x1="252" y1="46" x2="252" y2="142" stroke="#8F8578"/>
+  <line x1="252" y1="142" x2="422" y2="142" stroke="#8F8578"/>
+  <text x="252" y="160" font-family="JetBrains Mono" font-size="10" fill="#B8651A">k1 = 1.2  (Lucene default)</text>
+  <rect x="464" y="46" width="170" height="96" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <path d="M 464.0,142.0 L 465.4,138.9 L 466.8,136.0 L 468.2,133.3 L 469.7,130.7 L 471.1,128.3 L 472.5,126.0 L 473.9,123.8 L 475.3,121.8 L 476.8,119.8 L 478.2,118.0 L 479.6,116.2 L 481.0,114.6 L 482.4,113.0 L 483.8,111.5 L 485.2,110.0 L 486.7,108.6 L 488.1,107.3 L 489.5,106.0 L 490.9,104.8 L 492.3,103.6 L 493.8,102.5 L 495.2,101.4 L 496.6,100.3 L 498.0,99.3 L 499.4,98.4 L 500.8,97.4 L 502.2,96.5 L 503.7,95.7 L 505.1,94.8 L 506.5,94.0 L 507.9,93.2 L 509.3,92.5 L 510.8,91.7 L 512.2,91.0 L 513.6,90.3 L 515.0,89.6 L 516.4,89.0 L 517.8,88.4 L 519.2,87.7 L 520.7,87.1 L 522.1,86.6 L 523.5,86.0 L 524.9,85.5 L 526.3,84.9 L 527.8,84.4 L 529.2,83.9 L 530.6,83.4 L 532.0,82.9 L 533.4,82.5 L 534.8,82.0 L 536.2,81.6 L 537.7,81.1 L 539.1,80.7 L 540.5,80.3 L 541.9,79.9 L 543.3,79.5 L 544.8,79.1 L 546.2,78.7 L 547.6,78.4 L 549.0,78.0 L 550.4,77.6 L 551.8,77.3 L 553.2,77.0 L 554.7,76.6 L 556.1,76.3 L 557.5,76.0 L 558.9,75.7 L 560.3,75.4 L 561.8,75.1 L 563.2,74.8 L 564.6,74.5 L 566.0,74.2 L 567.4,74.0 L 568.8,73.7 L 570.2,73.4 L 571.7,73.2 L 573.1,72.9 L 574.5,72.7 L 575.9,72.4 L 577.3,72.2 L 578.8,71.9 L 580.2,71.7 L 581.6,71.5 L 583.0,71.3 L 584.4,71.0 L 585.8,70.8 L 587.2,70.6 L 588.7,70.4 L 590.1,70.2 L 591.5,70.0 L 592.9,69.8 L 594.3,69.6 L 595.8,69.4 L 597.2,69.2 L 598.6,69.0 L 600.0,68.9 L 601.4,68.7 L 602.8,68.5 L 604.2,68.3 L 605.7,68.2 L 607.1,68.0 L 608.5,67.8 L 609.9,67.7 L 611.3,67.5 L 612.8,67.3 L 614.2,67.2 L 615.6,67.0 L 617.0,66.9 L 618.4,66.7 L 619.8,66.6 L 621.2,66.4 L 622.7,66.3 L 624.1,66.1 L 625.5,66.0 L 626.9,65.9 L 628.3,65.7 L 629.8,65.6 L 631.2,65.5 L 632.6,65.3 L 634.0,65.2" fill="none" stroke="#059669" stroke-width="2"/>
+  <line x1="464" y1="46" x2="464" y2="142" stroke="#8F8578"/>
+  <line x1="464" y1="142" x2="634" y2="142" stroke="#8F8578"/>
+  <text x="464" y="160" font-family="JetBrains Mono" font-size="10" fill="#059669">k1 = 3.0</text>
+  <text x="24" y="176" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">LENGTH NORMALIZATION: MULTIPLIER vs DOCUMENT LENGTH</text>
+  <rect x="40" y="182" width="170" height="62" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <path d="M 40.0,213.0 L 41.4,213.0 L 42.8,213.0 L 44.2,213.0 L 45.7,213.0 L 47.1,213.0 L 48.5,213.0 L 49.9,213.0 L 51.3,213.0 L 52.8,213.0 L 54.2,213.0 L 55.6,213.0 L 57.0,213.0 L 58.4,213.0 L 59.8,213.0 L 61.2,213.0 L 62.7,213.0 L 64.1,213.0 L 65.5,213.0 L 66.9,213.0 L 68.3,213.0 L 69.8,213.0 L 71.2,213.0 L 72.6,213.0 L 74.0,213.0 L 75.4,213.0 L 76.8,213.0 L 78.2,213.0 L 79.7,213.0 L 81.1,213.0 L 82.5,213.0 L 83.9,213.0 L 85.3,213.0 L 86.8,213.0 L 88.2,213.0 L 89.6,213.0 L 91.0,213.0 L 92.4,213.0 L 93.8,213.0 L 95.2,213.0 L 96.7,213.0 L 98.1,213.0 L 99.5,213.0 L 100.9,213.0 L 102.3,213.0 L 103.8,213.0 L 105.2,213.0 L 106.6,213.0 L 108.0,213.0 L 109.4,213.0 L 110.8,213.0 L 112.2,213.0 L 113.7,213.0 L 115.1,213.0 L 116.5,213.0 L 117.9,213.0 L 119.3,213.0 L 120.7,213.0 L 122.2,213.0 L 123.6,213.0 L 125.0,213.0 L 126.4,213.0 L 127.8,213.0 L 129.2,213.0 L 130.7,213.0 L 132.1,213.0 L 133.5,213.0 L 134.9,213.0 L 136.3,213.0 L 137.8,213.0 L 139.2,213.0 L 140.6,213.0 L 142.0,213.0 L 143.4,213.0 L 144.8,213.0 L 146.2,213.0 L 147.7,213.0 L 149.1,213.0 L 150.5,213.0 L 151.9,213.0 L 153.3,213.0 L 154.8,213.0 L 156.2,213.0 L 157.6,213.0 L 159.0,213.0 L 160.4,213.0 L 161.8,213.0 L 163.2,213.0 L 164.7,213.0 L 166.1,213.0 L 167.5,213.0 L 168.9,213.0 L 170.3,213.0 L 171.8,213.0 L 173.2,213.0 L 174.6,213.0 L 176.0,213.0 L 177.4,213.0 L 178.8,213.0 L 180.2,213.0 L 181.7,213.0 L 183.1,213.0 L 184.5,213.0 L 185.9,213.0 L 187.3,213.0 L 188.8,213.0 L 190.2,213.0 L 191.6,213.0 L 193.0,213.0 L 194.4,213.0 L 195.8,213.0 L 197.3,213.0 L 198.7,213.0 L 200.1,213.0 L 201.5,213.0 L 202.9,213.0 L 204.3,213.0 L 205.8,213.0 L 207.2,213.0 L 208.6,213.0 L 210.0,213.0" fill="none" stroke="#9333EA" stroke-width="2"/>
+  <line x1="40" y1="182" x2="40" y2="244" stroke="#8F8578"/>
+  <line x1="40" y1="244" x2="210" y2="244" stroke="#8F8578"/>
+  <text x="40" y="262" font-family="JetBrains Mono" font-size="10" fill="#9333EA">b = 0  (off)</text>
+  <rect x="252" y="182" width="170" height="62" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <path d="M 252.0,182.0 L 253.4,182.0 L 254.8,182.0 L 256.2,182.0 L 257.7,182.8 L 259.1,184.8 L 260.5,186.7 L 261.9,188.4 L 263.3,190.1 L 264.8,191.7 L 266.2,193.1 L 267.6,194.5 L 269.0,195.8 L 270.4,197.1 L 271.8,198.3 L 273.2,199.4 L 274.7,200.5 L 276.1,201.5 L 277.5,202.5 L 278.9,203.4 L 280.3,204.3 L 281.8,205.2 L 283.2,206.0 L 284.6,206.8 L 286.0,207.5 L 287.4,208.3 L 288.8,208.9 L 290.2,209.6 L 291.7,210.3 L 293.1,210.9 L 294.5,211.5 L 295.9,212.1 L 297.3,212.6 L 298.8,213.1 L 300.2,213.7 L 301.6,214.2 L 303.0,214.7 L 304.4,215.1 L 305.8,215.6 L 307.2,216.0 L 308.7,216.4 L 310.1,216.9 L 311.5,217.3 L 312.9,217.7 L 314.3,218.0 L 315.8,218.4 L 317.2,218.8 L 318.6,219.1 L 320.0,219.4 L 321.4,219.8 L 322.8,220.1 L 324.2,220.4 L 325.7,220.7 L 327.1,221.0 L 328.5,221.3 L 329.9,221.6 L 331.3,221.9 L 332.8,222.1 L 334.2,222.4 L 335.6,222.6 L 337.0,222.9 L 338.4,223.1 L 339.8,223.4 L 341.2,223.6 L 342.7,223.8 L 344.1,224.1 L 345.5,224.3 L 346.9,224.5 L 348.3,224.7 L 349.8,224.9 L 351.2,225.1 L 352.6,225.3 L 354.0,225.5 L 355.4,225.7 L 356.8,225.9 L 358.2,226.0 L 359.7,226.2 L 361.1,226.4 L 362.5,226.6 L 363.9,226.7 L 365.3,226.9 L 366.8,227.1 L 368.2,227.2 L 369.6,227.4 L 371.0,227.5 L 372.4,227.7 L 373.8,227.8 L 375.2,228.0 L 376.7,228.1 L 378.1,228.2 L 379.5,228.4 L 380.9,228.5 L 382.3,228.6 L 383.8,228.8 L 385.2,228.9 L 386.6,229.0 L 388.0,229.1 L 389.4,229.3 L 390.8,229.4 L 392.2,229.5 L 393.7,229.6 L 395.1,229.7 L 396.5,229.8 L 397.9,230.0 L 399.3,230.1 L 400.8,230.2 L 402.2,230.3 L 403.6,230.4 L 405.0,230.5 L 406.4,230.6 L 407.8,230.7 L 409.2,230.8 L 410.7,230.9 L 412.1,231.0 L 413.5,231.1 L 414.9,231.2 L 416.3,231.2 L 417.8,231.3 L 419.2,231.4 L 420.6,231.5 L 422.0,231.6" fill="none" stroke="#9333EA" stroke-width="2"/>
+  <line x1="252" y1="182" x2="252" y2="244" stroke="#8F8578"/>
+  <line x1="252" y1="244" x2="422" y2="244" stroke="#8F8578"/>
+  <text x="252" y="262" font-family="JetBrains Mono" font-size="10" fill="#9333EA">b = 0.75  (default)</text>
+  <rect x="464" y="182" width="170" height="62" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <path d="M 464.0,182.0 L 465.4,182.0 L 466.8,182.0 L 468.2,182.0 L 469.7,182.0 L 471.1,182.0 L 472.5,182.0 L 473.9,182.0 L 475.3,182.0 L 476.8,182.0 L 478.2,182.0 L 479.6,182.3 L 481.0,185.0 L 482.4,187.4 L 483.8,189.7 L 485.2,191.8 L 486.7,193.7 L 488.1,195.5 L 489.5,197.2 L 490.9,198.8 L 492.3,200.2 L 493.8,201.6 L 495.2,202.9 L 496.6,204.1 L 498.0,205.2 L 499.4,206.3 L 500.8,207.3 L 502.2,208.3 L 503.7,209.2 L 505.1,210.1 L 506.5,210.9 L 507.9,211.7 L 509.3,212.5 L 510.8,213.2 L 512.2,213.9 L 513.6,214.5 L 515.0,215.2 L 516.4,215.8 L 517.8,216.3 L 519.2,216.9 L 520.7,217.4 L 522.1,217.9 L 523.5,218.4 L 524.9,218.9 L 526.3,219.4 L 527.8,219.8 L 529.2,220.2 L 530.6,220.6 L 532.0,221.0 L 533.4,221.4 L 534.8,221.8 L 536.2,222.1 L 537.7,222.5 L 539.1,222.8 L 540.5,223.2 L 541.9,223.5 L 543.3,223.8 L 544.8,224.1 L 546.2,224.4 L 547.6,224.7 L 549.0,224.9 L 550.4,225.2 L 551.8,225.4 L 553.2,225.7 L 554.7,225.9 L 556.1,226.2 L 557.5,226.4 L 558.9,226.6 L 560.3,226.9 L 561.8,227.1 L 563.2,227.3 L 564.6,227.5 L 566.0,227.7 L 567.4,227.9 L 568.8,228.1 L 570.2,228.3 L 571.7,228.4 L 573.1,228.6 L 574.5,228.8 L 575.9,229.0 L 577.3,229.1 L 578.8,229.3 L 580.2,229.4 L 581.6,229.6 L 583.0,229.7 L 584.4,229.9 L 585.8,230.0 L 587.2,230.2 L 588.7,230.3 L 590.1,230.5 L 591.5,230.6 L 592.9,230.7 L 594.3,230.9 L 595.8,231.0 L 597.2,231.1 L 598.6,231.2 L 600.0,231.3 L 601.4,231.5 L 602.8,231.6 L 604.2,231.7 L 605.7,231.8 L 607.1,231.9 L 608.5,232.0 L 609.9,232.1 L 611.3,232.2 L 612.8,232.3 L 614.2,232.4 L 615.6,232.5 L 617.0,232.6 L 618.4,232.7 L 619.8,232.8 L 621.2,232.9 L 622.7,233.0 L 624.1,233.1 L 625.5,233.2 L 626.9,233.3 L 628.3,233.3 L 629.8,233.4 L 631.2,233.5 L 632.6,233.6 L 634.0,233.7" fill="none" stroke="#9333EA" stroke-width="2"/>
+  <line x1="464" y1="182" x2="464" y2="244" stroke="#8F8578"/>
+  <line x1="464" y1="244" x2="634" y2="244" stroke="#8F8578"/>
+  <text x="464" y="262" font-family="JetBrains Mono" font-size="10" fill="#9333EA">b = 1  (full)</text>
+</svg>
+<figcaption><strong>Fig 3.</strong> BM25's two dials, at their extremes rather than their middles. Low <em>k1</em> means the second mention of a word is nearly worthless; high <em>k1</em> means repetition keeps paying. And <em>b</em> = 0 ignores document length completely while <em>b</em> = 1 divides it out in full. Everything useful sits between these, which is why the model cannot tell you where.</figcaption>
+</figure>
 
 The second idea is that longer documents need handicapping, but not fully, and the reason it's not fully is the interesting bit. A document can be long because it's padded, in which case its term counts are inflated and should be divided down. Or it can be long because it genuinely covers more ground, in which case dividing down is exactly wrong. The paper calls these the verbosity and scope hypotheses and refuses to pick: "The verbosity hypothesis suggests that we should simply normalise any observed tf s by dividing by document length. The scope hypothesis, on the other hand, at least in its extreme version, suggests the opposite."
 
@@ -145,7 +232,44 @@ That is a cheap approximate pass in front of an expensive exact one. Hold onto t
 
 Block-max sharpened it. Ding and Suel noticed why the original leaves value on the table: "skipping in WAND is limited because it uses the maximum impact scores over the entire lists, which can be much larger than average." One outlier document at the far end of a list poisons the bound for the whole list. So they stored a maximum per block instead of per list, using the block structure from section 2, and the bound got tight enough to skip most of the postings rather than some of them.
 
-{/* TODO: Fig 4: BlockMaxSkip. List-level and block-level maxima against a running threshold; which blocks get skipped. */}
+<figure>
+<svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="One posting list drawn twice. In the top row a single maximum impact score of 9.1 covers the whole list, and because that bound exceeds the running threshold of 6.8 every block must be opened. In the bottom row each block carries its own maximum: 2.1, 9.1, 1.4, 3.0 and 2.6. Only the block whose maximum is 9.1 can beat the threshold, so four of the five blocks are skipped without decompressing them.">
+  <rect x="0" y="0" width="680" height="260" fill="#F9F5EB"/>
+  <text x="24" y="24" font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">RUNNING THRESHOLD = 6.8 (SCORE OF THE CURRENT 10th BEST)</text>
+
+  <text x="24" y="56" font-family="serif" font-size="12" font-weight="600" fill="#1A1A1A">One maximum for the whole list</text>
+  <g>
+    <rect x="24" y="66" width="600" height="30" fill="#FBE9CE" stroke="#B8651A"/>
+    <text x="34" y="86" font-family="JetBrains Mono" font-size="10" fill="#B8651A">list max 9.1</text>
+  </g>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <rect x="24" y="100" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="56" y="115">block 1</text>
+    <rect x="146" y="100" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="178" y="115">block 2</text>
+    <rect x="268" y="100" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="300" y="115">block 3</text>
+    <rect x="390" y="100" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="422" y="115">block 4</text>
+    <rect x="512" y="100" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="544" y="115">block 5</text>
+  </g>
+  <text x="24" y="138" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">9.1 beats 6.8, so every block gets opened. The bound is true and useless.</text>
+
+  <text x="24" y="176" font-family="serif" font-size="12" font-weight="600" fill="#1A1A1A">One maximum per block</text>
+  <g font-family="JetBrains Mono" font-size="9">
+    <rect x="24" y="186" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="34" y="201" fill="#6B6258">max 2.1</text>
+    <rect x="146" y="186" width="112" height="22" fill="#FBE9CE" stroke="#B8651A" stroke-width="2"/><text x="156" y="201" fill="#B8651A">max 9.1</text>
+    <rect x="268" y="186" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="278" y="201" fill="#6B6258">max 1.4</text>
+    <rect x="390" y="186" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="400" y="201" fill="#6B6258">max 3.0</text>
+    <rect x="512" y="186" width="112" height="22" fill="#EDE5D4" stroke="#8F8578"/><text x="522" y="201" fill="#6B6258">max 2.6</text>
+  </g>
+  <g font-family="JetBrains Mono" font-size="9" fill="#059669">
+    <text x="60" y="224">skip</text>
+    <text x="304" y="224">skip</text>
+    <text x="426" y="224">skip</text>
+    <text x="548" y="224">skip</text>
+  </g>
+  <text x="170" y="224" font-family="JetBrains Mono" font-size="9" fill="#B8651A">open this one</text>
+  <text x="24" y="248" font-family="serif" font-size="11" font-style="italic" fill="#6B6258">Same list, same threshold, four fifths of the work gone. The bound got tighter, not smarter.</text>
+</svg>
+<figcaption><strong>Fig 4.</strong> Why block-max beats plain WAND. A single outlier document sets the maximum for an entire posting list, so the whole-list bound is nearly always too loose to skip anything. Storing a maximum per block confines that outlier to one block.</figcaption>
+</figure>
 
 The numbers from section 1 are these two techniques. Exhaustive scoring fully evaluated 3,815,676 documents per query. WAND cut that to 178,391. Block-max cut it to 21,921, which is 0.57% of what the exhaustive pass touched.
 
@@ -205,7 +329,59 @@ The reported gains are real and worth stating precisely: DPR "outperforms a stro
 
 Those are aggregate results on open-domain question answering. They are not a measurement of our boots. I want to be careful here, because it would be easy to write that the paraphrase problem is now solved and let the earlier example quietly borrow the credit. What the objective is *designed* to do is put `wide toe box` and `roomy forefoot` near each other. Whether it does that for your catalog is a question about your data and your model, and the honest answer is that you'd have to measure it.
 
-{/* TODO: Fig 5: DenseVsLexical. Form A and form B against two documents, showing which terms match and which don't. Qualitative match structure only, no invented scores. */}
+<figure>
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="A four-cell grid. Two query forms down the side: the descriptive query about a wide toe box, and the specific query naming Salomon Quest 4 GTX in size 10.5. Two documents across the top: a listing that says roomy forefoot, and a listing for the Quest 5. For lexical matching, the descriptive query shares no terms with the roomy forefoot listing and fails, while the specific query matches the model name exactly and succeeds in distinguishing Quest 4 from Quest 5. For dense matching, the descriptive query lands near the roomy forefoot listing and succeeds, while the specific query lands nearly on top of both Quest 4 and Quest 5 and cannot separate them.">
+  <rect x="0" y="0" width="680" height="300" fill="#F9F5EB"/>
+  <g font-family="JetBrains Mono" font-size="10" fill="#6B6258" letter-spacing="1.5">
+    <text x="196" y="24">LEXICAL: SHARED TERMS</text>
+    <text x="452" y="24">DENSE: POSITION IN SPACE</text>
+  </g>
+
+  <text x="24" y="70" font-family="serif" font-size="11" fill="#1A1A1A">form A</text>
+  <text x="24" y="86" font-family="JetBrains Mono" font-size="9" fill="#6B6258">wide toe box</text>
+  <text x="24" y="106" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing saying</text>
+  <text x="24" y="120" font-family="JetBrains Mono" font-size="9" fill="#6B6258">roomy forefoot</text>
+
+  <rect x="150" y="46" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <text x="164" y="68">query:  wide  toe  box</text>
+    <text x="164" y="86">doc:    roomy forefoot</text>
+  </g>
+  <text x="164" y="112" font-family="JetBrains Mono" font-size="10" fill="#B91C1C">shared terms: none</text>
+  <text x="164" y="130" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">never retrieved</text>
+
+  <rect x="406" y="46" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <circle cx="470" cy="92" r="5" fill="#2563EB"/><text x="480" y="96" font-family="JetBrains Mono" font-size="9" fill="#2563EB">query</text>
+  <circle cx="530" cy="80" r="5" fill="#0E7490"/><text x="540" y="84" font-family="JetBrains Mono" font-size="9" fill="#0E7490">roomy forefoot</text>
+  <line x1="470" y1="92" x2="530" y2="80" stroke="#059669" stroke-width="1.5"/>
+  <text x="420" y="130" font-family="serif" font-size="11" font-style="italic" fill="#059669">close enough to retrieve</text>
+
+  <line x1="24" y1="158" x2="656" y2="158" stroke="#C9BEAA"/>
+
+  <text x="24" y="196" font-family="serif" font-size="11" fill="#1A1A1A">form B</text>
+  <text x="24" y="212" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 4 GTX</text>
+  <text x="24" y="232" font-family="serif" font-size="10" font-style="italic" fill="#6B6258">vs a listing for</text>
+  <text x="24" y="246" font-family="JetBrains Mono" font-size="9" fill="#6B6258">Quest 5 GTX</text>
+
+  <rect x="150" y="172" width="230" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <g font-family="JetBrains Mono" font-size="9" fill="#1A1A1A">
+    <text x="164" y="194">query:  Quest  4  GTX</text>
+    <text x="164" y="212">doc:    Quest  5  GTX</text>
+  </g>
+  <text x="164" y="238" font-family="JetBrains Mono" font-size="10" fill="#059669">token 4 absent: rejected</text>
+  <text x="164" y="256" font-family="serif" font-size="11" font-style="italic" fill="#059669">the difference is visible</text>
+
+  <rect x="406" y="172" width="250" height="94" fill="#FFFFFF" stroke="#C9BEAA"/>
+  <circle cx="500" cy="216" r="5" fill="#2563EB"/>
+  <circle cx="506" cy="220" r="5" fill="#B91C1C"/>
+  <text x="520" y="214" font-family="JetBrains Mono" font-size="9" fill="#2563EB">Quest 4</text>
+  <text x="520" y="230" font-family="JetBrains Mono" font-size="9" fill="#B91C1C">Quest 5</text>
+  <text x="420" y="256" font-family="serif" font-size="11" font-style="italic" fill="#B91C1C">nearly the same point</text>
+
+  <text x="24" y="288" font-family="serif" font-size="12" fill="#1A1A1A">Neither column is better. They fail on different queries, which is why production systems run both.</text>
+</svg>
+<figcaption><strong>Fig 5.</strong> The same two retrievers, each shown on the query the other one fails. Nothing here is a score; the point is structural. A term index cannot see a synonym, and a single pooled vector cannot see the one character that distinguishes two product models.</figcaption>
+</figure>
 
 Now the second query. `Salomon Quest 4 GTX wide 10.5`, the one term matching was superb at.
 
