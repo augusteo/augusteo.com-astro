@@ -123,3 +123,17 @@ If a base voice rule and a book tilt conflict, the **base rule wins** for mechan
 - If the base rule says "use plain English" and the tilt says "be locator-dense", both apply: plain-English sentences with citations is the target.
 
 There is no case where a base rule and a tilt are in irreconcilable conflict. The base is the substrate; the tilt is the emphasis.
+
+## Staged prose
+
+`../../explainer-shared/voice-rules.md` applies in full, and its "The generation contract" section
+at the top plus its "Gold pairs" table are the parts to hold while drafting. The catalogue of
+twenty banned moves below them is a review instrument, not a drafting checklist.
+
+Book explainers are more exposed to this failure than research explainers, because summarizing a
+chapter invites compressing its argument into a quotable formulation. The tell is a placeholder
+noun bought to make a sentence symmetrical: "the book has two ideas, the rest is scaffolding".
+Name the two.
+
+The `post-editor` Pass 4b (staged prose, full body, chunked, ledgered) runs on book explainers the
+same as on research explainers.

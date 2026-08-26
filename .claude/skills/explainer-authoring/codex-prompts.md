@@ -151,7 +151,17 @@ Find:
    When demanding a re-type, label the finding "TYPE-CHANGE STRUCTURAL" so the unlock
    protocol fires.
 
-7. TOPIC SCOPE PROBLEMS. If the topic decomposition leaves out a piece that the post's
+7. HEADINGS THAT ADVERTISE INSTEAD OF NAMING. You can see every heading at once here, which
+   is the only place in the pipeline that is true, so headings are checked now and not at the
+   final gate where renaming is expensive. Flag any heading whose payload rests on a
+   placeholder noun (trick, thing, secret, catch, key, point, story) or a superlative of
+   centrality (the whole, the real, what actually, all you need). Example of the failure:
+   "The posting list, and why rare words are the whole trick". Then count the headings using
+   the `<noun phrase>, and <wh-clause>` template; if more than about a third of the H3s use
+   it, name the weakest and say what each should be instead. Both halves of that template must
+   name something concrete. Propose a literal replacement heading for every one you flag.
+
+8. TOPIC SCOPE PROBLEMS. If the topic decomposition leaves out a piece that the post's
    core claim depends on, surface it as a rescoping issue.
 
 For each finding, label it STRUCTURAL (must fix before drafting), TYPE-CHANGE STRUCTURAL
@@ -174,6 +184,71 @@ found" and stop. Otherwise, keep finding things.
 - For STRUCTURAL findings: fix the outline. Edit the figure table. Re-run Gate 1 if substantial.
 - For TYPE-CHANGE: fire the unlock protocol.
 - Stop when only cosmetic findings remain.
+
+## Gate 1.5: voice pass
+
+**When to run:** Phase 6/7, after the draft is complete and before Gate 2. This is a separate
+invocation, not a check inside Gate 2. A twelfth item buried under eleven accuracy checks gets the
+same treatment as the twentieth banned move.
+
+**Why it is separate:** the writer reviewing its own 1,200-line draft in the same context is biased
+toward recognizing what it meant rather than reading what it said. This gate runs in a fresh
+context with no memory of the drafting decisions.
+
+**What you provide to codex:** the full MDX, plus `../../explainer-shared/voice-rules.md` inlined
+into the prompt (not as a path to read; see the runner's note on codex reading budgets).
+
+**The prompt:**
+
+```
+You are reviewing the prose of a long-form technical blog post for one failure only: staged
+prose. A sentence is staged when it is arranged to look like it contains an insight, rather
+than to deliver a judgment, consequence, mechanism or number.
+
+The voice rules the post was written against are inlined below. Use the "Gold pairs" table as
+your calibration: those are real rejected sentences and their accepted repairs.
+
+Walk the post in order. For EVERY heading, and for every sentence in the dek, the frontmatter
+description, the first and last paragraph of each section, every transition paragraph, and
+every short isolated declarative, decide whether it is staged. Then do one paragraph-level
+scan of everything else asking only: did this paragraph trade concrete nouns or causal detail
+for a quotable formulation?
+
+Report each finding as:
+
+  FILE:LINE
+  SENTENCE: <verbatim>
+  FAMILY: <withheld-referent | staged-significance | reader-choreography |
+           article-as-agent | unbounded-claim | decorative-agency | placard>
+  MISSING: <what concrete thing the sentence declines to name>
+  REWRITE: <a literal replacement sentence, not advice>
+  TOUCHES-SOURCED-CLAIM: <yes/no — does the rewrite change anything a citation supports?>
+
+A finding with no REWRITE is not a finding. If you cannot write the replacement, the sentence
+is probably fine.
+
+Do not flag: impersonal mechanism description (correct prose), technical metaphors that follow
+the mechanism rather than replacing it, or a rhythmic sentence whose nouns are all real. The
+rules file's "near-miss that is allowed" shows the boundary.
+
+At the end, give a per-section PASS/FAIL and a count.
+```
+
+**The repair loop, which is the point of this gate:**
+
+1. Apply every REWRITE where `TOUCHES-SOURCED-CLAIM: no`.
+2. For each `TOUCHES-SOURCED-CLAIM: yes`, re-verify the citation still supports the rewritten
+   sentence before applying. If it does not, write a different repair; do not keep the original
+   because the repair was inconvenient.
+3. Re-run this gate. **The gate is not passed until it returns zero findings or only findings you
+   have a written reason to reject, recorded in the notes file.**
+4. Record the ledger in `notes/<post-slug>.md` under `## Voice gate`: section, lines inspected,
+   findings, replacements applied, findings rejected and why.
+
+**Halt rule:** if the gate returns findings covering more than about a third of the post's
+sections, stop repairing sentence by sentence and surface to Vic. At that density the draft has a
+generation problem, not a sentence problem, and patching it produces prose that passes checks
+without reading like anyone wrote it.
 
 ## Gate 2: final-draft pass
 

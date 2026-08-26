@@ -41,9 +41,9 @@ The editor produces **two outputs**:
 1. **Direct edits to the MDX file** — committed as one or more commits with messages like `editor: tighten section 6 lead` or `editor: cut 3-paragraph preamble`. Vic reviews via `git diff`.
 2. **A punch-list** at the end of the run, surfaced to chat. Items that the editor cannot fix without Vic's input: interview gaps, hero image selection, evidence that needs Vic's domain knowledge to weigh.
 
-## The eight passes
+## The nine passes
 
-The editor runs eight passes in order. The pipeline does NOT halt mid-pass on STRUCTURAL findings — instead, it direct-fixes what it can, collects the rest into the punch-list, and reports the post's final ship-gate status at the end:
+The editor runs nine passes in order (1, 2, 3, 4, 4b, 5, 6, 7, 8). The pipeline does NOT halt mid-pass on STRUCTURAL findings — instead, it direct-fixes what it can, collects the rest into the punch-list, and reports the post's final ship-gate status at the end:
 
 - **READY** — no structural findings; all direct edits complete.
 - **READY_WITH_VIC_REVIEW** — direct edits complete; punch-list contains items only Vic can resolve (interview gaps, hero handoff, evidence judgment calls). Vic can ship after working through them.
@@ -59,6 +59,7 @@ Structural-finding taxonomy (the categories the editor labels findings with):
 - `material-evidence-flip` — newer source flips `weakened` → `disproven` or similar.
 - `interview-bare-marker` — REVISE-WHERE-I-LAND placeholder still bare.
 - `voice-check-failure` — voice-check.sh failure the editor couldn't auto-fix.
+- `staged-prose` — sentences arranged to look like they contain an insight (Pass 4b). Blocks READY when it hits the dek, a heading, or more than a third of sections.
 - `coverage-gap-operational` — major-claim section missing operational sentence/note.
 - `coverage-gap-figure` — major-claim section missing figure decision.
 
@@ -73,7 +74,9 @@ Read the first ~50 lines of the MDX (frontmatter + lede + TL;DR + "where it gets
 - **Self-references to the post's structure** — "in the following sections we'll...", "as we'll see below...". The reader can see what's below.
 - **Hedge stacks** — "It's important to note that, in general, mostly, perhaps, sometimes...". Pick the strongest hedge that's still accurate; cut the rest.
 
-**Direct-edit rule:** when in doubt, cut. The reader can re-add nuance from the body sections. Above-the-fold real estate is for utility, not throat-clearing.
+- **Placard dek** — read the dek and the frontmatter description against `../../explainer-shared/mdx-output-spec.md` "The dek". A fragment stack, an article-as-agent sentence ("this post walks..."), a structural preview, a withheld payload, or a catalogue label all fail. **Rewrite these, do not cut them.** A placard dek is not too long, it is uninhabited; cutting makes it shorter and still wrong. Preserve every load-bearing fact and the `About a <N>-minute read.` closer. Do not "fix" it by inserting a pronoun: "You will discover the real trick" is worse than what it replaced.
+
+**Direct-edit rule:** when in doubt, cut. The reader can re-add nuance from the body sections. Above-the-fold real estate is for utility, not throat-clearing. The one exception is the dek, above, which gets rewritten rather than trimmed.
 
 ### Pass 2: Lead-landing per section
 
@@ -101,8 +104,66 @@ Run `scripts/voice-check.sh <path>`. For each failure:
 - Em-dashes (outside act-divider headings) → rewrite the sentence to use commas, periods, or parentheses.
 - Banned words ("foster", "delve", "tapestry", etc. per the project's voice rules) → swap for plain alternatives.
 - Recursively re-run until the voice-check exits clean.
+- **The script's warnings are candidates, not verdicts.** The placeholder-noun, article-as-agent and positioning-tail patterns it emits are inputs to Pass 4b, where a human-judgment read decides. Never treat a clean voice-check as evidence the prose is good; the script's own header says so.
 
 Document any unavoidable exceptions (verbatim citation titles that contain banned words) with `{/* voice-check exception: ... */}` comments.
+
+### Pass 4b: Staged prose (full body, chunked, ledgered)
+
+Pass 4 greps vocabulary. This pass reads. It exists because the failure that actually gets a draft
+rejected passes every grep: sentences arranged to look like they contain an insight rather than to
+deliver a judgment, consequence, mechanism or number.
+
+Read the "Gold pairs" table in `../../explainer-shared/voice-rules.md` first. It calibrates this
+pass better than the twenty-move catalogue does.
+
+**This pass covers the whole body.** Do not scope it to the opening. On the draft that motivated
+this pass, four of the six sentences Vic rejected were body prose, past section 10. Scoping to
+framing prose relocates the failure rather than fixing it.
+
+**The chunking, which is what makes it finishable:**
+
+1. Split the MDX by H2/H3 into review units of at most ~150-250 lines. A 1,200-line post is 6-8
+   units.
+2. In each unit, inspect every one of these:
+   - the heading itself
+   - the first and last paragraph
+   - every transition paragraph
+   - every short isolated declarative (the "punchline" sentences)
+   - every hit from the Pass 4 candidate warnings that falls in this unit
+3. Then one paragraph-level scan of the remaining paragraphs, asking a single question: did this
+   paragraph trade concrete nouns or causal detail for a quotable formulation?
+4. Apply the unit's edits before moving to the next unit. Do not batch to the end.
+5. Append a row to the ledger (below) for the unit, then advance.
+
+**Do not** run all twenty catalogue tests against every sentence: attention decays and the pass
+gets abandoned around section four. **Do not** rewrite every sentence either: that damages
+citations, technical precision and rhythm, and produces uniformly polished prose, which is the
+original disease.
+
+**The ledger** goes in `notes/<slug>.md` under `## Voice pass YYYY-MM-DD`, one row per unit:
+
+| Unit | Lines | Inspected | Findings | Rewritten | Left, and why |
+|---|---|---|---|---|---|
+
+The ledger is the completion proof. A pass with fewer ledger rows than the post has units did not
+finish, and the editor must say so rather than reporting READY.
+
+**For each finding, write the replacement sentence.** A finding without a literal rewrite is not a
+finding; if you cannot write the replacement, the sentence is probably fine. If the rewrite touches
+anything a citation supports, re-verify the source still supports it before applying (see hard rule
+9).
+
+**What not to flag.** Impersonal mechanism description is correct prose, not a defect: "The index
+stores document IDs as gaps between adjacent values" needs no person in it. A metaphor that follows
+the mechanism rather than replacing it is fine. A rhythmic or epigram-shaped sentence whose nouns
+are all real and whose claim is bounded to something on the page is fine; voice-rules.md names one
+such near-miss explicitly.
+
+**Density halt.** If findings cover more than about a third of the post's sections, stop and
+surface to Vic. At that density the draft has a generation problem rather than a sentence problem,
+and sentence-by-sentence patching yields prose that passes the checks without reading like anyone
+wrote it. Recommend a re-draft of the worst act instead.
 
 ### Pass 5: Faithfulness re-verify (ledger-aware mode only)
 
@@ -150,7 +211,7 @@ Walk the post and verify:
 
 ## The punch-list
 
-After the eight passes, the editor surfaces a punch-list to chat with this shape:
+After the passes, the editor surfaces a punch-list to chat with this shape:
 
 ```
 ## Editor punch-list — <slug>
@@ -181,7 +242,7 @@ The editor does NOT auto-resolve punch-list items. Vic addresses each, then opti
 3. **Faithfulness drift goes on the punch-list, doesn't halt mid-pass.** The post cannot ship while drift is unresolved (BLOCKED status), but the editor continues collecting findings across all passes before reporting.
 4. **`draft: true` stays `true`.** The editor never flips draft to false; that's Vic's gesture only.
 5. **No structural rewrites without Vic.** The editor tightens, removes scaffolding, migrates audit detail, fixes voice. It does NOT reorganize sections, swap chapter ordering, or rewrite the post's argument. Structural rewrites are Vic's call (or a re-run of the writer skill).
-6. **Ledger-aware when ledger present; graceful degradation when not.** A non-ledger MDX still gets Passes 1-4 and 7-8 (faithfulness pass and appendix-migration pass become no-ops).
+6. **Ledger-aware when ledger present; graceful degradation when not.** A non-ledger MDX still gets Passes 1-4b and 7-8 (faithfulness pass and appendix-migration pass become no-ops).
 7. **Commit cadence: default is one commit per pass with non-trivial changes**, but tiny edits across many sections may be batched into a single "editor: tightness sweep" commit to avoid noise. The editor decides per run; Vic can rebase if he prefers different granularity.
 8. **Idempotency.** Re-running the editor on an already-edited MDX must be safe: no double-migration of audit lines, no duplicate appendix tables, no rewriting prose the editor already canonicalized. The editor reads the MDX state first and only edits what needs editing.
 9. **Citations re-validation after edits.** When the editor rewrites a sentence with an inline source link, it must verify the link still supports the rewritten claim. If the rewrite materially changes the claim, flag for Vic as `citation-mismatch`.
@@ -217,9 +278,10 @@ chat                                # the punch-list, printed for Vic's review
 
 ## Verification
 
-After the eight passes:
+After the passes:
 
 - `scripts/voice-check.sh src/content/blog/<slug>/index.mdx` exits clean.
+- `## Voice pass YYYY-MM-DD` exists in `notes/<slug>.md` with one ledger row per review unit, covering the whole file.
 - No `**What the book says.**`-style bold-label scaffolding remains in body prose.
 - No inline `*Source quality: ...*` / `*Current state: ...*` italic audit lines remain in body prose.
 - All `[L#…]` markers resolve to ledger entries (if a ledger exists).

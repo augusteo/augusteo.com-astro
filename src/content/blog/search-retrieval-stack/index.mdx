@@ -1,6 +1,6 @@
 ---
 title: "How Search Actually Works"
-description: "Thirty years of search indexes, from posting lists to generative retrieval, and the operational property that decided which ones actually got replaced in production."
+description: "I went through thirty years of search-index history looking for what decided which indexes actually got replaced in production. It was not anything a benchmark measures."
 pubDate: 2026-08-24
 heroImage: "@assets/blog/search-retrieval-stack/hero.jpeg"
 heroAlt: "Watercolor and ink sketch of an open wooden card-catalogue drawer under a desk lamp, a fountain pen resting on a freshly annotated index card, a pale blue constellation of linked dots drifting up and away from the drawer, and a brass gauge sitting apart on the desk."
@@ -10,7 +10,7 @@ draft: true
 essay: true
 ---
 
-*Thirty years of search indexes, from posting lists to generative retrieval, and the property that decided which ones actually got replaced. It is not the one any benchmark measures. Ends at two deployments from the same company, in the same year, that reached opposite answers about the same component. About a 60-minute read.*
+*I went through thirty years of search-index history, posting lists to generative retrieval, looking for what decided which indexes actually got replaced in production. It turned out to be a property no benchmark measures. By the end you will watch it split two deployments from the same company, in the same year, into opposite answers about the same component. About a 60-minute read.*
 
 ## Act 1 — The only question
 
@@ -74,11 +74,11 @@ So every index ever built answers one question: how do you avoid comparing the q
 
 An inverted index is not only a fast way to match text. It also sits inside an operational pipeline where someone can add a term at two in the afternoon and have it live by three, with no retraining. That capability appears in no benchmark in this post. Not nDCG, not recall@100, not any leaderboard. In one documented production system it is the reason the inverted index outlived a model that beat it on every metric anyone had run.
 
-This post walks the history from posting lists to generative retrieval, asking four questions at each step. What could the incumbent do that no benchmark measured? What did the challenger win on? Did the challenger keep that capability or route around it? And what happened when someone shipped it?
+So I walk the history from posting lists to generative retrieval, asking the same four questions at each step. What could the incumbent do that no benchmark measured? What did the challenger win on? Did the challenger keep that capability or route around it? And what happened when someone shipped it?
 
 The boot query is a worked example, and it does one job: showing what each generation of machinery can and cannot do. It is not evidence. Where I claim something about production systems, the evidence is a cited deployment.
 
-Metrics arrive as they become necessary rather than in a primer. When a number appears I will say what it measures and, where it matters, what it does not. That second half is the more useful one. By the end of this post there is a documented case where an automated evaluation ranked the top five systems in an order negatively correlated with how humans ranked them.
+Metrics arrive as they become necessary rather than in a primer. When a number appears I will say what it measures and, where it matters, what it does not. That second half is the more useful one. You will meet one documented case where an automated evaluation ranked the top five systems in an order negatively correlated with how humans ranked them.
 
 ## Act 2 — The lexical machine
 

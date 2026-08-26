@@ -53,7 +53,7 @@ HTML-import-specific defaults at write time:
 
 | Source HTML | MDX output |
 |---|---|
-| `<p class="dek">…</p>` (masthead tagline) | **Two destinations:** (1) plain text → frontmatter `description`. (2) Italicized kicker `*…*` as the first line of the MDX body, immediately after frontmatter and before the first heading. The unified-vision-stack post does exactly this. |
+| `<p class="dek">…</p>` (masthead tagline) | **Two destinations:** (1) plain text → frontmatter `description`. (2) Italicized kicker `*…*` as the first line of the MDX body, immediately after frontmatter and before the first heading. **Do not carry the imported text through verbatim.** Check it against `../../explainer-shared/mdx-output-spec.md` "The dek" first: an imported dek that is a fragment stack, a catalogue label, an article-as-agent sentence or a withheld payload gets rewritten on import. Imported placards are not grandfathered. |
 | `<h2 id="sN">N. Heading</h2>` (numbered section) | `### N. Heading` |
 | `<h2 id="sN">…<em>x</em>…</h2>` | `### N. … *x* …` |
 | `<div class="act-divider"><div class="act-label">Act One</div><h2><em>The</em> Lens</h2><p class="sub">subtitle.</p></div>` | `## Act 1 — The Lens` then blank line then `*subtitle.*` |

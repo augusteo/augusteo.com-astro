@@ -8,6 +8,41 @@ AI writing fails because it regresses to the statistical middle: the safest word
 
 If you catch yourself reaching for a "nicer" version of a plain word, stop. Use the plain word.
 
+## The generation contract
+
+Everything below this section is a diagnostic catalogue for **review**. It is long, and reading it
+does not make you write well. While you are drafting, hold these five instead. They are positive
+constraints, not prohibitions, and they are the whole contract.
+
+1. **Name the thing.** Every sentence names the concrete object, actor, mechanism, number or
+   consequence it is about. If a noun in your sentence could be swapped for "thing" without loss,
+   it was already "thing".
+2. **Use "I" only for a real judgment, choice or action you can stand behind.** Not to announce
+   the article. And never attribute to Vic an action the pipeline did not actually record him
+   taking: "I went through the literature" is honest if the research happened, "I tested this in
+   production" is a fabrication unless he did.
+3. **Use "you" only for a real reader consequence, decision or question.** Not to direct the
+   reader's attention, and not to tell them what they are about to read.
+4. **Let the mechanism be the subject when you are explaining the mechanism.** "The index stores
+   document IDs as gaps between adjacent values" is correct prose and needs no person in it.
+   Impersonal is not the failure. Uninhabited is.
+5. **Never buy a shape with a noun.** If making the sentence symmetrical, quotable or punchy
+   required replacing a real noun with an abstraction ("ideas", "bookkeeping", "the trick", "the
+   part"), you paid too much. Write the longer, plainer version.
+
+The failure these prevent is not impersonality. It is **staged prose**: a sentence arranged to
+look like it contains an insight. Staged prose can be full of "you" ("You are about to discover
+the real trick") and inhabited prose can have no person in it at all ("Benchmark wins did not
+decide which search indexes survived deployment. Operational constraints did."). Judge the
+sentence by whether it delivers a judgment, a consequence, a mechanism or a number, not by
+whether it contains a pronoun.
+
+## How to read the rest of this file
+
+Two separately numbered lists live below, and they collide. "Sentence patterns to avoid" runs 1-6
+(its #4 is the significance coda). "Banned rhetorical moves" runs 1-20 (its #4 is the synthetic
+aphorism). **Refer to a move by name, never by number alone.** Both lists are review instruments.
+
 ## Banned words and phrases
 
 Do not use any of these. They are the strongest tells. There is almost always a simpler word that does the job better.
@@ -60,6 +95,16 @@ AI can't resist telling the reader why something matters, even when it's obvious
 - Bad: "The company was founded in 2019, highlighting its role as a pioneer in the space."
 - Bad: "This decision reflects a broader trend in the industry."
 - Better: delete the coda. If the significance isn't obvious, argue for it in a separate sentence with actual reasoning.
+
+**The positioning variant.** Same shape, but instead of interpreting the fact the tail positions
+the writer against an unnamed crowd.
+
+- Bad: "...which is close to a fiftyfold reduction, before anyone talks about vectors."
+- Bad: "...and that is before you add a single embedding." / "...which most people never see."
+- Better: end at the number. If the comparison is load-bearing, make it a real sentence with real
+  figures: say what the vector index costs on the same corpus, cited.
+- Tell: a trailing clause naming an unnamed group (anyone, most people, everyone, nobody) or an
+  implied hype cycle, hung off a sentence that already delivered its fact.
 
 ### 5. Vague attribution
 
@@ -188,7 +233,20 @@ Compressing a concrete relationship into a symmetrical sentence built from place
 - Bad: "The constraint became the capability."
 - Better: name both sides. "OneRetrieval replaced the inverted-index branch, and had to rebuild same-day term intervention first, reaching 0.553 activation against the index's 0.761."
 
-Test: circle every instance of thing, what, this, that, capability, constraint, property. If the reader must unpack two or more to recover the claim, put the real nouns back.
+Test: circle every instance of thing, what, this, that, capability, constraint, property, part,
+trick, point, story, idea, ideas, machinery, moving parts, bookkeeping, the rest, them. If the
+reader must unpack two or more to recover the claim, put the real nouns back.
+
+The list is not closed, and treating it as closed is how this move keeps shipping. The real test
+is functional: **is this noun standing in for something you could have named?** "Only two of them
+are ideas. The rest is bookkeeping." contains no word from the original list and is a pure
+instance: *ideas* and *bookkeeping* are categories invented to make the sentence symmetrical, and
+neither idea is named until the next paragraph.
+
+Second trigger, same move: **a proper noun withheld from a sentence that is about it.** "the
+function that does it is thirty years old and still the thing you have to beat" is a sentence
+about BM25 that declines to say BM25. Delaying the name buys a small reveal and costs two
+placeholders. Name it in the sentence that introduces it.
 
 ### 4. The synthetic aphorism
 
@@ -281,7 +339,13 @@ Changing terms to avoid repetition, accidentally implying distinctions.
 
 - Bad: "The benchmark wants throughput." / "The cache knows which objects matter."
 - Better: "The benchmark rewards throughput." / "The cache retains objects by access-frequency count."
-- Test: if a nonhuman subject wants, knows, believes, prefers, forgets or refuses, name the actual mechanism.
+- Test: if a nonhuman subject wants, knows, believes, prefers, forgets, refuses, decides, learns,
+  earns, pays, pays out, rewards, punishes, tries, cares or chooses, name the actual mechanism.
+- The economic metaphors are the ones that slip through, because they sound like domain language.
+  "A term should stop paying out" is a personified term. The mechanism is that a term's
+  contribution to the BM25 score rises sublinearly with term frequency and approaches a limit.
+  Write the mechanism. A metaphor is allowed **after** the mechanism is on the page, never instead
+  of it.
 
 ### 16. Fake quotations from an imagined reader
 
@@ -362,6 +426,82 @@ Preserve idiosyncrasies that arise from the author's actual experience. Never ad
 
 Read any paragraph you are pleased with. Are you telling the reader something, or performing having-something-to-tell-them? If the second, rewrite it as a plain declarative and see what is left. Usually the plain version was the whole content.
 
+### Headings are prose
+
+Every move in this file applies to headings, and headings escape review because they get written
+during outlining and then read as furniture.
+
+A heading names what the section covers. It does not advertise that an insight is coming.
+
+- Bad: `### 2. The posting list, and why rare words are the whole trick`
+- Bad: `### 7. Caching, and the part nobody gets right`
+- Better: `### 2. The posting list, and what makes a rare word cheap`
+
+Two specific bans. First, a payload built on a placeholder noun: trick, thing, secret, catch, key,
+point, story. Second, a superlative of centrality asserted rather than earned: the whole, the real,
+what actually, all you need.
+
+The `<noun phrase>, and <wh-clause>` template is allowed but rationed. Both halves must name
+something concrete: `### 17. Why L1 is a dot product, and what that costs` is fine because it names
+two things the section delivers. Test: strip everything after the comma. If the heading still says
+what the section covers, the second half was advertising.
+
+Density is checked at the outline gate, where all headings are visible at once, not section by
+section during drafting. If more than about a third of a post's H3s use the template, rewrite the
+weakest ones.
+
+### The staged-prose diagnostic
+
+The catalogue above names twenty specific moves. They share one generator, and when you cannot tell
+which move a bad sentence commits, use this instead.
+
+**Is the sentence arranged to look like it contains an insight?** Symmetry, reversal, a withheld
+name, a short sentence isolated for weight, a category invented so two halves balance. Those are
+the tools. Take the sentence apart and ask what a reader knows after it that they did not know
+before. If the answer is "that the writer finds this significant", it is staged.
+
+Two failure modes point in opposite directions and both are real:
+
+- **The placard.** Sentences with no one in them, or with the article as the subject: "Thirty
+  years of search indexes, and the property that decided which ones got replaced." / "This post
+  walks the history from posting lists to generative retrieval." / "By the end of this post there
+  is a documented case where..." The article is not an agent and cannot walk anything.
+- **The staged intimacy.** The overcorrection, and the one to watch for after reading the section
+  above: "Let me walk you through thirty years of search indexes" / "You will meet one documented
+  case where..." / "I want to take you on a journey." These have people in them and are worse,
+  because they combine the placard's emptiness with tour-guide transitions and preview prose.
+
+The fix for the placard is never a narrator. It is a subject that is doing something real. See the
+generation contract at the top of this file, constraints 2 through 4.
+
+## Gold pairs
+
+The rest of this file describes defects. This section shows the repair. These are real sentences
+from real drafts Vic rejected, paired with the accepted rewrite and, where it matters, a nearby
+sentence that looks similar and is fine.
+
+**Read these before drafting. They do more work than the catalogue.**
+
+> ⚠️ PROVISIONAL: the "accepted" column below is what the repair pass produced on 2026-08-26 and
+> has not yet been confirmed by Vic. Confirm before treating these as gold, and replace any he
+> rejects with what he actually accepts. A pair whose "after" side he has not blessed teaches the
+> wrong lesson.
+
+| Rejected | Accepted | What was actually wrong |
+|---|---|---|
+| "BM25 has more moving parts than it needs, but only two of them are ideas. The rest is bookkeeping." | "Two parts of BM25 do the conceptual work: inverse document frequency, and term-frequency saturation. The rest of the formula normalizes for document length and fixes the two tuning constants." | *ideas* and *bookkeeping* were categories invented so the two halves would balance. Neither idea was named until the next paragraph. |
+| "The first idea is that a term should stop paying out." | "The first is saturation: each additional occurrence of a term adds less to the score than the one before, approaching a ceiling." | A term was personified as something that pays. The mechanism was replaced by the metaphor rather than followed by it. |
+| "Having found the documents, you have to order them, and the function that does it is thirty years old and still the thing you have to beat." | "Once you have the documents you have to rank them, and the ranking function almost everyone still starts from is BM25, published in 1994." | The sentence was about BM25 and refused to say BM25. Two placeholders bought one small reveal. |
+| "...426 GB of raw pages became an 8,759 MB index, which is close to a fiftyfold reduction, before anyone talks about vectors." | "...426 GB of raw pages became an 8,759 MB index, close to a fiftyfold reduction." | The fact landed at "reduction". The tail scored a point against an unnamed crowd. |
+| `### 2. The posting list, and why rare words are the whole trick` | `### 2. The posting list, and what makes a rare word cheap` | *trick* is a placeholder; *the whole* claims centrality the section has to earn. |
+| Dek: "Thirty years of search indexes, from posting lists to generative retrieval, and the property that decided which ones actually got replaced. It is not the one any benchmark measures. Ends at two deployments..." | see `../explainer-shared/mdx-output-spec.md`, "The dek" | Subjectless fragments, a withheld property, and an itinerary. |
+
+**The near-miss that is allowed.** "Skipping is effective, it is not free, and the distance between
+those two numbers is where thirty years of engineering went." This has the shape of an epigram and
+survives, because both numbers are on the page in the preceding sentence and the claim is bounded
+to one measured comparison. The catalogue is not a ban on rhythm. It is a ban on rhythm bought with
+nouns.
+
 ## Quick self-check before sending
 
 Run these checks before you consider the draft done:
@@ -376,5 +516,15 @@ Run these checks before you consider the draft done:
 8. Search for the rhetorical moves: "here is the part", "here's the thing", "the honest", "quiet", "genuinely", "worth noting", "that is the point", "which is why", "the thing is".
 9. Count sentence lengths on one page. Break any run of five similar-length sentences.
 10. For every sentence you are pleased with, check whether you are informing the reader or performing insight at them.
+
+11. Read the dek, the frontmatter description, and every heading. For each: is the article the
+    subject of a verb ("this post walks", "the section covers")? Is it a fragment stack? Does it
+    preview structure rather than make a claim? Does a heading advertise an insight instead of
+    naming a topic?
+12. Grep for `this post|this essay` used as a subject. `in this post` as a scoping qualifier
+    ("appears in no benchmark in this post") is fine and common; the article as an actor is not.
+13. Take the ten sentences you would most want to quote. For each, ask what the reader knows after
+    it that they did not know before. Any whose answer is "that the writer finds this significant"
+    gets rewritten as a plain declarative.
 
 If the draft still reads too polished after all that, it probably is. Rewrite the smoothest paragraph in plainer words.

@@ -56,6 +56,34 @@ BANNED_STOCK='(in\s+today.s\s+(fast.paced|rapidly.evolving)|in\s+the\s+ever.evol
 # one is here and what to write instead.
 BANNED_MOVES='(here(.s| is) the (part|thing|bit)|here.s where it gets|the (honest|truthful) (version|answer|claim|position|framing)|to be honest,|i want to be careful|let me be precise|\bquietly\b|\bthe quiet\b|worth (noting|knowing|having|sitting)|that is the point\.|that.s the point\.|that is what (this|the) (post|section|act) is about|\bgenuinely\b|\btruly\b|\bdeeply\b|the part nobody (talks about|frames))'
 
+# Staged-prose CANDIDATES. Added 2026-08-26 after Vic rejected six sentences in
+# search-retrieval-stack that passed every check above. These are the greppable shadow of the
+# "staged prose" family: sentences arranged to look like they contain an insight.
+#
+# THESE ARE WARNINGS, NOT FAILURES. They do not affect the exit code. The patterns catch the
+# stored phrasings and miss every paraphrase; more importantly, several of them fire on
+# legitimate prose ("Latency is the whole point of the cache" is a fine sentence). They exist to
+# feed post-editor Pass 4b, where a read decides. If this group ever becomes pass/fail, agents
+# will optimize around the vocabulary while preserving the rhetorical move, which is worse than
+# not checking at all.
+
+# Article as agent. NOTE the deliberate absence of "in this post": that is a legitimate scoping
+# qualifier ("appears in no benchmark in this post") and appears in shipped prose. Only the
+# article-as-subject-of-a-verb form is a candidate.
+CAND_PLACARD='\b(this|the) (post|essay|section|act|chapter) +(walks|covers|traces|argues|spends|spent|ends|begins|opens|explains|shows|follows|is about)\b|by the end of this (post|essay)|what follows is'
+
+# Heading payloads that advertise instead of naming.
+CAND_HEADING='^#{2,4} .*(the whole |the real |what actually |the secret|the catch|the trick|all you need)'
+
+# Positioning tails: a trailing clause scoring a point against an unnamed crowd.
+CAND_TAIL=', before (anyone|anybody|we|you) (talk|talks|get|gets|even|reach)|and that.?s before|which most people (never|don.?t)|long before the (current|recent) hype'
+
+# Placeholder nouns sitting in a predicate. Highest false-positive rate of the group; kept because
+# it was the single highest-signal pattern on the corpus it was built from.
+CAND_PLACEHOLDER='\b(is|are|was|were) (not )?(the|a|an|only|just|still) ?(whole )?(thing|trick|point|story|bookkeeping|machinery)\b'
+
+CAND_RE="${CAND_PLACARD}|${CAND_HEADING}|${CAND_TAIL}|${CAND_PLACEHOLDER}"
+
 # Combined banned-word regex.
 BANNED_RE="${BANNED_VERBS}|${BANNED_ADJECTIVES}|${BANNED_NOUNS}|${BANNED_FIGURATIVE}|${BANNED_TRANSITIONS}|${BANNED_FILLERS}|${BANNED_STOCK}|${BANNED_MOVES}"
 
@@ -112,6 +140,13 @@ for f in "$@"; do
     echo "==> curly quotes in $f (use straight quotes):"
     grep -nP '[\x{201C}\x{201D}\x{2018}\x{2019}]' "$f"
     hit=1
+  fi
+
+  # Staged-prose candidates. Warnings only: deliberately does NOT set `hit`, so these never
+  # change the exit code. Feed them to post-editor Pass 4b.
+  if grep -niE "$CAND_RE" "$f" | grep -vE "$EXEMPT" >/dev/null 2>&1; then
+    echo "--> staged-prose CANDIDATES in $f (warnings, not failures; a human read decides):"
+    grep -niE "$CAND_RE" "$f" | grep -vE "$EXEMPT"
   fi
 
   if [[ $hit -eq 0 ]]; then

@@ -58,6 +58,16 @@ Identify 3-5 specific things that work well:
 - Any passive constructions?
 - Any hedging language?
 - Contractions used consistently?
+- **Staged prose.** Take the sentences you'd most want to quote. For each, what does the reader
+  know after it that they didn't before? If the answer is "that the writer finds this
+  significant", rewrite it as a plain declarative. See the "Gold pairs" table in
+  `.claude/explainer-shared/voice-rules.md`.
+- **Placeholder nouns.** Circle every thing, part, trick, point, story, idea, machinery, the rest.
+  Is the noun standing in for something that could have been named? Name it.
+- **Withheld names.** Is a sentence about BM25 (or whatever) declining to say BM25 in order to
+  set up a reveal one sentence later? Say it in the sentence that introduces it.
+- **Article as agent.** "This post walks...", "the section covers...". The article is not an actor.
+- Impersonal is fine; uninhabited is not. Don't "fix" flat prose by adding pronouns.
 - Any corporate speak?
 
 ### Clarity & Punch

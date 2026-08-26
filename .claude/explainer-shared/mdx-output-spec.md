@@ -9,7 +9,7 @@ The schema is defined in `src/content.config.ts` and rendered by `src/pages/blog
 | Field | Type | Source / value |
 |---|---|---|
 | `title` | `z.string()` | The post title. **Strip Markdown emphasis markers entirely** (YAML frontmatter does not render). Example: `<h1>Image generators are <em>quietly</em> becoming the best vision models</h1>` → `"Image generators are quietly becoming the best vision models"`. |
-| `description` | `z.string()` | One-sentence summary, ~100-200 chars. Plain text. Used in post-card listings and the `<meta name="description">` tag. |
+| `description` | `z.string()` | One-sentence summary, ~100-200 chars. Plain text. Used in post-card listings and the `<meta name="description">` tag. Must be a complete sentence that makes a claim, not a catalogue label; see "The dek" below. It may be impersonal, but it may not be a fragment stack or a description of the article. |
 | `pubDate` | `z.coerce.date()` | Today (ISO date, e.g. `2026-05-01`) at write time. |
 | `heroAlt` | `z.string()` (required key, may be empty) | The schema is bare `z.string()` — the key must be present, but the empty string `""` is a valid value. The two skills use different initial values; see "Initial heroAlt values" below. |
 | `heroImage` | `image().optional()` | Omitted until a hero image is supplied; then set to `"@assets/blog/<slug>/hero.<ext>"`. The `@assets` alias resolves to `/src/assets` (configured in `astro.config.mjs`). |
@@ -64,3 +64,59 @@ When either skill's `SKILL.md` describes frontmatter or paths, it should referen
 - `html-explainer-to-post/SKILL.md` references this file in lieu of the per-skill frontmatter table.
 
 If you find yourself updating frontmatter rules in only one skill's SKILL.md, stop — the change belongs here.
+
+## The dek
+
+Every long-form post opens with one italic line, placed immediately after the closing frontmatter
+`---` and before the first heading. It renders as the standfirst.
+
+    *<one to three complete sentences>. About a <N>-minute read.*
+
+**What it must be.** Complete sentences that make a claim about the subject. It tells the reader
+what they get, in the voice of someone saying it to them.
+
+**What it must not be.** Any of these fails and gets rewritten, not trimmed:
+
+- **Fragment stack.** "Thirty years of search indexes, from posting lists to generative retrieval,
+  and the property that decided which ones got replaced. Ends at two deployments..." Subjectless
+  noun phrases with the verbs removed. Join them into sentences and see what disappears; usually
+  nothing does.
+- **Article as agent.** "This post walks the history of...", "The post ends at...". The article is
+  not an actor.
+- **Structural preview.** "We will first look at indexing, then retrieval, and finally
+  evaluation." The headings are the map.
+- **Withheld payload.** "...the property that decided which ones got replaced. It is not the one
+  any benchmark measures." If you know what the property is, say it. A dek that advertises a
+  revelation is a trailer.
+- **Catalogue label.** "A survey of open-source AI agent frameworks along three architectural
+  dials." Accurate, and reads like a library card.
+
+**What it does not have to be.** It does not need a pronoun. Requiring "I" or "you" produces
+"You will discover the real trick", which is worse than the placard it replaced. A dek with no
+pronoun can be excellent: *"Benchmark wins did not decide which search indexes survived
+deployment. Operational constraints did, and no benchmark in this post measures them. About a
+60-minute read."* Judge it by whether it makes a claim, not by whether it contains a person.
+
+**Worked example.** From `search-retrieval-stack`, rejected and repaired:
+
+> Rejected: *Thirty years of search indexes, from posting lists to generative retrieval, and the
+> property that decided which ones actually got replaced. It is not the one any benchmark measures.
+> Ends at two deployments from the same company, in the same year, that reached opposite answers
+> about the same component. About a 60-minute read.*
+
+> Repaired: *I went through thirty years of search-index history, posting lists to generative
+> retrieval, looking for what decided which indexes actually got replaced in production. It was
+> never the benchmark score. It was whether an engineer could change a ranking decision the same
+> afternoon, which nothing in this post measures and which decided every replacement in it.
+> About a 60-minute read.*
+
+The repair states the property instead of advertising it, and the "I" is honest: the research
+happened. **Never write a first-person claim about something Vic did not do.** "I went through the
+literature" is fine when the research pass ran. "I ran this in production" is a fabrication.
+
+**Sequels.** A sequel dek still obeys everything above; it just opens by naming the prior post:
+
+    *This picks up where [The Title](/blog/slug) left off. <one sentence stating what is new>. About a <N>-minute read.*
+
+Use root-relative `/blog/<slug>` paths in prose; full `https://augusteo.com/...` URLs only inside
+`## References`.
