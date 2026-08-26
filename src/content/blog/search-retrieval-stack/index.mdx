@@ -1,6 +1,6 @@
 ---
 title: "How Search Actually Works"
-description: "I went through thirty years of search-index history looking for what decided which indexes actually got replaced in production. It was not anything a benchmark measures."
+description: "What decided which search indexes got replaced in production was never the benchmark score. It was whether an engineer could change a ranking decision the same afternoon."
 pubDate: 2026-08-24
 heroImage: "@assets/blog/search-retrieval-stack/hero.jpeg"
 heroAlt: "Watercolor and ink sketch of an open wooden card-catalogue drawer under a desk lamp, a fountain pen resting on a freshly annotated index card, a pale blue constellation of linked dots drifting up and away from the drawer, and a brass gauge sitting apart on the desk."
@@ -10,7 +10,7 @@ draft: true
 essay: true
 ---
 
-*I went through thirty years of search-index history, posting lists to generative retrieval, looking for what decided which indexes actually got replaced in production. It turned out to be a property no benchmark measures. By the end you will watch it split two deployments from the same company, in the same year, into opposite answers about the same component. About a 60-minute read.*
+*I went through thirty years of search-index history, posting lists to generative retrieval, looking for what decided which indexes actually got replaced in production. It was never the benchmark score. It was whether someone could add a term at two in the afternoon and have it live by three, with no retraining, which is a capability no benchmark in this post measures. About a 60-minute read.*
 
 ## Act 1 — The only question
 
@@ -82,7 +82,7 @@ Metrics arrive as they become necessary rather than in a primer. When a number a
 
 ## Act 2 — The lexical machine
 
-### 2. The posting list, and why rare words are the whole trick
+### 2. The posting list, and what makes a rare word cheap
 
 The structure that answers the boot query has not changed much since the 1970s. Ding and Suel describe it in one sentence: "An inverted index consists of many inverted lists, where each inverted list Lw is a list of postings describing all places where term w occurs in the collection."
 
@@ -144,7 +144,7 @@ Why this is fast has less to do with the data structure than with which words yo
 
 Which tells you where it stops being fast. Some words are not uncommon at all, and the same paper says so: "The inverted lists of common query terms may consist of many millions or even billions of postings." Add `the` to your query and the trick is undone. That is why systems handle frequent terms specially, and why the interesting engineering is about them rather than the rare ones.
 
-Two implementation details matter later. The lists are compressed, and the compression is not an optimization someone added at the end. On GOV2, 426 GB of raw pages became an 8,759 MB index, which is close to a fiftyfold reduction, before anyone talks about vectors.
+Two implementation details matter later. The lists are compressed, and the compression is not an optimization someone added at the end. On GOV2, 426 GB of raw pages became an 8,759 MB index, close to a fiftyfold reduction.
 
 And the compressed lists are cut into blocks, "of, say, 64 or 128 docIDs, such that each block can be decompressed separately." Nothing in this section needs that fact. Section 4 is built on it.
 
@@ -152,13 +152,13 @@ And the compressed lists are cut into blocks, "of, say, 64 or 128 docIDs, such t
 
 ### 3. BM25's two dials
 
-Having found the documents, you have to order them, and the function that does it is thirty years old and still the thing you have to beat.
+Once you have the documents you have to rank them, and the ranking function almost everything in this post gets measured against is BM25.
 
-BM25 has more moving parts than it needs, but only two of them are ideas. The rest is bookkeeping.
+Two parts of BM25 carry the ideas: term-frequency saturation, and document-length normalization. The rest of the formula weights rarer terms more heavily and sets the two constants that tune those first two.
 
-The first idea is that a term should stop paying out. If a page says `waterproof` once, that tells you something. If it says `waterproof` forty times, that tells you almost nothing more, and quite possibly tells you the page is trying too hard. Robertson and Zaragoza name the behaviour directly: "any one term's contribution to the document score cannot exceed a saturation point (the asymptotic limit), however, frequently it occurs in the document."
+The first is saturation: each additional occurrence of a term adds less to the score than the one before it, up to a ceiling. If a page says `waterproof` once, that tells you something. If it says `waterproof` forty times, that tells you almost nothing more, and quite possibly tells you the page is trying too hard. Robertson and Zaragoza name the behaviour directly: "any one term's contribution to the document score cannot exceed a saturation point (the asymptotic limit), however, frequently it occurs in the document."
 
-The dial that controls how fast the payout flattens is `k1`, and the two extremes are worth holding in your head, because the middle follows from them. "for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly." High `k1`, repetition keeps helping. Low `k1`, the second mention is nearly worthless.
+The dial that controls how fast the contribution flattens is `k1`, and the middle follows from its two extremes. "for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly." High `k1`, repetition keeps helping. Low `k1`, the second mention is nearly worthless.
 
 <figure>
 <svg viewBox="0 0 680 306" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Six small charts. The top row shows BM25 term-frequency saturation for three values of k1: at 0.5 the curve flattens almost immediately, at 1.2 it rises then flattens, at 3.0 it keeps climbing across the plotted range. The bottom row shows the length-normalization multiplier against document length for three values of b: at b equals 0 the line is flat, meaning length is ignored entirely; at 0.75 it slopes down; at b equals 1 it falls fastest, fully dividing by relative document length.">
@@ -215,9 +215,9 @@ What does differ is more boring and more actionable. When Kamphuis and colleague
 
 ### 4. Pruning fixed the cost, and could not fix the meaning
 
-Section 2 left you with a problem. The posting list for a common term runs to millions of entries, and scoring all of them is the thing we're trying to avoid.
+Section 2 left you with a problem. The posting list for a common term runs to millions of entries, and scoring all of them costs the 225.7 milliseconds section 1 opened with.
 
-The fix is older than most of the machine learning in this post, and it is the same fix that the last act of this post is about.
+The fix predates every neural method here: bound what a list could contribute, and skip it when the bound is too low to matter.
 
 This is the WAND idea from section 1, in detail. You keep a running threshold, which is the score of the tenth-best document you have seen so far. You also keep, for each posting list, the largest score any single document could possibly earn from that term. Add up those maxima for the lists you are considering, and if the total cannot reach the threshold, nothing in them can make your top ten. You skip without scoring. [Broder and colleagues](https://research.ibm.com/publications/efficient-query-evaluation-using-a-two-level-retrieval-process) built this in 2003 and reported that it "significantly reduces the total number of full evaluations by more than 90%, almost without any loss in precision or recall."
 
@@ -382,7 +382,7 @@ Those are aggregate results on open-domain question answering, not a measurement
 
 
 
-Now the second query, `Salomon Quest 4 GTX wide 10.5`, the one term matching was superb at. A bi-encoder compresses that entire string into 768 floats, and `Quest 4` and `Quest 5` land very close together, because they are textually and semantically almost identical. Nothing in the training objective taught the model that the difference between them is the whole point. [Sciavolino and colleagues](https://arxiv.org/abs/2109.08535) measured this directly, using simple questions about specific named entities, and found that "dense retrievers drastically underperform sparse methods", and, more damningly, that "dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training."
+Now the second query, `Salomon Quest 4 GTX wide 10.5`, the one term matching was superb at. A bi-encoder compresses that entire string into 768 floats, and `Quest 4` and `Quest 5` land very close together, because they are textually and semantically almost identical. Nothing in the training objective taught the model that `4` versus `5` is the part of the query that decides the answer. [Sciavolino and colleagues](https://arxiv.org/abs/2109.08535) measured this directly, using simple questions about specific named entities, and found that "dense retrievers drastically underperform sparse methods", and, more damningly, that "dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training."
 
 That is a Wikidata entity study, not a product catalog. But the mechanism transfers cleanly, and if you have ever watched a semantic search return the wrong model number with great confidence, you have seen it.
 
@@ -533,7 +533,7 @@ Under those conditions the plain graph's recall against filter selectivity reads
 
 The latency column barely moves across those three rows: 1.6ms, 1.7ms, 1.6ms. The system is exactly as fast while returning almost none of the right answers. There is no timeout, no error, no degradation you would notice on a dashboard.
 
-A system that silently returns the wrong ten results is worse than one that returns the right ten slowly, and repairing that is what the rest of this section is about.
+A system that silently returns the wrong ten results is worse than one that returns the right ten slowly. The repair is a query planner that picks its strategy per query rather than per index.
 
 There are two repairs, and they differ in when they do the work. ACORN repairs at query time. When a neighbour fails the predicate, don't stop; look through it to its neighbours. The predicate check is a bitmap lookup rather than a distance computation, so you can filter the expanded list before spending arithmetic on it. There are two variants, and the names only appear in the body of the paper, not the abstract: ACORN-γ builds a denser graph up front by collecting `M · γ` candidate edges per node, and ACORN-1 does the expansion purely at search time. The tradeoff between them is stated as "at most 5× lower QPS at fixed recall but 9–53× lower TTI".
 
@@ -1027,7 +1027,7 @@ That is a recommendation and advertising result rather than a search one, and th
 
 ### 19. Why your offline number lied
 
-Everything so far has been evaluated with a number. This section is about how much those numbers are worth, and the answer is less than you would like, in a specific and documented way.
+Everything so far has been evaluated with a number. Those numbers are worth less than you would like, in ways that have been measured.
 
 Start with the cleanest evidence, which is from 2020 and still the best thing written on it. Airbnb's search team [published three model changes](https://arxiv.org/abs/2002.05515) that looked fine offline and lost money online.
 
@@ -1194,7 +1194,7 @@ Posting lists are not editable. The dictionary and the refresh pipeline that fee
 
 Same company. Same technology family. Different surface, opposite outcome. The two papers are eight months apart, October 2025 and June 2026, so treat them as contemporaneous rather than simultaneous.
 
-[OneSearch](https://arxiv.org/abs/2509.03236) is described by its authors as "the first industrial-deployed end-to-end generative framework for e-commerce search", positioned explicitly against the multi-stage cascading architecture this post spent act 6 on. Its deployment, from the introduction:
+[OneSearch](https://arxiv.org/abs/2509.03236) is described by its authors as "the first industrial-deployed end-to-end generative framework for e-commerce search", positioned explicitly against the multi-stage cascading architecture of act 6. Its deployment, from the introduction:
 
 > "It has been successfully deployed for the entire traffic on the detail page search, 50% traffic on the mall search, and 20% traffic on the homepage search platform"
 

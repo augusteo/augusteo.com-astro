@@ -1225,3 +1225,33 @@ Last touched: 2026-08-24.
 9. **`draft: true` from creation through ship; Vic flips to `draft: false` explicitly.** The skill never auto-flips.
 10. **Project-memory pointer + MEMORY.md entry are required and verified at end of Phase 1.**
 11. **The blog is interconnected; newer posts link to older relevant posts.** Phase 2 scans and records anchor points; Phase 4 weaves links and adds References entries. Older posts are NOT retroactively edited.
+
+## Voice pass 2026-08-26
+
+Candidate-driven repair pass, not the full chunked Pass 4b read. Ran after Vic rejected six
+sentences and the skills were amended (commit 13ce559).
+
+| Unit | Lines | Inspected | Findings | Rewritten | Left, and why |
+|---|---|---|---|---|---|
+| Frontmatter + dek | 1-13 | full | 2 | 2 | — |
+| Act 1 §1-2 | 15-150 | headings, Vic's flags, grep candidates | 3 | 3 | paragraph-level scan NOT done |
+| Act 2 §3-4 | 151-230 | Vic's flags, grep candidates | 6 | 6 | paragraph-level scan NOT done |
+| §6 | 380-390 | grep candidates | 1 | 1 | paragraph-level scan NOT done |
+| §16, §19, §23 | 530-1200 | grep candidates | 3 | 3 | paragraph-level scan NOT done |
+
+**Incomplete.** This pass covered the dek, every heading, Vic's six rejections, and every
+`voice-check.sh` staged-prose candidate. It did NOT do the paragraph-level scan Pass 4b requires
+("did this paragraph trade concrete nouns or causal detail for a quotable formulation?") over the
+~410 prose lines. The known-unfixed population is whatever that scan would surface.
+
+Vic found six by casual reading; grep found nine more of one signature. Treat the post as
+un-passed until a full chunked read runs.
+
+**Accuracy note from the pass:** the original "BM25 ... is thirty years old" carried an unsourced
+1994 date, and the only BM25 source in `## References` is Robertson & Zaragoza 2009, which the
+matrix does not use to date the algorithm. The date was removed rather than sourced. If Vic wants
+the durability claim back, it needs a matrix row.
+
+**Gold pairs:** the repairs from this pass are recorded in
+`.claude/explainer-shared/voice-rules.md` under `## Gold pairs`, marked PROVISIONAL. They need
+Vic's confirmation before they teach anything.
