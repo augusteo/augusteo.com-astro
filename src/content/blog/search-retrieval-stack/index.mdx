@@ -10,7 +10,7 @@ draft: true
 essay: true
 ---
 
-*I went through thirty years of search-index history, posting lists to generative retrieval, looking for what decided which indexes actually got replaced in production. It was never the benchmark score. It was whether someone could add a term at two in the afternoon and have it live by three, with no retraining, which is a capability no benchmark in this post measures. About a 60-minute read.*
+*I went through thirty years of search-index history, posting lists to generative retrieval, looking for what decided which indexes actually got replaced in production. It was never the benchmark score. It was whether someone could add a term at two in the afternoon and have it live by three, with no retraining. No benchmark in this post measures that. About a 60-minute read.*
 
 ## Act 1 — The only question
 
@@ -22,13 +22,13 @@ The obvious way to answer is to score every one of them and sort. Nobody does th
 
 Their corpus was GOV2, a crawl of 25.2 million government web pages. They compared three ways of answering the same queries.
 
-The first scores every document containing any of your query words. In the literature it is called exhaustive OR, because a document qualifies if it matches this word *or* that one. On GOV2 it cost 225.7 milliseconds per query, and it fully scored 3,815,676 documents to do it.
+The first scores every document containing any of your query words. It's called exhaustive OR, because a document qualifies if it matches this word *or* that one. On GOV2 it cost 225.7 milliseconds per query, and it fully scored 3,815,676 documents to do it.
 
-The second keeps two things: a running score to beat, and, for each word, the highest score any single document could possibly earn from that word. If a document cannot clear the bar even in the best case, you never score it. That is WAND. Same queries, 77.6 milliseconds, 178,391 documents scored.
+The second keeps a running score to beat and, for each word, the highest score any document could possibly earn from that word. If a document can't clear the bar even in the best case, you skip it. That's WAND. Same queries, 77.6 milliseconds, 178,391 documents scored.
 
 The third keeps a tighter estimate. Instead of one ceiling for a word's entire list, it stores a ceiling for each small chunk of that list, so a single unusually good document no longer inflates the estimate for everything around it. That is the [block-max index](https://research.engineering.nyu.edu/~suel/papers/bmw.pdf): 27.9 milliseconds, 21,921 documents scored. Section 4 covers how the skipping works.
 
-Compare block-max against exhaustive OR and you get two different ratios. The documents scored fell by a factor of about 174. The time fell by a factor of about 8. Skipping is effective, it is not free, and the distance between those two numbers is where thirty years of engineering went.
+Compare block-max against exhaustive OR and you get two different ratios. The documents scored fell by a factor of about 174. The time fell by a factor of about 8. Skipping works, it just isn't free, and the gap between those two numbers is where thirty years of engineering went.
 
 <figure>
 <svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Two bar charts comparing exhaustive OR, WAND and block-max WAND on the GOV2 collection in 2011. Documents fully scored per query: exhaustive OR 3,815,676; WAND 178,391; block-max 21,921, a reduction of about 174 times. Average latency per query: exhaustive OR 225.7 milliseconds; WAND 77.6; block-max 27.9, a reduction of about 8 times.">
@@ -72,23 +72,23 @@ Compare block-max against exhaustive OR and you get two different ratios. The do
 
 So every index ever built answers one question: how do you avoid comparing the query to everything? Trees cut space into regions and ignore most of them. Inverted indexes visit only the documents containing your words. Graphs walk toward the answer instead of scanning for it. Each buys its speed by giving something up.
 
-An inverted index is not only a fast way to match text. It also sits inside an operational pipeline where someone can add a term at two in the afternoon and have it live by three, with no retraining. That capability appears in no benchmark in this post. Not nDCG, not recall@100, not any leaderboard. In one documented production system it is the reason the inverted index outlived a model that beat it on every metric anyone had run.
+An inverted index is a fast way to match text. It is also something you can open up and edit. Notice at two in the afternoon that `wide toe box` returns nothing useful, add the term, and it is live by three: no retraining, no eval run, nobody waiting on a model. None of the benchmarks here measure that. Not nDCG, not recall@100, not any leaderboard. And in one production system I will get to, being editable is the reason the inverted index outlived a model that beat it on every metric anyone had run.
 
-So I walk the history from posting lists to generative retrieval, asking the same four questions at each step. What could the incumbent do that no benchmark measured? What did the challenger win on? Did the challenger keep that capability or route around it? And what happened when someone shipped it?
+So I walked the history from posting lists to generative retrieval, asking the same four questions at each step. What could the incumbent do that no benchmark measured? What did the challenger win on? Did the challenger keep that capability or route around it? And what happened when someone shipped it?
 
-The boot query is a worked example, and it does one job: showing what each generation of machinery can and cannot do. It is not evidence. Where I claim something about production systems, the evidence is a cited deployment.
+The boot query is a worked example. It shows what each generation of machinery can and can't do, but it isn't evidence. Where I claim something about production systems, the evidence is a cited deployment.
 
-Metrics arrive as they become necessary rather than in a primer. When a number appears I will say what it measures and, where it matters, what it does not. That second half is the more useful one. You will meet one documented case where an automated evaluation ranked the top five systems in an order negatively correlated with how humans ranked them.
+I'll introduce metrics as they come up rather than front-loading a primer. When a number shows up I'll say what it measures and, where it matters, what it doesn't. That second part is the more useful one. You'll see one documented case where an automated evaluation ranked the top five systems in roughly the opposite order from how humans ranked them.
 
 ## Act 2 — The lexical machine
 
 ### 2. The posting list, and what makes a rare word cheap
 
-The structure that answers the boot query has not changed much since the 1970s. Ding and Suel describe it in one sentence: "An inverted index consists of many inverted lists, where each inverted list Lw is a list of postings describing all places where term w occurs in the collection."
+The machinery answering our boot query hasn't changed much since the 1970s. Ding and Suel describe it in one sentence: "An inverted index consists of many inverted lists, where each inverted list Lw is a list of postings describing all places where term w occurs in the collection."
 
 That's it. For every word in the vocabulary, keep a list of the documents containing it. To answer `waterproof hiking boots wide toe box under $150`, you don't look at a hundred million documents. You look at the list for `waterproof`, the list for `hiking`, the list for `toe`, and you work with what's on them.
 
-Why this is fast has less to do with the data structure than with which words you happened to type. The list for `waterproof` covers a small slice of the corpus, and the list for a brand name is smaller still. You skipped the scan because your query named a few uncommon things.
+It's fast, but not because of anything clever about the data structure. It's fast because of which words you happened to type. The list for `waterproof` covers a small slice of the corpus, and the list for a brand name is smaller still. You skipped the scan because your query named a few uncommon things.
 
 <figure>
 <svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="An inverted index: a dictionary of terms, each pointing to a posting list. The term waterproof points to a short list of four postings, each a document ID with a term frequency. The term the points to a list of billions. Each list is cut into independently decompressible blocks of 64 or 128 document IDs.">
@@ -144,7 +144,7 @@ Why this is fast has less to do with the data structure than with which words yo
 
 Which tells you where it stops being fast. Some words are not uncommon at all, and the same paper says so: "The inverted lists of common query terms may consist of many millions or even billions of postings." Add `the` to your query and the trick is undone. That is why systems handle frequent terms specially, and why the interesting engineering is about them rather than the rare ones.
 
-Two implementation details matter later. The lists are compressed, and the compression is not an optimization someone added at the end. On GOV2, 426 GB of raw pages became an 8,759 MB index, close to a fiftyfold reduction.
+Two details are going to matter later. The lists are compressed, and the compression isn't an afterthought. On GOV2, 426 GB of raw pages became an 8,759 MB index, close to a fiftyfold reduction.
 
 And the compressed lists are cut into blocks, "of, say, 64 or 128 docIDs, such that each block can be decompressed separately." Nothing in this section needs that fact. Section 4 is built on it.
 
@@ -152,13 +152,15 @@ And the compressed lists are cut into blocks, "of, say, 64 or 128 docIDs, such t
 
 ### 3. BM25's two dials
 
-Once you have the documents you have to rank them, and the ranking function almost everything in this post gets measured against is BM25.
+Once you have the documents, you have to rank them. The ranking function everything here gets measured against is BM25.
 
-Two parts of BM25 carry the ideas: term-frequency saturation, and document-length normalization. The rest of the formula weights rarer terms more heavily and sets the two constants that tune those first two.
+If you haven't seen it: BM25 takes a document and a query, returns a number, and you sort by that number. It came out of the Okapi project at City University London in 1994, and it became Lucene's default ranking function, which is what Elasticsearch, OpenSearch and Solr hand you unless you say otherwise. Nothing in it is learned. It counts words, and three intuitions decide what those counts are worth. Rare words count for more than common ones, so matching `salomon` says more about a page than matching `boots`. Each repeat of a word helps less than the one before it. And longer documents get handicapped, because length alone gives them more chances to contain your words.
 
-The first is saturation: each additional occurrence of a term adds less to the score than the one before it, up to a ceiling. If a page says `waterproof` once, that tells you something. If it says `waterproof` forty times, that tells you almost nothing more, and quite possibly tells you the page is trying too hard. Robertson and Zaragoza name the behaviour directly: "any one term's contribution to the document score cannot exceed a saturation point (the asymptotic limit), however, frequently it occurs in the document."
+The first is just arithmetic. The other two are where it gets interesting, and each comes with a dial: term-frequency saturation and document-length normalization.
 
-The dial that controls how fast the contribution flattens is `k1`, and the middle follows from its two extremes. "for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly." High `k1`, repetition keeps helping. Low `k1`, the second mention is nearly worthless.
+Saturation first. Each time a word shows up again, it's worth a little less than the time before, up to a ceiling. If a page says `waterproof` once, that tells you something. If it says `waterproof` forty times, that tells you almost nothing more, and quite possibly tells you the page is trying too hard. Robertson and Zaragoza name the behaviour directly: "any one term's contribution to the document score cannot exceed a saturation point (the asymptotic limit), however, frequently it occurs in the document."
+
+The dial that controls how fast things flatten is `k1`. "for high k, increments in tf continue to contribute significantly to the score, whereas for low k, the additional contribution of a newly observed occurrence tails off very rapidly." High `k1`, repetition keeps helping. Low `k1`, the second mention is nearly worthless.
 
 <figure>
 <svg viewBox="0 0 680 306" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Six small charts. The top row shows BM25 term-frequency saturation for three values of k1: at 0.5 the curve flattens almost immediately, at 1.2 it rises then flattens, at 3.0 it keeps climbing across the plotted range. The bottom row shows the length-normalization multiplier against document length for three values of b: at b equals 0 the line is flat, meaning length is ignored entirely; at 0.75 it slopes down; at b equals 1 it falls fastest, fully dividing by relative document length.">
@@ -199,29 +201,29 @@ The dial that controls how fast the contribution flattens is `k1`, and the middl
 <figcaption><strong>Fig 3.</strong> BM25's two dials, at their extremes rather than their middles. Low <em>k1</em> means the second mention of a word is nearly worthless; high <em>k1</em> means repetition keeps paying. And <em>b</em> = 0 ignores document length completely while <em>b</em> = 1 divides it out in full. Everything useful sits between these, which is why the model cannot tell you where.</figcaption>
 </figure>
 
-The second idea is that longer documents need handicapping, but only partly, and the reason for the hedge matters. A document can be long because it's padded, in which case its term counts are inflated and should be divided down. Or it can be long because it covers more ground, in which case dividing down is wrong. The paper calls these the verbosity and scope hypotheses and refuses to pick: "The verbosity hypothesis suggests that we should simply normalise any observed tf s by dividing by document length. The scope hypothesis, on the other hand, at least in its extreme version, suggests the opposite."
+The second idea is that longer documents need a handicap, but only a partial one, and the reason they hedged is worth understanding. A document can be long because it's padded, in which case its term counts are inflated and should be divided down. Or it can be long because it covers more ground, in which case dividing down is wrong. The paper calls these the verbosity and scope hypotheses and refuses to pick: "The verbosity hypothesis suggests that we should simply normalise any observed tf s by dividing by document length. The scope hypothesis, on the other hand, at least in its extreme version, suggests the opposite."
 
 So you get a dial instead of a decision. "setting b = 1 will perform full document-length normalisation, while b = 0 will switch normalisation off."
 
-Now the unsatisfying part. The model does not tell you what to set either dial to. "Concerning the internal parameters, the model provides no guidance on how these should be set. This may be regarded as a limitation of the model." Thirty years of empirical work has landed on roughly `0.5 < b < 0.8` and `1.2 < k1 < 2`, with the honest caveat that the optimum depends on your documents and your queries.
+Now the unsatisfying part. The model doesn't tell you what to set either dial to. "Concerning the internal parameters, the model provides no guidance on how these should be set. This may be regarded as a limitation of the model." Thirty years of empirical work has landed on roughly `0.5 < b < 0.8` and `1.2 < k1 < 2`, with the honest caveat that what's best depends on your documents and your queries.
 
-One thing that sounds like it should matter does not.
+One thing that sounds like it should matter doesn't.
 
 You may have heard that BM25 is not one algorithm, that implementations differ, and that this is why your numbers never match the paper's. The first half is true. Kamphuis and colleagues took eight variants and tested them properly, and the answer to their own title question is in their conclusion: "no, it does not". Their measurement: "Both an ANOVA and Tukey's HSD show no significant differences between any variant, on all test collections." Differences from something as mundane as your stopword list are larger.
 
-What does differ is more boring and more actionable. When Kamphuis and colleagues looked at implementations in 2020, Lucene compressed document length into a single byte so it could precompute the normalization term for all 256 possible values, and Anserini, the research toolkit built on Lucene, shipped `k1 = 0.9, b = 0.4` where Lucene itself shipped `1.2` and `0.75`. Lucene and Elasticsearch still document those defaults today; I have not re-checked Anserini's. Same algorithm, same library underneath, different numbers out. If your BM25 doesn't match a published BM25, look there before you go looking at the formula.
+What does differ is more boring and more useful. When Kamphuis and colleagues looked at implementations in 2020, Lucene compressed document length into a single byte so it could precompute the normalization term for all 256 possible values, and Anserini, the research toolkit built on Lucene, shipped `k1 = 0.9, b = 0.4` where Lucene itself shipped `1.2` and `0.75`. Lucene and Elasticsearch still document those defaults today; I haven't re-checked Anserini's. Same algorithm, same library underneath, different numbers out. If your BM25 doesn't match a published BM25, check there before you blame the formula.
 
 {/* Reader can now: set k1 and b with a reason, and stop blaming variant choice for mismatched numbers */}
 
-### 4. Pruning fixed the cost, and could not fix the meaning
+### 4. Pruning fixed the cost, and couldn't fix the meaning
 
-Section 2 left you with a problem. The posting list for a common term runs to millions of entries, and scoring all of them costs the 225.7 milliseconds section 1 opened with.
+We left off with a problem. The posting list for a common term runs to millions of entries, and scoring all of them costs the 225.7 milliseconds from section 1.
 
 The fix predates every neural method here: bound what a list could contribute, and skip it when the bound is too low to matter.
 
 This is the WAND idea from section 1, in detail. You keep a running threshold, which is the score of the tenth-best document you have seen so far. You also keep, for each posting list, the largest score any single document could possibly earn from that term. Add up those maxima for the lists you are considering, and if the total cannot reach the threshold, nothing in them can make your top ten. You skip without scoring. [Broder and colleagues](https://research.ibm.com/publications/efficient-query-evaluation-using-a-two-level-retrieval-process) built this in 2003 and reported that it "significantly reduces the total number of full evaluations by more than 90%, almost without any loss in precision or recall."
 
-That is a cheap approximate pass in front of an expensive exact one. Hold onto that shape. It is the entire architecture of act 6, arriving twenty years early and with no neural networks in it.
+That's a cheap approximate pass in front of an expensive exact one. Hold onto that shape. It is the entire architecture of act 6, arriving twenty years early and with no neural networks in it.
 
 Block-max sharpened it. Ding and Suel noticed why the original leaves value on the table: "skipping in WAND is limited because it uses the maximum impact scores over the entire lists, which can be much larger than average." One outlier document at the far end of a list poisons the bound for the whole list. So they stored a maximum per block instead of per list, using the block structure from section 2, and the bound got tight enough to skip most of the postings rather than some of them.
 
@@ -264,19 +266,19 @@ Block-max sharpened it. Ding and Suel noticed why the original leaves value on t
 <figcaption><strong>Fig 4.</strong> Why block-max beats plain WAND. A single outlier document sets the maximum for an entire posting list, so the whole-list bound is nearly always too loose to skip anything. Storing a maximum per block confines that outlier to one block.</figcaption>
 </figure>
 
-The numbers from section 1 are these two techniques. Exhaustive scoring fully evaluated 3,815,676 documents per query. WAND cut that to 178,391. Block-max cut it to 21,921, which is 0.57% of what the exhaustive pass touched.
+Those numbers from section 1? These two techniques. Exhaustive scoring fully evaluated 3,815,676 documents per query. WAND cut that to 178,391. Block-max cut it to 21,921, which is 0.57% of what the exhaustive pass touched.
 
 So by 2011, before dense retrieval existed as a practical thing, lexical search could rank a 25-million-document corpus in under 30 milliseconds and could tell you exactly which documents it had skipped and why.
 
-And it still could not find a boot described as having a roomy forefoot when the query said `wide toe box`.
+And it still couldn't find a boot described as having a roomy forefoot when the query said `wide toe box`.
 
-Dynamic pruning made term matching affordable at a scale nobody had managed before, and it moved the semantic limit not at all, because it was never about meaning.
+Dynamic pruning made term matching affordable at scale, and it didn't move the semantic limit one inch, because it was never about meaning.
 
-Be precise about what it skips, because it is easy to get backwards. WAND skips documents that *do* contain your query terms, when their best possible score cannot reach the current top-k threshold. It is a bound on scores, not a test for membership. What it never touches is the document that contains none of your words, because that document was never on any posting list you opened. Pruning made the candidate set cheaper to score. It did not make the candidate set any wider.
+Be precise about what it skips, because people get this backwards. WAND skips documents that *do* contain your query terms, when their best possible score can't reach the current top-k threshold. It's a bound on scores, not a test for membership. What it never touches is the document that contains none of your words, because that document was never on any posting list you opened. Pruning made the candidate set cheaper to score. It didn't make the candidate set any wider.
 
 {/* Reader can now: recognize the cheap-pass-then-expensive-pass shape twenty years before the cascade, and see that speed work and meaning work are orthogonal */}
 
-### 5. The two things term matching cannot do
+### 5. The two things term matching can't do
 
 Our query has three parts, and the machine we have built handles exactly one of them well.
 
@@ -284,27 +286,27 @@ Our query has three parts, and the machine we have built handles exactly one of 
 
 `wide toe box` is where it fails, and the failure has a name and a measurement. In 1987, Furnas, Landauer, Gomez and Dumais ran a study on how people spontaneously name things, across five different application domains, and found: "In every case two people favored the same term with probability &lt;0.20." Their per-domain numbers run from .07 to .18. Two people describing the same thing pick the same word less than one time in five.
 
-The number has a narrow scope: spontaneous naming across five domains in 1987, not modern search queries. But the shape of the problem is exactly the one our query has. A boot listing that says `roomy forefoot`, or `generous last`, or `available in wide`, is describing the thing the user asked for, in words the user did not use.
+That number has a narrow scope: spontaneous naming across five domains in 1987, not modern search queries. But the shape of the problem is exactly what we're seeing. A boot listing that says `roomy forefoot`, or `generous last`, or `available in wide`, is describing the thing the user asked for, in words the user didn't use.
 
-That document is not unreachable. It still contains `waterproof` and `hiking`, so a disjunctive query will still find it. What it cannot do is earn any credit for the part of the query that actually mattered. The three terms the user cared most about contribute nothing to its score, so it ranks below listings that happen to repeat `waterproof` a lot and say nothing about fit. No amount of tuning `k1` fixes that, because the evidence is not weak. It is absent.
+That document isn't unreachable. It still contains `waterproof` and `hiking`, so a disjunctive query will still find it. What it can't do is earn any credit for the part of the query that actually mattered. The three terms the user cared most about contribute nothing to its score, so it ranks below listings that happen to repeat `waterproof` a lot and say nothing about fit. No amount of tuning `k1` fixes that, because the evidence is not weak. It is absent.
 
-You can attack it from the document side. Add fields, and weight them, which is what BM25F does. The mechanism is worth one paragraph because people get it wrong: you do not score each field separately and add up the scores. You pool the weighted term frequency across fields first, apply saturation once to the total, and only then combine across terms. Scoring fields separately assumes that being about boots in the title is a different property from being about boots in the body, which the authors call "a little unreasonable."
+You can attack it from the document side by adding fields and weighting them, which is what BM25F does. Worth one paragraph because people get it wrong: you don't score each field separately and add up the scores. You pool the weighted term frequency across fields first, apply saturation once to the total, and only then combine across terms. Scoring fields separately assumes that being about boots in the title is a different property from being about boots in the body, which the authors call "a little unreasonable."
 
 That helps. Titles and product attributes are exactly where `wide` lives in a well-structured catalog.
 
-It does not help with `under $150`.
+It doesn't help with `under $150`.
 
-That clause is not a term. There is no posting list for it. `$150` appears in the query, `$149.99` appears in the document, and they share no token. You can hack around it by bucketing prices into tokens, and people did, and it is miserable. The honest description is that this is a different kind of question wearing the same clothes: a constraint over a numeric attribute, not a request for text similarity, and the fact that it arrived in the same input box is an accident of user interface.
+That clause isn't a term. There's no posting list for it. `$150` appears in the query, `$149.99` appears in the document, and they share no token. You can hack around it by bucketing prices into tokens, and people did, and it is miserable. The honest description is that this is a different kind of question wearing the same clothes: a constraint over a numeric attribute, not a request for text similarity, and the fact that it arrived in the same input box is an accident of user interface.
 
-So we have two failures, and they are not the same failure. One is about meaning: the right document exists and uses different words. The other is about structure: the right document is identifiable exactly, and the mechanism for finding it isn't a text match at all.
+So we have two failures, and they're not the same failure. One is about meaning: the right document exists and uses different words. The other is about structure: the right document is identifiable exactly, and the mechanism for finding it isn't a text match at all.
 
-Almost everything in the next four acts is a response to the first one. The second turns out to be harder to keep hold of, and it is the one that breaks things later.
+Almost everything coming up is about the first failure. The second turns out to be harder to keep hold of, and it's the one that breaks things later.
 
-One more thing before we leave. Let's say the first result set disappoints, and our user does what users actually do: gets specific.
+Now say the first result set disappoints, and our user does what users actually do: gets specific.
 
 `Salomon Quest 4 GTX wide 10.5`
 
-Term matching is superb at this. Every token is rare, the brand and model are nearly unique, and the posting lists are short. This query is the best case for an inverted index and it will stay the best case for the rest of the post. Remember it. In act 3 we will build something that handles the first query beautifully and this one noticeably worse.
+Term matching is superb at this. Every token is rare, the brand and model are nearly unique, and the posting lists are short. This query is the best case for an inverted index, and it stays the best case for the rest of the post. Keep it in your head. In act 3 we build something that handles the first query beautifully and this one noticeably worse.
 
 {/* Reader can now: name the two distinct failures, meaning and structure, and hold a second query form where lexical is strongest */}
 
@@ -312,19 +314,19 @@ Term matching is superb at this. Every token is rare, the brand and model are ne
 
 ### 6. One vector per document, and the objective that puts meaning in it
 
-The response to the vocabulary problem is to stop matching words and start matching positions in a space.
+The fix for the vocabulary problem is to stop matching words and start matching positions in a space.
 
 The architecture is simple enough to describe in a sentence. [Karpukhin and colleagues](https://arxiv.org/abs/2004.04906) used "two independent BERT (Devlin et al., 2019) networks (base, uncased)" and took the `[CLS]` output, giving 768 numbers per query and 768 per passage. Score is the dot product. Two encoders, no interaction between them, which is the property that makes the whole thing possible: you can encode every document offline and store the results, because encoding a document doesn't depend on the query.
 
-What people skip is why nearby vectors mean anything at all. Nothing about a neural network makes similar text land in similar places. That has to be trained in, and the training objective states the goal outright: "The goal is to create a vector space such that relevant pairs of questions and passages will have smaller distance (i.e., higher similarity) than the irrelevant ones, by learning a better embedding function."
+What people skip over is why nearby vectors mean anything at all. Nothing about a neural network makes similar text land in similar places. That has to be trained in, and the training objective states it directly: "The goal is to create a vector space such that relevant pairs of questions and passages will have smaller distance (i.e., higher similarity) than the irrelevant ones, by learning a better embedding function."
 
 The loss is the negative log likelihood of the correct passage against a set of wrong ones, and the trick that makes it cheap is that the wrong ones come free. In a batch of B questions and B passages you compute all B by B similarities, the diagonal is your positives, and everything off the diagonal is a negative you didn't have to go find.
 
 So the space is not discovered. It is built, by repeatedly pushing correct pairs together and incorrect pairs apart, and it will only be good at the kinds of relatedness that were in the training pairs.
 
-The reported gains are real and worth stating precisely: DPR "outperforms a strong Lucene-BM25 system largely by 9%-19% absolute in terms of top-20 passage retrieval accuracy", and on Natural Questions specifically, 78.4% against 59.1%.
+The gains are real, and worth being precise about: DPR "outperforms a strong Lucene-BM25 system largely by 9%-19% absolute in terms of top-20 passage retrieval accuracy", and on Natural Questions specifically, 78.4% against 59.1%.
 
-Those are aggregate results on open-domain question answering, not a measurement of our boots. The objective is designed to put `wide toe box` and `roomy forefoot` near each other. Whether it does so on your catalog depends on your data and your model, and you would have to measure it.
+Those are aggregate results on open-domain question answering, not a measurement of our boots. The objective is designed to put `wide toe box` and `roomy forefoot` near each other. Whether it actually does that for your catalog depends on your data and your model, and you'd have to measure.
 
 <figure>
 <svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="A four-cell grid. Two query forms down the side: the descriptive query about a wide toe box, and the specific query naming Salomon Quest 4 GTX in size 10.5. Two documents across the top: a listing that says roomy forefoot, and a listing for the Quest 5. For lexical matching, the descriptive query shares no terms with the roomy forefoot listing and fails, while the specific query matches the model name exactly and succeeds in distinguishing Quest 4 from Quest 5. For dense matching, the descriptive query lands near the roomy forefoot listing and succeeds, while the specific query lands nearly on top of both Quest 4 and Quest 5 and cannot separate them.">
@@ -384,9 +386,9 @@ Those are aggregate results on open-domain question answering, not a measurement
 
 Now the second query, `Salomon Quest 4 GTX wide 10.5`, the one term matching was superb at. A bi-encoder compresses that entire string into 768 floats, and `Quest 4` and `Quest 5` land very close together, because they are textually and semantically almost identical. Nothing in the training objective taught the model that `4` versus `5` is the part of the query that decides the answer. [Sciavolino and colleagues](https://arxiv.org/abs/2109.08535) measured this directly, using simple questions about specific named entities, and found that "dense retrievers drastically underperform sparse methods", and, more damningly, that "dense retrievers can only generalize to common entities unless the question pattern is explicitly observed during training."
 
-That is a Wikidata entity study, not a product catalog. But the mechanism transfers cleanly, and if you have ever watched a semantic search return the wrong model number with great confidence, you have seen it.
+That's a Wikidata entity study, not a product catalog. But the mechanism transfers cleanly, and if you've ever watched a semantic search return the wrong model number with great confidence, you've seen it.
 
-And `under $150` is exactly where it was. The vector space has no notion of a price constraint. We have traded one of our two failures for a different one, and left the other untouched.
+And `under $150` is exactly where it was. The vector space has no notion of a price constraint. We've traded one failure for a different one, and left the other untouched.
 
 {/* Reader can now: say what the training objective builds and what it never asked the model to preserve */}
 
@@ -394,17 +396,17 @@ And `under $150` is exactly where it was. The vector space has no notion of a pr
 
 You have a hundred million vectors and a query vector. The obvious move is a tree: cut the space into regions, descend into the right one, ignore the rest.
 
-This does not work, and the reason is a formal result rather than a folk observation. Weber, Schek and Blott proved it in [1998](https://www.vldb.org/conf/1998/p194.pdf): "We show formally that these methods exhibit linear complexity at high dimensionality, and that existing methods are outperformed on average by a simple sequential scan if the number of dimensions exceeds around 10." And more sweepingly: "There is no organization of HDVS based on partitioning or clustering which does not degenerate to a sequential scan if dimensionality exceeds a certain threshold."
+Doesn't work. And the reason is a theorem, not folk wisdom. Weber, Schek and Blott proved it in [1998](https://www.vldb.org/conf/1998/p194.pdf): "We show formally that these methods exhibit linear complexity at high dimensionality, and that existing methods are outperformed on average by a simple sequential scan if the number of dimensions exceeds around 10." And more sweepingly: "There is no organization of HDVS based on partitioning or clustering which does not degenerate to a sequential scan if dimensionality exceeds a certain threshold."
 
 Ten dimensions. We have 768.
 
 What works instead is a graph you walk. Link each vector to some of its neighbours, start somewhere, and repeatedly step to whichever neighbour is closer to the query until none of them is. You are not pruning a search space. You are navigating one.
 
-[HNSW](https://arxiv.org/abs/1603.09320) is the one you have probably deployed, and it has two ideas, only one of which is the one it is famous for.
+[HNSW](https://arxiv.org/abs/1603.09320) is the one you've probably deployed, and it has two ideas. Only one of them is the one it's famous for.
 
 The famous one is the layers. Higher layers hold a shrinking sample of the points, so you enter at the top, take huge steps across a nearly empty graph, drop down, refine, and drop again. It is a skip list generalized to a metric space, and the paper says so in as many words: the layer-assignment parameter is `1/ln(M)`, and "this corresponds to the skip list parameter p=1/M".
 
-The other idea is the one that does more work, and it's in how neighbours get chosen. If you connect each node to its M nearest neighbours, you get a graph that can't route: in a cluster, all your links point into the cluster, and a walk that enters gets stuck. So HNSW keeps a candidate only if it's closer to the new node than to any neighbour already selected. The result approximates a known object, "the exact relative neighborhood graph, a minimal subgraph of the Delaunay graph deducible by using only the distances between the nodes", and the property it buys is that your links point in different directions. The paper's own phrasing is "connections in diverse directions". Without it, "the Hierarchical NSW algorithm fails to achieve a high recall for clustered data because the search stucks at the clusters boundaries."
+The idea that does more of the heavy lifting is how neighbours get chosen. If you connect each node to its M nearest neighbours, you get a graph that can't route: in a cluster, all your links point into the cluster, and a walk that enters gets stuck. So HNSW keeps a candidate only if it's closer to the new node than to any neighbour already selected. The result approximates "the exact relative neighborhood graph, a minimal subgraph of the Delaunay graph deducible by using only the distances between the nodes", and what that buys you is links that point in different directions. The paper's own phrasing is "connections in diverse directions". Without it, "the Hierarchical NSW algorithm fails to achieve a high recall for clustered data because the search stucks at the clusters boundaries."
 
 <figure>
 <svg viewBox="0 0 680 330" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Three panels explaining HNSW. Panel one shows three stacked layers with progressively more nodes, a search entering at the sparse top layer, taking long steps, then descending to refine, which is the skip-list structure. Panel two contrasts two ways of choosing a node's neighbours: picking the M nearest puts every link into the same cluster so a walk entering that cluster gets stuck, while the pruning heuristic keeps a candidate only if it is closer to the new node than to any already-chosen neighbour, producing links that point in different directions. Panel three lists the three degree numbers that get quoted interchangeably: 32 slots allocated at the base layer, about 38 average slots across layers from the paper's formula, and about 21 links per node actually realized on one measured million-point collection.">
@@ -454,15 +456,15 @@ The other idea is the one that does more work, and it's in how neighbours get ch
 <figcaption><strong>Fig 6.</strong> The layers get the name and the heuristic does more of the work: on real high-dimensional data the paper's own comparison found the hierarchy's contribution "less prominent" than the neighbour-selection rule's. The three numbers at the bottom are allocated capacity, average allocated slots, and measured realized degree on one collection. They are not interchangeable, and the next section turns on which one you mean.</figcaption>
 </figure>
 
-Which of the two matters more? The authors answer this themselves, about real data, and it is not the answer their algorithm's name suggests: on SIFT vectors, "the performance improvement by increasing the mL is higher, but less prominent at current settings compared to improvement from the heuristic."
+So which matters more? The authors answer this themselves on real data, and it's not the answer their algorithm's name suggests: on SIFT vectors, "the performance improvement by increasing the mL is higher, but less prominent at current settings compared to improvement from the heuristic."
 
-Munyampirwa, Lakshman and Coleman finished that sentence, in a preprint first posted in December 2024 and revised through July 2025. They [removed the hierarchy entirely](https://arxiv.org/abs/2412.01940) and found "a flat navigable small world graph graph retains all of the benefits of HNSW on high-dimensional datasets, with latency and recall performance essentially identical to the original algorithm but with less memory overhead", saving roughly 38% and 39% of peak construction memory on two Big-ANN datasets. Their explanation is that hub nodes emerge naturally and do the long-range routing the layers were credited with. They are also honest that they don't fully know why: "Perhaps most importantly, we still have no satisfactory understanding of why hierarchy does not help."
+Munyampirwa, Lakshman and Coleman finished that sentence, in a preprint first posted in December 2024 and revised through July 2025. They [removed the hierarchy entirely](https://arxiv.org/abs/2412.01940) and found "a flat navigable small world graph graph retains all of the benefits of HNSW on high-dimensional datasets, with latency and recall performance essentially identical to the original algorithm but with less memory overhead", saving roughly 38% and 39% of peak construction memory on two Big-ANN datasets. Hub nodes emerge naturally and do the long-range routing the layers were credited with. They're also honest that they don't fully know why: "Perhaps most importantly, we still have no satisfactory understanding of why hierarchy does not help."
 
-Now the numbers, because three different ones get quoted interchangeably and they are not the same number.
+Now the numbers, because three different ones get quoted interchangeably and they're not the same number.
 
 `M` is the parameter you set, typically 16. The base layer allocates twice that: "2∙M is a good choice for Mmax0", so 32 slots per node. Averaged across all layers the paper's own formula gives about 37.8 link slots per element, which at four bytes each is roughly 151 bytes of connection-ID capacity per vector. That formula reproduces the paper's stated range of "about 60-450 bytes per object" at both ends, so it's trustworthy.
 
-But allocated capacity is not realized degree. The pruning heuristic rejects candidates, and most nodes never fill their slots. Qdrant measured their own one-million-point collection and reported that "at Qdrant's default m=16, the one-million-point collection benchmarked below averaged about 21 links per node on layer 0."
+But allocated capacity isn't realized degree. The pruning heuristic rejects candidates, and most nodes never fill their slots. Qdrant measured their own one-million-point collection and reported that "at Qdrant's default m=16, the one-million-point collection benchmarked below averaged about 21 links per node on layer 0."
 
 Thirty-two allocated. Thirty-eight slots on average across layers. Twenty-one actually used, on one measured dataset. When someone quotes a degree number at you, ask which one they mean, because the next section turns on it.
 
@@ -470,15 +472,15 @@ Thirty-two allocated. Thirty-eight slots on average across layers. Twenty-one ac
 
 ### 8. What a filter does to a graph
 
-We still have `under $150` sitting in the query, unaddressed since section 5. It is time to put it into the index, and it is going to cause trouble.
+We still have `under $150` sitting in the query, unaddressed since section 5. Time to put it into the index, and it's going to cause trouble.
 
-There are three places to apply it, and the [VLDB tutorial](https://www.vldb.org/pvldb/vol18/p5488-caminal.pdf) on filtered vector search names them cleanly. Filter first, then search the survivors. Search first, then discard the misses. Or filter during the walk. The first is optimal when the surviving set is small. The second has a cost the tutorial states directly: it "requires the approximate nearest neighbor (ANN) search to yield a multiple of K results to ensure at least K vectors remain after filtering, which complicates achieving high recall." Want ten results from a filter that keeps 1% of the corpus, and you need roughly a thousand candidates before filtering. Want them from a filter keeping 0.1%, and you are approaching a scan with extra steps.
+There are three places to apply it, and a [VLDB tutorial](https://www.vldb.org/pvldb/vol18/p5488-caminal.pdf) on filtered vector search lays them out cleanly. Filter first, then search the survivors. Search first, then discard the misses. Or filter during the walk. The first is optimal when the surviving set is small. The second has a cost the tutorial states directly: it "requires the approximate nearest neighbor (ANN) search to yield a multiple of K results to ensure at least K vectors remain after filtering, which complicates achieving high recall." Want ten results from a filter that keeps 1% of the corpus, and you need roughly a thousand candidates before filtering. Want them from a filter keeping 0.1%, and you are approaching a scan with extra steps.
 
-The third option is the one people want, and it is where the graph fails.
+The third option is the one everyone wants, and it's where the graph fails.
 
-Here is the shape of the problem, stated carefully, because it is easy to state carelessly. Your walk can only step to neighbours that pass the filter. Nodes that fail are dead ends. As the filter gets more selective, each node's usable neighbourhood thins out, and at some point the walk stops being able to reach the region of the space where the answers are.
+Here's the shape of the problem, stated carefully, because it's easy to state carelessly. Your walk can only step to neighbours that pass the filter. Nodes that fail are dead ends. As the filter gets more selective, each node's usable neighbourhood thins out, and at some point the walk can't reach the region of the space where the answers are.
 
-You will see this described as percolation, with a threshold where a graph of degree `d` shatters once a filter keeps less than `1/d` of the nodes. I had that in an earlier draft of this post and took it out, because it does not survive contact with the actual objects. Percolation thresholds of that form are results about randomly wired graphs. An HNSW graph is geometric, deliberately pruned toward directional diversity, and full of hub nodes. And more importantly, a real filter is not random node removal. `under $150` is correlated with position in the embedding space, because cheap boots and expensive boots do not describe themselves identically. The whole derivation assumes away the thing that actually happens.
+You'll see this described as percolation, with a threshold where a graph of degree `d` shatters once a filter keeps less than `1/d` of the nodes. I had that in an earlier draft of this post and took it out, because it doesn't survive contact with the actual objects. Percolation thresholds of that form are results about randomly wired graphs. An HNSW graph is geometric, deliberately pruned toward directional diversity, and full of hub nodes. And more importantly, a real filter isn't random node removal. `under $150` is correlated with position in the embedding space, because cheap boots and expensive boots don't describe themselves identically. The whole derivation assumes away the thing that actually happens.
 
 The [ACORN paper](https://arxiv.org/abs/2403.04871) gives the version you can actually defend. For a predicate with selectivity `s`, the expected surviving degree of a node is its degree times `s`, and the concern is stated plainly: "If a node in the predicate subgraph has degree much lower than M, this could adversely impact the search convergence and thus recall." They also bound the probability that a walk strands entirely, at `O(log n · (1-s)^(M·γ))`.
 
@@ -529,27 +531,29 @@ So there is no theorem to lean on, only measurements, and the measurements are b
 
 Qdrant published a [benchmark](https://qdrant.tech/articles/filtered-vector-search-acorn/) on a million-point collection that isolates this. Read the conditions before the numbers, because they matter: `hnsw_ef=64`, and the full-scan threshold deliberately pinned low so every query is forced to stay on the graph rather than falling back to a scan. This is a measurement of the graph itself, not of what a default installation does.
 
-Under those conditions the plain graph's recall against filter selectivity reads: at a filter keeping 20% of the collection, 62.9%. At 10%, 20.6%. At 1%, 0.1%.
+Under those conditions, here's what the plain graph's recall looks like: at a filter keeping 20% of the collection, 62.9%. At 10%, 20.6%. At 1%, 0.1%.
 
-The latency column barely moves across those three rows: 1.6ms, 1.7ms, 1.6ms. The system is exactly as fast while returning almost none of the right answers. There is no timeout, no error, no degradation you would notice on a dashboard.
+The latency column barely moves across those three rows: 1.6ms, 1.7ms, 1.6ms. The system is exactly as fast while returning almost none of the right answers. No timeout, no error, nothing you'd notice on a dashboard.
 
-A system that silently returns the wrong ten results is worse than one that returns the right ten slowly. The repair is a query planner that picks its strategy per query rather than per index.
+A system that silently returns the wrong ten results is worse than one that returns the right ten slowly.
 
-There are two repairs, and they differ in when they do the work. ACORN repairs at query time. When a neighbour fails the predicate, don't stop; look through it to its neighbours. The predicate check is a bitmap lookup rather than a distance computation, so you can filter the expanded list before spending arithmetic on it. There are two variants, and the names only appear in the body of the paper, not the abstract: ACORN-γ builds a denser graph up front by collecting `M · γ` candidate edges per node, and ACORN-1 does the expansion purely at search time. The tradeoff between them is stated as "at most 5× lower QPS at fixed recall but 9–53× lower TTI".
+There are two repairs, and they differ in when they do the work.
+
+ACORN repairs at query time. When a neighbour fails the predicate, don't stop; look through it to its neighbours. The predicate check is a bitmap lookup rather than a distance computation, so you can filter the expanded list before spending arithmetic on it. Two variants, and the names only appear in the body of the paper, not the abstract: ACORN-γ builds a denser graph up front by collecting `M · γ` candidate edges per node, and ACORN-1 does the expansion purely at search time. The tradeoff between them is stated as "at most 5× lower QPS at fixed recall but 9–53× lower TTI".
 
 Qdrant repairs at build time. Declare a payload field indexed and they additionally link the points that share each value, so the `brand = Salomon` subgraph is connected because somebody built a graph over exactly those points. It costs: "the HNSW index built in 116 seconds without them and 507 to 652 seconds with them, 4.4x to 5.6x the cost."
 
-Neither wins everywhere, and the axis is not the one you'd guess. It is not selectivity. It is whether the filter is a single field or an intersection of two.
+Neither wins everywhere, and the deciding factor isn't the one you'd guess. It's not selectivity. It's whether the filter is a single field or an intersection of two.
 
 On a single field at 1% selectivity, the extra edges win handily: 99.8% recall at 1.0ms against ACORN's 67.7% at 4.7ms. Build-time repair, applied to exactly the field being filtered, is hard to beat.
 
-On a two-field AND at 4%, it reverses: ACORN 95.2% at 7.7ms, extra edges 63.7% at 1.2ms. And the reason is structural rather than incidental. Qdrant say it themselves: they build those edges "per payload field, never per combination, so an AND filter lands on an intersection that no single field's edges cover." You cannot pre-build edges for every combination of fields, because the number of combinations is exponential in the number of fields.
+On a two-field AND at 4%, it reverses: ACORN 95.2% at 7.7ms, extra edges 63.7% at 1.2ms. And the reason is structural. Qdrant say it themselves: they build those edges "per payload field, never per combination, so an AND filter lands on an intersection that no single field's edges cover." You can't pre-build edges for every combination of fields. The number of combinations is exponential in the number of fields.
 
 And this is where the pinned threshold from the start of the section earns its keep, because releasing it changes the picture completely. The system that actually ships doesn't pick a repair. Qdrant's planner estimates the filter's cardinality first and routes: tiny result sets skip the graph and scan the matching IDs directly, broad filters take ordinary traversal, and the middle gets the repair. In the default configuration, with the planner free and extra edges on, their reported recall runs from 90.8% to 100% across the same filter shapes, and turning ACORN on as well takes every one of them to between 99.9% and 100%, at 1.2 to 7.3ms.
 
-So the collapse in those first numbers is real, and it is a property of an unaided graph rather than of a configured system.
+So the collapse in those first numbers is real, and it's a property of an unaided graph rather than a configured system.
 
-Which is the real lesson, and it generalizes past any one vendor: filtered vector search is a query planner with two strategies, not an algorithm.
+That's the real lesson, and it generalizes past any one vendor: filtered vector search is a query planner with two strategies, not an algorithm.
 
 {/* Reader can now: say why filtered recall collapses and why the latency doesn't, and why the single-field vs compound distinction decides which repair works */}
 
@@ -559,17 +563,17 @@ Every fix in the last section made the index bigger.
 
 Extra edges cost 4.4 to 5.6 times the build time and the storage that goes with them. ACORN-γ collects `M · γ` candidate edges per node instead of `M`, and the paper's suggested γ is roughly `1/s_min`, so committing to serve filters as tight as 1% implies a γ around 100. And before any of that, HNSW was already charging you about 151 bytes of connection-ID capacity per vector at M=16.
 
-So the index you just repaired is the one that stops fitting. That is what forces the next set of decisions, and they are the ones that decide your bill.
+So the index you just repaired is the one that stops fitting. That's what forces the next set of decisions, and those decisions are what decide your bill.
 
 Start with the vector itself. A 768-dimension float32 vector is 3,072 bytes. A hundred million of them is 307 GB before you have stored a single graph edge.
 
-Product quantization cuts it by chopping the vector into subvectors and replacing each with a codebook index. The arithmetic is simple: M subquantizers of K centroids each costs `M · ceil(log2 K)` bits, so 96 subvectors at 8 bits is 96 bytes, a 32-fold reduction. DiskANN uses "32 bytes per data point" and gets a billion vectors onto one machine.
+Product quantization cuts that by chopping the vector into subvectors and replacing each with a codebook index. The arithmetic is simple: M subquantizers of K centroids each costs `M · ceil(log2 K)` bits, so 96 subvectors at 8 bits is 96 bytes, a 32-fold reduction. DiskANN uses "32 bytes per data point" and gets a billion vectors onto one machine.
 
 Binary quantization goes further, and until recently it went further than it could justify. [RaBitQ](https://arxiv.org/abs/2405.12497) changed that by giving the approach an error bound, noting that prior methods "do not have a theoretical error bound and are observed to fail disastrously on some real-world datasets."
 
-But the part that makes binary quantization work in production is not the quantization. It's what you do afterward. Elastic, who ship it, are blunt about the naive version: "Naive binary quantization is exceptionally lossy and achieving adequate recall requires gathering 10x or 100x additional neighbors to rerank. This just doesn't cut it." Their implementation gets "above 90% recall with only 3x oversampling", and the oversampled candidates get rescored against the original float32 vectors. The compressed index finds candidates. The uncompressed vectors decide the order. If you take one operational thing from this section, take that.
+But what makes binary quantization work in production isn't the quantization. It's what you do afterward. Elastic, who ship it, are blunt about the naive version: "Naive binary quantization is exceptionally lossy and achieving adequate recall requires gathering 10x or 100x additional neighbors to rerank. This just doesn't cut it." Their implementation gets "above 90% recall with only 3x oversampling", and the oversampled candidates get rescored against the original float32 vectors. The compressed index finds candidates. The uncompressed vectors decide the order. If you take one operational thing from this section, take that.
 
-Truncation is the cheapest lever and the most misunderstood. You can cut dimensions off the end of an embedding and it mostly still works, and you do not need a model specially trained for it. A [2026 study](https://arxiv.org/abs/2605.16608) tested exactly this and found that "truncated embeddings of non-MRL models are competitive with, and often outperform models trained with MRL" unless you cut by at least 80%. Matryoshka training buys you the heavy-truncation case and not much else.
+Truncation is the cheapest lever and the most misunderstood. You can lop dimensions off the end of an embedding and it mostly still works, and you don't need a model specially trained for it. A [2026 study](https://arxiv.org/abs/2605.16608) tested exactly this and found that "truncated embeddings of non-MRL models are competitive with, and often outperform models trained with MRL" unless you cut by at least 80%. Matryoshka training buys you the heavy-truncation case and not much else.
 
 Note that the threshold is a percentage, not a dimension. Going from 1024 to 256 is a 75% cut and inside the safe zone. Going from 1536 to 256 is 83% and is not. "Truncate to 256" is not advice; it depends entirely on where you started.
 
@@ -627,9 +631,9 @@ Now the tier. RAM is the default and the reason vector search has a reputation f
 
 turbopuffer runs vector indexes on object storage, and publishes what that costs: "The first query to a namespace reads object storage directly and is slow (p50=874ms for 1M documents), but subsequent, cached queries to that node are faster (p50=14ms for 1M documents)." Sixty-fold, cold to warm, and the cold path is what it is because "each roundtrip to object storage takes ~100ms."
 
-They are not running a graph. Their index is "based on SPFresh", a centroid-based design, and the stated reason is that a centroid index "works well for object storage as it minimizes roundtrips and write-amplification, compared to graph-based indexes like HNSW or DiskANN."
+They're not running a graph. Their index is "based on SPFresh", a centroid-based design, and the reason is that a centroid index "works well for object storage as it minimizes roundtrips and write-amplification, compared to graph-based indexes like HNSW or DiskANN."
 
-Graph traversal is a sequence of dependent lookups: you cannot know your third hop until you've made your second. That is fine at RAM latency and fatal at 100ms per roundtrip. So moving the index to object storage did not just change where the bytes live. In this case it changed the family of index that makes sense, back toward the centroid approach that graphs had displaced. Not a universal law about storage tiers, but a documented case where the tier chose the algorithm.
+Graph traversal is a sequence of dependent lookups: you can't know your third hop until you've made your second. That's fine at RAM latency and fatal at 100ms per roundtrip. So moving the index to object storage didn't just change where the bytes live. It changed the family of index that makes sense, back toward the centroid approach that graphs had displaced. Not a universal law about storage tiers, but a documented case where the tier chose the algorithm.
 
 {/* Reader can now: trace a filter repair through to a storage-tier decision, and know why the compressed index finds candidates while the uncompressed vectors decide the order */}
 
@@ -637,11 +641,11 @@ Graph traversal is a sequence of dependent lookups: you cannot know your third h
 
 ### 10. What you write into the index
 
-For most of this post the two camps have looked like opposites. Terms on one side, vectors on the other. That framing breaks on something unglamorous: people started using neural models to decide what goes into an inverted index.
+So far the two camps have looked like opposites. Terms on one side, vectors on the other. That framing breaks on something unglamorous: people started using neural models to decide what goes into an inverted index.
 
 The framing that makes it click is [Lin and Ma's](https://arxiv.org/abs/2106.14807): sparse against dense is one axis, and unsupervised against learned is a different one. Nothing says a sparse representation has to be produced by counting words. You can learn the term weights.
 
-That is what SPLADE does, and the punchline is in the implementation note rather than the method: their code "is built on the Lucene search library and thus fully compatible with standard inverted indexes." The model runs, produces weights, and writes them into postings. Everything downstream, the skipping from section 4 included, works unchanged.
+That's what SPLADE does, and the punchline is in the implementation note rather than the method: their code "is built on the Lucene search library and thus fully compatible with standard inverted indexes." The model runs, produces weights, and writes them into postings. Everything downstream, the skipping from section 4 included, works unchanged.
 
 <figure>
 <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="The same posting list twice. Above, weights produced by BM25 from term counts and document length. Below, weights produced by a neural model for the same terms, plus expansion terms the document never contained, such as boot and outdoor. Both are ordinary postings in the same inverted index, and the query-evaluation machinery is unchanged.">
@@ -676,19 +680,19 @@ That is what SPLADE does, and the punchline is in the implementation note rather
 
 The expensive part is not the neural network.
 
-You would assume the expensive part is the neural network. It is not. Query expansion lengthens the query substantially, and traversing an inverted index costs more as query terms multiply. The [efficiency study](https://arxiv.org/abs/2207.03834) says it directly: the main gain came from "the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure", because "query size is then a major bottleneck." The neural half was cheap. The 1970s half was what blew up.
+You'd assume it is. It's not. Query expansion lengthens the query substantially, and traversing an inverted index costs more as query terms multiply. The [efficiency study](https://arxiv.org/abs/2207.03834) says it directly: the main gain came from "the reduction of SPLADE query sizes, instead of focusing solely on the FLOPS measure", because "query size is then a major bottleneck." The neural half was cheap. The 1970s half was what blew up.
 
-The same lesson shows up on the document side, and harder. doc2query generates queries a document might answer and appends them before indexing. It works. It also hallucinates. Gospodinov, MacAvaney and Macdonald [filtered the generated text](https://arxiv.org/abs/2301.03266) with a relevance model and found you can "improve the retrieval effectiveness of Doc2Query by up to 16%, while simultaneously reducing mean query execution time by 23% and cutting the index size by 33%." That is from keeping only 30% of what the model generated. Throwing away seven-tenths of your generated text made retrieval better, the index smaller, and queries faster, all at once.
+Same lesson on the document side, but worse. doc2query generates queries a document might answer and appends them before indexing. It works. It also hallucinates. Gospodinov, MacAvaney and Macdonald [filtered the generated text](https://arxiv.org/abs/2301.03266) with a relevance model and found you can "improve the retrieval effectiveness of Doc2Query by up to 16%, while simultaneously reducing mean query execution time by 23% and cutting the index size by 33%." That is from keeping only 30% of what the model generated. Throwing away seven-tenths of your generated text made retrieval better, the index smaller, and queries faster, all at once.
 
 Which raises the question underneath all of this: what is the unit you index?
 
 For a product catalog it's obvious, one document per boot. For a 200-page PDF it isn't, and this is the most-asked practical question in retrieval. The published evidence is thinner than the volume of advice suggests, but 2026 finally produced controlled sweeps, and one of them killed a piece of folklore outright.
 
-The [chunking study](https://arxiv.org/abs/2601.14123) varied method, size, overlap and context budget on Natural Questions with SPLADE retrieval and a Mistral-8B generator. On overlap, where the widely repeated figure is 10 to 20%, their finding is: "overlap provides no measurable benefit and increases indexing cost." It also found "sentence chunking is the most cost-effective method, matching semantic chunking up to ~5k tokens", and a ceiling: "a 'context cliff' reduces quality beyond ~2.5k tokens."
+The [chunking study](https://arxiv.org/abs/2601.14123) varied method, size, overlap and context budget on Natural Questions with SPLADE retrieval and a Mistral-8B generator. On overlap (where everyone repeats the 10-to-20% figure) their finding is: "overlap provides no measurable benefit and increases indexing cost." It also found "sentence chunking is the most cost-effective method, matching semantic chunking up to ~5k tokens", and a ceiling: "a 'context cliff' reduces quality beyond ~2.5k tokens."
 
-There is an apparent contradiction in this literature worth resolving, because you will run into both papers. One study concludes semantic chunking isn't worth its cost. Another concludes content-aware chunking beats fixed-size chunking decisively. They are not in conflict; they define the baseline differently. The first compares semantic chunking against a baseline that already splits on sentence boundaries with overlap. The second compares against fixed-size splitting by *character*, which cuts words in half. Both are consistent with one reading: respect sentence and paragraph boundaries, and don't pay extra for embedding-similarity segmentation on top of that.
+There's an apparent contradiction here worth resolving, because you'll run into both papers. One study concludes semantic chunking isn't worth its cost. Another concludes content-aware chunking beats fixed-size chunking decisively. They're not in conflict; they define the baseline differently. The first compares semantic chunking against a baseline that already splits on sentence boundaries with overlap. The second compares against fixed-size splitting by *character*, which cuts words in half. Both are consistent with one reading: respect sentence and paragraph boundaries, and don't pay extra for embedding-similarity segmentation on top of that.
 
-One caution on the second study, and it matters more than it looks. Its relevance judgments come from "a state-of-the-art LLM evaluator" with no human anchor. Hold that thought; section 19 is about exactly what that costs you.
+One caution on the second study, and it matters more than it looks. Its relevance judgments come from "a state-of-the-art LLM evaluator" with no human anchor. Hold that thought. Section 19 is about exactly what that costs you.
 
 {/* Reader can now: see that the index structure survived the neural turn, that the classical half is the expensive one, and what the controlled chunking evidence actually says */}
 
@@ -696,11 +700,11 @@ One caution on the second study, and it matters more than it looks. Its relevanc
 
 You now have two retrievers with different failure modes. Lexical is superb on `Salomon Quest 4 GTX wide 10.5` and helpless on `wide toe box`. Dense is the reverse. Running both is obvious. Combining their output is not.
 
-The problem is that their scores are not comparable. BM25 produces an unbounded sum whose scale depends on your corpus statistics. Cosine similarity lives in [-1, 1]. Adding them is meaningless, and normalizing them requires knowing something about each distribution that you often don't.
+The problem is that their scores aren't comparable. BM25 produces an unbounded sum whose scale depends on your corpus statistics. Cosine similarity lives in [-1, 1]. Adding them is meaningless, and normalizing them requires knowing something about each distribution that you often don't.
 
 Reciprocal rank fusion sidesteps all of it by throwing the scores away and keeping only the ranks. Each document scores `1/(k + rank)` in each list, and you sum. No calibration, no distributions, nothing to tune.
 
-Almost nothing to tune. There is `k`, and it is set to 60 essentially everywhere. That number comes from [Cormack, Clarke and Buettcher in 2009](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf), and they are candid about its provenance: "k = 60 was fixed during a pilot investigation and not altered during subsequent validation." Their pilot "indicated that k = 60 was near-optimal, but that the choice was not critical."
+Almost nothing. There's `k`, and it's set to 60 essentially everywhere. That number comes from [Cormack, Clarke and Buettcher in 2009](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf), and they are candid about its provenance: "k = 60 was fixed during a pilot investigation and not altered during subsequent validation." Their pilot "indicated that k = 60 was near-optimal, but that the choice was not critical."
 
 So it was chosen, on TREC data, in 2009, using a search engine most people reading this have never run. Elasticsearch ships it as `rank_constant`, defaulting to 60, and sells the method on exactly the property that made it attractive then: "RRF requires no tuning, and the different relevance indicators do not have to be related to each other to achieve high-quality results."
 
@@ -714,7 +718,7 @@ What should you actually expect from hybrid? Less than the enthusiasm suggests, 
 
 That same study is worth one more paragraph, because it is a small scandal. In reproducing the benchmark's own published lexical baseline, the authors found they couldn't, until they identified "a key under-documented detail: query-side BM25 (BM25Q), which applies BM25 weighting to the query itself." They also audited the corpus and uncovered "data quality issues that impact evaluation."
 
-A number in a paper is not the same object as a reproducible result. Keep that handy; it comes back.
+A number in a paper is not the same thing as a reproducible result. Keep that handy; it comes back.
 
 {/* Reader can now: pick a fusion strategy for a stated reason, and expect consistency rather than a headline gain */}
 
@@ -789,11 +793,11 @@ On whether: most published comparisons rerank the output of BM25, where a cross-
 
 On how deep: there is a ceiling, and it is measured. Jacob and colleagues at [Databricks and Stanford](https://arxiv.org/abs/2411.11767) deliberately evaluated rerankers "for full retrieval, not just re-scoring first-stage retrieval", against strong modern dense first stages, and found: "the best existing rerankers provide initial improvements when scoring progressively more documents, but their effectiveness gradually declines and can even degrade quality beyond a certain limit."
 
-Deeper is not safer. Past some depth the reranker starts promoting things it should not have seen, and your quality goes down while your latency goes up. The depth you pick is a real parameter with an interior optimum, not a budget you spend as much of as you can afford.
+Deeper is not safer. Past some depth the reranker starts promoting things it shouldn't have seen, and your quality goes down while your latency goes up. The depth you pick is a real parameter with a sweet spot, not a budget you spend as much of as you can afford.
 
-One more constraint, because people reach for it constantly and it does not hold. A 2026 [SIGIR paper](https://arxiv.org/abs/2604.03676) evaluating LLM-based retrievers found that "Confidence calibration is consistently weak across model families, indicating that raw retrieval scores are unreliable for downstream routing without additional calibration." If your plan is "if the top score is below 0.7, say I don't know", that plan has no evidential basis. The score is a ranking signal. It is not a probability, and the models are not calibrated as though it were.
+And one more thing, because people reach for it constantly and it doesn't hold. A 2026 [SIGIR paper](https://arxiv.org/abs/2604.03676) evaluating LLM-based retrievers found that "Confidence calibration is consistently weak across model families, indicating that raw retrieval scores are unreliable for downstream routing without additional calibration." If your plan is "if the top score is below 0.7, say I don't know", that plan has no evidential basis. The score is a ranking signal. It is not a probability, and the models are not calibrated as though it were.
 
-One assumption has run through this whole act without being stated. The postings, the fused lists, the interaction axis: all of it assumes the query is text and the candidate is text. Our user has been typing. In the next act they take a photograph instead.
+There's an assumption running through everything above that I haven't stated. The postings, the fused lists, the interaction axis: all of it assumes the query is text and the candidate is text. Our user has been typing. Now they take a photograph instead.
 
 {/* Reader can now: place any retrieval model on the interaction axis, pick a rerank depth for a reason, and stop using retrieval scores as confidence */}
 
@@ -807,7 +811,7 @@ For that photo to retrieve anything, an image and a piece of text have to be com
 
 So the shared space is not a discovery about images and language. It is the direct consequence of an objective that rewarded exactly this.
 
-It also tells you what the objective never rewarded. Nothing in it asks the model to distinguish `a red bag with a black strap` from `a black bag with a red strap`. Both captions contain the same words, both plausibly describe a scene with a bag and two colours, and a training signal built on batch-level matching almost never has to tell them apart. [Winoground](https://arxiv.org/abs/2204.03162) tested precisely this, pairing two images with two captions built from identical words in different orders, and found that of a diverse range of state-of-the-art models, "none of them do much better than chance." [ARO](https://arxiv.org/abs/2210.01936) found the same shape at scale: "a severe lack of order sensitivity", along with attribute-binding failures.
+It also tells you what the objective never rewarded. Nothing in it asks the model to tell apart `a red bag with a black strap` from `a black bag with a red strap`. Both captions contain the same words, both plausibly describe a scene with a bag and two colours, and a training signal built on batch-level matching almost never has to tell them apart. [Winoground](https://arxiv.org/abs/2204.03162) tested precisely this, pairing two images with two captions built from identical words in different orders, and found that of a diverse range of state-of-the-art models, "none of them do much better than chance." [ARO](https://arxiv.org/abs/2210.01936) found the same shape at scale: "a severe lack of order sensitivity", along with attribute-binding failures.
 
 <figure>
 <svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" role="img" aria-label="Two photographs and two captions built from identical words in different orders: a red bag with a black strap, and a black bag with a red strap. Both captions and both images are mapped into one shared embedding space, where all four land close together, because a training objective that matches images to captions across a batch is almost never required to tell word orderings apart. A note records that on this kind of test no state-of-the-art model did much better than chance, and that several benchmarks built to measure the failure at scale were later found hackable by models that never see the image.">
@@ -845,15 +849,15 @@ It also tells you what the objective never rewarded. Nothing in it asks the mode
 <figcaption><strong>Fig 11.</strong> The compositional blind spot, and why it is a property of the objective rather than a bug. Training rewarded matching an image to its caption against other captions in the batch, a task you can win without ever attending to word order. The correction matters too: the failure is real, and several benchmarks built to measure it were later shown to be beatable by models that never look at the picture.</figcaption>
 </figure>
 
-Now the correction, because this is a case where the literature policed itself and the summary version usually gets it wrong.
+Now the correction, because the literature policed itself here and the summary version usually gets it wrong.
 
 [SugarCrepe](https://arxiv.org/abs/2306.14610) went back and examined the benchmarks that had been built to measure compositional failure, and found many of them broken: "we find significant biases in all these benchmarks rendering them hackable. This hackability is so dire that blind models with no access to the image outperform state-of-the-art vision-language models." A model that never sees the picture beats a real vision-language model, which means the benchmark was measuring an artifact of how the wrong answers were generated.
 
-That correction is narrower than it is usually repeated. SugarCrepe's finding covers the procedurally generated image-to-text benchmarks, and its own framing is about "all these image-to-text compositionality benchmarks". Winoground is handled separately and survives, because its hard negatives are human-curated reorderings rather than machine-generated ones. So: the compositional weakness is real and Winoground still demonstrates it, and several of the benchmarks built to measure it at scale were themselves broken.
+That correction is narrower than people usually repeat it. SugarCrepe's finding covers the procedurally generated image-to-text benchmarks, and its own framing is about "all these image-to-text compositionality benchmarks". Winoground is handled separately and survives, because its hard negatives are human-curated reorderings rather than machine-generated ones. So: the compositional weakness is real and Winoground still demonstrates it, and several of the benchmarks built to measure it at scale were themselves broken.
 
-The 2025 response is instructive about how the problem got attacked. [SigLIP 2](https://arxiv.org/abs/2502.14786) did not invent a better contrastive loss. It kept the objective and surrounded it: "we extend the original image-text training objective with several prior, independently developed techniques into a unified recipe -- this includes captioning-based pretraining, self-supervised losses (self-distillation, masked prediction) and online data curation."
+The 2025 response says a lot about how the problem actually got attacked. [SigLIP 2](https://arxiv.org/abs/2502.14786) didn't invent a better contrastive loss. It kept the objective and surrounded it: "we extend the original image-text training objective with several prior, independently developed techniques into a unified recipe -- this includes captioning-based pretraining, self-supervised losses (self-distillation, masked prediction) and online data curation."
 
-Back to the shop. The photo retrieves visually similar boots, which is what an outsole tread is good for. It cannot express `under $150`. It cannot express `wide`. It cannot express size `10.5`. Changing the input modality did not remove a single one of the structured constraints from section 5; it removed the words that used to carry the rest of the query.
+Back to the shop. The photo retrieves visually similar boots, which is what an outsole tread is good for. It can't express `under $150`. It can't express `wide`. It can't express size `10.5`. Changing the input modality didn't remove a single one of the structured constraints from section 5; it removed the words that used to carry the rest of the query.
 
 {/* Reader can now: state the compositional failure and the state of the evidence for it without overclaiming either, and see that modality change does not dissolve structured predicates */}
 
@@ -863,21 +867,21 @@ There is a version of this move one level up, and it is the most interesting arc
 
 Most document retrieval starts by destroying the document. You take a PDF, run a parser, get text, and index the text. Everything the layout was doing, which column this belongs to, which row of which table, what this heading governs, is gone before retrieval begins.
 
-How much does that cost? Enough that it is the dominant failure mode in at least one careful study. A 2026 benchmark over 23,088 queries against financial documents did an error analysis on its failures and found: "Table structure mismatch is the dominant failure mode (73%): the answer resides in a table whose markdown representation does not embed well." Not the retriever. The representation the retriever was handed.
+How much does that cost you? Enough that it's the dominant failure mode in at least one careful study. A 2026 benchmark over 23,088 queries against financial documents did an error analysis and found: "Table structure mismatch is the dominant failure mode (73%): the answer resides in a table whose markdown representation does not embed well." Not the retriever. The representation the retriever was handed.
 
-That is an LLM-produced categorization of a 100-item sample, so treat the exact 73% as directional. The direction is unambiguous, and if you have ever watched a retriever fail to connect `net income in 2019` to a table where `net income` and `2019` sit in different cells, you already knew.
+That's an LLM-produced categorization of a 100-item sample, so treat the exact 73% as directional. The direction is unambiguous, and if you have ever watched a retriever fail to connect `net income in 2019` to a table where `net income` and `2019` sit in different cells, you already knew.
 
-If you are wondering whether the choice of parser is worth measuring rather than guessing at, a 2026 paper does exactly that, reporting that "We systematically examine multiple PDF parsers and chunking strategies (with varied overlap), along with their potential synergies in preserving document structure and ensuring answer correctness." That is [El Bachyr and colleagues](https://arxiv.org/abs/2604.12047), on two financial-document benchmarks.
+If you're wondering whether the parser choice matters enough to actually measure, a 2026 paper does exactly that, reporting that "We systematically examine multiple PDF parsers and chunking strategies (with varied overlap), along with their potential synergies in preserving document structure and ensuring answer correctness." That's [El Bachyr and colleagues](https://arxiv.org/abs/2604.12047), on two financial-document benchmarks.
 
 The more radical answer is to stop parsing. [ColPali](https://arxiv.org/abs/2407.01449) embeds the page as an image and retrieves it with late interaction over patch embeddings, and it is the section 13 move applied to documents: treat the artifact as a picture rather than as extracted text, and you keep everything the layout was encoding.
 
 On the original ViDoRe benchmark, in the 2024 paper, it scored 81.3 average nDCG@5 against 67.0 for the strongest text pipeline they tested, which combined a parser, captioning and BGE-M3.
 
-That is an evaluated architecture with a benchmark result, not a documented production replacement of anybody's ingestion pipeline. I have no source claiming the latter. The distinction matters in a post about the gap between winning a benchmark and displacing an incumbent.
+That's an evaluated architecture with a benchmark result, not a documented production replacement of anybody's ingestion pipeline. I haven't found a source claiming the latter, and the distinction matters.
 
 And it has a bill. The page's multi-vector representation costs "256 KB per page", which for a million-page corpus is 256 GB before you index anything. That is the interaction axis from section 12 presenting its invoice: late interaction bought the layout information, and it paid in storage.
 
-The follow-up is where it gets honest. The same group built a harder benchmark, [ViDoRe V3](https://arxiv.org/abs/2601.08620), with about 26,000 pages and 3,099 human-verified queries across six languages, and their finding both vindicates and deflates: "visual retrievers outperform textual ones, late-interaction models and textual reranking substantially improve performance" and yet "current models still struggle with non-textual elements, open-ended queries, and fine-grained visual grounding." The best model on that leaderboard as of February 2026, [Nemotron ColEmbed V2](https://arxiv.org/abs/2602.03992), scored 63.42 average nDCG@10.
+The follow-up is where it gets honest. Same group built a harder benchmark, [ViDoRe V3](https://arxiv.org/abs/2601.08620), with about 26,000 pages and 3,099 human-verified queries across six languages, and their finding both vindicates and deflates: "visual retrievers outperform textual ones, late-interaction models and textual reranking substantially improve performance" and yet "current models still struggle with non-textual elements, open-ended queries, and fine-grained visual grounding." The best model on that leaderboard as of February 2026, [Nemotron ColEmbed V2](https://arxiv.org/abs/2602.03992), scored 63.42 average nDCG@10.
 
 A paradigm won, and the reward for winning was a benchmark that shows how far there is to go. That is roughly what healthy progress looks like.
 
@@ -885,7 +889,7 @@ A paradigm won, and the reward for winning was a benchmark that shows how far th
 
 ### 15. One embedding, three jobs
 
-The last two sections were about replacing things. This one is about absorbing them instead, and it is the pattern the rest of the post turns on.
+The last two sections were about replacing things. This one is about absorbing them instead, and it's the pattern everything after this turns on.
 
 Pinterest published [OmniSearchSage](https://arxiv.org/abs/2404.16260) in 2024, describing a unified query embedding trained jointly with pin and product embeddings. The headline results are what you would expect from a paper: "an improvement of >8% relevance, >7% engagement, and >5% ads CTR in Pinterest's production search system."
 
@@ -895,7 +899,7 @@ The interesting sentence is not in the abstract. It is in the deployment section
 
 Three jobs. It powers a vector index. It makes the *token-based* retrieval sources more efficient, meaning it is helping the lexical machinery rather than replacing it. And it is a feature inside two downstream ranking models.
 
-That is not what "we moved to semantic search" sounds like when people say it. The embedding did not become the retrieval layer. It became a component that shows up at three different depths of an existing stack, one of which is the part it was supposed to have made obsolete.
+That's not what "we moved to semantic search" sounds like when people say it. The embedding didn't become the retrieval layer. It became a component that shows up at three different depths of an existing stack, one of which is the part it was supposed to have made obsolete.
 
 Two more numbers from that paper, because they recalibrate what production embedding serving looks like.
 
@@ -907,11 +911,11 @@ The neural model handles about five hundred requests a second. A cache absorbs t
 
 None of which means embeddings are overrated. It means the embedding is one part inside a machine, and the machine is doing a lot of unglamorous work around it.
 
-One last thing before the funnel. If you are choosing an embedding model, the leaderboard is a weaker instrument than it looks. [MIEB](https://arxiv.org/abs/2504.10471) benchmarked 50 models across 130 tasks and found "no single method dominates across all task categories." And the collapse can be dramatic: on [BRIGHT](https://arxiv.org/abs/2407.12883), a reasoning-heavy retrieval benchmark, "The leading model on the MTEB leaderboard SFR-Embedding-Mistral, which achieves a score of 59.0 nDCG@10, produces a score of nDCG@10 of 18.3 on BRIGHT."
+If you're choosing an embedding model, the leaderboard is a weaker instrument than it looks. [MIEB](https://arxiv.org/abs/2504.10471) benchmarked 50 models across 130 tasks and found "no single method dominates across all task categories." And the collapse can be dramatic: on [BRIGHT](https://arxiv.org/abs/2407.12883), a reasoning-heavy retrieval benchmark, "The leading model on the MTEB leaderboard SFR-Embedding-Mistral, which achieves a score of 59.0 nDCG@10, produces a score of nDCG@10 of 18.3 on BRIGHT."
 
 Fifty-nine to eighteen, same model. Leaderboard position told you almost nothing about the task that mattered.
 
-The outsole photo has produced a candidate set: boots that look like the one in their hand. Those candidates arrived with no price attached to the matching, no width and no size, so everything the query actually constrained is still unsatisfied. Nothing so far has put them in an order anyone would defend either, which is what the cascade in the next act does.
+The outsole photo has produced a candidate set: boots that look like the one in their hand. Those candidates arrived with no price, no width, and no size, so everything the query actually constrained is still unsatisfied. And nothing has put them in an order anyone would defend.
 
 {/* Reader can now: stop thinking of the embedding as the retrieval layer, and read a production QPS figure with the cache in mind */}
 
@@ -919,15 +923,15 @@ The outsole photo has produced a candidate set: boots that look like the one in 
 
 ### 16. The funnel, and the system that refused to leave it
 
-In 2020, Facebook's search team had the problem this post has been building toward. They wanted embedding-based retrieval, and they had to put it somewhere alongside a system built on Boolean matching.
+In 2020, Facebook's search team had the problem I've been building toward. They wanted embedding-based retrieval, and they had to put it somewhere alongside a system built on Boolean matching.
 
-The obvious move in 2020, and the obvious move today, is to stand up a vector database beside the existing index and query both. They didn't. They [put the vectors inside the inverted index](https://arxiv.org/abs/2006.11632), and their stated reason is the thesis of this post arriving four acts early:
+The obvious move in 2020, and the obvious move today, is to stand up a vector database beside the existing index and query both. They didn't. They [put the vectors inside the inverted index](https://arxiv.org/abs/2006.11632), and their reason is basically the thesis of this whole essay, four acts early:
 
 > "By implementing NN support in terms of pre-existing primitives, instead of writing a separate system, we inherited all the features of the existing system, such as realtime updates, efficient query planning and execution, and support for multi-hop queries."
 
 Read the list of what they were unwilling to give up. Not relevance. Not recall. Real-time updates, query planning, and the ability to combine a nearest-neighbour condition with other conditions. None of those appear in any retrieval benchmark. All of them are the difference between a technique and a system you can operate.
 
-The mechanism is worth seeing, because it is more literal than "hybrid search" suggests. They added an operator to the query language, `(nn <key> :radius <radius>)`. At indexing time "each document embedding is quantized and turned into a term (for its coarse cluster) and a payload (for the quantized residual)", and at query time the operator "is internally rewritten into an (or) of the terms associated to the coarse clusters closest to the query embedding". An approximate nearest-neighbour search, expressed as a disjunction of posting-list lookups.
+The mechanism is worth seeing, because it's more literal than "hybrid search" usually implies. They added an operator to the query language, `(nn <key> :radius <radius>)`. At indexing time "each document embedding is quantized and turned into a term (for its coarse cluster) and a payload (for the quantized residual)", and at query time the operator "is internally rewritten into an (or) of the terms associated to the coarse clusters closest to the query embedding". An approximate nearest-neighbour search, expressed as a disjunction of posting-list lookups.
 
 They also chose a radius condition over top-K, and the reason is the one section 8 spent itself on: "radius mode enables a constrained NN search (constrained by other parts of the matching expression) but top K mode provides a more relaxed operation which needs to scan the whole index to get top K results." Because the vector condition is a term in a Boolean expression, the other clauses can prune it. Our `under $150` gets to constrain the vector search rather than filtering its output. The problem that broke the standalone graph in section 8 is substantially less bad when the vector index lives inside a query planner that already knew how to combine conditions.
 
@@ -973,19 +977,19 @@ So the retrieval stage is not one thing. It is several sources feeding a common 
 <figcaption><strong>Fig 12.</strong> The stack, with the fan-out figures carrying the domain they came from. The budget is what forces a cheap model at L1, and the cheap model is the one that structurally cannot see the query and the document together, which is why L2 exists. Note where the dense index sits: one source among several, not the retrieval layer.</figcaption>
 </figure>
 
-And then everything downstream has to be paid for. Alibaba published the numbers for their display advertising system in 2020. That is adjacent to search rather than search itself, and the shape transfers even where the exact figures shouldn't be borrowed. In [that system](https://arxiv.org/abs/2007.16122), "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand" and it "selects top N candidates", where "The magnitude of N is usually several hundred". The budget: "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds."
+And then everything downstream has to be paid for. Alibaba published the numbers for their display advertising system in 2020. That's adjacent to search rather than search itself, and the shape transfers even where the exact figures shouldn't be borrowed. In [that system](https://arxiv.org/abs/2007.16122), "the size M of the candidate set that is fed into the pre-ranking system often reaches ten thousand" and it "selects top N candidates", where "The magnitude of N is usually several hundred". The budget: "both ranking and pre-ranking systems have strict latency limit, e.g., 10 ∼ 20 milliseconds."
 
-Ten thousand candidates. Ten to twenty milliseconds. Amortized, that is one to two microseconds per candidate, and I want to be precise about what that arithmetic is: it is a budget divided by a count, across work that is vectorized and parallelized. It is not a per-candidate time slice that some function gets to spend. But as a sense of scale it explains a great deal about what kind of model can sit at that stage.
+Ten thousand candidates. Ten to twenty milliseconds. Amortized, that is one to two microseconds per candidate, and I want to be precise about what that arithmetic is: it's a budget divided by a count, across work that is vectorized and parallelized. It's not a per-candidate time slice that some function gets to spend. But as a sense of scale it tells you a lot about what kind of model can sit at that stage.
 
-There is one more property of a funnel, and it is the reason this act exists at all. From the team that later tried to replace theirs: "If an effective item that aligns with the user's true intent is filtered out in an earlier stage, no matter how precise the subsequent models are, they cannot present this item to user."
+There's one property of a funnel that's the whole reason this act exists. From the team that later tried to replace theirs: "If an effective item that aligns with the user's true intent is filtered out in an earlier stage, no matter how precise the subsequent models are, they cannot present this item to user."
 
-That is the constraint everything else in this act negotiates with. A ranker cannot rank what retrieval didn't return. Recall lost at the front is lost for good, and no amount of downstream cleverness recovers it. Which means the interesting failures in a search system are usually not where people look for them.
+That's the constraint everything else here negotiates with. A ranker can't rank what retrieval didn't return. Recall lost at the front is lost for good, and no amount of downstream cleverness recovers it. Which means the interesting failures in a search system are usually not where people look for them.
 
 {/* Reader can now: draw the stack, attribute a failure to a stage, and see why a vector index inside a query planner behaves differently from one beside it */}
 
 ### 17. Why L1 is a dot product, and what that costs
 
-Section 16 left a stage scoring a candidate set several orders of magnitude larger than what a heavy model can afford, under a latency limit measured in tens of milliseconds. In the advertising system those figures came from, that meant roughly ten thousand candidates. Whatever your numbers are, the pressure points the same way, and the model that survives it has a specific weakness.
+So now you have a stage scoring a candidate set orders of magnitude larger than what a heavy model can afford, under a latency limit measured in tens of milliseconds. In the advertising system those figures came from, that's roughly ten thousand candidates. Whatever your numbers are, the pressure points the same way, and the model that survives it has a specific weakness.
 
 The standard answer is the two-tower model, and it works for one structural reason: it factorizes. Google's description of the inference path is two steps, "computing query embedding" and then "performing nearest neighbor search over a set of item embeddings that are pre-computed", closed by "approximate maximum inner product search". The item tower runs offline over your whole catalog. The query tower runs once per request. Serving is a dot product against an index you built yesterday.
 
@@ -999,13 +1003,13 @@ Now the cost, stated most clearly by a team that was in the process of replacing
 
 That sentence is the reason rerankers exist.
 
-Be careful about what that does and does not mean. A two-tower model can absolutely learn that a user prefers wide fittings: the user tower puts that in the user vector, the item tower puts width in the item vector, and the dot product finds them. What it cannot do is consume a feature *about the pair* at scoring time, because by the time the two vectors meet, each was computed without knowledge of the other. Anything you can only compute by looking at the query and the candidate together has to be either compressed into one side in advance or given up.
+Be careful about what that does and doesn't mean. A two-tower model can absolutely learn that a user prefers wide fittings: the user tower puts that in the user vector, the item tower puts width in the item vector, and the dot product finds them. What it can't do is consume a feature *about the pair* at scoring time, because by the time the two vectors meet, each was computed without knowledge of the other. Anything you can only compute by looking at the query and the candidate together has to be either compressed into one side in advance or given up.
 
-That is the interaction axis from section 12 showing up as a serving constraint rather than a modelling choice. Precomputation is what makes the stage affordable, and precomputation is what limits how much of the interaction you can model. A bigger tower gives you a better summary of each side; it does not give you a feature that only exists when the two sides are looked at together.
+That's the interaction axis from section 12 showing up as a serving constraint rather than a modelling choice. Precomputation is what makes the stage affordable, and precomputation is what limits how much of the interaction you can model. A bigger tower gives you a better summary of each side; it doesn't give you a feature that only exists when the two sides are looked at together.
 
-So you build a second stage that sees fewer candidates and is allowed to look at them properly. Alibaba's replacement, which spent its budget on a model with cross features rather than on a bigger tower, reported "6.1% CTR and 6.5% RPM" improvement, rising to "9.1% CTR and 10.8% RPM" during a peak sales event. The paper attributes the two-tower design's weakness partly to precomputation staleness, which is at least consistent with a larger gap under peak-day conditions, though it does not isolate that as the cause.
+So you build a second stage that sees fewer candidates and is allowed to look at them properly. Alibaba's replacement, which spent its budget on a model with cross features rather than on a bigger tower, reported "6.1% CTR and 6.5% RPM" improvement, rising to "9.1% CTR and 10.8% RPM" during a peak sales event. The paper attributes the two-tower design's weakness partly to precomputation staleness, which is at least consistent with a larger gap under peak-day conditions, though it doesn't isolate that as the cause.
 
-So a cascade is not really an architectural preference. It falls out of a tension: the representations that are cheap enough to score a large candidate set are precisely the ones computed without reference to each other.
+So a cascade isn't really an architectural preference. It falls out of a basic tension: the representations cheap enough to score a large candidate set are precisely the ones computed without reference to each other.
 
 {/* Reader can now: explain why a reranker must exist, from the serving constraint rather than from model quality */}
 
@@ -1021,25 +1025,25 @@ The awkward part is measuring it. To know what your ranker would have done with 
 
 The 2025 answer is to stop treating the stages as separate models. [LCRON](https://arxiv.org/abs/2503.09492), at ICML 2025, trains the whole cascade end to end against a loss derived from the probability that the ground-truth items survive the entire funnel, and reports from a live advertising deployment: "Compared to FS-LTR, LCRON brings about a 4.10% increase in advertising revenue and a 1.60% increase in the number of user conversions."
 
-That is a recommendation and advertising result rather than a search one, and the transfer is about the shape of the problem rather than the size of the number. But the shape is general: if your L1 and L2 were trained apart, they disagree, and the disagreement costs you recall you will never see in either stage's metrics.
+That's a recommendation and advertising result rather than a search one, and what transfers is the shape of the problem rather than the size of the number. But the shape is general: if your L1 and L2 were trained apart, they disagree, and the disagreement costs you recall you will never see in either stage's metrics.
 
 {/* Reader can now: see the cascade as one system with a joint objective, and know why stage-local metrics hide the loss */}
 
 ### 19. Why your offline number lied
 
-Everything so far has been evaluated with a number. Those numbers are worth less than you would like, in ways that have been measured.
+Everything so far has been evaluated with a number. Those numbers are worth less than you'd like, in ways that have been measured.
 
 Start with the cleanest evidence, which is from 2020 and still the best thing written on it. Airbnb's search team [published three model changes](https://arxiv.org/abs/2002.05515) that looked fine offline and lost money online.
 
-A monotonic price term, chosen for interpretability: bookings fell 1.5%. A more flexible version of the same idea: down 1.6%. And the third, where they were careful in exactly the way you are supposed to be careful. They tuned the change until offline NDCG matched the baseline, so that they were shipping something offline-neutral by construction. Online, average result price fell 3.3%, "But also a drop of −0.67% in bookings."
+A monotonic price term, chosen for interpretability: bookings fell 1.5%. A more flexible version of the same idea: down 1.6%. And the third, where they were careful in exactly the way you're supposed to be careful. They tuned the change until offline NDCG matched the baseline, so they were shipping something offline-neutral by construction. Online, average result price fell 3.3%, "But also a drop of −0.67% in bookings."
 
 Then they explain why, and this is the sentence to keep:
 
 > "The offline analysis suffered from the limitation that it only evaluated re-ranking the top results available in logs."
 
-An offline evaluation scores a model against documents your *previous* model chose to show. Any change that surfaces different documents is invisible to it, because those documents are not in the log to be scored. Offline evaluation cannot see the thing that a retrieval or ranking change most obviously does.
+An offline evaluation scores a model against documents your *previous* model chose to show. Any change that surfaces different documents is invisible to it, because those documents aren't in the log. Offline evaluation literally can't see the thing that a retrieval change most obviously does.
 
-That is the same constraint as section 16's, viewed from the evaluation side. The funnel can only rank what it retrieved; the log can only score what it showed.
+That's the same constraint as section 16's, viewed from the evaluation side. The funnel can only rank what it retrieved; the log can only score what it showed.
 
 They also give the sensitivity floor, which is worth memorizing before you dismiss a small number: "we have observed statistically significant differences in online bookings from models that differed in NDCG by as little as 0.7%."
 
@@ -1082,39 +1086,39 @@ They also give the sensitivity floor, which is worth memorizing before you dismi
 <figcaption><strong>Fig 13.</strong> The most expensive failure in this post, because nothing warns you. Three changes looked acceptable or neutral before launch and lost bookings, and the third was deliberately tuned to be offline-neutral. The reason is structural rather than a tuning mistake: a log-replay evaluation can only score documents your previous model chose to show.</figcaption>
 </figure>
 
-Now the 2026 version of the problem, which is worse, because the industry's response to expensive human judgments has been to generate them with a model.
+Now the 2026 version of this problem, which is worse, because the industry's response to expensive human judgments has been to generate them with a model.
 
 The case for doing that is real. [UMBRELA](https://arxiv.org/abs/2406.06519), in 2024, compared LLM relevance judgments against human ones across five TREC Deep Learning tracks and reported system-level rank correlations between 0.87 and 0.94 Kendall's tau. If you want to know which of your systems is best, an LLM judge appears to tell you.
 
 The per-item agreement in the same table tells a different story: Cohen's kappa between 0.31 and 0.37 on the four-point scale. Kappa is already corrected for agreement you would get by chance, so zero means no better than guessing and one means perfect. A third of the way up that scale is real agreement and it is weak agreement, on the individual query-document judgments the whole thing is built from. TREC's own 2026 RAG track puts it independently at "agreement fractions between 0.30–0.34, suggesting that automated relevance judgment remains a challenging task with limited agreement relative to human assessors."
 
-High correlation on system ordering, poor agreement on items. Those two facts coexist because errors that are dense but unbiased wash out when you average over a whole run.
+High correlation on system ordering, poor agreement on individual items. Both are true at once because errors that are dense but unbiased wash out when you average over a whole run.
 
-Which raises the question Clarke and Dietz asked: does the averaging still save you where you actually make decisions? [They checked](https://arxiv.org/abs/2412.17156), and it does not.
+Which raises the question Clarke and Dietz asked: does the averaging still save you where you actually make decisions? [They checked](https://arxiv.org/abs/2412.17156), and no.
 
 > "While Kendall's τ among the top 60 systems remains relatively high at 0.85 (corresponding to 8% system swaps), it drops to 0.51 (24% swaps) among the top 20 systems, and to 0.56 (21% swaps) among the top 15."
 
-Nobody is choosing between system 3 and system 47. You are choosing between your current stack and the four variants of it you built this quarter, which are all near the top and all close together. That is exactly the region where the correlation falls apart.
+Nobody is choosing between system 3 and system 47. You're choosing between your current stack and the four variants of it you built this quarter, which are all near the top and all close together. That is exactly the region where the correlation falls apart.
 
-Then they ran a second, separate analysis, and I want to keep it separate because collapsing the two overstates the case. They simulated what happens if everyone adopts the judge as a reranking component, so that the systems being evaluated and the thing evaluating them share a lineage:
+Then they ran a second, separate analysis, and I want to keep it separate because collapsing the two overstates things. They simulated what happens if everyone adopts the judge as a reranking component, so the systems being evaluated and the thing evaluating them share a lineage:
 
 > "Kendall's τ further decreases to 0.44 among the top 20 systems, 0.49 among the top 15, 0.38 among the top 10, and even turns negative (τ = −0.40) among the top 5 systems."
 
-Negative. Among the top five, in that simulation, the automated evaluation ranks systems roughly in reverse. And this is a simulation of circularity, not an observation of it in the wild, which is the honest caveat. But the condition it simulates is not exotic: it is what happens when the model family in your reranker is the model family in your judge, which by 2026 is the default rather than the exception.
+Negative. Among the top five, in that simulation, the automated evaluation ranks systems roughly in reverse. And this is a simulation of circularity, not an observation of it in the wild, which is the honest caveat. But the condition it simulates isn't exotic. It's what happens when the model family in your reranker is the model family in your judge, which by 2026 is the default rather than the exception.
 
 The practical rule that falls out is cheap to follow. Keep your judge's model family disjoint from your ranker's, and hand-label the final bake-off between your top few candidates, because that is the comparison the automated metric is worst at.
 
-One complication, because the story is not simply that LLMs are bad at this. A 2026 [re-assessment of the TREC Podcast Track](https://arxiv.org/abs/2601.05603) went back to the pairs where the LLM and the original assessors disagreed most, and had human experts adjudicate: "the human experts tend to agree with LLMs more than with the TREC assessors." Some of the disagreement is the LLM being wrong. Some of it is that a single human assessor is also a noisy instrument, which the field has known since 2002.
+One complication, because the story isn't simply that LLMs are bad at this. A 2026 [re-assessment of the TREC Podcast Track](https://arxiv.org/abs/2601.05603) went back to the pairs where the LLM and the original assessors disagreed most, and had human experts adjudicate: "the human experts tend to agree with LLMs more than with the TREC assessors." Some of the disagreement is the LLM being wrong. Some of it is that a single human assessor is also a noisy instrument, which the field has known since 2002.
 
-If offline metrics are this shaky, what do you actually do? Airbnb's answer, published in 2025, is an intermediate: [interleaving](https://arxiv.org/abs/2508.00751), where you blend two rankers' results into one list and watch which side's items get clicked. They report "about 50X speedup from A/B", and, on 29 paired comparisons, that "interleaving and A/B are directionally aligned 82% of the time. The correlation coefficient is 0.6."
+So if offline metrics are this shaky, what do you actually do? Airbnb's answer, published in 2025, is an intermediate: [interleaving](https://arxiv.org/abs/2508.00751), where you blend two rankers' results into one list and watch which side's items get clicked. They report "about 50X speedup from A/B", and, on 29 paired comparisons, that "interleaving and A/B are directionally aligned 82% of the time. The correlation coefficient is 0.6."
 
 Eighty-two percent means roughly one call in six disagrees with the A/B test it is standing in for. That is a good filter and a bad oracle, and they use it as a filter, to decide what deserves an A/B rather than to replace one.
 
-I went looking for a published correlation between offline retrieval metrics and online outcomes and did not find one. Airbnb's 0.6 is interleaving against A/B, both online. That absence is itself worth noticing: the number everyone would most like to have, for the decision everyone actually makes, does not appear to be in the literature.
+I went looking for a published correlation between offline retrieval metrics and online outcomes and didn't find one. Airbnb's 0.6 is interleaving against A/B, both online. That absence is itself worth noticing: the number everyone would most like to have, for the decision everyone actually makes, doesn't appear to be in the literature.
 
-And remember section 11's small scandal. When a team went to reproduce a published benchmark's own lexical baseline, they could not, until they found "a key under-documented detail", and their audit of the corpus turned up "data quality issues that impact evaluation." A number in a paper is not a reproducible result, a reproducible result is not a system-level truth, a system-level truth is not a top-of-leaderboard truth, and none of them is a booking.
+And then there's section 11's small scandal. When a team went to reproduce a published benchmark's own lexical baseline, they couldn't, until they found "a key under-documented detail", and their audit of the corpus turned up "data quality issues that impact evaluation." A number in a paper is not a reproducible result, a reproducible result is not a system-level truth, a system-level truth is not a top-of-leaderboard truth, and none of them is a booking.
 
-Our shopper's results are in an order now. Both query forms produced candidates, the funnel pruned and ranked them, and a number is attached to that ordering which looks acceptable. That number cannot tell you whether the ordering is any good, which is why the last act reaches for production deployments rather than another benchmark.
+Our shopper's results are in an order now. Both query forms produced candidates, the funnel pruned and ranked them, and a number is attached to that ordering which looks acceptable. That number can't tell you whether the ordering is any good, which is why the last act reaches for production deployments rather than another benchmark.
 
 {/* Reader can now: design an evaluation that would catch the failure they are currently shipping, and know exactly which comparison their automated metric is worst at */}
 
@@ -1122,39 +1126,39 @@ Our shopper's results are in an order now. Both query forms produced candidates,
 
 ### 20. The default, clause by clause
 
-Here is what I would build in August 2026, with the reason and the limit attached to each clause. Where the evidence is thin I say so rather than rounding up, and where a finding was measured under conditions unlike yours, those conditions are printed next to it. A recommendation you cannot check is not a recommendation.
+Here's what I'd build in August 2026, with the reason and the limit attached to each clause. Where the evidence is thin I say so rather than rounding up, and where a finding was measured under conditions unlike yours, those conditions are printed next to it. A recommendation you can't check isn't a recommendation.
 
-**Start with BM25 and make it good.** Not as a nostalgia exercise. Out of domain it is hard to beat. Across 18 datasets and 10 systems, [BEIR](https://arxiv.org/abs/2104.08663) reported:
+**Start with BM25 and make it good.** Not out of nostalgia. Out of domain it's hard to beat. Across 18 datasets and 10 systems, [BEIR](https://arxiv.org/abs/2104.08663) reported:
 
 > "Our results show BM25 is a robust baseline and re-ranking and late-interaction-based models on average achieve the best zero-shot performances, however, at high computational costs."
 
-Note the scope: zero-shot. In-domain, with training data, dense models win, and this clause is not an argument against them. It is an argument against skipping the baseline.
+Note the scope: zero-shot. In-domain, with training data, dense models win. This isn't an argument against them. It's an argument against skipping the baseline.
 
-**Tune `k1` and `b` rather than inheriting them.** The model gives no guidance, empirically useful ranges are roughly `1.2 < k1 < 2` and `0.5 < b < 0.8`, and your corpus decides. If your numbers don't match a published result, check your library's defaults before you check the formula: Lucene ships `1.2`/`0.75` and Anserini ships `0.9`/`0.4`.
+**Tune `k1` and `b` instead of inheriting them.** The model gives no guidance, empirically useful ranges are roughly `1.2 < k1 < 2` and `0.5 < b < 0.8`, and your corpus decides. If your numbers don't match a published result, check your library's defaults before you check the formula: Lucene ships `1.2`/`0.75` and Anserini ships `0.9`/`0.4`.
 
-**Run both retrievers, and expect consistency rather than a jump.** The strongest thing I can point at is not quite a demonstration of lexical-plus-dense hybrid. It is a SIGIR 2026 reproducibility study finding a promising lexical variant's "gains largely specific to BRIGHT, while fusion with standard BM25 provides the most consistent improvements across datasets", where the fusion measured was lexical with lexical. What that establishes is the general shape: fusion bought robustness across corpora rather than a large win on any one. The reason to expect the same from lexical-plus-dense is the failure analysis in acts 2 and 3, where each retriever fails on the query the other handles. That is an argument, not a measurement, and you should treat it as one.
+**Run both retrievers, and expect consistency rather than a jump.** The strongest thing I can point at isn't quite a demonstration of lexical-plus-dense hybrid. It's a SIGIR 2026 reproducibility study finding a promising lexical variant's "gains largely specific to BRIGHT, while fusion with standard BM25 provides the most consistent improvements across datasets", where the fusion measured was lexical with lexical. What that establishes is the general shape: fusion bought robustness across corpora rather than a large win on any one. The reason to expect the same from lexical-plus-dense is the failure analysis in acts 2 and 3, where each retriever fails on the query the other handles. That's an argument, not a measurement, and you should treat it as one.
 
-**Treat the fusion constant as a parameter.** RRF is fine, and it is the documented default in Elasticsearch with `rank_constant` at 60. The claim that it needs no tuning does not survive testing: it is "sensitive to its parameters", while a learned convex combination "outperforms RRF in in-domain and out-of-domain settings" and needs only a small labelled set to fit its single weight. On one 23,088-query benchmark, even an equal-weighted combination beat default RRF, 0.726 against 0.695 Recall@5. The fusion paper describes its convex combination as sample-efficient, needing only a small training set to fit its single parameter; it does not name a number, and neither will I. If you can label queries at all, this is a cheap place to spend them.
+**Treat the fusion constant as a parameter.** RRF is fine, and it is the documented default in Elasticsearch with `rank_constant` at 60. The claim that it needs no tuning does not survive testing: it is "sensitive to its parameters", while a learned convex combination "outperforms RRF in in-domain and out-of-domain settings" and needs only a small labelled set to fit its single weight. On one 23,088-query benchmark, even an equal-weighted combination beat default RRF, 0.726 against 0.695 Recall@5. The fusion paper calls its convex combination sample-efficient, needing only a small training set to fit its single parameter; it doesn't name a number, and neither will I. If you can label queries at all, this is a cheap place to spend them.
 
 **Rerank, but pick the depth deliberately and verify it helps.** The result to know is what happens against a strong first stage. Measured for full retrieval rather than re-scoring, against modern dense embeddings, "the best existing rerankers provide initial improvements when scoring progressively more documents, but their effectiveness gradually declines and can even degrade quality beyond a certain limit." Deeper is not safer. There is an interior optimum and you have to find yours.
 
-**Choose an embedding model on your own data, not on a leaderboard.** Across 130 tasks and 50 models, "no single method dominates across all task categories", and the failure can be spectacular: the MTEB leader scoring 59.0 there produced 18.3 on reasoning-heavy retrieval. Shortlist on license, latency and dimension, then rank the shortlist on your own labelled pairs. How many you need is a question I could not answer from the literature; see the note at the end of this section.
+**Choose an embedding model on your own data, not a leaderboard.** Across 130 tasks and 50 models, "no single method dominates across all task categories", and the failure can be spectacular: the MTEB leader scoring 59.0 there produced 18.3 on reasoning-heavy retrieval. Shortlist on license, latency and dimension, then rank the shortlist on your own labelled pairs. How many you need is a question I couldn't answer from the literature; see the note at the end of this section.
 
 **Truncate by percentage, not to a number.** Embeddings tolerate truncation without special training until you cut deep: "truncated embeddings of non-MRL models are competitive with, and often outperform models trained with MRL" unless reduced by at least 80%. So 1024 to 256 is inside the safe zone and 1536 to 256 is not. "Truncate to 256" is not advice.
 
-**Compress the index, then rescore the survivors at full precision.** In Elastic's implementation and benchmarks, naive binary quantization "requires gathering 10x or 100x additional neighbors to rerank", while their bounded method reaches "above 90% recall with only 3x oversampling" when the oversampled candidates are rescored against the original vectors. That is one vendor measuring their own system, so treat the exact oversampling factor as theirs rather than yours. The pattern generalizes better than the number: the compressed index finds candidates, the uncompressed vectors decide the order.
+**Compress the index, then rescore the survivors at full precision.** In Elastic's implementation, naive binary quantization "requires gathering 10x or 100x additional neighbors to rerank", while their bounded method reaches "above 90% recall with only 3x oversampling" when the oversampled candidates are rescored against the original vectors. That's one vendor measuring their own system, so treat the exact oversampling factor as theirs rather than yours. The pattern generalizes better than the number: the compressed index finds candidates, the uncompressed vectors decide the order.
 
-**Chunk on structure, and test whether your overlap is doing anything.** Respect sentence and paragraph boundaries, and do not pay for embedding-similarity segmentation on top of that. On overlap, the one controlled sweep I could find reports that it "provides no measurable benefit and increases indexing cost". Read the scope before acting on it: Natural Questions, SPLADE retrieval, an 8B generator, no reranker. One corpus, one pipeline. That is not enough to tell you overlap is useless everywhere, and it is one more controlled result than the ten-to-twenty-percent advice has. So the instruction is not to remove it. It is that you are paying for it, and you should find out whether it buys you anything.
+**Chunk on structure, and test whether your overlap is doing anything.** Respect sentence and paragraph boundaries, and do not pay for embedding-similarity segmentation on top of that. On overlap, the one controlled sweep I could find reports that it "provides no measurable benefit and increases indexing cost". Read the scope before acting on it: Natural Questions, SPLADE retrieval, an 8B generator, no reranker. One corpus, one pipeline. That is not enough to tell you overlap is useless everywhere, and it is one more controlled result than the ten-to-twenty-percent advice has. So the instruction is not to remove it. It's that you're paying for it, and you should find out whether it buys you anything.
 
 **Do not use retrieval scores as confidence.** "Confidence calibration is consistently weak across model families, indicating that raw retrieval scores are unreliable for downstream routing without additional calibration." If your abstention logic is a score threshold, it has no evidential basis.
 
-**Build the evaluation before the pipeline, and know which comparison it fails at.** Use an LLM judge for coarse work and system-level ordering, where the correlation is high. Do not use it to pick between your top few candidates, where Kendall's tau falls to 0.51 among the top 20 and, in a simulated scenario where every system adopts the judge as its own reranker, inverts to −0.40 among the top 5. Hand-label the final bake-off. Keeping the judge's model family different from your ranker's follows from that simulation but was not itself tested, so treat it as a cheap precaution rather than a proven fix. And treat offline metrics as a regression filter rather than a predictor, because a published correlation between them and online outcomes is something I went looking for and did not find.
+**Build the evaluation before the pipeline, and know which comparison it fails at.** Use an LLM judge for coarse work and system-level ordering, where the correlation is high. Don't use it to pick between your top few candidates, where Kendall's tau falls to 0.51 among the top 20 and, in a simulated scenario where every system uses the judge as its own reranker, inverts to −0.40 among the top 5. Hand-label the final bake-off. Keeping the judge's model family different from your ranker's follows from that simulation but wasn't itself tested, so treat it as a cheap precaution rather than a proven fix. And treat offline metrics as a regression filter rather than a predictor, because a published correlation between them and online outcomes is something I went looking for and didn't find.
 
 Two things are missing from that list that you might expect.
 
-There is no clause about how many queries you need to detect a given effect, because I could not verify a number for it. The standard reference reports its power analysis in figures I cannot read as text, and the paper that answers the question directly is one I did not obtain. If someone tells you fifty queries is enough, ask them where that comes from.
+There's no clause about how many queries you need to detect a given effect, because I couldn't verify a number for it. The standard reference reports its power analysis in figures I can't read as text, and the paper that answers the question directly is one I didn't get. If someone tells you fifty queries is enough, ask them where that comes from.
 
-And there is no clause telling you to use late chunking, or not to. The technique's own paper claims "superior results across various retrieval tasks"; independent controlled evidence is thinner than that claim, and I would rather say so than pick a side I cannot support.
+And there's no clause telling you to use late chunking, or not to. The technique's own paper claims "superior results across various retrieval tasks"; independent controlled evidence is thinner than that claim, and I'd rather say so than pick a side I can't support.
 
 {/* Reader can now: defend a default stack clause by clause in a design review, including which clauses are weakly evidenced */}
 
@@ -1166,13 +1170,13 @@ By the obvious metric, that branch should have been retired years ago. It conver
 
 > "the inverted-index branch converts below the platform average yet persists because it is almost the only branch where operations can inject a new term within hours without any model update; a one-model substitute must preserve this real-time editability."
 
-Somebody notices at 10am that a new product line is not surfacing for the query customers actually type. With an inverted index, someone adds a term and it is live by lunch. With a learned retriever, the fix is a training run and a deploy.
+Somebody notices at 10am that a new product line isn't surfacing for the query customers actually type. With an inverted index, someone adds a term and it's live by lunch. With a learned retriever, the fix is a training run and a deploy.
 
-That capability appears in no benchmark in this post. Not in nDCG, not in Recall@K, not in MRR. It is not a relevance property at all. And it kept a below-average branch alive across the entire period this post has been describing.
+That capability appears in no benchmark in this post. Not in nDCG, not in Recall@K, not in MRR. It's not a relevance property at all. And it kept a below-average branch alive across the entire period this post has been describing.
 
 The paper is [OneRetrieval](https://arxiv.org/abs/2606.13533), and one of its section headings reads: *The Decisive Axis Is Editability, Not Retrieval Quality*.
 
-Replacing it therefore meant building the capability into a generative model first. Their contribution is editable generative retrieval, built so that a new term can be bound after deployment without retraining. The design exists because of what it was replacing.
+So replacing it meant building that capability into a generative model first. Their contribution is editable generative retrieval, built so that a new term can be bound after deployment without retraining. The design exists because of what it was replacing.
 
 Two details matter for reading the result.
 
@@ -1180,13 +1184,13 @@ The rebuild did not reach parity. On intervention effectiveness, "OneRetrieval r
 
 And the deployment is an experiment, not a platform. The online results come from buckets "each serving 20.0% relative traffic (about 8.2% absolute)", measured over an 11-day window. In the first configuration they "replaced the production inverted-index branch"; in a second, they "replaced both the inverted-index and the dense (vector) branches". The paper reports that replacing the inverted-index branch lifted order volume, and that extending further held conversion while improving click-through.
 
-That is a real replacement of a real inverted index in production e-commerce search, and it is a genuine counterexample to any story where the old machinery simply persists forever. It also took until 2026, and it required rebuilding a property nobody was measuring.
+That's a real replacement of a real inverted index in production e-commerce search, and it is a genuine counterexample to any story where the old machinery simply persists forever. It also took until 2026, and it required rebuilding a property nobody was measuring.
 
 One sentence in that paper reframes everything above it:
 
 > "Its editability resides not in the index structure but in the upstream resources that feed it."
 
-Posting lists are not editable. The dictionary and the refresh pipeline that feed them are. So what outlasted every challenger was not the inverted index at all; it was the editing path attached to it, which everyone, including me for most of this post, has been crediting to the index.
+Posting lists are not editable. The dictionary and the refresh pipeline that feed them are. So what outlasted every challenger wasn't the inverted index at all; it was the editing path attached to it, which everyone, including me for most of this essay, has been crediting to the index.
 
 {/* Reader can now: name a capability their own stack has that no metric they run would notice */}
 
@@ -1200,7 +1204,7 @@ Same company. Same technology family. Different surface, opposite outcome. The t
 
 The entire traffic of one surface. Half of another. And it cut operational expenditure by 75.40%, with online gains of "+1.67% item CTR, +2.40% buyer, and +3.22% order volume".
 
-Now put the two papers next to each other, because the OneRetrieval authors classify OneSearch directly:
+Put the two papers next to each other, because the OneRetrieval authors classify OneSearch directly:
 
 > "OneSearch is a closed-codebook method and therefore carries essentially no real-time intervention capability"
 
@@ -1208,15 +1212,15 @@ A system with essentially none of the capability that section 21 said was decisi
 
 Both are true.
 
-On out-of-mall search, editability was the gate, the incumbent survived below-average conversion because of it, and the replacement had to rebuild it and still fell short of parity. On detail-page search, the same capability was not the gate, and a system without it took everything.
+On out-of-mall search, editability was the gate, the incumbent survived below-average conversion because of it, and the replacement had to rebuild it and still fell short of parity. On detail-page search, the same capability wasn't the gate, and a system without it took everything.
 
-If you want a tidy rule, there isn't one, and I have tried three times to write one that survives its own evidence. Here is what these two deployments actually establish, which is narrower.
+If you want a tidy rule, there isn't one. I've tried three times to write one that survives its own evidence. Here's what these two deployments actually establish, which is narrower.
 
-On out-of-mall search, an operational property that no relevance metric measures kept a below-average branch alive, and the replacement had to rebuild it. On detail-page search, that same property was absent from the winning system and evidently did not block it, and the reported gains there are quality, business and cost ones.
+On out-of-mall search, an operational property that no relevance metric measures kept a below-average branch alive, and the replacement had to rebuild it. On detail-page search, that same property was absent from the winning system and evidently didn't block it, and the reported gains there are quality, business and cost ones.
 
-So the claim is not that operational properties decide every replacement. It is that one did decide one, that the same property was irrelevant a surface over, and that nothing in either team's benchmark would have told you which case you were in.
+So the claim isn't that operational properties decide every replacement. It's that one did decide one, that the same property was irrelevant a surface over, and that nothing in either team's benchmark would have told you which case you were in.
 
-Detail-page search is a user who has already chosen a product and wants that page. Out-of-mall search is a merchandising surface where somebody in operations needs to intervene when the catalog moves. Those are not the same problem wearing different URLs.
+Detail-page search is a user who has already chosen a product and wants that page. Out-of-mall search is a merchandising surface where somebody in operations needs to intervene when the catalog moves. Those aren't the same problem wearing different URLs.
 
 {/* Reader can now: see that the deciding variable was operational and surface-specific, from two documented cases rather than an assertion */}
 
@@ -1224,17 +1228,17 @@ Detail-page search is a user who has already chosen a product and wants that pag
 
 The claim here is narrow enough to check.
 
-It says that on at least one documented surface, an unmeasured operational capability, rather than retrieval quality, was what stood between an incumbent and its replacement. It is refuted if the editability story turns out to be a rationalisation written after the fact: if OneRetrieval's own numbers show quality or cost carrying the decision while editability rode along. Section 4 of that paper is where to look. What persuaded me is that they built the capability before they claimed the win, led with it, and published the gap they did not close.
+It says that on at least one documented surface, an unmeasured operational capability (not retrieval quality) is what stood between an incumbent and its replacement. It's refuted if the editability story turns out to be a rationalization written after the fact: if OneRetrieval's own numbers show quality or cost carrying the decision while editability rode along. Section 4 of that paper is where to look. What persuaded me is that they built the capability before they claimed the win, led with it, and published the gap they didn't close.
 
-The stronger claim, that replacement generally works this way, is not one two surfaces can support, and I am not making it.
+The stronger claim (that replacement generally works this way) isn't one two surfaces can support, and I'm not making it.
 
-One boundary. Kuaishou also reports a generative system taking 100% of QPS in a Local Life Service scenario. That is recommendation rather than search, so it sits outside the argument, and I mention it because omitting it would be convenient.
+One boundary. Kuaishou also reports a generative system taking 100% of QPS in a Local Life Service scenario. That's recommendation rather than search, so it sits outside the argument, and I mention it because omitting it would be convenient.
 
 Which leaves a question rather than a rule.
 
 What can your incumbent do that nothing you measure would notice if it stopped?
 
-For some teams the answer will be that somebody can fix a bad result before lunch. That will not appear in your next model comparison. Find out whether you are about to trade it away.
+For some teams the answer will be that somebody can fix a bad result before lunch. That won't appear in your next model comparison. Find out whether you're about to trade it away.
 
 ## References
 
