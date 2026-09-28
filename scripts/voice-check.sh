@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Voice rules grep for any text file Vic intends to publish.
 # High-recall subset of the banned-word and punctuation list in
-# .claude/skills/explainer-authoring/voice-rules.md. The rules doc is canonical;
+# .claude/explainer-shared/voice-rules.md. The rules doc is canonical;
 # this script catches the easy cases. Some figurative usages
 # ("landscape", "journey", "ecosystem", "unlock", "elevate") are matched
 # only in their most common phrase forms to keep false positives in
@@ -82,7 +82,14 @@ CAND_TAIL=', before (anyone|anybody|we|you) (talk|talks|get|gets|even|reach)|and
 # it was the single highest-signal pattern on the corpus it was built from.
 CAND_PLACEHOLDER='\b(is|are|was|were) (not )?(the|a|an|only|just|still) ?(whole )?(thing|trick|point|story|bookkeeping|machinery)\b'
 
-CAND_RE="${CAND_PLACARD}|${CAND_HEADING}|${CAND_TAIL}|${CAND_PLACEHOLDER}"
+# Borrowed-authority framing: wrapping claims in unnamed consensus.
+CAND_AUTHORITY='(it is|it'"'"'s) (widely|broadly|generally|commonly) (recognized|accepted|acknowledged|understood|known)|there is (broad|general|growing|wide) (consensus|agreement)|as practitioners have long|the community has (generally|largely|broadly) (moved|shifted|adopted|embraced)|the literature suggests'
+
+# Qualifier stacking: 2+ hedges piled on one clause. Only flags phrases where two independent
+# hedge words sit together. Single hedges like "would likely" are legitimate and not flagged.
+CAND_QUALIFIERS='could (potentially|possibly) (suggest|indicate|mean|imply)|may (potentially|possibly) |would (probably|potentially) (suggest|indicate|mean|imply)|is (likely|probably) that .*(may|could|might|generally|potentially)'
+
+CAND_RE="${CAND_PLACARD}|${CAND_HEADING}|${CAND_TAIL}|${CAND_PLACEHOLDER}|${CAND_AUTHORITY}|${CAND_QUALIFIERS}"
 
 # Combined banned-word regex.
 BANNED_RE="${BANNED_VERBS}|${BANNED_ADJECTIVES}|${BANNED_NOUNS}|${BANNED_FIGURATIVE}|${BANNED_TRANSITIONS}|${BANNED_FILLERS}|${BANNED_STOCK}|${BANNED_MOVES}"
@@ -143,14 +150,18 @@ for f in "$@"; do
   fi
 
   # Staged-prose candidates. Warnings only: deliberately does NOT set `hit`, so these never
-  # change the exit code. Feed them to post-editor Pass 4b.
+  # change the exit code. Feed them to post-editor Pass 4b or prose-naturalness Gate 2/3.
+  has_candidates=0
   if grep -niE "$CAND_RE" "$f" | grep -vE "$EXEMPT" >/dev/null 2>&1; then
     echo "--> staged-prose CANDIDATES in $f (warnings, not failures; a human read decides):"
     grep -niE "$CAND_RE" "$f" | grep -vE "$EXEMPT"
+    has_candidates=1
   fi
 
-  if [[ $hit -eq 0 ]]; then
+  if [[ $hit -eq 0 && $has_candidates -eq 0 ]]; then
     echo "voice-check OK: $f"
+  elif [[ $hit -eq 0 && $has_candidates -eq 1 ]]; then
+    echo "voice-check OK (no blocking violations; candidates above need human review): $f"
   else
     exit_code=1
   fi

@@ -40,7 +40,7 @@ whether it contains a pronoun.
 ## How to read the rest of this file
 
 Two separately numbered lists live below, and they collide. "Sentence patterns to avoid" runs 1-6
-(its #4 is the significance coda). "Banned rhetorical moves" runs 1-20 (its #4 is the synthetic
+(its #4 is the significance coda). "Banned rhetorical moves" runs 1-23 (its #4 is the synthetic
 aphorism). **Refer to a move by name, never by number alone.** Both lists are review instruments.
 
 ## Banned words and phrases
@@ -148,6 +148,11 @@ If you've said it once, don't say it again with "In summary" or "Overall". End o
 
 AI writes four paragraphs that each have the same shape: topic sentence, three supporting sentences, concluding thought. Real writing has uneven paragraphs. One might be six sentences. The next might be one. Do that.
 
+This extends to paragraph length. AI writes paragraphs that are all roughly the same size (4
+sentences, 4 sentences, 3 sentences, 4 sentences). Human writing has long technical paragraphs
+followed by a one-sentence observation, or a six-sentence narrative followed by a terse conclusion.
+The variation follows from caring about different things differently.
+
 ## Punctuation rules
 
 **No em dashes.** At all. Not one. Use a comma if the break is light, a period if the break is hard, parentheses if it's a true aside, or a colon if you're introducing something. This is house style, and it is enforced as house style rather than on the theory that the mark itself is bad writing: plenty of good human writers use em dashes well, and models overuse them. Vic's blog does not use them, so neither do you. Applies even if the sentence "feels like it needs one."
@@ -169,6 +174,13 @@ AI writes four paragraphs that each have the same shape: topic sentence, three s
 
 - Bad: "various tools and technologies"
 - Better: "Postgres, Redis, and a Rails monolith"
+
+### Prefer the precise word over the likely one
+
+AI picks the highest-probability collocation: "significant impact", "key insight", "notable
+example", "clear advantage". Each is correct; always reaching for the most expected word neighbor
+is the tell. Use the precise word even if it is less common. "A 3x speedup" over "significant
+performance improvement". "The cache misses double" over "caching becomes problematic".
 
 ### Vary sentence length on purpose
 
@@ -371,6 +383,42 @@ Changing terms to avoid repetition, accidentally implying distinctions.
 
 worth noting, worth knowing, worth sitting with. The writer telling the reader how much to care. State the thing.
 
+### 21. Qualifier stacking
+
+Piling 2-3 hedges on one claim so no sentence ever commits to anything. Each qualifier alone is
+fine; the stack is the tell. Added after 2026 detection research identified it as a pattern that
+passes word-level checks.
+
+- Bad: "This could potentially suggest that performance may generally improve."
+- Bad: "It is likely that in most cases the approach would probably work."
+- Better: "Performance improves." Or if genuinely uncertain: "The data is mixed, but the trend
+  points toward improvement."
+
+Test: does each qualifier name a concrete condition (domain, corpus size, hardware), or just dilute
+the claim? "BM25 usually outperforms on out-of-domain queries when the corpus is small" has two
+scoping clauses that both add measurable information. That is precision, not hedging.
+
+### 22. Borrowed-authority framing
+
+Wrapping a claim in unnamed consensus instead of stating it or citing a source. Overlaps with the
+"vague attribution" sentence pattern (#5) but extends to subtler forms that name no authority at
+all.
+
+- Bad: "It is widely recognized that..." / "There is broad consensus that..."
+- Bad: "As practitioners have long known..." / "The community has generally moved toward..."
+- Better: state the claim. If it needs backing, cite a specific source. If it is your opinion,
+  assert it or say "I think".
+
+### 23. Semantic echo
+
+Two or three consecutive sentences restating the same claim with different nouns. The conclusion
+ban catches end-of-article restatement; this catches the local pattern within a paragraph.
+
+- Bad: "The system reduces latency. By lowering response times, performance improves. This speed
+  increase matters for user experience."
+- Test: for each paragraph, label what each sentence adds: claim, evidence, mechanism, example, or
+  qualification. If a sentence adds none, delete it.
+
 ### The one-line paragraph: a test, not a quota
 
 An earlier version of this file capped these at one per 3,000 words. That was the wrong instrument, and the adversarial review was right to reject it. A long essay may legitimately contain six sharp turns; another may contain one and use it badly.
@@ -452,7 +500,7 @@ weakest ones.
 
 ### The staged-prose diagnostic
 
-The catalogue above names twenty specific moves. They share one generator, and when you cannot tell
+The catalogue above names twenty-three specific moves. They share one generator, and when you cannot tell
 which move a bad sentence commits, use this instead.
 
 **Is the sentence arranged to look like it contains an insight?** Symmetry, reversal, a withheld
