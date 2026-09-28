@@ -1,43 +1,44 @@
-# Astro Starter Kit: Minimal
+# augusteo.com
+
+Victor Augusteo's static blog and photo site, built with Astro 7, MDX, Svelte 5,
+and Tailwind CSS 4.
+
+## Requirements
+
+- Node.js 22.12.0 or later (including the deployment build environment)
+- Bun for dependency installation and content scripts
 
 ```sh
-npm create astro@latest -- --template minimal
+bun install --frozen-lockfile
+bun run build
+bun run preview
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The production build writes static files to `dist/` and uses the content already
+checked into the repository. It does not need access to the Obsidian vault.
 
-## 🚀 Project Structure
+## Local development
 
-Inside of your Astro project, you'll see the following folders and files:
+`bun run dev` syncs the local Obsidian vault, watches it for changes, and starts
+Astro. To work only with checked-in content, use `bun run astro dev`.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+See [CLAUDE.md](CLAUDE.md) for the content pipelines and directory structure.
+
+## Dependency maintenance
+
+```sh
+bun outdated
+bun run audit
+bun update
+bun run build
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Commit both `package.json` and `bun.lock` after checking the production build.
+Upgrade Astro and its official integrations together when changing major versions.
+Static hosting reduces server exposure, but build tools, image decoders, and
+browser dependencies still need security updates.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
-| `bun run dev`             | Starts local dev server at `localhost:4321`      |
-| `bun run build`           | Build your production site to `./dist/`          |
-| `bun run preview`         | Preview your build locally, before deploying     |
-| `bun run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+The Astro configuration explicitly uses `@astrojs/markdown-remark`'s unified
+processor for the math plugins. KaTeX stays on the version line supported by
+`rehype-katex` so its generated markup and stylesheet match. `compressHTML: true`
+preserves the spacing behavior used before Astro 7.

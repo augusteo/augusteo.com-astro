@@ -13,7 +13,7 @@ bun run preview      # Preview production build
 
 ## Architecture
 
-This is an Astro 5 blog with two content pipelines. The site uses Tailwind CSS 4 and MDX for content.
+This is an Astro 7 blog with two content pipelines. The site uses Tailwind CSS 4 and MDX for content. Node.js 22.12.0 or later is required. Markdown uses the unified processor to support the remark/rehype math plugins.
 
 ### Post types
 

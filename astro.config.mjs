@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
@@ -10,6 +11,8 @@ import rehypeKatex from "rehype-katex";
 // https://astro.build/config
 export default defineConfig({
   site: "https://www.augusteo.com",
+  // Keep spaces between inline elements with Astro 7's new compiler.
+  compressHTML: true,
   prefetch: {
     prefetchAll: false,
     defaultStrategy: "hover",
@@ -35,7 +38,9 @@ export default defineConfig({
     shikiConfig: {
       theme: "solarized-light",
     },
-    remarkPlugins: [remarkMath],
-    rehypePlugins: [rehypeKatex],
+    processor: unified({
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [rehypeKatex],
+    }),
   },
 });
