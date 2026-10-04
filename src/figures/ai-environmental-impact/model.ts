@@ -56,3 +56,11 @@ export function carbon(averageLoadPercent: number, pue: number, gramsPerKwh: num
     accountYears: facilityKwh / ACCOUNT_YEAR_KWH,
   };
 }
+
+/** Fixed workload mix; output is required IT energy, not equipment throughput. */
+export function growth(taskMultiple: number, energyFraction: number) {
+  const requiredMultiple = taskMultiple * energyFraction;
+  return { requiredMultiple, requiredTwh: 8.76 * requiredMultiple,
+    thresholdFraction: 1 / taskMultiple,
+    exceedsBaseline: requiredMultiple > 1 + 1e-10 };
+}

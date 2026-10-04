@@ -10,6 +10,7 @@ essay: true
 ---
 
 import Figure from "@components/figure/Figure.svelte";
+import EfficiencyGrowth from "@components/figures/ai-environmental-impact/EfficiencyGrowth.svelte";
 import EnergyCarbon from "@components/figures/ai-environmental-impact/EnergyCarbon.svelte";
 import LocalHeadroom from "@components/figures/ai-environmental-impact/LocalHeadroom.svelte";
 import SizeExplorer from "@components/figures/ai-environmental-impact/SizeExplorer.svelte";
@@ -219,7 +220,9 @@ Changing the mix of tasks can change average electricity per task, even if each 
 
 If electricity per task halves while the number of these tasks triples, required electricity grows by 50%. To hold electricity flat with three times the work, each task must use at most one-third of the previous energy. The interactive curve shows that threshold across different growth assumptions.
 
-{/* FIGURE-7 */}
+<Figure figNum={7} caption="The green curve marks unchanged total IT electricity: each task must use at most one divided by the task-growth multiple of its previous energy. The selected point above the curve requires more electricity; below it requires less. Workload and output specification stay fixed. Required energy above the baseline needs more capacity or time, and is not consumption attainable within an unchanged full-load campus year.">
+  <EfficiencyGrowth client:visible />
+</Figure>
 
 The baseline is our continuous one-gigawatt IT scenario's 8.76 TWh. A 1.5-times result means 13.14 TWh required, which needs more capacity or more elapsed time than that original full-load campus provides in a year. It doesn't mean unchanged equipment somehow exceeds its capacity.
 
