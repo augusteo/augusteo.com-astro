@@ -121,7 +121,22 @@ Water usage effectiveness, or WUE, expresses site water use per unit of IT elect
 
 [AWS defines its reported WUE](https://sustainability.aboutamazon.com/products-services/aws-cloud) as liters withdrawn per kWh of IT load. Its 2025 regional averages include 0.02 in Stockholm, 1.22 in Tokyo, 1.57 in Singapore, and 2.85 in Jakarta. That's roughly a 140-fold difference between the lowest and highest of those regions, using the same provider, year, and metric.
 
-{/* FIGURE-3 */}
+<Figure figNum={3} caption="AWS's reported 2025 regional WUE: Stockholm 0.02, Tokyo 1.22, Singapore 1.57, and Jakarta 2.85 liters withdrawn per IT kWh. The axis starts at zero. These annual averages cover all AWS workloads, and don't establish matched-prompt costs or local harm.">
+<svg viewBox="0 0 360 245" width="100%" role="img" aria-label="AWS 2025 regional withdrawal intensity on a linear zero-to-three liters per IT kilowatt-hour axis: Stockholm 0.02, Tokyo 1.22, Singapore 1.57, Jakarta 2.85." xmlns="http://www.w3.org/2000/svg">
+<g font-family="ui-monospace, monospace" font-size="18" fill="#1A1A1A">
+<text x="7" y="41">Stockholm</text><line x1="130" y1="35" x2="131.08" y2="35" stroke="#2563EB" stroke-width="2" /><circle cx="131.08" cy="35" r="5" fill="#2563EB" /><text x="350" y="41" text-anchor="end">0.02</text>
+<text x="7" y="86">Tokyo</text><line x1="130" y1="80" x2="195.88" y2="80" stroke="#2563EB" stroke-width="2" /><circle cx="195.88" cy="80" r="5" fill="#2563EB" /><text x="350" y="86" text-anchor="end">1.22</text>
+<text x="7" y="131">Singapore</text><line x1="130" y1="125" x2="214.78" y2="125" stroke="#2563EB" stroke-width="2" /><circle cx="214.78" cy="125" r="5" fill="#2563EB" /><text x="350" y="131" text-anchor="end">1.57</text>
+<text x="7" y="176">Jakarta</text><line x1="130" y1="170" x2="283.9" y2="170" stroke="#2563EB" stroke-width="2" /><circle cx="283.9" cy="170" r="5" fill="#2563EB" /><text x="350" y="176" text-anchor="end">2.85</text>
+<line x1="130" y1="189" x2="292" y2="189" stroke="#8F8578" />
+<line x1="130.0" y1="189" x2="130.0" y2="195" stroke="#8F8578" /><text x="130.0" y="216" text-anchor="middle">0</text>
+<line x1="184.0" y1="189" x2="184.0" y2="195" stroke="#8F8578" /><text x="184.0" y="216" text-anchor="middle">1</text>
+<line x1="238.0" y1="189" x2="238.0" y2="195" stroke="#8F8578" /><text x="238.0" y="216" text-anchor="middle">2</text>
+<line x1="292.0" y1="189" x2="292.0" y2="195" stroke="#8F8578" /><text x="292.0" y="216" text-anchor="middle">3</text>
+<text x="180" y="240" text-anchor="middle" font-size="17">Liters withdrawn / IT kWh</text>
+</g>
+</svg>
+</Figure>
 
 These are operator-reported averages across AWS workloads. They aren't measurements of the same AI prompt in four places, and they don't rank ecological harm. They demonstrate how much the water intensity can vary even before local scarcity enters the calculation.
 
