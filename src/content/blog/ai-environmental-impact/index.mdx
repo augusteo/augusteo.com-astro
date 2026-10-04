@@ -1,6 +1,6 @@
 ---
 title: "Millions of gallons don't prove AI is an environmental disaster"
-description: "A data center's environmental impact depends on where its water goes, what supplies its electricity, and how much capacity its neighbors have left."
+description: "A data center's environmental impact depends on where its water goes, what supplies its electricity, and how much capacity its local utilities have left."
 pubDate: 2026-10-04
 heroAlt: "TODO: hero image not yet selected"
 tags: ["AI", "Tech"]
@@ -8,6 +8,9 @@ featured: false
 draft: true
 essay: true
 ---
+
+import Figure from "@components/figure/Figure.svelte";
+import VolumeScale from "@components/figures/ai-environmental-impact/VolumeScale.svelte";
 
 *I want to know what a data center takes from the place it's built. A yearly gallon count needs a water balance and local supply conditions before it can answer that. About a 15-minute read.*
 
@@ -27,7 +30,9 @@ On those assumptions, the amount KOLN reported equals about 111 years of water s
 
 [Lincoln's 2025 drinking-water report](https://www.lincoln.ne.gov/files/sharedassets/public/v/12/ltu/utilities/water-system/water-quality-report.pdf) gives an average municipal supply of about 37.6 million gallons a day. The reported data-center amount is equivalent to roughly eight and a half hours of that supply. Against the [broader New York City supply system](https://www.nyc.gov/site/dep/water/drinking-water.page), which delivers more than a billion gallons daily and includes upstate customers, it's under twenty minutes.
 
-{/* FIGURE-1 */}
+<Figure figNum={1} caption="The reported volume stays fixed. Changing the household benchmark changes its equivalent household-years. City durations use Lincoln's 2025 municipal average and a nominal billion-gallons/day NYC broader-system reference. Volume equivalence does not establish local consumption or harm.">
+  <VolumeScale client:visible />
+</Figure>
 
 These comparisons describe the same volume. None tells me how much water evaporated, how much returned locally, or whether the pipes and source can meet demand on a dry summer afternoon.
 
@@ -189,7 +194,7 @@ For that facility assessment, I want operators to publish:
 - Electricity emissions with the accounting method named, alongside evidence for claims about hourly supply or the consequences of new demand.
 - For per-task claims, the defined workload, output specification, averaging method, and included resource boundaries.
 
-Those disclosures would let readers test the comparisons instead of guessing what a rounded annual total includes. A low withdrawal intensity would answer one question. A local water balance, utility delivery study, and generation assessment would answer others.
+Those disclosures would let readers test the comparisons instead of guessing what a rounded annual total includes. Withdrawal intensity measures the site water required per unit of IT electricity. Local return flows, utility headroom, and generation changes determine what else that demand requires from the surrounding systems.
 
 Return to Lincoln's reported 13.299 million gallons. The household and city equivalents still help me understand the volume. They still don't establish an AI-only total, the facility's mature operating demand, or its effect on local water availability.
 
