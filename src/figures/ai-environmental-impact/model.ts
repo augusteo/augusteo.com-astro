@@ -45,3 +45,14 @@ export function season(annualMillionGallons: number, summerFactor: number, headr
   return { average, summer, otherMonths, monthly, exceeds: summer > headroom + 1e-10,
     excess: Math.max(0, summer - headroom) };
 }
+
+export function carbon(averageLoadPercent: number, pue: number, gramsPerKwh: number) {
+  const itKwh = campus(1000, averageLoadPercent, 0).itKwh;
+  const facilityKwh = itKwh * pue;
+  return {
+    facilityKwh,
+    facilityTwh: facilityKwh / 1e9,
+    millionTonnes: facilityKwh * gramsPerKwh / 1e12,
+    accountYears: facilityKwh / ACCOUNT_YEAR_KWH,
+  };
+}

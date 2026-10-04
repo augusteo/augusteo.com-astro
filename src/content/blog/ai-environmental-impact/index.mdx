@@ -10,6 +10,7 @@ essay: true
 ---
 
 import Figure from "@components/figure/Figure.svelte";
+import EnergyCarbon from "@components/figures/ai-environmental-impact/EnergyCarbon.svelte";
 import LocalHeadroom from "@components/figures/ai-environmental-impact/LocalHeadroom.svelte";
 import SizeExplorer from "@components/figures/ai-environmental-impact/SizeExplorer.svelte";
 import VolumeScale from "@components/figures/ai-environmental-impact/VolumeScale.svelte";
@@ -186,7 +187,9 @@ For our generic one-gigawatt IT scenario, continuous operation uses 8.76 TWh a y
 
 To estimate electricity-related emissions in an inventory, multiply that facility electricity by an appropriate emissions factor. A chosen factor of 400 grams of CO2-equivalent per kWh produces about 4.20 million metric tonnes a year. Choose 50 grams instead and the result is about 0.53 million tonnes.
 
-{/* FIGURE-6 */}
+<Figure figNum={6} caption="A transparent electricity-inventory calculation for hypothetical 1 GW IT capacity. Facility energy includes PUE overhead; multiplying by the chosen factor gives CO2-equivalent emissions. Load and PUE alter the plot scale. The factors are illustrative, and neither contractual accounting nor the marginal consequences of added demand are modeled.">
+  <EnergyCarbon client:visible />
+</Figure>
 
 Those factors are illustrative inputs, not measured grid factors for Lincoln or any announced campus. The calculator shows electricity-related inventory emissions. It doesn't calculate chip manufacturing, construction, or the net emissions caused by adding demand to a power system.
 
