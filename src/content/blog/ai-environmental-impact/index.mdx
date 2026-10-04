@@ -129,3 +129,27 @@ I want that distinction carried into any city comparison. Eight hours of average
 
 After those water checks, the reference campus still has an electricity demand. A cooling design that reduces site water doesn't settle what happens at the generators.
 
+### 6. Electricity supply and carbon accounting
+
+[OpenAI's PORTS-Pike announcement](https://openai.com/index/openai-joins-ports-pike-project/) describes planned closed-loop, air-cooled systems and says quantitative expected water use will be reported after the design is finalized. The same announcement says later development requires new power plants, including natural-gas generation. The low-water cooling plan and the generation plan both belong in an assessment.
+
+For our generic one-gigawatt IT scenario, continuous operation uses 8.76 TWh a year. At the hypothetical PUE of 1.2, the whole facility uses 10.512 TWh. That is about one million US residential accounts' annual electricity, using the EIA benchmark.
+
+To estimate electricity-related emissions in an inventory, multiply that facility electricity by an appropriate emissions factor. A chosen factor of 400 grams of CO2-equivalent per kWh produces about 4.20 million metric tonnes a year. Choose 50 grams instead and the result is about 0.53 million tonnes.
+
+{/* FIGURE-6 */}
+
+Those factors are illustrative inputs, not measured grid factors for Lincoln or any announced campus. The calculator shows electricity-related inventory emissions. It doesn't calculate chip manufacturing, construction, or the net emissions caused by adding demand to a power system.
+
+[EPA's eGRID guidance](https://www.epa.gov/egrid/frequent-questions-about-egrid) explains why generation mix affects average emissions, and why inventory averages and marginal emissions answer different questions. An average describes the existing mix. Estimating the consequence of another large load requires knowing which generation changes and what infrastructure gets built.
+
+Carbon reports add another distinction. In the [GHG Protocol's accounting definitions](https://ghgprotocol.org/sites/default/files/2025-10/GHG-Protocol-Scope2-Public-Consultation.pdf), location-based figures use geographically averaged generation factors. Market-based figures attribute electricity through contractual instruments. The cited 2025 consultation document reproduces the existing definitions alongside proposed revisions; I'm using those definitions here.
+
+A renewable-electricity contract can affect a company's market-based account. It doesn't, by itself, give me an hourly picture of the generators supplying its site or the emissions caused by its expansion. Those claims need evidence suited to those questions.
+
+Apply the checks together to our reference scenario. Its stated assumptions produce 277.7 million gallons of annual site withdrawals and 10.512 TWh of facility electricity. With all water supplied by the toy utility, the chosen summer peak exceeds its chosen one-million-gallon daily delivery headroom; the chosen carbon factor yields 4.20 million tonnes.
+
+The delivery calculation identifies a constraint under those assumptions. Local consumptive loss remains unknown because we haven't supplied return flows or source conditions. The carbon calculation remains an inventory scenario because we haven't modeled the power system's response. I can state those limits without pretending either the water or electricity demand is harmless.
+
+One campus also can't tell us how much electricity the entire industry uses. That needs an industry estimate with its own population and time period.
+
