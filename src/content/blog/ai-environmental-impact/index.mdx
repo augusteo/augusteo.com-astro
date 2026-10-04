@@ -10,6 +10,7 @@ essay: true
 ---
 
 import Figure from "@components/figure/Figure.svelte";
+import LocalHeadroom from "@components/figures/ai-environmental-impact/LocalHeadroom.svelte";
 import SizeExplorer from "@components/figures/ai-environmental-impact/SizeExplorer.svelte";
 import VolumeScale from "@components/figures/ai-environmental-impact/VolumeScale.svelte";
 
@@ -163,7 +164,9 @@ For another explicit toy model, assume the one-gigawatt reference facility gets 
 
 Spread the facility's water evenly through the year and its demand is about 0.76 million gallons a day. Double the rate for three summer months and reduce the other nine months to preserve the annual total. Summer demand reaches about 1.52 million gallons a day, above the assumed delivery headroom.
 
-{/* FIGURE-5 */}
+<Figure figNum={5} caption="All water in this toy scenario comes from the depicted utility. Three equal-duration months use the selected peak rate; the other nine compensate to keep annual volume constant. The dashed line is spare utility delivery capacity after existing users and reserves. It does not measure sustainable watershed depletion or certify ecological safety.">
+  <LocalHeadroom client:visible />
+</Figure>
 
 The model treats months as equal-duration blocks for simple arithmetic. It doesn't claim that this is any actual data center's seasonal profile. The utility supply assumption matters too: if it supplied only half the facility's water, only that half would belong against its delivery-capacity limit.
 

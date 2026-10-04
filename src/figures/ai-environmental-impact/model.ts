@@ -34,3 +34,14 @@ export function campus(mw: number, averageLoadPercent: number, withdrawalWue: nu
     accountYears: itKwh / ACCOUNT_YEAR_KWH,
   };
 }
+
+/** Toy utility-delivery model: all water is supplied by this utility. */
+export function season(annualMillionGallons: number, summerFactor: number, headroom: number) {
+  const average = annualMillionGallons / DAYS;
+  const summer = average * summerFactor;
+  const otherMonths = average * (12 - 3 * summerFactor) / 9;
+  // Twelve equal-duration blocks; months 6–8 are the three peak blocks.
+  const monthly = Array.from({ length: 12 }, (_, i) => i >= 5 && i <= 7 ? summer : otherMonths);
+  return { average, summer, otherMonths, monthly, exceeds: summer > headroom + 1e-10,
+    excess: Math.max(0, summer - headroom) };
+}
