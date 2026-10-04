@@ -1,5 +1,7 @@
 # Water citation and freshness audit
 
+**Latest check: PASS.** Post and seven implemented figures inspected again on October 4, including the final AWS trims. The initial findings below are historical; current findings appear in the final addendum and closure. KOLN identity is repaired, Alston attribution fits, DOE's mechanism citation is verified, and AWS's final repeated source-derived text fits its budget.
+
 Audit date: **2026-10-04**. Inspected current `src/content/blog/ai-environmental-impact/index.mdx`, main claim matrix, and planned figure defaults. No MDX or main-note changes. All nine cited water/unit sources checked; additional arXiv metadata checked for versions. Figure placeholders remain in the inspected draft, so this audit verifies planned numerical inputs and prose, not implementation behavior.
 
 ## Findings requiring repair
@@ -53,3 +55,77 @@ The MDX water passages contain no purported verbatim source quotation, so no spl
 AWS's explicit source description occupies approximately120 words, safely below200. Adjacent scenario arithmetic is original calculation, but should still preserve input citation and all-workload boundary. EPA, Lincoln, NYC, Google timeline, Nebraska and NIST are comfortably below their individual200-word budgets. Alston requires the reduction identified above. Avoid adding new excerpts to already-budgeted sources merely to decorate the figures.
 
 All actively evolving factual rows in this audit remain current as of October4. Historical household observations retain their2015 year. No unchecked water source remains.
+
+## Final implemented-figure and bounded-attribution addendum
+
+Re-read the complete current MDX, all five Svelte interactives, the three water draw functions, and the shared scenario model. The two static SVGs are in MDX. The public KOLN description now says news report; earlier source-identity defect is closed.
+
+### DOE mechanism citation: PASS
+
+Freshly fetched [DOE's cooling-water engineering guide](https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers). Its Direct Liquid Cooling Systems section describes heat transfer from IT equipment into a recirculating loop, through a coolant distribution unit and then an external cooling system. It also describes hybrid heat rejection that switches between cooling towers and air cooling. This supports the new paragraph distinguishing internal liquid cooling from final outdoor heat rejection. No current industry performance average is borrowed. Source remains official engineering guidance for a foundational mechanism; do not imply its 2019 diagram is a 2026 performance survey.
+
+New DOE paragraph has39 words; reference22. Approximately61 attributed words, no verbatim quotation: safely below200.
+
+### Alston attribution: PASS for present bounded core
+
+Exact URL-stripped counts of the four remaining source-derived explanatory paragraphs:
+
+| Passage | Words |
+|---|---:|
+| Withdrawal/consumption definition paragraph |48|
+| Explicit Michigan preprint paragraph |42|
+| Operational and construction/manufacturing boundaries |36|
+| Explicit monthly availability/local-risk paragraph |42|
+| Total core prose |168|
+| Reference entry, including bibliographic metadata |27|
+| Total conservative bounded allocation |195|
+
+Cooling-loop paragraph now belongs to independently verified DOE guidance, not Alston. No figure copies the paper's quantitative result or its model. The toy water balance and toy delivery profile are original arithmetic. General statements evaluating those invented cases are original reasoning rather than additional summaries of Alston's findings. Preserve this allocation: only five words remain if reference metadata is counted. Adding another paper summary or caption would exceed the conservative budget.
+
+### AWS attribution after figures: repetition to tighten
+
+The previous prose-only audit did not include the now-implemented diagram and accessibility text. They repeat the source's empirical facts and therefore affect the budget. Candidate blocks to count are:
+
+- Definition and four-region prose:55 words.
+- Figure3 caption: approximately44 words of prose, including duplicated region/year/metric facts and scope restrictions.
+- Figure3 aria-label: approximately29 words, again stating the four observed values, year and unit.
+- Figure3 visible city/value labels:8 tokens, plus metric label.
+- Operator-reporting/boundary paragraph:40 words. Some of its last sentence is original interpretation, but the reporting scope is sourced.
+- Global-default part of the worked-example paragraph: approximately25 words. **Do not attribute its independently derived electricity/liters/gallons arithmetic to AWS.**
+- SizeExplorer's default-intensity/source sentence: approximately25 words before its independent chart/benchmark explanation.
+- AWS reference entry: approximately18 words.
+
+Counting these explanatory blocks conservatively produces approximately240–260 words before excluding original framing and deductions. An aggressively narrow facts-only tally might fit, but relying on that would obscure what was actually drawn from the source. Recommended repair: remove repeated numerical values from the Figure3 caption (the diagram and aria-label already supply them), shorten the reporting/boundary paragraph, and shorten the repeated default source/reference wording. This preserves every scientific disclosure while reducing repetition. Then re-count the final empirical source-derived blocks, with original calculation explicitly separate. No source quotations or copied passages were found.
+
+### Implemented numerical and accounting boundaries: PASS
+
+- **Figure1 / VolumeScale:** reports KOLN's fixed volume as news reporting and compares supplied-water volume. Household slider/year formula, constant Lincoln daily denominator and nominal NYC denominator match the prior verified arithmetic. Current component explicitly says actual NYC delivery exceeds the nominal reference, implying a shorter duration.
+- **Figure2 SVG:** accessible text and caption explicitly identify invented100-unit withdrawals, returns to the same immediate source within the modeled period, and evaporative consumption80/20. No household return fraction or facility estimate is implied.
+- **Figure3 SVG:** zero-based linear axis, exact AWS2025 regional values, liters withdrawn per IT kWh, all-workload and local-harm limitations. Coordinates map values accurately to the0–3 axis. Scientific scope passes; repeat-word budget is the issue above.
+- **Figure4 / SizeExplorer:** default1000MW IT,100% average electrical load,.12 withdrawal WUE. `campus()` uses IT kWh directly, exact gallon conversion and supply-volume household equivalents. Visible and accessible outputs explicitly say withdrawals; no consumption or PUE water multiplier appears. Regional intensity is an input illustration, not a forecast for another campus.
+- **Figure5 / LocalHeadroom:** shared `season()` preserves annual volume using three equal-duration peak blocks and nine compensating blocks. Component/caption identify100% supply by the utility; dashed threshold is delivery headroom after existing users/reserves. Under-threshold accessible result explicitly requests a separate ecological water balance. Sliders cap peak at4, where remaining-month flow iszero, preventing negative demand.
+- **Figure6 / EnergyCarbon:** overhead applies to facility electricity only; no water result appears, so it cannot recast AWS withdrawal WUE as facility-energy intensity or consumption.
+- **Figure7 / EfficiencyGrowth:** explicitly calculates no water footprint. Required IT electricity can exceed the baseline only with more capacity/time; no implicitly constant water intensity is asserted.
+
+The present changes require no new water-source freshness rerun beyond DOE: source facts and underlying numerical defaults remain those checked earlier October4. No unsupported environmental mechanism or default was found. Complete the AWS repetition reduction before treating all source budgets as closed.
+
+### Final AWS trim closure: PASS
+
+Re-read the actual MDX after the author's reductions to the Figure3 caption, operator-boundary paragraph and reference. Counted words as whitespace-separated tokens, treating a decimal number and a hyphenated word as one word; stripped link destinations/markup. This is a conservative allocation: complete source-related blocks include some original framing and derived comparison reasoning, rather than counting only empirical facts.
+
+| Final source-related block | Words |
+|---|---:|
+| Definition and regional prose |51|
+| Figure3 caption |20|
+| Figure3 aria-label |22|
+| Visible regional city/value labels |8|
+| Visible unit label |5|
+| Operator/scope paragraph |18|
+| Complete global-input sentence before original arithmetic |20|
+| Complete SizeExplorer default-intensity source sentence |10|
+| AWS reference |5|
+| **Total** |**159**|
+
+The worked-example numerical outputs, mathematical curve/formula and dynamic scenario readouts are original calculations, not AWS findings. They continue to cite the independently verified input and label withdrawals correctly. Retained accessibility text accurately supplies all four regional measurements. The shortened caption no longer duplicates those values. At159 words the sourced blocks leave41 words of buffer, so modest differences in counting punctuation or bibliographic labels do not threaten the200-word limit.
+
+**Final outcome:** no remaining required water-citation, source-budget or accounting-boundary repair. DOE paragraph supported; Alston conservative195-word allocation and AWS159-word allocation fit. All seven implemented figures preserve the distinctions verified above. The generic Nebraska viewer remains a traceability recommendation, not a false claim or broken URL. Audit completed October4,2026.

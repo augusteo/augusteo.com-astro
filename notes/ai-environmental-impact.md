@@ -185,6 +185,7 @@ Quoted excerpts are intentionally capped at 25 total quoted words per distinct s
 | M12 | Operational water accounting excludes construction and equipment manufacturing | P1§2: “manufacturing”, paragraph states these activities outside model scope | Scope boundary, not quantified lifecyclefootprint |
 | M13 | A universal prompt footprint cannot be obtained from capacity announcement or averageWUE alone | E04/W17: need taskenergy, routing, metric boundary; inference |
 | M15 | All water supplied100% by modeledutility. Worked1GWIT scenario:8.76TWhIT,10.512TWhfacility atPUE1.2,277.7MGsitewithdrawalatWUE.12;summer2×average1.52MG/day exceeds chosen1MG/day headroom;400g/kWh yields4.2048MtCO2e | M01,M04,M06,M07,M08; all hypothetical jointinputs, no namedsiteforecast |
+| M16 | Changing workload mix can change mean energy per task even when each constituent task has fixed energy cost | Weighted-mean identity; original arithmetic, no empirical change asserted |
 | M14 | Disclosure request includes definedworkload/meanresourcepermatchedtask and year, monthly sitewithdrawal/consumption/source, IT and facilitykWh, load, build stage, grid/carbonmethod, local capacity | Editorial recommendation based W04/W10/W16/W17/E07/E11/E12/E13; no legal requirement asserted |
 
 Quotes are evidence snippets, not prose to repeat. W05 proves what KOLN reported, NOT the truth of underlying measurements. KOLN is the motivating news event, not a primary operational dataset. All numeric operations based on it remain explicitly conditional. Current government/operator pages may describe historical observations; dates are retained. Undated EIA unit definition is used as a definition and arithmetic anchor, not an evolving empirical observation. No USGS2018/DOE2019 evolving empirical row remains load-bearing.
@@ -414,11 +415,83 @@ The paragraph scan found no additional cases of concrete nouns or causal detail 
 
 **Total: 9 findings.**
 
-Applied9 literal, mechanistic repairs (all labeled TOUCHES-SOURCED-CLAIM:no), with plain synonyms where helpful. Findings were isolated leading or transition sentences, and reviewer explicitly found no paragraph-level substitution or heading/dek failures. This supports routine prose repair within Vic's already explicit request to write in his voice; no invented anecdotes or claim changes. Invocation2pending on finalfigures/captions.
+Applied9 literal, mechanistic repairs (all labeled TOUCHES-SOURCED-CLAIM:no), with plain synonyms where helpful. Findings were isolated leading or transition sentences, and reviewer explicitly found no paragraph-level substitution or heading/dek failures. This supports routine prose repair within Vic's already explicit request to write in his voice; no invented anecdotes or claim changes. Invocation 2 returned four additional isolated sentence findings; all repaired with literal mechanisms. The replacement for section 5 is verbatim; the other three name the requested inputs/consequences in shorter prose. No new empirical claims. Invocation 3 follows on current final text.
+
+### Invocation 2, 2026-10-04 (verbatim)
+
+**4 findings.** Line numbers refer to the local MDX, which matches the supplied text. All headings, the title, description, and dek pass.
+
+FILE: [src/content/blog/ai-environmental-impact/index.mdx:47](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:47)  
+SENTENCE: Assessing local water loss requires a different calculation.  
+FAMILY: withheld-referent  
+MISSING: The withdrawals and return flows that distinguish local loss from a household-volume conversion.  
+REWRITE: Assessing local water loss requires measuring withdrawals and the amount, destination, and timing of returned water.  
+TOUCHES-SOURCED-CLAIM: no
+
+FILE: [src/content/blog/ai-environmental-impact/index.mdx:181](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:181)  
+SENTENCE: After those water checks, the reference campus still has an electricity demand.  
+FAMILY: reader-choreography  
+MISSING: The electricity requirement; “after those water checks” narrates movement through the assessment.  
+REWRITE: At continuous IT load and a PUE of 1.2, the reference campus uses 10.512 TWh of facility electricity a year.  
+TOUCHES-SOURCED-CLAIM: no
+
+FILE: [src/content/blog/ai-environmental-impact/index.mdx:201](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:201)  
+SENTENCE: Those claims need evidence suited to those questions.  
+FAMILY: withheld-referent  
+MISSING: Which evidence distinguishes hourly supply from the emissions caused by expansion.  
+REWRITE: An hourly supply claim needs data identifying which generators supplied the site during each hour; an expansion-emissions claim needs an estimate of how the added load changes generation and infrastructure.  
+TOUCHES-SOURCED-CLAIM: no
+
+FILE: [src/content/blog/ai-environmental-impact/index.mdx:247](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:247)  
+SENTENCE: Local return flows, utility headroom, and generation changes determine what else that demand requires from the surrounding systems.  
+FAMILY: withheld-referent  
+MISSING: Local consumptive loss, the ability to deliver peak water demand, and electricity-related emissions. The sentence names the inputs but replaces their consequences with “what else.”  
+REWRITE: The amount, destination, and timing of returned water determine local consumptive loss; spare utility capacity determines whether peak demand can be delivered, and changes in generation determine the electricity-related emissions caused by added demand.  
+TOUCHES-SOURCED-CLAIM: no
+
+| Section | Verdict | Findings |
+|---|---|---:|
+| Title, description, and dek | PASS | 0 |
+| 1. Thirteen million gallons in household and city units | PASS | 0 |
+| 2. Where the water goes | FAIL | 1 |
+| 3. From 100 megawatts to eight gigawatts | PASS | 0 |
+| 4. A gigawatt doesn't specify a water bill | PASS | 0 |
+| 5. The summer demand a yearly total hides | FAIL | 1 |
+| 6. Electricity supply and carbon accounting | FAIL | 1 |
+| 7. From sector electricity to a prompt | PASS | 0 |
+| 8. The measurements I want published | FAIL | 1 |
+| References | PASS | 0 |
+| **Total** | **FAIL** | **4** |
 
 ## Link and freshness audit
 
-All external sources re-fetched2026-10-04. Water PDF hashesunchanged, arxiv remainsv1; energydata/sourceclaimsunchanged. See [water audit](ai-environmental-impact-water-link-audit.md) and [energy audit](ai-environmental-impact-energy-link-audit.md). KOLNidentitycorrectedtonewsreport. CoolingmechanismmovedtocurrentDOEgovernmentdocumentation andAlston-derivedprosetrimmed; source-budgetcheckwillbe repeatedaftercaptions. EIArelease mustberechecked if publicationfallsafterOct7. Figurecode/renderverificationis separate, stillpending.
+All external sources re-fetched2026-10-04. Water PDF hashesunchanged, arxiv remainsv1; energydata/sourceclaimsunchanged. See [water audit](ai-environmental-impact-water-link-audit.md) and [energy audit](ai-environmental-impact-energy-link-audit.md). KOLNidentitycorrectedtonewsreport. CoolingmechanismmovedtocurrentDOEgovernmentdocumentation andAlston-derivedprosetrimmed; source-budgetcheckwillbe repeatedaftercaptions. EIArelease mustberechecked if publicationfallsafterOct7. Figure code/render verification completed separately on 2026-10-04; see Browser and arithmetic verification below. Final water attribution check: AWS 159 words, Alston 195 before the final shorter reference, DOE 61. No over-budget source paraphrases remain.
+
+## Browser and arithmetic verification
+
+Verified 2026-10-04 using locally installed Playwright Chromium, dev route `http://127.0.0.1:4321/blog/ai-environmental-impact`. No package/dependency changes to the repository. Scripts and full JSON report are scratch artifacts `/tmp/ai-environment-browser-check.mjs`, `/tmp/ai-impact-edge-check.mjs`, and `/tmp/ai-impact-browser-report.json`.
+
+- All seven figures captured and visually inspected; five Canvas islands hydrate with no page/console errors.
+- All 13 native sliders tested at both endpoints and with keyboard arrows. Each changes the numerical readout and redraws its canvas; every output stays finite. Figure bounds remain stable within two pixels, including combined extreme settings.
+- Desktop 1280px, tablet 768px, mobile 375px and 320px checked. No page horizontal overflow. 28 default screenshots plus four combined-extreme mobile screenshots in the gitignored `.playwright-screenshots/` directory. Labels, return arrowheads, captions and zero-based axes inspected. Existing reading-progress overlay is part of page chrome, not the drawings.
+- Reduced-motion context checked: no autoplay or looping animations. No custom drag area is used; controls are native range inputs.
+- JavaScript-disabled HTML retains every default calculation and explanatory source/caption text. Unhydrated controls are disabled. Dynamic charts have descriptive accessible labels and matching HTML numerical readouts.
+- Shared-model assertions confirm household year = 119,720 gallons; 1 GW full-load IT energy = 8.76 TWh; WUE .12 gives 277.7 million gallons; load 50% halves energy; zero withdrawal intensity gives zero site withdrawal; PUE 1.2 gives 10.512 TWh; factor 400 gives 4.2048 Mt; factor zero gives zero inventory emissions only; 3× tasks at .5× energy/task gives 13.14 TWh required; 2× at .5× and 10× at .1× both preserve energy. All seasonal peak factors 1–4 conserve annual volume and keep non-peak demand nonnegative.
+- Final production build passed: 122 pages, 18.21 seconds. The draft route is absent from production output, RSS and sitemaps. Existing site KaTeX/Vite warnings remain in the build log; no build errors.
+- `bash scripts/voice-check.sh src/content/blog/ai-environmental-impact/index.mdx` passes. Independent staged-prose review recorded separately above.
+
+### Figure delivery commits
+
+| Figure | Output | Commit |
+|---|---|---|
+| 1 | Household/city volume comparison and reciprocal curve | f303144 |
+| 2 | Same-source withdrawal/return schematic | 3f2fff2 |
+| 3 | AWS 2025 regional withdrawal intensity | de2c3c2 |
+| 4 | Campus capacity/load/WUE explorer | 78449ab |
+| 5 | Seasonal utility delivery headroom | 66c3f5f |
+| 6 | Facility electricity and inventory carbon | 65df0c6 |
+| 7 | Fixed-workload efficiency/growth threshold | e56aa7d |
+| All | Mobile labels and stable readouts | 90e05fb; final value alignment follows |
 
 ## Resume here
 
@@ -428,13 +501,13 @@ Last touched: 2026-10-04.
 
 | Phase | Status | Output |
 |---|---|---|
-| 1. Lock-in | scope revised by Vic; title provisional | Spec and Throughline |
+| 1. Lock-in | done; scope revised by Vic | Spec, Throughline, declarative working title |
 | 2. Research / fact-check | done | Matrix passed Gate0 after repairs; source bounds explicit |
 | 3. Outline + figure list | repaired | ThreeGate1reviews; final utility-source assumption clarified; types retained |
 | 4. Draft prose | done | Eight sections drafted with citations; voice check clean |
-| 5. Implement figures | in progress | Seven contracted figures; prose placeholders ready |
-| 6. Playwright review | pending | None |
-| 7. Pre-ship review | pending | None |
+| 5. Implement figures | done | Seven sourced figures; five interactive |
+| 6. Playwright review | done | Four screen widths; 13 sliders; canvas redraws; SSR defaults; extreme states |
+| 7. Pre-ship review | in progress | Freshness/link and browser audits passed; final prose review pending; hero and publication remain separate |
 
 ### Codex history
 
@@ -448,11 +521,11 @@ Last touched: 2026-10-04.
 
 ### Suggested next batch
 
-Draft all eightsections; implementsevenfigures; verifyactualproseandfigureassumptions in finalreview. Do not request another approval simply to repeat Vic's accepted scope edits. Title selection can remain open while research proceeds.
+Complete the independent final draft review, then hand Vic the finished draft and preview. Keep draft:true. Hero hand-off and publication follow only when Vic is ready.
 
 ### How to resume from a fresh context
 
-Read this file, explainer-authoring SKILL.md, and the canonical project memory pointer. This session completed brainstorming and source discovery, not a full blog draft. Preserve the user's desire for contextual comparisons, scientific evidence, multiple scales, coded interactive visuals, and a forceful title. Leave drafts unpublished; Vic controls draft:false.
+Read this file, explainer-authoring SKILL.md, and the canonical project memory pointer. The full eight-section MDX draft and all seven figures are implemented and browser-verified. Preserve the user's desire for contextual comparisons, scientific evidence, multiple scales, coded interactive visuals, and a forceful title. Leave drafts unpublished; Vic controls draft:false.
 
 ### Hard rules to keep applying
 

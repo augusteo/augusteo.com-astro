@@ -44,7 +44,7 @@ There's also an operating-stage problem: [Google's own timeline](https://datacen
 
 ### 2. Where the water goes
 
-A household equivalent is a useful volume conversion. Assessing local water loss requires a different calculation.
+A household equivalent is a useful volume conversion. Local water loss depends on withdrawals and where and when water returns.
 
 *Withdrawal* is water taken from a source. *Consumption* is the portion that doesn't return to the immediate water environment over the accounting period. Evaporation is one way cooling consumes water. A return to another watershed, or after the period when the source needs it, needs its own accounting.
 
@@ -125,7 +125,7 @@ Water usage effectiveness, or WUE, expresses site water use per unit of IT elect
 
 [AWS defines its reported WUE](https://sustainability.aboutamazon.com/products-services/aws-cloud) as liters withdrawn per kWh of IT load. Its 2025 regional averages include 0.02 in Stockholm, 1.22 in Tokyo, 1.57 in Singapore, and 2.85 in Jakarta. That's roughly a 140-fold difference between the lowest and highest of those regions, using the same provider, year, and metric.
 
-<Figure figNum={3} caption="AWS's reported 2025 regional WUE: Stockholm 0.02, Tokyo 1.22, Singapore 1.57, and Jakarta 2.85 liters withdrawn per IT kWh. The axis starts at zero. These annual averages cover all AWS workloads, and don't establish matched-prompt costs or local harm.">
+<Figure figNum={3} caption="AWS's 2025 regional withdrawal intensity, on an axis starting at zero. These averages don't establish matched-prompt costs or local harm.">
 <svg viewBox="0 0 360 245" width="100%" role="img" aria-label="AWS 2025 regional withdrawal intensity on a linear zero-to-three liters per IT kilowatt-hour axis: Stockholm 0.02, Tokyo 1.22, Singapore 1.57, Jakarta 2.85." xmlns="http://www.w3.org/2000/svg">
 <g font-family="ui-monospace, monospace" font-size="18" fill="#1A1A1A">
 <text x="7" y="41">Stockholm</text><line x1="130" y1="35" x2="131.08" y2="35" stroke="#2563EB" stroke-width="2" /><circle cx="131.08" cy="35" r="5" fill="#2563EB" /><text x="350" y="41" text-anchor="end">0.02</text>
@@ -142,7 +142,7 @@ Water usage effectiveness, or WUE, expresses site water use per unit of IT elect
 </svg>
 </Figure>
 
-These are operator-reported averages across AWS workloads. They aren't measurements of the same AI prompt in four places, and they don't rank ecological harm. They demonstrate how much the water intensity can vary even before local scarcity enters the calculation.
+These operator averages cover all AWS workloads. They don't compare the same AI task or measure ecological harm.
 
 For a hypothetical one-gigawatt IT load operating continuously, apply AWS's reported 2025 global average of 0.12 liters per IT kWh. The arithmetic is 8.76 billion kWh times 0.12 liters, which gives about 1.05 billion liters, or 277.7 million US gallons of annual site withdrawals.
 
@@ -178,7 +178,7 @@ The integrated [Alston, Love, and Haider model](https://arxiv.org/html/2609.2543
 
 I want that distinction carried into any city comparison. Eight hours of average supply tells me the scale of a reported volume. A dry-month water balance and an actual utility capacity study would tell me whether a new campus can be served without displacing another use or needing upgrades.
 
-After those water checks, the reference campus still has an electricity demand. A cooling design that reduces site water doesn't settle what happens at the generators.
+At continuous IT load and a PUE of 1.2, the reference campus uses 10.512 TWh of facility electricity a year. A cooling design that reduces site water doesn't settle what happens at the generators.
 
 ### 6. Electricity supply and carbon accounting
 
@@ -198,7 +198,7 @@ Those factors are illustrative inputs, not measured grid factors for Lincoln or 
 
 Carbon reports distinguish location-based emissions from market-based emissions. In the [GHG Protocol's accounting definitions](https://ghgprotocol.org/sites/default/files/2025-10/GHG-Protocol-Scope2-Public-Consultation.pdf), location-based figures use geographically averaged generation factors. Market-based figures attribute electricity through contractual instruments. The cited 2025 consultation document reproduces the existing definitions alongside proposed revisions; I'm using those definitions here.
 
-A renewable-electricity contract can affect a company's market-based account. It doesn't, by itself, give me an hourly picture of the generators supplying its site or the emissions caused by its expansion. Those claims need evidence suited to those questions.
+A renewable-electricity contract can affect a company's market-based account. It doesn't, by itself, give me an hourly picture of the generators supplying its site or the emissions caused by its expansion. An hourly supply claim needs hourly generation data. An expansion estimate needs the additional demand and the resulting changes in generation and infrastructure.
 
 The utility-capacity test compares summer water demand with delivery headroom; the emissions calculation multiplies annual facility electricity by the chosen emissions factor. Its stated assumptions produce 277.7 million gallons of annual site withdrawals and 10.512 TWh of facility electricity. With all water supplied by the toy utility, the chosen summer peak exceeds its chosen one-million-gallon daily delivery headroom; the chosen carbon factor yields 4.20 million tonnes.
 
@@ -244,7 +244,7 @@ For that facility assessment, I want operators to publish:
 - Electricity emissions with the accounting method named, alongside evidence for claims about hourly supply or the consequences of new demand.
 - For per-task claims, the defined workload, output specification, averaging method, and included resource boundaries.
 
-Those disclosures would let readers test the comparisons instead of guessing what a rounded annual total includes. Withdrawal intensity measures the site water required per unit of IT electricity. Local return flows, utility headroom, and generation changes determine what else that demand requires from the surrounding systems.
+Those disclosures would let readers test the comparisons instead of guessing what a rounded annual total includes. Withdrawal intensity measures the site water required per unit of IT electricity. Withdrawals and local returns determine consumptive loss. Spare utility capacity determines whether peak water demand can be delivered. Generation changes determine the electricity-related emissions caused by added demand.
 
 KOLN's reported 2025 water total for Google's Lincoln site is 13.299 million gallons. The household and city equivalents still help me understand the volume. They still don't establish an AI-only total, the facility's mature operating demand, or its effect on local water availability.
 
@@ -260,7 +260,7 @@ Sources checked October 4, 2026. Corporate capacity announcements describe plans
 - [Lincoln: 2025 Annual drinking-water quality report](https://www.lincoln.ne.gov/files/sharedassets/public/v/12/ltu/utilities/water-system/water-quality-report.pdf), page 3.
 - [NYC DEP: Drinking water](https://www.nyc.gov/site/dep/water/drinking-water.page), broader supply-system daily delivery reference.
 - [Google: Nebraska data centers](https://datacenters.google/locations/nebraska/), 2026 Lincoln timeline.
-- [Alston, Love, and Haider: Data center cooling choices shift water impacts across the grid](https://arxiv.org/html/2609.25437v1), September 21, 2026 preprint, especially sections 1, 2, 4.4, and 4.5.
+- [Alston, Love, and Haider: Data center cooling choices shift water impacts across the grid](https://arxiv.org/html/2609.25437v1), September 21, 2026 preprint.
 - [DOE: Cooling-water efficiency opportunities for federal data centers](https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers), engineering guidance for recirculating loops and external heat rejection; no historical performance averages used.
 - [EIA: Measuring electricity](https://www.eia.gov/energyexplained/electricity/measuring-electricity.php), unit definitions.
 - [EIA: 2024 residential monthly electricity data, Table 5.a](https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf), released October 7, 2025, US total row. Recheck the latest release before publication.
@@ -268,7 +268,7 @@ Sources checked October 4, 2026. Corporate capacity announcements describe plans
 - [Meta: Building Prometheus](https://engineering.fb.com/2026/02/09/data-center-engineering/building-prometheus-how-backend-aggregation-enables-gigawatt-scale-ai-clusters/), February 9, 2026.
 - [Meta: Richland Parish expansion](https://datacenters.atmeta.com/2026/07/deepening-our-investment-in-richland-parish-louisiana/), July 13, 2026.
 - [OpenAI: PORTS-Pike project](https://openai.com/index/openai-joins-ports-pike-project/), August 17, 2026.
-- [AWS sustainability data](https://sustainability.aboutamazon.com/products-services/aws-cloud), 2025 regional and global WUE, defined as withdrawals per IT kWh.
+- [AWS sustainability data](https://sustainability.aboutamazon.com/products-services/aws-cloud), 2025 WUE.
 - [EPA: eGRID frequently asked questions](https://www.epa.gov/egrid/frequent-questions-about-egrid), methodology page updated July 28, 2026.
 - [GHG Protocol: Scope 2 public consultation](https://ghgprotocol.org/sites/default/files/2025-10/GHG-Protocol-Scope2-Public-Consultation.pdf), October 2025; existing definitions and inventory/consequential distinction, not an assertion that proposals are enacted.
 - [IEA: Key questions on energy and AI](https://www.iea.org/reports/key-questions-on-energy-and-ai/executive-summary), April 16, 2026.
