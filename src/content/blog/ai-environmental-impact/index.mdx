@@ -109,3 +109,23 @@ I wouldn't assign this AWS-based scenario to Prometheus, Hyperion, or PORTS-Pike
 
 The one-gigawatt reference scenario gives us an annual withdrawal amount. A local utility still has to deliver water when the facility needs it.
 
+### 5. The summer demand a yearly total hides
+
+The reported Lincoln amount looks small beside the city's yearly supply. That comparison doesn't reveal capacity remaining after existing customers, operating limits, and reserves. Annual water already delivered isn't a measurement of headroom.
+
+For another explicit toy model, assume the one-gigawatt reference facility gets 100% of its water from a utility. Its annual withdrawals are 277.7 million gallons. Suppose that utility has one million gallons a day of delivery capacity available to this new customer after other commitments and reserves.
+
+Spread the facility's water evenly through the year and its demand is about 0.76 million gallons a day. Double the rate for three summer months and reduce the other nine months to preserve the annual total. Summer demand reaches about 1.52 million gallons a day, above the assumed delivery headroom.
+
+{/* FIGURE-5 */}
+
+The model treats months as equal-duration blocks for simple arithmetic. It doesn't claim that this is any actual data center's seasonal profile. The utility supply assumption matters too: if it supplied only half the facility's water, only that half would belong against its delivery-capacity limit.
+
+The horizontal line measures utility delivery capacity. It isn't a limit on sustainable watershed depletion. A facility can fit within the pipes' capacity while its source or downstream users face a separate water problem; evaluating that requires source availability, local consumption, and the location and timing of returns.
+
+The integrated [Alston, Love, and Haider model](https://arxiv.org/html/2609.25437v1) tracks monthly water availability and existing consumption as well as the added demand. That approach explains why an annual volume alone can't establish local water risk. It doesn't establish Lincoln's actual risk or spare capacity.
+
+I want that distinction carried into any city comparison. Eight hours of average supply tells me the scale of a reported volume. A dry-month water balance and an actual utility capacity study would tell me whether a new campus can be served without displacing another use or needing upgrades.
+
+After those water checks, the reference campus still has an electricity demand. A cooling design that reduces site water doesn't settle what happens at the generators.
+
