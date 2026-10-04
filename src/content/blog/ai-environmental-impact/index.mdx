@@ -10,6 +10,7 @@ essay: true
 ---
 
 import Figure from "@components/figure/Figure.svelte";
+import SizeExplorer from "@components/figures/ai-environmental-impact/SizeExplorer.svelte";
 import VolumeScale from "@components/figures/ai-environmental-impact/VolumeScale.svelte";
 
 *I want to know what a data center takes from the place it's built. A yearly gallon count needs a water balance and local supply conditions before it can answer that. About a 15-minute read.*
@@ -144,7 +145,9 @@ For a hypothetical one-gigawatt IT load operating continuously, apply AWS's repo
 
 That's about 2,300 illustrative four-person household-years of water supplied. It's a substantial industrial demand. It also changes directly with the electrical load and the chosen withdrawal intensity.
 
-{/* FIGURE-4 */}
+<Figure figNum={4} caption="Continuous power, load, and withdrawal-intensity sweeps. Annual IT kWh = MW × 1,000 × 8,760 × average-load fraction; gallons = IT kWh × withdrawal WUE ÷ 3.785411784. The withdrawal plot rescales vertically with capacity and load. These are scenario outputs, with no generation water or facility electricity overhead included.">
+  <SizeExplorer client:visible />
+</Figure>
 
 The calculator lets those assumptions vary separately so their effects are visible. A real cooling design can tie water intensity and electricity overhead together; arbitrary slider combinations aren't validated engineering designs. The water output also excludes power-generation water and hardware manufacturing.
 

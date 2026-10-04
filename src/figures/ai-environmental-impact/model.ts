@@ -21,3 +21,16 @@ export function volume(people: number, dailyPerPerson: number) {
     nycMinutes: REPORTED_GALLONS / NYC_REFERENCE_GPD * 1440,
   };
 }
+
+export function campus(mw: number, averageLoadPercent: number, withdrawalWue: number) {
+  const itKwh = mw * 1000 * HOURS * averageLoadPercent / 100;
+  const gallons = itKwh * withdrawalWue / LITERS_PER_GALLON;
+  return {
+    itKwh,
+    twh: itKwh / 1e9,
+    gallons,
+    millionGallons: gallons / 1e6,
+    householdYears: gallons / HOUSEHOLD_YEAR_GALLONS,
+    accountYears: itKwh / ACCOUNT_YEAR_KWH,
+  };
+}
