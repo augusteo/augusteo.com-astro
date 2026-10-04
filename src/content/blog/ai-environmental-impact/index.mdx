@@ -24,7 +24,7 @@ import VolumeScale from "@components/figures/ai-environmental-impact/VolumeScale
 
 A data center's annual water total can't tell me whether its neighbors will run short. I need to know what that number measures and what the local system can supply.
 
-The story that prompted this was a [September 2026 KOLN report](https://www.1011now.com/2026/09/30/more-questions-than-answers-about-lincolns-google-data-center-water-electricity-usage/) about Google's Lincoln, Nebraska facility. KOLN reported 13.299 million gallons for 2025, extracted from an improperly redacted filing. The [replacement state filing](https://ecmp.nebraska.gov/PublicAccess/index.html?MyQueryID=340) confirms the reporting year but redacts the values. I'm treating 13.299 million as the amount the news report gave, rather than an independently verified meter reading.
+The story that prompted this was a [September 2026 KOLN report](https://www.1011now.com/2026/09/30/more-questions-than-answers-about-lincolns-google-data-center-water-electricity-usage/) about Google's Lincoln, Nebraska facility. KOLN reported 13.299 million gallons for 2025, extracted from an improperly redacted filing. The [replacement state filing](https://ecmp.nebraska.gov/PublicAccess/api/Document/AYimuQjG9171eKVkJbG0rp4quwyyCgutClh928eX4czTNB4fWuexY8MMCRq7AUs2rWHsmTfIi9KDNWB4d4%C3%81BJXM%3D/) confirms the reporting year but redacts the values. I'm treating 13.299 million as the amount the news report gave, rather than an independently verified meter reading.
 
 KOLN already compares that amount with one day of Lincoln's water use. That's a useful start. A household comparison gives me another way to understand the volume.
 
@@ -148,7 +148,7 @@ For a hypothetical one-gigawatt IT load operating continuously, apply AWS's repo
 
 That's about 2,300 illustrative four-person household-years of water supplied. It's a substantial industrial demand. It also changes directly with the electrical load and the chosen withdrawal intensity.
 
-<Figure figNum={4} caption="Continuous power, load, and withdrawal-intensity sweeps. Annual IT kWh = MW × 1,000 × 8,760 × average-load fraction; gallons = IT kWh × withdrawal WUE ÷ 3.785411784. The withdrawal plot rescales vertically with capacity and load. These are scenario outputs, with no generation water or facility electricity overhead included.">
+<Figure figNum={4} caption="Continuous power, load, and withdrawal-intensity sweeps. Annual IT kWh = MW × 1,000 × 8,760 × average-load fraction; Multiplying IT electricity by withdrawal intensity gives liters; divide by 3.785411784 liters per US gallon to convert to gallons. The withdrawal plot rescales vertically with capacity and load. These are scenario outputs, with no generation water or facility electricity overhead included.">
   <SizeExplorer client:visible />
 </Figure>
 
@@ -255,7 +255,7 @@ I want the monthly water balance and the full-buildout demand public before a co
 Sources checked October 4, 2026. Corporate capacity announcements describe plans; operator efficiency data is first-party reporting; the cooling study is a preprint. Scenario calculations use a 365-day year and US liquid gallons.
 
 - [KOLN: Improper redaction reveals Lincoln's Google data-center water and electricity usage](https://www.1011now.com/2026/09/30/more-questions-than-answers-about-lincolns-google-data-center-water-electricity-usage/), September 30, 2026. Numerical claims remain attributed to this report.
-- [Nebraska public records](https://ecmp.nebraska.gov/PublicAccess/index.html?MyQueryID=340), DCR facility 90045, Agate replacement filing received October 1, 2026, page 2.
+- [Nebraska public records](https://ecmp.nebraska.gov/PublicAccess/api/Document/AYimuQjG9171eKVkJbG0rp4quwyyCgutClh928eX4czTNB4fWuexY8MMCRq7AUs2rWHsmTfIi9KDNWB4d4%C3%81BJXM%3D/), DCR facility 90045, Agate replacement filing received October 1, 2026, page 2.
 - [EPA WaterSense: Statistics and facts](https://www.epa.gov/watersense/statistics-and-facts), page updated March 11, 2026; household benchmark uses 2015 observations.
 - [Lincoln: 2025 Annual drinking-water quality report](https://www.lincoln.ne.gov/files/sharedassets/public/v/12/ltu/utilities/water-system/water-quality-report.pdf), page 3.
 - [NYC DEP: Drinking water](https://www.nyc.gov/site/dep/water/drinking-water.page), broader supply-system daily delivery reference.
@@ -263,7 +263,7 @@ Sources checked October 4, 2026. Corporate capacity announcements describe plans
 - [Alston, Love, and Haider: Data center cooling choices shift water impacts across the grid](https://arxiv.org/html/2609.25437v1), September 21, 2026 preprint.
 - [DOE: Cooling-water efficiency opportunities for federal data centers](https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers), engineering guidance for recirculating loops and external heat rejection; no historical performance averages used.
 - [EIA: Measuring electricity](https://www.eia.gov/energyexplained/electricity/measuring-electricity.php), unit definitions.
-- [EIA: 2024 residential monthly electricity data, Table 5.a](https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf), released October 7, 2025, US total row. Recheck the latest release before publication.
+- [EIA: 2024 residential monthly electricity data, Table 5.a](https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf), [released October 7, 2025](https://www.eia.gov/electricity/sales_revenue_price/), US total row.
 - [Google: Data-center efficiency](https://datacenters.google/efficiency/), PUE definition.
 - [Meta: Building Prometheus](https://engineering.fb.com/2026/02/09/data-center-engineering/building-prometheus-how-backend-aggregation-enables-gigawatt-scale-ai-clusters/), February 9, 2026.
 - [Meta: Richland Parish expansion](https://datacenters.atmeta.com/2026/07/deepening-our-investment-in-richland-parish-louisiana/), July 13, 2026.

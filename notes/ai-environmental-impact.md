@@ -415,7 +415,7 @@ The paragraph scan found no additional cases of concrete nouns or causal detail 
 
 **Total: 9 findings.**
 
-Applied9 literal, mechanistic repairs (all labeled TOUCHES-SOURCED-CLAIM:no), with plain synonyms where helpful. Findings were isolated leading or transition sentences, and reviewer explicitly found no paragraph-level substitution or heading/dek failures. This supports routine prose repair within Vic's already explicit request to write in his voice; no invented anecdotes or claim changes. Invocation 2 returned four additional isolated sentence findings; all repaired with literal mechanisms. The replacement for section 5 is verbatim; the other three name the requested inputs/consequences in shorter prose. No new empirical claims. Invocation 3 follows on current final text.
+Applied9 literal, mechanistic repairs (all labeled TOUCHES-SOURCED-CLAIM:no), with plain synonyms where helpful. Findings were isolated leading or transition sentences, and reviewer explicitly found no paragraph-level substitution or heading/dek failures. This supports routine prose repair within Vic's already explicit request to write in his voice; no invented anecdotes or claim changes. Invocation 2 returned four additional isolated sentence findings; all repaired with literal mechanisms. The replacement for section 5 is verbatim; the other three name the requested inputs/consequences in shorter prose. No new empirical claims. Invocation 3 returned zero staged-prose findings; the independent voice gate passed.
 
 ### Invocation 2, 2026-10-04 (verbatim)
 
@@ -463,9 +463,60 @@ TOUCHES-SOURCED-CLAIM: no
 | References | PASS | 0 |
 | **Total** | **FAIL** | **4** |
 
+### Invocation 3, 2026-10-04 (verbatim)
+
+Zero staged-prose findings. I checked every heading, the description and dek, section openings and endings, transitions, and short declaratives, then scanned the remaining paragraphs. No sentence warranted a replacement under your stated boundary.
+
+| Section or framing | Verdict | Findings |
+|---|---|---:|
+| Title, frontmatter description, and dek | PASS | 0 |
+| The reported number | PASS | 0 |
+| 1. Thirteen million gallons in household and city units | PASS | 0 |
+| 2. Where the water goes | PASS | 0 |
+| A larger campus | PASS | 0 |
+| 3. From 100 megawatts to eight gigawatts | PASS | 0 |
+| 4. A gigawatt doesn't specify a water bill | PASS | 0 |
+| 5. The summer demand a yearly total hides | PASS | 0 |
+| 6. Electricity supply and carbon accounting | PASS | 0 |
+| Industry totals and individual prompts | PASS | 0 |
+| 7. From sector electricity to a prompt | PASS | 0 |
+| 8. The measurements I want published | PASS | 0 |
+| References | PASS | 0 |
+| **Total** | **PASS** | **0** |
+
+The punchier sentences retain concrete referents. For example, “A Google data center's water total doesn't become an AI-only footprint because an AI debate links to it” delivers a specific attribution judgment. “The dataset's definition does” resolves the withdrawal-versus-consumption distinction named immediately before it; it doesn't withhold a reveal.
+
 ## Link and freshness audit
 
 All external sources re-fetched2026-10-04. Water PDF hashesunchanged, arxiv remainsv1; energydata/sourceclaimsunchanged. See [water audit](ai-environmental-impact-water-link-audit.md) and [energy audit](ai-environmental-impact-energy-link-audit.md). KOLNidentitycorrectedtonewsreport. CoolingmechanismmovedtocurrentDOEgovernmentdocumentation andAlston-derivedprosetrimmed; source-budgetcheckwillbe repeatedaftercaptions. EIArelease mustberechecked if publicationfallsafterOct7. Figure code/render verification completed separately on 2026-10-04; see Browser and arithmetic verification below. Final water attribution check: AWS 159 words, Alston 195 before the final shorter reference, DOE 61. No over-budget source paraphrases remain.
+
+## Codex final review
+
+### Invocation 1, 2026-10-04 (review text; Markdown hard-break spaces normalized)
+
+1. **STRUCTURAL — Figure 4 leaves its conversion constant unexplained.**
+   [Caption, line 146](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:146), matrix **M02**: `gallons = IT kWh × withdrawal WUE ÷ 3.785411784`. The number is correct, but its meaning appears only in References. For the stated everyday-user audience, explain it where the formula appears: **“Multiplying electricity by withdrawal intensity gives liters; divide by 3.785411784 liters per US gallon to convert to gallons.”** No derivation is needed.
+
+2. **STRUCTURAL — E09’s quoted release-date source is missing from References.**
+   [Reference entry, line 266](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:266) links Table 5.a, but **E09** also quotes the separate release page to establish October 7, 2025. That date determines whether the household-electricity denominator passes freshness. Add the [EIA release record](https://www.eia.gov/electricity/sales_revenue_price/) to References, or hyperlink the release metadata within the existing entry. The date is verified; the defect is reference completeness.
+
+3. **COSMETIC — Figure 6 unnecessarily assumes exponent notation.**
+   [EnergyCarbon.svelte, line 31](/Users/vic/dev/augusteo.com-astro/src/components/figures/ai-environmental-impact/EnergyCarbon.svelte:31): “A million metric tonnes is 10¹² grams.” Replace `10¹²` with **“one trillion.”** This supplies the plain-language reading required by check 10.
+
+4. **COSMETIC — R1 links to the records viewer instead of the verified filing.**
+   The opening and [References, line 258](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:258) use the generic Nebraska viewer. Use the direct replacement-PDF URL already recorded under **R1**, consistently in both places. The local original confirms the reporting year and redactions; this is a navigation defect, not missing evidence.
+
+The two requested boundary checks do not recur: §5, Figure 5, M07/M15, and §6’s worked example explicitly assume **100% utility supply**. Figure 7 and §7 explicitly treat **13.14 TWh as required energy**, needing additional capacity or elapsed time beyond the original full-load campus year.
+
+No freshness regression was identified against the **2025-10-04** cutoff. EIAHOME is 362 days old; historical observation years and undated foundational-documentation boundaries remain explicit.
+
+All four findings repaired: Figure4 names liters-per-US-gallon and explains the conversion; EIA release record hyperlinked in References; component uses “one trillion”; both Nebraska links target the freshly verified PDF. No quantities or model inputs changed. Requested supply-source and capacity/time boundary checks explicitly passed. Invocation 2 returned “no structural issues found”; the final draft gate passed.
+
+### Invocation 2, 2026-10-04 (verbatim)
+
+no structural issues found
+
+No load-bearing claims, model assumptions, or inputs changed during repairs. Final text check verifies liters-per-gallon wording, linked EIA release metadata, two direct PDF links, plain-language trillion-gram conversion and carbon hydration. Latest production build passed after repairs: 122 pages, 17.12 seconds.
 
 ## Browser and arithmetic verification
 
@@ -477,7 +528,7 @@ Verified 2026-10-04 using locally installed Playwright Chromium, dev route `http
 - Reduced-motion context checked: no autoplay or looping animations. No custom drag area is used; controls are native range inputs.
 - JavaScript-disabled HTML retains every default calculation and explanatory source/caption text. Unhydrated controls are disabled. Dynamic charts have descriptive accessible labels and matching HTML numerical readouts.
 - Shared-model assertions confirm household year = 119,720 gallons; 1 GW full-load IT energy = 8.76 TWh; WUE .12 gives 277.7 million gallons; load 50% halves energy; zero withdrawal intensity gives zero site withdrawal; PUE 1.2 gives 10.512 TWh; factor 400 gives 4.2048 Mt; factor zero gives zero inventory emissions only; 3× tasks at .5× energy/task gives 13.14 TWh required; 2× at .5× and 10× at .1× both preserve energy. All seasonal peak factors 1–4 conserve annual volume and keep non-peak demand nonnegative.
-- Final production build passed: 122 pages, 18.21 seconds. The draft route is absent from production output, RSS and sitemaps. Existing site KaTeX/Vite warnings remain in the build log; no build errors.
+- Production builds passed; latest after final repairs: 122 pages, 17.12 seconds. The draft route is absent from production output, RSS and sitemaps. Existing site KaTeX/Vite warnings remain in the build log; no build errors.
 - `bash scripts/voice-check.sh src/content/blog/ai-environmental-impact/index.mdx` passes. Independent staged-prose review recorded separately above.
 
 ### Figure delivery commits
@@ -491,7 +542,7 @@ Verified 2026-10-04 using locally installed Playwright Chromium, dev route `http
 | 5 | Seasonal utility delivery headroom | 66c3f5f |
 | 6 | Facility electricity and inventory carbon | 65df0c6 |
 | 7 | Fixed-workload efficiency/growth threshold | e56aa7d |
-| All | Mobile labels and stable readouts | 90e05fb; final value alignment follows |
+| All | Mobile labels and stable readouts | 90e05fb; 6c2c2f6 value alignment and browser verification |
 
 ## Resume here
 
@@ -503,11 +554,11 @@ Last touched: 2026-10-04.
 |---|---|---|
 | 1. Lock-in | done; scope revised by Vic | Spec, Throughline, declarative working title |
 | 2. Research / fact-check | done | Matrix passed Gate0 after repairs; source bounds explicit |
-| 3. Outline + figure list | repaired | ThreeGate1reviews; final utility-source assumption clarified; types retained |
+| 3. Outline + figure list | repaired; verified in final draft | Three outline reviews; final review confirms 100% utility supply and energy/capacity boundaries; types retained |
 | 4. Draft prose | done | Eight sections drafted with citations; voice check clean |
 | 5. Implement figures | done | Seven sourced figures; five interactive |
 | 6. Playwright review | done | Four screen widths; 13 sliders; canvas redraws; SSR defaults; extreme states |
-| 7. Pre-ship review | in progress | Freshness/link and browser audits passed; final prose review pending; hero and publication remain separate |
+| 7. Pre-ship review | content review complete; unpublished | Freshness, links, source budgets, voice and final claim review passed. Hero selection and publication remain separate; draft:true |
 
 ### Codex history
 
@@ -517,11 +568,16 @@ Last touched: 2026-10-04.
 |2026-10-04|0 (research), invocation2|clean; structural-fixed|## Codex research review|
 |2026-10-04|1 (outline), invocation1|structural repairs applied|notes/ai-environmental-impact-codex-outline-20261004.md|
 |2026-10-04|1 (outline), invocation2|two new model-boundary/placement repairs applied|## Codex outline review|
-|2026-10-04|1 (outline), invocation3|one utility-source assumption clarified; finaldraft verification pending|## Codex outline review|
+|2026-10-04|1 (outline), invocation3|one utility-source assumption clarified; explicitly verified in final draft|## Codex outline review|
+|2026-10-04|1.5 (voice), invocation1|nine isolated sentence repairs applied|## Voice gate|
+|2026-10-04|1.5 (voice), invocation2|four concrete sentence repairs applied|## Voice gate|
+|2026-10-04|1.5 (voice), invocation3|clean; zero findings|## Voice gate|
+|2026-10-04|2 (final), invocation1|two explanatory/reference fixes and two cosmetic fixes applied; model boundaries confirmed|## Codex final review|
+|2026-10-04|2 (final), invocation2|clean; no structural issues found|## Codex final review|
 
 ### Suggested next batch
 
-Complete the independent final draft review, then hand Vic the finished draft and preview. Keep draft:true. Hero hand-off and publication follow only when Vic is ready.
+Draft hand-off is ready: `src/content/blog/ai-environmental-impact/index.mdx`, preview `http://127.0.0.1:4321/blog/ai-environmental-impact`. All figures and content reviews complete. Keep draft:true. Hero hand-off and publication follow separately when Vic is ready. Recheck EIA residential-release recency if publishing after October 7, 2026.
 
 ### How to resume from a fresh context
 

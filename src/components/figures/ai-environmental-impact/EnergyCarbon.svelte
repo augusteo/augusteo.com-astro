@@ -28,6 +28,6 @@
     <div><dt>Electricity-inventory emissions</dt><dd>{number(values.millionTonnes, 2)} million tonnes CO2e</dd></div>
     <div><dt>US residential-account energy-years</dt><dd>About {number(values.accountYears, 0)}</dd></div>
   </dl>
-  <p class="source">Facility kWh = IT kWh × PUE. Grams CO2e = facility kWh × chosen factor. A million metric tonnes is 10¹² grams. Construction, manufacturing, and the power system's response aren't calculated.</p>
+  <p class="source">Facility kWh = IT kWh × PUE. Grams CO2e = facility kWh × chosen factor. A million metric tonnes is one trillion grams. Construction, manufacturing, and the power system's response aren't calculated.</p>
   <noscript><p>Default inventory values appear above. Enable JavaScript to explore other inputs.</p></noscript>
 </div>
