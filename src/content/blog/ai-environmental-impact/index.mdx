@@ -53,3 +53,37 @@ That gives a water claim at least two operational boundaries: the facility and t
 
 Even a complete water balance for Lincoln's reported year wouldn't answer what a much larger, fully operating campus might need. That requires a measure of computing load.
 
+## A larger campus
+
+### 3. From 100 megawatts to eight gigawatts
+
+Power measures how fast electricity is being used. Energy measures how much is used over time. A one-gigawatt rating by itself supplies neither an annual electricity bill nor an annual water bill.
+
+One gigawatt is 1,000 megawatts. A [watt-hour](https://www.eia.gov/energyexplained/electricity/measuring-electricity.php) is one watt used for one hour. Keeping a one-gigawatt electrical load running for all 8,760 hours of a 365-day year uses 8.76 terawatt-hours (TWh). A TWh is a billion kilowatt-hours.
+
+For the scenarios below, capacity means *IT power*: the servers, storage, and networking equipment. Cooling and other facility overhead come later. The average electrical-load fraction is the year's average IT power divided by that capacity; it isn't a GPU utilization percentage.
+
+| Hypothetical IT capacity | IT electricity at continuous full load | Annual US residential-account equivalents |
+|---|---:|---:|
+| 100 MW | 0.876 TWh | About 85,000 |
+| 1 GW | 8.76 TWh | About 850,000 |
+| 5 GW | 43.8 TWh | About 4.2 million |
+| 8 GW | 70.08 TWh | About 6.8 million |
+| 10 GW | 87.6 TWh | About 8.5 million |
+
+The household electricity denominator comes from [EIA's 2024 residential data](https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf): 863 kWh per customer account per month, approximately 10,356 kWh over a year. It's an account average, not a measurement of our particular family of four. These equivalents cover IT electricity alone.
+
+At a 50% average electrical load, halve the table's energy figures. To get total facility energy, multiply IT energy by *power usage effectiveness*, or PUE. [Google's explanation](https://datacenters.google/efficiency/) defines that overhead relationship. A hypothetical PUE of 1.2 means 20% more electricity than the IT equipment alone.
+
+Gigawatt-scale proposals are real, but their announced capacities need their original labels:
+
+| Project | Operator's announced capacity | Stage and boundary |
+|---|---|---|
+| [Meta Prometheus](https://engineering.fb.com/2026/02/09/data-center-engineering/building-prometheus-how-backend-aggregation-enables-gigawatt-scale-ai-clusters/) | 1 GW | Capacity once complete; the announcement doesn't specify the IT/facility split |
+| [Meta Hyperion expansion](https://datacenters.atmeta.com/2026/07/deepening-our-investment-in-richland-parish-louisiana/) | 5 GW of compute capacity | Expansion target; the announcement doesn't reconcile the IT/facility boundary |
+| [OpenAI PORTS-Pike](https://openai.com/index/openai-joins-ports-pike-project/) | Approximately 8 GW IT | Contracted future capacity; first 800 MW expected in 2028 |
+
+The generic table isn't a forecast for those projects. It shows what the stated electrical load would require if it ran continuously. An announcement of future capacity needs operating measurements before it becomes an annual-use claim.
+
+Now we can estimate IT electricity under stated assumptions. Turning it into water still needs a cooling-water intensity.
+
