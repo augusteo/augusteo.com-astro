@@ -20,7 +20,7 @@ import VolumeScale from "@components/figures/ai-environmental-impact/VolumeScale
 
 A data center's annual water total can't tell me whether its neighbors will run short. I need to know what that number measures and what the local system can supply.
 
-The story that prompted this was a [September 2026 KOLN report](https://www.1011now.com/2026/09/30/more-questions-than-answers-about-lincolns-google-data-center-water-electricity-usage/) about Google's Lincoln, Nebraska facility. KOLN reported 13.299 million gallons for 2025, extracted from an improperly redacted filing. The [replacement state filing](https://ecmp.nebraska.gov/PublicAccess/index.html?MyQueryID=340) confirms the reporting year but redacts the values. I'm treating 13.299 million as the amount the newspaper reported, rather than an independently verified meter reading.
+The story that prompted this was a [September 2026 KOLN report](https://www.1011now.com/2026/09/30/more-questions-than-answers-about-lincolns-google-data-center-water-electricity-usage/) about Google's Lincoln, Nebraska facility. KOLN reported 13.299 million gallons for 2025, extracted from an improperly redacted filing. The [replacement state filing](https://ecmp.nebraska.gov/PublicAccess/index.html?MyQueryID=340) confirms the reporting year but redacts the values. I'm treating 13.299 million as the amount the news report gave, rather than an independently verified meter reading.
 
 KOLN already compares that amount with one day of Lincoln's water use. That's a useful start. A household comparison gives me another way to understand the volume.
 
@@ -50,9 +50,9 @@ For a deliberately simple example, imagine two facilities that each withdraw 100
 
 Those fractions are invented to explain the distinction. They aren't estimates for Google or for household plumbing. Comparing household water supplied with a facility's evaporative consumption would compare two different quantities, even if both were measured in gallons.
 
-The cooling label also needs a boundary. Liquid circulating through a server collects heat; another system still has to reject that heat outside the facility. An internal liquid loop doesn't tell us whether the final step uses a cooling tower or rejects heat to air.
+The cooling label also needs a boundary. As [DOE's cooling-water guide](https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers) explains, an internal liquid loop transfers heat to another system. That final heat-rejection system determines whether cooling water evaporates at the site.
 
-A [September 2026 preprint by Garrett Alston, Nancy Love, and Rabab Haider](https://arxiv.org/html/2609.25437v1) makes those distinctions explicit and models cooling choices together with electricity generation and local water availability. In its Michigan scenarios, changing cooling can shift water demand from the facility to generators. It's a modeling preprint, with assumed loads and historical inputs, so its numerical tradeoffs shouldn't be transplanted to every campus.
+In a [September 2026 preprint](https://arxiv.org/html/2609.25437v1), Garrett Alston, Nancy Love, and Rabab Haider model facility cooling, electricity generation, and local water conditions in Michigan. Their scenarios can shift water consumption between facilities and generators. The results depend on assumed loads and historical inputs.
 
 That gives a water claim at least two operational boundaries: the facility and the electricity supplying it. Construction and equipment manufacturing would expand the boundary again. A site cooling-water number covers only part of that assessment.
 
@@ -211,6 +211,7 @@ Sources checked October 4, 2026. Corporate capacity announcements describe plans
 - [NYC DEP: Drinking water](https://www.nyc.gov/site/dep/water/drinking-water.page), broader supply-system daily delivery reference.
 - [Google: Nebraska data centers](https://datacenters.google/locations/nebraska/), 2026 Lincoln timeline.
 - [Alston, Love, and Haider: Data center cooling choices shift water impacts across the grid](https://arxiv.org/html/2609.25437v1), September 21, 2026 preprint, especially sections 1, 2, 4.4, and 4.5.
+- [DOE: Cooling-water efficiency opportunities for federal data centers](https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers), engineering guidance for recirculating loops and external heat rejection; no historical performance averages used.
 - [EIA: Measuring electricity](https://www.eia.gov/energyexplained/electricity/measuring-electricity.php), unit definitions.
 - [EIA: 2024 residential monthly electricity data, Table 5.a](https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf), released October 7, 2025, US total row. Recheck the latest release before publication.
 - [Google: Data-center efficiency](https://datacenters.google/efficiency/), PUE definition.
