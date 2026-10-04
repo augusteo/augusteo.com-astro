@@ -46,7 +46,30 @@ A household equivalent is a useful volume conversion. Assessing local water loss
 
 For a deliberately simple example, imagine two facilities that each withdraw 100 units. One returns 20 units to the same source environment and evaporates 80. The other returns 80 and evaporates 20. Their withdrawals match; their local consumption differs by a factor of four.
 
-{/* FIGURE-2 */}
+<Figure figNum={2} caption="Two hypothetical water balances over the same period. Both withdraw 100 units from the depicted source environment. Returning 20 units there leaves 80 locally consumed; returning 80 leaves 20 consumed. All returns shown reach that same source during the modeled period. These fractions are invented, and aren't later scenario inputs.">
+<svg viewBox="0 0 360 350" width="100%" role="img" aria-label="Two hypothetical facilities each withdraw 100 units. Upper case: 20 return to the same source and 80 evaporate. Lower case: 80 return and 20 evaporate. Equal withdrawals produce different local consumption." xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="ai-flow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#2563EB" /></marker><marker id="ai-flow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#059669" /></marker><marker id="ai-flow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#B91C1C" /></marker></defs>
+  <g font-family="ui-monospace, monospace" font-size="18" fill="#1A1A1A">
+    <text x="10" y="24">Case A: 80 consumed locally</text>
+    <rect x="10" y="73" width="80" height="48" rx="4" fill="#EDE5D4" stroke="#8F8578" />
+    <rect x="145" y="73" width="74" height="48" rx="4" fill="#EDE5D4" stroke="#8F8578" />
+    <rect x="274" y="73" width="76" height="48" rx="4" fill="#EDE5D4" stroke="#8F8578" />
+    <text x="50" y="102" text-anchor="middle">Source</text><text x="182" y="102" text-anchor="middle">Site</text><text x="312" y="102" text-anchor="middle">Air</text>
+    <path d="M90 80 L145 80" stroke="#2563EB" stroke-width="4" marker-end="url(#ai-flow-blue)" /><text x="117" y="62" text-anchor="middle">100</text>
+    <path d="M219 80 L274 80" stroke="#B91C1C" stroke-width="3.2" marker-end="url(#ai-flow-red)" /><text x="246" y="62" text-anchor="middle">80</text>
+    <path d="M160 121 L160 148 L50 148 L50 122" fill="none" stroke="#059669" stroke-width="1.2" marker-end="url(#ai-flow-green)" /><text x="110" y="174" text-anchor="middle">20 returned</text>
+    <line x1="10" y1="193" x2="350" y2="193" stroke="#C9BEAA" />
+    <text x="10" y="220">Case B: 20 consumed locally</text>
+    <rect x="10" y="263" width="80" height="48" rx="4" fill="#EDE5D4" stroke="#8F8578" />
+    <rect x="145" y="263" width="74" height="48" rx="4" fill="#EDE5D4" stroke="#8F8578" />
+    <rect x="274" y="263" width="76" height="48" rx="4" fill="#EDE5D4" stroke="#8F8578" />
+    <text x="50" y="292" text-anchor="middle">Source</text><text x="182" y="292" text-anchor="middle">Site</text><text x="312" y="292" text-anchor="middle">Air</text>
+    <path d="M90 270 L145 270" stroke="#2563EB" stroke-width="4" marker-end="url(#ai-flow-blue)" /><text x="117" y="252" text-anchor="middle">100</text>
+    <path d="M219 270 L274 270" stroke="#B91C1C" stroke-width="1.2" marker-end="url(#ai-flow-red)" /><text x="246" y="252" text-anchor="middle">20</text>
+    <path d="M160 311 L160 327 L50 327 L50 312" fill="none" stroke="#059669" stroke-width="3.2" marker-end="url(#ai-flow-green)" /><text x="249" y="340" text-anchor="middle">80 returned</text>
+  </g>
+</svg>
+</Figure>
 
 Those fractions are invented to explain the distinction. They aren't estimates for Google or for household plumbing. Comparing household water supplied with a facility's evaporative consumption would compare two different quantities, even if both were measured in gallons.
 
