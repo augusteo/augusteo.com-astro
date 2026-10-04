@@ -3,10 +3,10 @@ import { label, line, dot } from './chart';
 
 export interface GrowthState { tasks: number; fraction: number }
 export function draw(ctx: CanvasRenderingContext2D, s: GrowthState) {
-  const left = 65, right = 370, top = 65, bottom = 200;
+  const left = 80, right = 370, top = 65, bottom = 200;
   const x = (v: number) => left + (v - 1) / 9 * (right - left);
   const y = (v: number) => bottom - v * (bottom - top);
-  label(ctx, 'Same-total-electricity threshold', 18, 25, 17);
+  label(ctx, 'Same-energy threshold', 18, 25, 17);
   label(ctx, 'Energy / task (baseline = 1)', 18, 51, 16);
   for (const v of [0, 0.5, 1]) {
     line(ctx, left, y(v), right, y(v));
@@ -30,5 +30,5 @@ export function draw(ctx: CanvasRenderingContext2D, s: GrowthState) {
   ctx.stroke();
   dot(ctx, x(s.tasks), y(s.fraction), palette.primary);
   for (const v of [1, 3, 5, 10]) label(ctx, String(v), x(v), 225, 18, 'center');
-  label(ctx, 'Task count / baseline task count', 215, 254, 16, 'center');
+  label(ctx, 'Task count / baseline', 215, 254, 16, 'center');
 }

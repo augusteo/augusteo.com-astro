@@ -4,11 +4,11 @@ import { volume, number } from './model';
 
 export interface VolumeState { people: number; daily: number }
 export function draw(ctx: CanvasRenderingContext2D, s: VolumeState) {
-  const left = 65, right = 370, top = 55, bottom = 185;
+  const left = 80, right = 370, top = 55, bottom = 185;
   const maximum = Math.ceil(volume(s.people, 50).householdYears / 50) * 50;
   const x = (v: number) => left + (v - 50) / 100 * (right - left);
   const y = (v: number) => bottom - v / maximum * (bottom - top);
-  label(ctx, 'Household-years of supplied water', 18, 25, 17);
+  label(ctx, 'Household-years of water', 18, 25, 17);
   for (const v of [0, maximum / 2, maximum]) {
     line(ctx, left, y(v), right, y(v));
     label(ctx, number(v, 0), left - 8, y(v) + 6, 17, 'right');

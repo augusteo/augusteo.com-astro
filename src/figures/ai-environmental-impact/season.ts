@@ -5,7 +5,7 @@ import { season, number } from './model';
 export interface SeasonState { annual: number; peak: number; headroom: number }
 export function draw(ctx: CanvasRenderingContext2D, s: SeasonState) {
   const values = season(s.annual, s.peak, s.headroom);
-  const left = 65, right = 370, top = 80, bottom = 205;
+  const left = 80, right = 370, top = 80, bottom = 205;
   const maximum = Math.ceil(Math.max(values.summer, s.headroom) * 1.15 * 2) / 2;
   const y = (v: number) => bottom - v / maximum * (bottom - top);
   label(ctx, 'Million US gallons / day', 18, 25, 19);

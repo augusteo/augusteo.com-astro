@@ -2,7 +2,7 @@ import { palette, font } from '../shared';
 
 export function label(ctx: CanvasRenderingContext2D, text: string, x: number,
   y: number, size = 18, align: CanvasTextAlign = 'left', color = '#1A1A1A') {
-  ctx.font = `${size}px ${font.mono}`;
+  ctx.font = `${Math.max(size, 20)}px ${font.mono}`;
   ctx.fillStyle = color;
   ctx.textAlign = align;
   ctx.fillText(text, x, y);

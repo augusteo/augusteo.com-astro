@@ -4,7 +4,7 @@ import { campus, number } from './model';
 
 export interface SizeState { mw: number; load: number; wue: number }
 export function draw(ctx: CanvasRenderingContext2D, s: SizeState) {
-  const left = 65, right = 370, top = 70, bottom = 190;
+  const left = 80, right = 370, top = 70, bottom = 190;
   const rawMaximum = campus(s.mw, s.load, 3).gallons / 1e9;
   const magnitude = 10 ** Math.floor(Math.log10(rawMaximum));
   const maximum = Math.ceil(rawMaximum / magnitude) * magnitude;
