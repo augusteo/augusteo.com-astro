@@ -87,3 +87,25 @@ The generic table isn't a forecast for those projects. It shows what the stated 
 
 Now we can estimate IT electricity under stated assumptions. Turning it into water still needs a cooling-water intensity.
 
+### 4. A gigawatt doesn't specify a water bill
+
+Water usage effectiveness, or WUE, expresses site water use per unit of IT electricity. The name alone doesn't settle whether the numerator is withdrawal or consumption. The dataset's definition does.
+
+[AWS defines its reported WUE](https://sustainability.aboutamazon.com/products-services/aws-cloud) as liters withdrawn per kWh of IT load. Its 2025 regional averages include 0.02 in Stockholm, 1.22 in Tokyo, 1.57 in Singapore, and 2.85 in Jakarta. That's roughly a 140-fold difference between the lowest and highest of those regions, using the same provider, year, and metric.
+
+{/* FIGURE-3 */}
+
+These are operator-reported averages across AWS workloads. They aren't measurements of the same AI prompt in four places, and they don't rank ecological harm. They demonstrate how much the water intensity can vary even before local scarcity enters the calculation.
+
+For a hypothetical one-gigawatt IT load operating continuously, apply AWS's reported 2025 global average of 0.12 liters per IT kWh. The arithmetic is 8.76 billion kWh times 0.12 liters, which gives about 1.05 billion liters, or 277.7 million US gallons of annual site withdrawals.
+
+That's about 2,300 illustrative four-person household-years of water supplied. It's a substantial industrial demand. It also changes directly with the electrical load and the chosen withdrawal intensity.
+
+{/* FIGURE-4 */}
+
+The calculator lets those assumptions vary separately so their effects are visible. A real cooling design can tie water intensity and electricity overhead together; arbitrary slider combinations aren't validated engineering designs. The water output also excludes power-generation water and hardware manufacturing.
+
+I wouldn't assign this AWS-based scenario to Prometheus, Hyperion, or PORTS-Pike. Their actual water demand needs their own design and operating data, with compatible power boundaries. Multiplying an unspecified total-facility GW rating by a per-IT-kWh factor would mix denominators.
+
+The one-gigawatt reference scenario gives us an annual withdrawal amount. A local utility still has to deliver water when the facility needs it.
+
