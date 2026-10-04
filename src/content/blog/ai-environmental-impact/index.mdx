@@ -33,3 +33,23 @@ These comparisons describe the same volume. None tells me how much water evapora
 
 There's also an operating-stage problem: [Google's own timeline](https://datacenters.google/locations/nebraska/) says Lincoln came online in 2026. Its reported 2025 use can't establish a mature annual operating rate. And the reported site total doesn't isolate AI workloads. A Google data center's water total doesn't become an AI-only footprint because an AI debate links to it.
 
+### 2. Where the water goes
+
+A household equivalent is a useful volume conversion. Assessing local water loss requires a different calculation.
+
+*Withdrawal* is water taken from a source. *Consumption* is the portion that doesn't return to the immediate water environment over the accounting period. Evaporation is one way cooling consumes water. A return to another watershed, or after the period when the source needs it, needs its own accounting.
+
+For a deliberately simple example, imagine two facilities that each withdraw 100 units. One returns 20 units to the same source environment and evaporates 80. The other returns 80 and evaporates 20. Their withdrawals match; their local consumption differs by a factor of four.
+
+{/* FIGURE-2 */}
+
+Those fractions are invented to explain the distinction. They aren't estimates for Google or for household plumbing. Comparing household water supplied with a facility's evaporative consumption would compare two different quantities, even if both were measured in gallons.
+
+The cooling label also needs a boundary. Liquid circulating through a server collects heat; another system still has to reject that heat outside the facility. An internal liquid loop doesn't tell us whether the final step uses a cooling tower or rejects heat to air.
+
+A [September 2026 preprint by Garrett Alston, Nancy Love, and Rabab Haider](https://arxiv.org/html/2609.25437v1) makes those distinctions explicit and models cooling choices together with electricity generation and local water availability. In its Michigan scenarios, changing cooling can shift water demand from the facility to generators. It's a modeling preprint, with assumed loads and historical inputs, so its numerical tradeoffs shouldn't be transplanted to every campus.
+
+That gives a water claim at least two operational boundaries: the facility and the electricity supplying it. Construction and equipment manufacturing would expand the boundary again. A site cooling-water number covers only part of that assessment.
+
+Even a complete water balance for Lincoln's reported year wouldn't answer what a much larger, fully operating campus might need. That requires a measure of computing load.
+
