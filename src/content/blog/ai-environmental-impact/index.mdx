@@ -73,7 +73,7 @@ For a deliberately simple example, imagine two facilities that each withdraw 100
 
 Those fractions are invented to explain the distinction. They aren't estimates for Google or for household plumbing. Comparing household water supplied with a facility's evaporative consumption would compare two different quantities, even if both were measured in gallons.
 
-The cooling label also needs a boundary. As [DOE's cooling-water guide](https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers) explains, an internal liquid loop transfers heat to another system. That final heat-rejection system determines whether cooling water evaporates at the site.
+Liquid cooling inside a server doesn't specify how the facility releases heat outdoors. As [DOE's cooling-water guide](https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers) explains, an internal liquid loop transfers heat to another system. That final heat-rejection system determines whether cooling water evaporates at the site.
 
 In a [September 2026 preprint](https://arxiv.org/html/2609.25437v1), Garrett Alston, Nancy Love, and Rabab Haider model facility cooling, electricity generation, and local water conditions in Michigan. Their scenarios can shift water consumption between facilities and generators. The results depend on assumed loads and historical inputs.
 
@@ -89,7 +89,7 @@ Power measures how fast electricity is being used. Energy measures how much is u
 
 One gigawatt is 1,000 megawatts. A [watt-hour](https://www.eia.gov/energyexplained/electricity/measuring-electricity.php) is one watt used for one hour. Keeping a one-gigawatt electrical load running for all 8,760 hours of a 365-day year uses 8.76 terawatt-hours (TWh). A TWh is a billion kilowatt-hours.
 
-For the scenarios below, capacity means *IT power*: the servers, storage, and networking equipment. Cooling and other facility overhead come later. The average electrical-load fraction is the year's average IT power divided by that capacity; it isn't a GPU utilization percentage.
+For the scenarios below, capacity means *IT power*: the servers, storage, and networking equipment. IT capacity excludes cooling and other facility overhead. The average electrical-load fraction is the year's average IT power divided by that capacity; it isn't a GPU utilization percentage.
 
 | Hypothetical IT capacity | IT electricity at continuous full load | Annual US residential-account equivalents |
 |---|---:|---:|
@@ -113,7 +113,7 @@ Gigawatt-scale proposals are real, but their announced capacities need their ori
 
 The generic table isn't a forecast for those projects. It shows what the stated electrical load would require if it ran continuously. An announcement of future capacity needs operating measurements before it becomes an annual-use claim.
 
-Now we can estimate IT electricity under stated assumptions. Turning it into water still needs a cooling-water intensity.
+Annual IT electricity equals IT capacity multiplied by the year's average electrical-load fraction and the number of hours in the year. Turning it into water still needs a cooling-water intensity.
 
 ### 4. A gigawatt doesn't specify a water bill
 
@@ -186,13 +186,13 @@ Those factors are illustrative inputs, not measured grid factors for Lincoln or 
 
 [EPA's eGRID guidance](https://www.epa.gov/egrid/frequent-questions-about-egrid) explains why generation mix affects average emissions, and why inventory averages and marginal emissions answer different questions. An average describes the existing mix. Estimating the consequence of another large load requires knowing which generation changes and what infrastructure gets built.
 
-Carbon reports add another distinction. In the [GHG Protocol's accounting definitions](https://ghgprotocol.org/sites/default/files/2025-10/GHG-Protocol-Scope2-Public-Consultation.pdf), location-based figures use geographically averaged generation factors. Market-based figures attribute electricity through contractual instruments. The cited 2025 consultation document reproduces the existing definitions alongside proposed revisions; I'm using those definitions here.
+Carbon reports distinguish location-based emissions from market-based emissions. In the [GHG Protocol's accounting definitions](https://ghgprotocol.org/sites/default/files/2025-10/GHG-Protocol-Scope2-Public-Consultation.pdf), location-based figures use geographically averaged generation factors. Market-based figures attribute electricity through contractual instruments. The cited 2025 consultation document reproduces the existing definitions alongside proposed revisions; I'm using those definitions here.
 
 A renewable-electricity contract can affect a company's market-based account. It doesn't, by itself, give me an hourly picture of the generators supplying its site or the emissions caused by its expansion. Those claims need evidence suited to those questions.
 
-Apply the checks together to our reference scenario. Its stated assumptions produce 277.7 million gallons of annual site withdrawals and 10.512 TWh of facility electricity. With all water supplied by the toy utility, the chosen summer peak exceeds its chosen one-million-gallon daily delivery headroom; the chosen carbon factor yields 4.20 million tonnes.
+The utility-capacity test compares summer water demand with delivery headroom; the emissions calculation multiplies annual facility electricity by the chosen emissions factor. Its stated assumptions produce 277.7 million gallons of annual site withdrawals and 10.512 TWh of facility electricity. With all water supplied by the toy utility, the chosen summer peak exceeds its chosen one-million-gallon daily delivery headroom; the chosen carbon factor yields 4.20 million tonnes.
 
-The delivery calculation identifies a constraint under those assumptions. Local consumptive loss remains unknown because we haven't supplied return flows or source conditions. The carbon calculation remains an inventory scenario because we haven't modeled the power system's response. I can state those limits without pretending either the water or electricity demand is harmless.
+The delivery calculation identifies a constraint under those assumptions. Local consumptive loss remains unknown because we haven't supplied return flows or source conditions. The carbon calculation remains an inventory scenario because we haven't modeled the power system's response. The calculated withdrawals and electricity use still need assessments of local water loss and the power system's response.
 
 One campus also can't tell us how much electricity the entire industry uses. That needs an industry estimate with its own population and time period.
 
@@ -202,11 +202,11 @@ One campus also can't tell us how much electricity the entire industry uses. Tha
 
 The [IEA's April 2026 assessment](https://www.iea.org/reports/key-questions-on-energy-and-ai/executive-summary) estimates that all data centers used 485 TWh in 2025. Its central projection reaches 950 TWh in 2030, around 3% of projected global electricity demand that year. Those totals include workloads beyond AI, and the 2030 figure is a forecast.
 
-This is where terawatt-hours are useful. A terawatt is power; a terawatt-hour is energy. A hypothetical one-terawatt continuous load would require 8,760 TWh a year, roughly eighteen times that 2025 industry estimate. None of the project sources above describes an operating terawatt campus. Swapping TW and TWh would make a very different claim.
+The IEA expresses annual data-center electricity use in terawatt-hours. A terawatt is power; a terawatt-hour is energy. A hypothetical one-terawatt continuous load would require 8,760 TWh a year, roughly eighteen times that 2025 industry estimate. None of the project sources above describes an operating terawatt campus. Swapping TW and TWh would make a very different claim.
 
 An everyday AI user's question is smaller: how much electricity did this particular task require? The IEA also describes substantial differences between simple text generation and reasoning, video, or agentic workloads. A count of requests doesn't specify the amount of computing work.
 
-That affects the efficiency argument too. For a toy calculation, define a task as one repetition of the same fixed workload (with the same output specification), and keep the workload mix unchanged. Required IT electricity equals task count times mean electricity per task.
+Changing the mix of tasks can change average electricity per task, even if each task's energy requirement stays the same. For a toy calculation, define a task as one repetition of the same fixed workload (with the same output specification), and keep the workload mix unchanged. Required IT electricity equals task count times mean electricity per task.
 
 If electricity per task halves while the number of these tasks triples, required electricity grows by 50%. To hold electricity flat with three times the work, each task must use at most one-third of the previous energy. The interactive curve shows that threshold across different growth assumptions.
 
@@ -234,7 +234,7 @@ For that facility assessment, I want operators to publish:
 
 Those disclosures would let readers test the comparisons instead of guessing what a rounded annual total includes. Withdrawal intensity measures the site water required per unit of IT electricity. Local return flows, utility headroom, and generation changes determine what else that demand requires from the surrounding systems.
 
-Return to Lincoln's reported 13.299 million gallons. The household and city equivalents still help me understand the volume. They still don't establish an AI-only total, the facility's mature operating demand, or its effect on local water availability.
+KOLN's reported 2025 water total for Google's Lincoln site is 13.299 million gallons. The household and city equivalents still help me understand the volume. They still don't establish an AI-only total, the facility's mature operating demand, or its effect on local water availability.
 
 I want the monthly water balance and the full-buildout demand public before a community is asked to accommodate a new campus. Residents need numbers they can compare with the water and electricity their own systems can actually provide.
 

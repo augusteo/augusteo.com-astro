@@ -104,13 +104,17 @@ Quality: original research **preprint**, Michigan modeling study, not universal 
 
 ### NIST26: exact unit conversion
 
-[NIST Handbook44–2026 AppendixC](https://www.nist.gov/document/2026-nist-handbook-44-appendix-c),2026edition. PrintedC-9/C-21: “2.54 centimeters (exactly)” per inch; C-24: “231 cubic inches (exactly)” per US liquid gallon. Thus231×(2.54^3)/1000=3.785411784L exactly. Fundamental unit derivation in current2026reference. No empirical environmental assumption.
+[NIST Handbook44–2026 AppendixC](https://www.nist.gov/document/2026-nist-handbook-44-appendix-c),2026edition. PrintedC-9/C-21: “2.54 centimeters (exactly)” per inch; C-25: “231 cubic inches (exactly)” per US liquid gallon. Thus231×(2.54^3)/1000=3.785411784L exactly. Fundamental unit derivation in current2026reference. No empirical environmental assumption.
 
 ### Local primary-PDF verification artifacts
 
 Root retrieved both PDF URLs on2026-10-04, outside reviewer's restricted network, after reviewer reported access limits. PDF content is primary source, not a paraphrase. Read-only reviewer can inspect local copies directly. Do not claim reviewer fetched public URLs independently.
 - `/tmp/lincoln-water-2025.pdf` SHA256 `18a0c4658e5dc04375b495ba103f5b023936ad1c27fef216e9de65081dfeb977`; extracted page text `/tmp/lincoln-water-2025.txt`.
 - `/tmp/agate-redacted-2025.pdf` SHA256 `74340e20e90e59328f83731c2bb026df4ebd35786ad1a3a6a35392ddcfc6b7df`; extracted page text `/tmp/agate-redacted-2025.txt`.
+
+### D1: DOE cooling mechanism documentation
+
+[DOE FEMP cooling-water guide](https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers), undated current government engineering documentation accessed2026-10-04. Direct liquid cooling section: “heat is transferred to the condenser water loop”. Explains recirculating internalloop andexternalheat rejection. Diagramdated2019doesnotbecome2026performanceevidence. No measuredPUE/WUEvalues fromthisguide used. Undateddocumentation uses accessdateperprotocol; foundational mechanismonly.
 
 ## Claim-source matrix
 
@@ -133,7 +137,7 @@ Root retrieved both PDF URLs on2026-10-04, outside reviewer's restricted network
 | W11 | AWS 2025 Stockholm 0.02, Jakarta 2.85 liters withdrawn per IT kWh | A1 table: “0.02”, “2.85”; definition excerpt A1 (withdrawals / IT kWh) | SUPPORTED first-party dataset; not consumption or AI-only |
 | W12 | AWS regional withdrawal intensities differ about 140-fold | W11: 2.85 / 0.02 = 142.5 | DERIVED; rounded values, matched provider/year/metric |
 | W13 | AWS global 0.12, Singapore 1.57, Tokyo 1.22 liters withdrawn per IT kWh | A1 tables: “0.12”, “1.57”, “1.22”; definition excerpt A1 | SUPPORTED scenario presets; not predictions |
-| W14 | Liquid-cooled servers require a heat-rejection method beyond the internal loop | P1 §2.1.4; excerpt P1 | SUPPORTED mechanism; not all such facilities evaporate water |
+| W14 | Liquid-cooled servers require a heat-rejection method beyond the internal loop | P1 §2.1.4; excerpt P1; D1 direct-liquid-cooling section excerpt | SUPPORTED mechanism; not all such facilities evaporate water |
 | W15 | Cooling changes can shift water between facility and generators | P1 §§4.1, 5.1: “indirect consumption”; compare modeled cooling counterfactuals in surrounding paragraph | SUPPORTED modeled mechanism; universal numerical effect unsupported |
 | W16 | Local risk depends on existing uses and availability, which change with time | P1 §1: “existing consumption and available water”; §4.4: “month to month”; complete paragraphs checked | SUPPORTED model framework; city annual volume is not spare capacity |
 | W17 | WithdrawalWUE per ITkWh requires matching IT energy; facility energy needs PUE reconciliation | A1 definition excerpt A1, E11 overhead definition; dimensional arithmetic | DERIVED; no AWS consumption output |
@@ -173,14 +177,14 @@ Quoted excerpts are intentionally capped at 25 total quoted words per distinct s
 | M04 | 1GWIT full-load at0.12L/kWh yields277.7milliongal/year | M01/M02/W13; site withdrawal scenario, not prediction |
 | M05 | 1GWIT scenario corresponds to about850000 residential-account years | M01/E09;2024account denominator, not family-specific |
 | M06 | Three summer months at peak factorp and nine at(12-3p)/9 preserve annual volume, p=1..4 | Original hypothetical scenario; monthly equal-duration approximation explicitly labeled, no actual facility seasonal curve |
-| M07 | Hypothetical spare utility delivery supply means utility DELIVERY capacity remaining AFTER existing users and reserves | Definition of scenario; compare seasonal demands with fixed hypothetical headroom, cannot infer actual city capacity |
+| M07 | All sitewithdrawals supplied100% by modeledutility; hypothetical spare utility delivery supply means utility DELIVERY capacity remaining AFTER existing users and reserves | Definition of scenario; compare seasonal demands with fixed hypothetical headroom, cannot infer actual city capacity |
 | M08 | ElectricityCO2e = ITkWh ×PUE ×chosen gCO2e/kWh; metric-tonne conversion1e6 | E11/E14; inventory scenario, not marginal causal estimate; exclude embodied effects |
 | M09 | Required normalized IT electricity =task-count multiple × ITenergy/task fraction; fixed workloadmix, abovebaseline needsadditionalcapacity/time | Algebra; no empirical rebound causality claim |
 | M10 | 1TW continuous load would yield8760TWh/year; no verified singleTWcampus located | M01; arithmetic only. Use sector TWh rather than imply operating terawatt campus |
 | M11 | A household/city volume equivalent cannot settle environmental harm | W10/W16: unknown returned fraction, source, season, local headroom. Editorial inference, explicitly argued |
 | M12 | Operational water accounting excludes construction and equipment manufacturing | P1§2: “manufacturing”, paragraph states these activities outside model scope | Scope boundary, not quantified lifecyclefootprint |
 | M13 | A universal prompt footprint cannot be obtained from capacity announcement or averageWUE alone | E04/W17: need taskenergy, routing, metric boundary; inference |
-| M15 | Worked1GWIT scenario:8.76TWhIT,10.512TWhfacility atPUE1.2,277.7MGsitewithdrawalatWUE.12;summer2×average1.52MG/day exceeds chosen1MG/day headroom;400g/kWh yields4.2048MtCO2e | M01,M04,M06,M07,M08; all hypothetical jointinputs, no namedsiteforecast |
+| M15 | All water supplied100% by modeledutility. Worked1GWIT scenario:8.76TWhIT,10.512TWhfacility atPUE1.2,277.7MGsitewithdrawalatWUE.12;summer2×average1.52MG/day exceeds chosen1MG/day headroom;400g/kWh yields4.2048MtCO2e | M01,M04,M06,M07,M08; all hypothetical jointinputs, no namedsiteforecast |
 | M14 | Disclosure request includes definedworkload/meanresourcepermatchedtask and year, monthly sitewithdrawal/consumption/source, IT and facilitykWh, load, build stage, grid/carbonmethod, local capacity | Editorial recommendation based W04/W10/W16/W17/E07/E11/E12/E13; no legal requirement asserted |
 
 Quotes are evidence snippets, not prose to repeat. W05 proves what KOLN reported, NOT the truth of underlying measurements. KOLN is the motivating news event, not a primary operational dataset. All numeric operations based on it remain explicitly conditional. Current government/operator pages may describe historical observations; dates are retained. Undated EIA unit definition is used as a definition and arithmetic anchor, not an evolving empirical observation. No USGS2018/DOE2019 evolving empirical row remains load-bearing.
@@ -202,7 +206,7 @@ Reader throughline: Act1(§§1–2) assess one reported annual water amount, tra
 |2. Where the water goes|Equal supply volumes can yield different local depletion. Distinguish withdrawals, return, consumption and offsitegeneration. Consumption means no return to the immediate source environment; do not make a global persistence assertion. Two toy cases withdraw100units from the same depicted sourceenvironment:20returnthere/80evaporateversus80returnthere/20evaporate. The destination and timing of returns are explicit. No assumed fraction transfers to Lincoln or the1GWscenario. Liquid cooling inside servers does not settle external heat rejection.|W10,W14,W15,M11,M12;Fig2|
 |3. From100megawatts to8gigawatts|Lincoln cannot establish full-buildout impact elsewhere. Capacity is power; annualenergy requires time and averageelectricalload. ExplainITboundary andPUEoverhead. Generic100MW/1/5/8/10GWenergytable plusresidentialaccount equivalents. Named1/5/8GWannouncements table clearlyfuture;MetaITboundaryunspecified.|E05,E06,E07,E09,E10,E11,M01,M03,M05|
 |4. A gigawatt doesn't specify a water bill|Water still needscompatibleintensity. AWSmatchedregion/year/methodshowsvariation. ExplainwithdrawalWUEperITkWh andfull-load1GW .12scenario277.7MGyr; neitherAWSregionaldata norcalculatorpredictsnamedcampuses. Power/load/WUE sweeptranslatesmegawattstogallons visibly.|W11–W13,W17,M02,M04;Figs3and4|
-|5. The summer demand a yearly total hides|Evencomputedannualwater cannotestablishharm: comparedemandwith sparewatercapacityafterexistingusers/reserves. DefineheadroomasUTILITYDELIVERYcapacityafterexistingusersandreserves, NOTsource-basinavailabilityorpermittedabstraction. Belowline doesnot proveecologicalsafety; returnfractions/basinseasonalitystillunknown. Toycurvepreservesannualvolume, threeequal-durationmonthspeak andninecompensate; originalarithmeticdemonstratescapacitythresholdwithoutclaimactualseasonalprofile. Explainflow/monthely availability andreturnlimits.|W16,M06,M07,M11;Fig5|
+|5. The summer demand a yearly total hides|Evencomputedannualwater cannotestablishharm: comparedemandwith sparewatercapacityafterexistingusers/reserves. Assumefacilityobtains100%ofwaterfromthisutility. DefineheadroomasUTILITYDELIVERYcapacityafterexistingusersandreserves, NOTsource-basinavailabilityorpermittedabstraction. Belowline doesnot proveecologicalsafety; returnfractions/basinseasonalitystillunknown. Toycurvepreservesannualvolume, threeequal-durationmonthspeak andninecompensate; originalarithmeticdemonstratescapacitythresholdwithoutclaimactualseasonalprofile. Explainflow/monthely availability andreturnlimits.|W16,M06,M07,M11;Fig5|
 |6. Electricity supply and carbon accounting|Lowdirectwater cannot settleenvironmentalassessment. PORTSclosedloopplanstillrequiresgenerationincludingnaturalgas. PUE×ITenergy givesfacilityenergy; chosen inventorycarbonfactorillustratesvariation. Explainmarketvslocationaccounting, averagefactorvsmarginalcausalimpact. Calculatornoembodiedhardware/netbenefits.|E08,E11–E14,E16,M08,M12;Fig6|
 |7. From sector electricity to a prompt|Campuscapacityscenarioisnotindustryannualmeasurement. IEA485TWh2025estimate,950TWh2030centralforecast~3%global electricity2030,allDCnotAIalone. Terawattpower≠TWhenergy;noverifiedsingleTWcampus. Introduce E04 task variation BEFORE the efficiency model: energy depends on definedtask, outputlength, model and routing. Define one modeledtask as one repetition of the SAME fixed workload and hold workload mixconstant. Then ask whether improved efficiency alone defeats an aggregate growth concern. Normalize the same1GWscenarioresourcebudget and exploreexactefficiencyneededat2×/3×/5×workloadvolumetomaintainit; offsetcurveanswersspecificunknownbudgetquestion. Algebra doesnotexplain orpredictIEAforecast.|E01,E04,E10,E15,M09,M10;Fig7|
 |8. The measurements I want published|First return to same1GWITscenario:277.7MG/year,summer2×average1.52MG/dayversuschosen1MG/daydeliveryheadroom;PUE1.2and400g/kWhyield4.20MtCO2e. Stateconditionaldeliveryconstraint, actualwaterconsumption/source/localhydrologyunknown,carboninventorynotmarginalimpact. Applyeachcheckratherthanleavingreaderwithalist. Then use §7result: estimating aggregate electricity requires a defined workload basket and mean energy/task, and estimating oneprompt requires its own taskenergy/location/accounting. CampuscapacityandregionalWUEprovide neither. Thisiswhy workload-definition and resource/defined-taskmean belong in disclosure requests. Writer'sexplicitjudgment:assessusefulnessandscope;environmentalverificationrequiresmonthlywithdrawal/consumption/source,operatingstage,kWh/loadandlocalheadroom,carbonmethod. No inventedpersonaltesting. ReassessoriginalLincoln headline:111householdvolumeyears isstill aconditionalvolumecomparison,notAI-onlyuseorlocalharm;2025observationstillnotmature2026operation. Endwithconcretedisclosurerequestincludingdefined-taskintensity.|E04,M13–M15|
@@ -217,7 +221,7 @@ All axes/values accessible in HTML readouts or caption. Existing paper palette; 
 |2|WaterBalance /static-svg|Two source→site→atmosphere/return-to-same-source flow diagrams; eachwithdraws100, localreturns20versus80, localconsumption80versus20. Clearlyhypothetical; noGooglemeasurement orhouseholdreturnrate.|100unitswithdrawninbothcases;returns20/80toIMMEDIATEsourceenvironmentonmodeledperiod;evaporation80/20. Arbitrarytoybalances; defs adjacent.|Static mechanism;W10,M11|
 |3|RegionWater /static-svg|AWS2025regions Stockholm.02,Tokyo1.22,Singapore1.57,Jakarta2.85 onzero-to3L/ITkWhlinearaxis;textsamevalues outsidepoints, global.12referencecaption.|Withdrawals,allworkloads,operator-reportedannualregion averages; nottaskmatchedharm.|Static matchedcomparison;W11–W13|
 |4|SizeExplorer /interactive-canvas|ITcapacity×hours×load→ITenergy;compatiblewithdrawalintensity→sitewater. Plotannualwithdrawalsagainstcontinuouscoolingintensity0–3, selectedpointchangeswaterintensity, capacity/loadchangeabsolutevolumescaleandaccessibleTWh/gallons/householdreadouts; showthecompatibleITdenominatorinthechart. Noactualsiteforecast.|IT100–10000MWdefault1000; averageelectricalload10–100%default100;withdrawalWUE0–3L/kWhdefault.12. ShowTWh,MG/year,householdvolumeyears,accountenergyyears.|Continuous scale/load/intensitysweep;M01–M05,W13,W17|
-|5|LocalHeadroom /interactive-canvas|Sameannualvolumecangeneratepeakdemandabovehypotheticalfixed utilityDELIVERYheadroom. Plotmonthlyflows andcapacitythreshold;durationapproxexplicit.|Annualsitewithdrawals100–2000MGdefault277.7; peak1–4default2;utilitydeliveryheadroom.1–5MG/daydefault1;threeequal-durationpeakmonths.|Continuouspeakandcapacitysweep;M06,M07,W16|
+|5|LocalHeadroom /interactive-canvas|Sameannualvolumecangeneratepeakdemandabovehypotheticalfixed utilityDELIVERYheadroom. Plotmonthlyflows andcapacitythreshold;durationapproxexplicit.|Annualsitewithdrawals100–2000MGdefault277.7, supplied100%bydepictedutility; peak1–4default2;utilitydeliveryheadroom.1–5MG/daydefault1;threeequal-durationpeakmonths.|Continuouspeakandcapacitysweep;M06,M07,W16|
 |6|EnergyCarbon /interactive-canvas|Atfixed1GWIT,loadandPUEgivefacilityenergy;inventoryintensityconvertsitintoMtCO2e. Lineargraphintensity0–800,currentpoint.|Averageelectricalload10–100%default100;PUE1–1.5default1.2;illustrativeintensity0–800gCO2e/kWhdefault400. Inventoryarithmetic,noempiricalgridpresetorcausalimpact.|Continuousenergy/intensitysweep;E11,E14,M08|
 |7|EfficiencyGrowth /interactive-canvas|Normalizedtotals=taskmultiple×resourceper-taskfraction;iso-totalcurve resource/task=1/taskmultiple, currentpointabove/belowcurve givesincrease/decrease; readersfindexactefficiencyneededtooffsetgrowth. ShowREQUIREDITELECTRICITYrelative to baseline, notwater. >1×requiresadditionalcapacityor moreelapsedtime; notrealizableannualconsumption withinunchangedfull-load1GWsite. Originalworkloadscenario,notforecast.|Taskcount1–10×default3;per-taskITelectricityfraction.1–1default.5;requiredITelectricitydefault1.5× (13.14TWh demandedagainst8.76TWhbaseline; additionalcapacity/time required).|Continuoussweepofproduct;E15,M09|
 
@@ -312,6 +316,110 @@ Type suggestions addressed without a re-type: Vic explicitly requested coded int
 Repair: model output now required IT electricity relative to fixed baseline, not realizable consumption within unchanged1GWcampus. Morethan1× needs additionalcapacity or elapsedtime. Figure7 moved after currenttask-variation discussion and explicitfixed-workloaddefinition. It now addresses the electricity-budget threshold used by the disclosure coda. No water output and no implicitconstantWUE.
 
 
+### Invocation3
+
+1. **STRUCTURAL — §5 / Figure 5 / §8 / M07 and M15: site withdrawals are compared with utility delivery capacity without a supply-source assumption.**
+
+   Figure 5 takes **total annual site withdrawals** as its input but compares the resulting seasonal flow with **spare utility delivery capacity**. Nothing specifies that the utility supplies all those withdrawals. Defining the headroom precisely does not establish a matching numerator.
+
+   This affects the ending’s worked conclusion: **1.52 million gallons/day exceeds 1 million gallons/day of headroom only if enough of that demand reaches the utility.** With a hypothetical 50% utility share, utility demand would be approximately **0.76 million gallons/day**.
+
+   **Fix:** explicitly assume the toy facility obtains **100% of its water from the depicted utility**, and carry that assumption through Figure 5, M15, and §8. Alternatively, introduce a utility-supplied fraction and compare only that flow with delivery headroom. Keep source-basin availability and ecological effects separate. The missing assumption needs a matrix entry or an amendment to M15.
+
+Repair applied: toy facility obtains100% of its withdrawal volume from the depicted utility. That explicit source assumption now travels through M07/M15, figure5caption and workedexample. This is a minor clarification of an original hypothetical input, not new empirical research, a type change or a narrative restructure. Gate1's specific instruction says rerun if substantial; no fourth full invocation performed. Finaldraftreview will verify this assumption in actualprose and code. No claim that invocation3returned clean.
+
+## Voice gate
+
+### Invocation1
+
+The title, frontmatter description, dek, and every heading pass. Findings below use the matching repository file’s line numbers.
+
+[src/content/blog/ai-environmental-impact/index.mdx:48](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:48)  
+SENTENCE: The cooling label also needs a boundary.  
+FAMILY: withheld-referent  
+MISSING: The liquid-cooling label and the distinction between transferring heat inside a server and releasing it outdoors.  
+REWRITE: Liquid cooling inside a server doesn't specify how the facility releases heat outdoors.  
+TOUCHES-SOURCED-CLAIM: no
+
+[src/content/blog/ai-environmental-impact/index.mdx:64](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:64)  
+SENTENCE: Cooling and other facility overhead come later.  
+FAMILY: reader-choreography  
+MISSING: Whether cooling and facility overhead are included in the stated IT capacity.  
+REWRITE: IT capacity excludes cooling and other facility overhead.  
+TOUCHES-SOURCED-CLAIM: no
+
+[src/content/blog/ai-environmental-impact/index.mdx:88](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:88)  
+SENTENCE: Now we can estimate IT electricity under stated assumptions.  
+FAMILY: reader-choreography  
+MISSING: The operation that converts capacity and average load into annual electricity use.  
+REWRITE: Annual IT electricity equals IT capacity multiplied by the year's average electrical-load fraction and the number of hours in the year.  
+TOUCHES-SOURCED-CLAIM: no
+
+[src/content/blog/ai-environmental-impact/index.mdx:146](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:146)  
+SENTENCE: Carbon reports add another distinction.  
+FAMILY: withheld-referent  
+MISSING: Location-based versus market-based emissions accounting.  
+REWRITE: Carbon reports distinguish location-based emissions from market-based emissions.  
+TOUCHES-SOURCED-CLAIM: no
+
+[src/content/blog/ai-environmental-impact/index.mdx:150](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:150)  
+SENTENCE: Apply the checks together to our reference scenario.  
+FAMILY: reader-choreography  
+MISSING: The comparison used to test delivery capacity and the multiplication used to calculate emissions.  
+REWRITE: The utility-capacity test compares summer water demand with delivery headroom; the emissions calculation multiplies annual facility electricity by the chosen emissions factor.  
+TOUCHES-SOURCED-CLAIM: no
+
+[src/content/blog/ai-environmental-impact/index.mdx:152](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:152)  
+SENTENCE: I can state those limits without pretending either the water or electricity demand is harmless.  
+FAMILY: staged-significance  
+MISSING: The remaining assessments of local water loss and changes in electricity generation. The sentence announces the writer's caution instead.  
+REWRITE: The calculated water withdrawals and electricity use still require assessments of local water loss and the power system's response.  
+TOUCHES-SOURCED-CLAIM: no
+
+[src/content/blog/ai-environmental-impact/index.mdx:162](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:162)  
+SENTENCE: This is where terawatt-hours are useful.  
+FAMILY: staged-significance  
+MISSING: The annual industry electricity use being expressed in that unit.  
+REWRITE: The IEA expresses annual data-center electricity use in terawatt-hours.  
+TOUCHES-SOURCED-CLAIM: no
+
+[src/content/blog/ai-environmental-impact/index.mdx:166](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:166)  
+SENTENCE: That affects the efficiency argument too.  
+FAMILY: withheld-referent  
+MISSING: How workload mix changes average electricity per task independently of efficiency improvements.  
+REWRITE: A changing workload mix can alter mean electricity per task even if each workload's energy requirement stays the same.  
+TOUCHES-SOURCED-CLAIM: no
+
+[src/content/blog/ai-environmental-impact/index.mdx:194](/Users/vic/dev/augusteo.com-astro/src/content/blog/ai-environmental-impact/index.mdx:194)  
+SENTENCE: Return to Lincoln's reported 13.299 million gallons.  
+FAMILY: reader-choreography  
+MISSING: A direct statement of the reported quantity, source, and reporting year instead of an instruction to revisit it.  
+REWRITE: KOLN's reported 2025 water total for Google's Lincoln site is 13.299 million gallons.  
+TOUCHES-SOURCED-CLAIM: no
+
+The paragraph scan found no additional cases of concrete nouns or causal detail being replaced by quotable formulations.
+
+| Section | Result | Findings |
+|---|---|---:|
+| Frontmatter and dek | PASS | 0 |
+| 1. Thirteen million gallons in household and city units | PASS | 0 |
+| 2. Where the water goes | FAIL | 1 |
+| 3. From 100 megawatts to eight gigawatts | FAIL | 2 |
+| 4. A gigawatt doesn't specify a water bill | PASS | 0 |
+| 5. The summer demand a yearly total hides | PASS | 0 |
+| 6. Electricity supply and carbon accounting | FAIL | 3 |
+| 7. From sector electricity to a prompt | FAIL | 2 |
+| 8. The measurements I want published | FAIL | 1 |
+| References | PASS | 0 |
+
+**Total: 9 findings.**
+
+Applied9 literal, mechanistic repairs (all labeled TOUCHES-SOURCED-CLAIM:no), with plain synonyms where helpful. Findings were isolated leading or transition sentences, and reviewer explicitly found no paragraph-level substitution or heading/dek failures. This supports routine prose repair within Vic's already explicit request to write in his voice; no invented anecdotes or claim changes. Invocation2pending on finalfigures/captions.
+
+## Link and freshness audit
+
+All external sources re-fetched2026-10-04. Water PDF hashesunchanged, arxiv remainsv1; energydata/sourceclaimsunchanged. See [water audit](ai-environmental-impact-water-link-audit.md) and [energy audit](ai-environmental-impact-energy-link-audit.md). KOLNidentitycorrectedtonewsreport. CoolingmechanismmovedtocurrentDOEgovernmentdocumentation andAlston-derivedprosetrimmed; source-budgetcheckwillbe repeatedaftercaptions. EIArelease mustberechecked if publicationfallsafterOct7. Figurecode/renderverificationis separate, stillpending.
+
 ## Resume here
 
 Last touched: 2026-10-04.
@@ -322,9 +430,9 @@ Last touched: 2026-10-04.
 |---|---|---|
 | 1. Lock-in | scope revised by Vic; title provisional | Spec and Throughline |
 | 2. Research / fact-check | done | Matrix passed Gate0 after repairs; source bounds explicit |
-| 3. Outline + figure list | review running | Eight-section outline and seven figures locked; Gate1 launched |
-| 4. Draft prose | pending | No MDX created |
-| 5. Implement figures | pending | No figure implementation created |
+| 3. Outline + figure list | repaired | ThreeGate1reviews; final utility-source assumption clarified; types retained |
+| 4. Draft prose | done | Eight sections drafted with citations; voice check clean |
+| 5. Implement figures | in progress | Seven contracted figures; prose placeholders ready |
 | 6. Playwright review | pending | None |
 | 7. Pre-ship review | pending | None |
 
@@ -336,10 +444,11 @@ Last touched: 2026-10-04.
 |2026-10-04|0 (research), invocation2|clean; structural-fixed|## Codex research review|
 |2026-10-04|1 (outline), invocation1|structural repairs applied|notes/ai-environmental-impact-codex-outline-20261004.md|
 |2026-10-04|1 (outline), invocation2|two new model-boundary/placement repairs applied|## Codex outline review|
+|2026-10-04|1 (outline), invocation3|one utility-source assumption clarified; finaldraft verification pending|## Codex outline review|
 
 ### Suggested next batch
 
-Finish Gate 0 review, then lock outline and run Gate 1 before drafting. Do not request another approval simply to repeat Vic's accepted scope edits. Title selection can remain open while research proceeds.
+Draft all eightsections; implementsevenfigures; verifyactualproseandfigureassumptions in finalreview. Do not request another approval simply to repeat Vic's accepted scope edits. Title selection can remain open while research proceeds.
 
 ### How to resume from a fresh context
 
