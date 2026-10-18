@@ -1,0 +1,3 @@
+/photos https://photos.augusteo.com/ 301
+/photos/ https://photos.augusteo.com/ 301
+/photos/* https://photos.augusteo.com/:splat 301
