@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "bun run sync && concurrently \"bun run watch:content\" \"astro dev\"",
-    "build": "astro build",
+    "build": "mkdir -p public/assets/blog && cp -R src/assets/blog/. public/assets/blog/ && astro build",
     "audit": "bun audit",
     "preview": "astro preview",
     "sync": "bun scripts/sync-content.ts",
@@ -38,6 +38,7 @@
     "@types/sanitize-html": "^2.16.1",
     "chokidar": "^5.0.0",
     "concurrently": "^9.2.4",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "wrangler": "4.151.3"
   }
 }

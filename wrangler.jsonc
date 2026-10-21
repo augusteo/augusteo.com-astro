@@ -1,5 +1,9 @@
 {
   "name": "augusteo-blog",
   "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "preview_urls": true,
+  "routes": [{ "pattern": "www.augusteo.com/*", "zone_name": "augusteo.com" }],
+  "previews": {},
   "assets": { "directory": "./dist" }
 }
