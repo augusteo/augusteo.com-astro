@@ -347,10 +347,16 @@ function escapeCurlyBraces(content: string): string {
   return result.join('\n');
 }
 
+// Markdown link destinations can't contain spaces unless wrapped in <>
+function assetPath(slug: string, name: string): string {
+  const path = `@assets/blog/${slug}/${name}`;
+  return name.includes(' ') ? `<${path}>` : path;
+}
+
 function transformContent(content: string, slug: string, urlToLocal: Map<string, { filename: string; path: string }>): string {
   // Convert wikilink images to standard markdown with alias path to assets folder
   let transformed = content.replace(WIKILINK_IMAGE_REGEX, (_, imageName) => {
-    return `![${imageName}](@assets/blog/${slug}/${imageName})`;
+    return `![${imageName}](${assetPath(slug, imageName)})`;
   });
 
   // Convert wikilink external URLs to local images (if downloaded) or standard markdown
@@ -378,7 +384,7 @@ function transformContent(content: string, slug: string, urlToLocal: Map<string,
 
   // Convert standard markdown local images to use @assets path
   transformed = transformed.replace(MARKDOWN_LOCAL_IMAGE_REGEX, (_, alt, imageName) => {
-    return `![${alt}](@assets/blog/${slug}/${imageName})`;
+    return `![${alt}](${assetPath(slug, imageName)})`;
   });
 
   // Escape curly braces to prevent MDX from interpreting them as JSX
