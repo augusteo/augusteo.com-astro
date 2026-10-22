@@ -1,6 +1,0 @@
-{
-  "redirects": [
-    { "source": "/photos", "destination": "https://photos.augusteo.com/", "permanent": true },
-    { "source": "/photos/:path*", "destination": "https://photos.augusteo.com/:path*", "permanent": true }
-  ]
-}
